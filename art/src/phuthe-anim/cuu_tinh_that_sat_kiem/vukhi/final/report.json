@@ -1,0 +1,1427 @@
+{
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "scale": 0.2,
+  "palette": [
+    [
+      1,
+      1,
+      1
+    ],
+    [
+      5,
+      3,
+      5
+    ],
+    [
+      7,
+      5,
+      9
+    ],
+    [
+      9,
+      10,
+      13
+    ],
+    [
+      8,
+      15,
+      26
+    ],
+    [
+      10,
+      23,
+      39
+    ],
+    [
+      9,
+      28,
+      52
+    ],
+    [
+      11,
+      34,
+      61
+    ],
+    [
+      13,
+      23,
+      30
+    ],
+    [
+      14,
+      34,
+      55
+    ],
+    [
+      14,
+      40,
+      67
+    ],
+    [
+      14,
+      43,
+      74
+    ],
+    [
+      18,
+      37,
+      50
+    ],
+    [
+      17,
+      46,
+      81
+    ],
+    [
+      23,
+      43,
+      67
+    ],
+    [
+      54,
+      37,
+      42
+    ],
+    [
+      34,
+      58,
+      78
+    ],
+    [
+      26,
+      63,
+      104
+    ],
+    [
+      58,
+      63,
+      69
+    ],
+    [
+      99,
+      70,
+      69
+    ],
+    [
+      46,
+      89,
+      132
+    ],
+    [
+      83,
+      108,
+      143
+    ],
+    [
+      86,
+      134,
+      185
+    ],
+    [
+      111,
+      184,
+      237
+    ],
+    [
+      146,
+      113,
+      137
+    ],
+    [
+      145,
+      143,
+      161
+    ],
+    [
+      174,
+      186,
+      183
+    ],
+    [
+      225,
+      224,
+      217
+    ],
+    [
+      144,
+      210,
+      250
+    ],
+    [
+      201,
+      226,
+      251
+    ],
+    [
+      243,
+      239,
+      246
+    ],
+    [
+      251,
+      253,
+      252
+    ]
+  ],
+  "frames": 130,
+  "maxA": 1.6999999999999986,
+  "maxB": 41.33424730172306,
+  "edge": 0,
+  "geometryFailures": [],
+  "checks": {
+    "m": {
+      "id": "cuu_tinh_that_sat_kiem",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "nhẹ",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                48,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                302,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                562,
+                757
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                780,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.475
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.657
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (s) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 22%)."
+            }
+          ],
+          "draft": "LỖI: toA — chân lệch — H3 (s) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 22%)."
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.846,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                60,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                318,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                566,
+                757
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                786,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.376
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.992
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (se) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+            },
+            {
+              "sev": "note",
+              "code": "se-giong-e",
+              "where": "se vs e",
+              "msg": "hình bóng phụ thể idle se ≈ e (IoU 0.846 > 0.8): cảnh báo gần đúng, xem bằng mắt."
+            }
+          ],
+          "draft": "LỖI: toB — chân lệch — H3 (se) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                58,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                316,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                570,
+                757
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                784,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.336
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 0.994
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (e) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+            }
+          ],
+          "draft": "LỖI: toC — chân lệch — H3 (e) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                62,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                320,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                576,
+                757
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                800,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.365
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.991
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (ne) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 28%)."
+            }
+          ],
+          "draft": "LỖI: toD — chân lệch — H3 (ne) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 28%)."
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                56,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                306,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                566,
+                749
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                786,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.326
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.613
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.459
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (n) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 19%)."
+            }
+          ],
+          "draft": "LỖI: toE — chân lệch — H3 (n) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 19%)."
+        }
+      ]
+    },
+    "f": {
+      "id": "cuu_tinh_that_sat_kiem",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "nhẹ",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                50,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                306,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                562,
+                757
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                778,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.508
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.661
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (s) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 22%)."
+            }
+          ],
+          "draft": "LỖI: toA — chân lệch — H3 (s) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 22%)."
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.882,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                58,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                316,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                570,
+                755
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                788,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.398
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (se) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 26%)."
+            },
+            {
+              "sev": "note",
+              "code": "se-giong-e",
+              "where": "se vs e",
+              "msg": "hình bóng phụ thể idle se ≈ e (IoU 0.882 > 0.8): cảnh báo gần đúng, xem bằng mắt."
+            }
+          ],
+          "draft": "LỖI: toB — chân lệch — H3 (se) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 26%)."
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                58,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                316,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                572,
+                755
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                786,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.437
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (e) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+            }
+          ],
+          "draft": "LỖI: toC — chân lệch — H3 (e) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                60,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                318,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                578,
+                755
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                802,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.399
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (ne) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+            }
+          ],
+          "draft": "LỖI: toD — chân lệch — H3 (ne) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                56,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                310,
+                441
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                568,
+                749
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                784,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.343
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.65
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.489
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (n) C1–4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%)."
+            }
+          ],
+          "draft": "LỖI: toE — chân lệch — H3 (n) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%)."
+        }
+      ]
+    }
+  },
+  "preview": "preview/index.html",
+  "approvedForImport": false
+}
