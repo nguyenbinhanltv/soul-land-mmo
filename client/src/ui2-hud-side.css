@@ -103,6 +103,9 @@ body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,
 #hud:has(#bossRank:not([hidden])) #sideBox :is(#quest,.sb-empty,#sbTabQuest),body.arena #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest),body:where(.ui-h460):not(.touch) #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest){display:none!important}
 /* Màn rất thấp (radar đã cao ~305 px, #878): chỉ hiện khung khi đang có tổ đội hoặc lời mời, đặt bên trái radar và thân thấp hơn để không rơi xuống dải đội hình / hồn kỹ. */
 body:where(.ui-h460):not(.touch) #hud #sideBox:not(.inv):not(.inparty){display:none}
-body:where(.ui-h560):not(.touch) #hud #sideBox{position:absolute;top:0;right:calc(100% + var(--sp-4));width:200px}  /* bên trái radar (hàng trên còn trống), không rơi xuống dải đáy (đội hình / kỹ năng) */
+body:where(.ui-h560):not(.touch) #hud #sideBox{position:absolute;top:0;width:200px}  /* vị trí ngang do sideBox.ts fit() đặt: ngay phải cột chỉ số trái */
 body:where(.ui-h460):not(.touch) #hud #sideBox .sb-body{max-height:112px}
 #hud:has(#bossRank:not([hidden])) #sideBox #party,body.arena #hud #sideBox #party,body:where(.ui-h460):not(.touch) #hud #sideBox #party{display:block!important}
+/* Khung ở hàng trên (màn thấp, class do sideBox.ts đặt): dải boss / mục tiêu / đếm ngược dời qua phải huy hiệu menu (512 = huy hiệu + lề), như khi Tổ đội còn ở cột trái. */
+body:where(.ui-h560) #hud.sb-left :is(#bossbar,#bossCd,#target){left:512px;transform:none;width:auto;max-width:max(140px,calc(100% - 512px - 222px));overflow:hidden;text-overflow:ellipsis}
+body:where(.ui-h560) #hud.sb-left #bossbar{width:min(268px,calc(100% - 512px - 222px));min-width:140px;overflow:visible}

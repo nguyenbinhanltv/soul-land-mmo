@@ -24,20 +24,27 @@ const BELOW = "#team,#actrow .action-group";
 let fitRaf = 0;
 function fitSoon() { cancelAnimationFrame(fitRaf); fitRaf = requestAnimationFrame(fit); }
 /**
- * Giới hạn chiều cao thân khung theo chỗ còn trống: từ mép trên của thân tới mép trên của vật cản gần nhất bên dưới có chồng ngang với khung (trừ lề);
- * thừa thì cuộn trong khung. Đo bằng toạ độ màn hình rồi chia cho hệ số `zoom` của HUD (offsetHeight là cỡ chưa phóng).
+ * Đặt khung và giới hạn chiều cao thân theo chỗ còn trống (toạ độ màn hình chia cho hệ số `zoom` của HUD; offsetHeight là cỡ chưa phóng).
+ * - Màn thấp (position absolute, `ui-h560` không cảm ứng): khung đứng ngay phải cột chỉ số trái như khung Tổ đội cũ, hẹp lại để không chạm huy hiệu menu;
+ *   lúc đó `#hud.sb-left` bật để dải boss / mục tiêu / đếm ngược dời qua phải huy hiệu (ui2-hud-side.css), không bị khung đè.
+ * - Mọi cỡ màn: thân cao tới mép trên của vật cản gần nhất bên dưới có chồng ngang (đội hình, nhóm kỹ năng) trừ lề; thừa thì cuộn trong khung.
  */
 function fit() {
-  const el = root(), body = el?.querySelector<HTMLElement>(".sb-body");
-  if (!el || !body || el.classList.contains("collapsed") || !el.getClientRects().length) return;
-  body.style.maxHeight = ""; el.style.maxWidth = "";
+  const el = root(), body = el?.querySelector<HTMLElement>(".sb-body"), hud = document.getElementById("hud");
+  if (!el || !body) return;
+  body.style.maxHeight = ""; el.style.maxWidth = ""; el.style.left = ""; el.style.right = "";
+  const shown = el.getClientRects().length > 0, lane = shown && getComputedStyle(el).position === "absolute";
+  hud?.classList.toggle("sb-left", lane);
+  if (!shown) return;
   let r = el.getBoundingClientRect(), k = el.offsetHeight ? r.height / el.offsetHeight : 1;
-  // Màn thấp: khung nằm bên trái cột radar (position absolute); hẹp lại để không chạm huy hiệu menu giữa trên (cỡ chữ lớn làm radar rộng ra, đẩy khung sang trái).
-  const hub = document.getElementById("hubBtn"), col = document.getElementById("rcol");
-  if (hub && col && getComputedStyle(el).position === "absolute") {
-    const room = (col.getBoundingClientRect().left - hub.getBoundingClientRect().right) / k - 2 * MARGIN;
-    if (r.width / k > room) { el.style.maxWidth = Math.max(MIN_W, Math.floor(room)) + "px"; r = el.getBoundingClientRect(); k = el.offsetHeight ? r.height / el.offsetHeight : 1; }
+  const hub = document.getElementById("hubBtn"), col = document.getElementById("rcol"), lcol = document.getElementById("lcol");
+  if (lane && hub && col && lcol) {
+    const x0 = lcol.getBoundingClientRect().right + MARGIN * k, room = (hub.getBoundingClientRect().left - x0) / k - MARGIN;
+    el.style.right = "auto"; el.style.left = Math.round((x0 - col.getBoundingClientRect().left) / k) + "px";
+    el.style.maxWidth = Math.max(MIN_W, Math.floor(room)) + "px";
+    r = el.getBoundingClientRect(); k = el.offsetHeight ? r.height / el.offsetHeight : 1;
   }
+  if (el.classList.contains("collapsed")) return;
   const b = body.getBoundingClientRect();
   let floor = Infinity;
   document.querySelectorAll<HTMLElement>(BELOW).forEach((o) => {

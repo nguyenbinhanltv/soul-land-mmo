@@ -149,6 +149,10 @@ async function runSize(W, H) {
       await fakeParty({ id: 0, max: 5, members: [], invites: [{ name: "Đường Tam", secs: 30 }] }); await clearToasts(); await sleep(400); await shot("13-khung-to-doi-loi-moi");
       const me = { name: "Tiểu Vũ", leader: true, me: true, sid: "a", map: "", ch: 1, level: 20, vh: 0, hp: 80, maxHp: 100, dead: false, off: false };
       await fakeParty({ id: 7, max: 5, members: [me, ...["Đường Tam", "Đới Mộc Bạch", "Chu Trúc Thanh", "Mã Hồng Tuấn"].map((name, i) => ({ ...me, name, leader: false, me: false, sid: "b" + i, hp: 40 + i * 10 }))], invites: [] }); await clearToasts(); await sleep(400); await shot("14-khung-to-doi");
+      // Dải boss giả (DOM, không qua state) + tổ đội: kiểm khung không đè dải boss / mục tiêu ở màn thấp.
+      await ev(`(() => { const b = document.getElementById("bossbar"), set = () => { b.hidden = false; b.innerHTML = '<div class="bhead"><b>Thú vương Hắc Long Vương · boss thế giới</b></div><div class="bar hp"><i style="width:70%"></i><span>70%</span></div>'; }; set(); window.__fakeBoss = setInterval(set, 30); return true; })()`); // giữ dải boss giả (HUD vẽ lại mỗi khung sẽ ẩn nó)
+      await sleep(400); await shot("14b-khung-to-doi-co-boss");
+      await ev(`(clearInterval(window.__fakeBoss), document.getElementById("bossbar").hidden = true, true)`);
       await click("sbFold"); await sleep(300); await shot("15-khung-thu-gon"); await click("sbFold");
       await click("sbTabQuest"); await fakeParty({ id: 0, max: 5, members: [], invites: [] }); await sleep(200);
     });
