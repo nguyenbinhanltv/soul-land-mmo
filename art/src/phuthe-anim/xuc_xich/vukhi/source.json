@@ -1,0 +1,1853 @@
+{
+  "tool": "OpenAI image_gen tích hợp Codex",
+  "model": "unknown (công cụ không trả về)",
+  "seed": null,
+  "terms": "Đầu ra OpenAI; không gán CC0",
+  "pathBase": "art/src/phuthe-anim/xuc_xich/vukhi",
+  "history": [
+    {
+      "file": "e/attempt1/poses.raw.png",
+      "sha256": "4271676e6fd578d1d2c2e9cf4e0e005c6dfe2a583f8bb0912e2b2a47327e9439",
+      "prompt": "e/attempt1/prompt.txt",
+      "promptSha256": "9c277da7273e313316c71e01dd424118274eb69b58b7020a32cabb993001eca0",
+      "reference": null,
+      "selected": false,
+      "rejection": "Canonical không tách được đoạn cán hẹp; không đổi checker để nhận."
+    },
+    {
+      "file": "e/attempt2/poses.raw.png",
+      "sha256": "27575b5086c8858be74fa417d26b054b3a5341c383778ec698557eff7caad352",
+      "prompt": "e/attempt2/prompt.txt",
+      "promptSha256": "3bc7f40f163fce0841b7a92722035baca389b877e9c5473c5b309ba172e5c943",
+      "reference": "e/attempt1/poses.raw.png",
+      "selected": false,
+      "rejection": "Canonical không tách được đoạn cán hẹp; không đổi checker để nhận."
+    },
+    {
+      "file": "e/attempt3/poses.raw.png",
+      "sha256": "1cef74edd2c28da9ab0c316fc7c27c03f8cb0289e428e064fcbfacd70337b22d",
+      "prompt": "e/attempt3/prompt.txt",
+      "promptSha256": "5d71a2f7989fcf3544c0f2689fb638cd37b34d57e1d26e74d95f59b332add5a5",
+      "reference": null,
+      "selected": true
+    },
+    {
+      "file": "s/attempt1/poses.raw.png",
+      "sha256": "b466b6a4515605c06457ab553b720df824a3461eefa5b9337300f096d91803ca",
+      "prompt": "s/attempt1/prompt.txt",
+      "promptSha256": "95c4e9e653f24919dbb9f0f422f527d999cdcd349aaca28cda85c3de025cdf57",
+      "reference": "e/attempt3/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "se/attempt1/poses.raw.png",
+      "sha256": "9d7475b445820949e7b109f451338179ae69cef306506f908f34e72d6142ab14",
+      "prompt": "se/attempt1/prompt.txt",
+      "promptSha256": "9e8d32635c9a2fcebc860a5e40ce84a202c5ceb640e0b930ea5d772e3f156711",
+      "reference": "s/attempt1/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "ne/attempt1/poses.raw.png",
+      "sha256": "b7fd49ca48d3586d077c81cee11e5663e50d8a030ea68db75d3336d8fcbecf43",
+      "prompt": "ne/attempt1/prompt.txt",
+      "promptSha256": "cefe93886cfa0c3f90542b102a01359b193c4e1058d3ff1fa9bf6715c21cb5d3",
+      "reference": "e/attempt3/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "n/attempt1/poses.raw.png",
+      "sha256": "309efc2a8d40cca91992605d8494f0d5c68d85bfb8fdbfa27d1594b482895357",
+      "prompt": "n/attempt1/prompt.txt",
+      "promptSha256": "a841c25c1acb2fd674608473431d8f4d2843dfb80d5999c7ae26f7111849625a",
+      "reference": "ne/attempt1/poses.raw.png",
+      "selected": true
+    }
+  ],
+  "selectedPoses": {
+    "s": "s/attempt1/poses.raw.png",
+    "se": "se/attempt1/poses.raw.png",
+    "e": "e/attempt3/poses.raw.png",
+    "ne": "ne/attempt1/poses.raw.png",
+    "n": "n/attempt1/poses.raw.png"
+  },
+  "handPolicy": "Một tay theo bảng thiết kế; không đổi checker/whitelist, không cần ngoại lệ mới.",
+  "mapping": "idle0; walk1; attack2/3/6/7; cast6/7; hurt0",
+  "bodyReferencePixels": 47,
+  "maxShaftGamePixels": 14.555569711192797,
+  "shaftBodyRatio": 0.30969297257857015,
+  "wholeWeaponDiagonalBound": 47.650484357843986,
+  "recipeSha256": "b17fd138c810ac07f803e8475626e0e112ff796dc9fb319bbf95734ded5654a0",
+  "canonicalVerification": {
+    "commit": "770f989ababcb6ea3fff1ecadfe4385ab76785cf",
+    "pr": 1391,
+    "textHashPolicy": "SHA-256 UTF-8 xuống dòng LF",
+    "tools": {
+      "phuthe-hammer-atlas.mjs": "00bcdc252e9207938fcbb7ca53cb9c62a45fe2edcafbc562b75e0b7c29d65094",
+      "phuthe-hammer-atlas-finalize.mjs": "cbd584d91d087ceb7a2a7ed6eeffae80e7e11664746af231b01b96758170967a",
+      "phuthe-hammer-atlas-cut.mjs": "f833963d9d96f4c8c6be47a957aa3806e87dadc9469fc623428bd588f2af273b",
+      "phuthe-sheet-dummy.mjs": "100ec760e4740446b3c26e2fbf0faa82987e6c5c5050c7cde4c592b7d9799d9f",
+      "phuthe-sheet-cut-lib.mjs": "46ddae551209e05d1e7d167d36555bd29fb1fe02b2a5850dace92a9fcc7b9cbc",
+      "phuthe-sheet-check.mjs": "30182d63548e626712739eca82ad46f64404bceb38affa1f97b63271898166e6",
+      "phuthe-weapon-grip.mjs": "ff6d4c679c7fba602df43f862410e1fe21a45392f571aead66c5d07b802db03b"
+    },
+    "frames": 130,
+    "maxA": 0.7071067811865476,
+    "edge": 0,
+    "failures": [],
+    "singleCurrentStepFrames": [
+      {
+        "name": "m/s/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            53,
+            77.3
+          ]
+        ]
+      },
+      {
+        "name": "m/s/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            52.8,
+            78.8
+          ]
+        ]
+      },
+      {
+        "name": "m/s/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.8,
+            78.1
+          ]
+        ]
+      },
+      {
+        "name": "m/s/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            52.9,
+            77.9
+          ]
+        ]
+      },
+      {
+        "name": "m/s/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            47.6,
+            72.9
+          ]
+        ]
+      },
+      {
+        "name": "m/s/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            42.1,
+            59.1
+          ]
+        ]
+      },
+      {
+        "name": "f/s/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            53.5,
+            79
+          ]
+        ]
+      },
+      {
+        "name": "f/s/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            53.5,
+            79
+          ]
+        ]
+      },
+      {
+        "name": "f/s/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            55,
+            78.25
+          ]
+        ]
+      },
+      {
+        "name": "f/s/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            53.9,
+            77.9
+          ]
+        ]
+      },
+      {
+        "name": "f/s/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            50.08333333333333,
+            74.66666666666666
+          ]
+        ]
+      },
+      {
+        "name": "f/s/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            43.1,
+            58.3
+          ]
+        ]
+      },
+      {
+        "name": "m/se/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            56.3,
+            80.4
+          ]
+        ]
+      },
+      {
+        "name": "m/se/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            54.6,
+            78.5
+          ]
+        ]
+      },
+      {
+        "name": "m/se/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53.1,
+            78.1
+          ]
+        ]
+      },
+      {
+        "name": "m/se/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.1,
+            77.9
+          ]
+        ]
+      },
+      {
+        "name": "m/se/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            74.1,
+            72.5
+          ]
+        ]
+      },
+      {
+        "name": "m/se/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            77.1,
+            58.8
+          ]
+        ]
+      },
+      {
+        "name": "f/se/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            55.6,
+            80.5
+          ]
+        ]
+      },
+      {
+        "name": "f/se/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.7,
+            79.5
+          ]
+        ]
+      },
+      {
+        "name": "f/se/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            77.38888888888889
+          ]
+        ]
+      },
+      {
+        "name": "f/se/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.04545454545455,
+            76.95454545454545
+          ]
+        ]
+      },
+      {
+        "name": "f/se/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.375,
+            76
+          ]
+        ]
+      },
+      {
+        "name": "f/se/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            76.95454545454545,
+            60.31818181818181
+          ]
+        ]
+      },
+      {
+        "name": "m/e/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            56.3,
+            80.4
+          ]
+        ]
+      },
+      {
+        "name": "m/e/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            54.6,
+            78.5
+          ]
+        ]
+      },
+      {
+        "name": "m/e/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53.1,
+            78.1
+          ]
+        ]
+      },
+      {
+        "name": "m/e/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.1,
+            77.9
+          ]
+        ]
+      },
+      {
+        "name": "m/e/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            74.1,
+            72.5
+          ]
+        ]
+      },
+      {
+        "name": "m/e/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            77.1,
+            58.8
+          ]
+        ]
+      },
+      {
+        "name": "f/e/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            55.6,
+            80.5
+          ]
+        ]
+      },
+      {
+        "name": "f/e/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.7,
+            79.5
+          ]
+        ]
+      },
+      {
+        "name": "f/e/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            77.38888888888889
+          ]
+        ]
+      },
+      {
+        "name": "f/e/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.04545454545455,
+            76.95454545454545
+          ]
+        ]
+      },
+      {
+        "name": "f/e/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.375,
+            76
+          ]
+        ]
+      },
+      {
+        "name": "f/e/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            76.95454545454545,
+            60.31818181818181
+          ]
+        ]
+      },
+      {
+        "name": "m/ne/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            56.3,
+            80.4
+          ]
+        ]
+      },
+      {
+        "name": "m/ne/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            54.6,
+            78.5
+          ]
+        ]
+      },
+      {
+        "name": "m/ne/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53.1,
+            78.1
+          ]
+        ]
+      },
+      {
+        "name": "m/ne/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.1,
+            77.9
+          ]
+        ]
+      },
+      {
+        "name": "m/ne/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            74.1,
+            72.5
+          ]
+        ]
+      },
+      {
+        "name": "m/ne/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            77.1,
+            58.8
+          ]
+        ]
+      },
+      {
+        "name": "f/ne/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            55.6,
+            80.5
+          ]
+        ]
+      },
+      {
+        "name": "f/ne/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.7,
+            79.5
+          ]
+        ]
+      },
+      {
+        "name": "f/ne/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            77.38888888888889
+          ]
+        ]
+      },
+      {
+        "name": "f/ne/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.04545454545455,
+            76.95454545454545
+          ]
+        ]
+      },
+      {
+        "name": "f/ne/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.375,
+            76
+          ]
+        ]
+      },
+      {
+        "name": "f/ne/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            76.95454545454545,
+            60.31818181818181
+          ]
+        ]
+      },
+      {
+        "name": "m/n/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            75.1,
+            73.7
+          ]
+        ]
+      },
+      {
+        "name": "m/n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            55.8,
+            80.3
+          ]
+        ]
+      },
+      {
+        "name": "m/n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53,
+            79.3
+          ]
+        ]
+      },
+      {
+        "name": "m/n/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            51.6,
+            78.7
+          ]
+        ]
+      },
+      {
+        "name": "m/n/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            80.5,
+            73.6
+          ]
+        ]
+      },
+      {
+        "name": "m/n/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            85.9,
+            61.1
+          ]
+        ]
+      },
+      {
+        "name": "f/n/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            53.27777777777778,
+            79.38888888888889
+          ]
+        ]
+      },
+      {
+        "name": "f/n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            53.27777777777778,
+            79.38888888888889
+          ]
+        ]
+      },
+      {
+        "name": "f/n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            79.38888888888889
+          ]
+        ]
+      },
+      {
+        "name": "f/n/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            53.611111111111114,
+            78.72222222222223
+          ]
+        ]
+      },
+      {
+        "name": "f/n/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            79.5909090909091,
+            72.13636363636363
+          ]
+        ]
+      },
+      {
+        "name": "f/n/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            84.75,
+            60.5
+          ]
+        ]
+      }
+    ]
+  },
+  "lightIssues": {
+    "m": [],
+    "f": [
+      {
+        "sev": "light",
+        "code": "hurt-idle",
+        "where": "H1 (n)",
+        "msg": "hurt trùng idle (xor/hợp 0.073): không thấy phản ứng trúng đòn."
+      }
+    ]
+  },
+  "sheets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/xuc_xich_b.png",
+      "sha256": "adaddd4f70f070f2b63ccf92225a63c6040c9bc52fe8167eea7c4fbd4da45388"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/xuc_xich_f.png",
+      "sha256": "c650311f598c845a344e327948d910b6db424972fa39a9b78cbb473d57721ead"
+    }
+  ],
+  "capture": {
+    "session": "soul_land_game-859",
+    "artifact": "xuc-xich/index.html",
+    "source": "xuc-xich/capture.source.json",
+    "images": 78,
+    "viewport": [
+      1600,
+      900
+    ],
+    "muted": true,
+    "pfx": 0,
+    "errors": [],
+    "method": "Playwright Chrome --mute-audio, RAM riêng; GameScene.animatePlayer thật, cố định bước thân và đồng hồ để chụp; không sửa repo.",
+    "items": [
+      {
+        "file": "game-m-s-cast-0.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 0,
+        "body": 14,
+        "weapon": 10,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "666dba0f2da3a5c4a7329688bffba4730b6c831a4fe351b38c0a1769c4d1aa6d",
+        "capturedAt": "2026-10-30T19:17:53.357Z"
+      },
+      {
+        "file": "game-m-s-cast-100.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 100,
+        "body": 15,
+        "weapon": 10,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "66a0a292f9c74b8c777702f1fdff8fe7f1785939c6de66d4bba62330b86cbad2",
+        "capturedAt": "2026-10-30T19:17:54.241Z"
+      },
+      {
+        "file": "game-m-s-cast-360.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 360,
+        "body": 16,
+        "weapon": 11,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "a22f8395b80f3553e48ef279b3675a62d291ddd4bdf882b4ce3d46a23391155d",
+        "capturedAt": "2026-10-30T19:17:55.094Z"
+      },
+      {
+        "file": "game-m-s-attack-0.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 0,
+        "body": 10,
+        "weapon": 6,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "b169d991a7111247fb5229f62130a8e307d54fff5dd4293079067c454dc37c8d",
+        "capturedAt": "2026-10-30T19:17:55.936Z"
+      },
+      {
+        "file": "game-m-s-attack-100.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 100,
+        "body": 11,
+        "weapon": 7,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "b4cf1562242ad537f07dab12b758cf5b2104b2480294a94d01a3d175de9a73b7",
+        "capturedAt": "2026-10-30T19:17:57.185Z"
+      },
+      {
+        "file": "game-m-s-attack-190.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 190,
+        "body": 12,
+        "weapon": 8,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "0cd8f07bb30e6cf7e3287a3b6f4630c683acf14fab969df7cbd0295b02b36839",
+        "capturedAt": "2026-10-30T19:17:58.196Z"
+      },
+      {
+        "file": "game-m-s-attack-260.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 260,
+        "body": 13,
+        "weapon": 9,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "df2b47965a55b014184c4d5dda374c46a37bd4bc1681760ed9c4cf0f8511549f",
+        "capturedAt": "2026-10-30T19:17:59.031Z"
+      },
+      {
+        "file": "game-m-se-cast-0.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 23,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "b09b76ca7df042c0a63e3eb33854deb42257834e7af6e8ed571d0154c4de5258",
+        "capturedAt": "2026-10-30T19:17:59.941Z"
+      },
+      {
+        "file": "game-m-se-cast-100.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 23,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "a37dc97979ce23a720c9b9951a5a83a68d3f3bc1e39b70cb619ebe8d9998ad28",
+        "capturedAt": "2026-10-30T19:18:00.764Z"
+      },
+      {
+        "file": "game-m-se-cast-360.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 24,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "a9526f5a8ce9f47c4cc0c9e778166212d548116fac43323aa3dd0271c98a7d74",
+        "capturedAt": "2026-10-30T19:18:01.712Z"
+      },
+      {
+        "file": "game-m-se-attack-0.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 19,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "58dfac1ca783d40a39a1c36cdf941c2f4a02a6605289eb29dadce7990194d2b3",
+        "capturedAt": "2026-10-30T19:18:02.592Z"
+      },
+      {
+        "file": "game-m-se-attack-100.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 20,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "a056e35899e368542487f1d0ea7dd478bd18f8aea0e8ecbf1fddad6a951035d3",
+        "capturedAt": "2026-10-30T19:18:03.482Z"
+      },
+      {
+        "file": "game-m-se-attack-190.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 21,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "c7460e28c248b7efa7eb6989ebf2f748dffbe33ff81ec62fdc409dd238219976",
+        "capturedAt": "2026-10-30T19:18:04.453Z"
+      },
+      {
+        "file": "game-m-se-attack-260.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 22,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "2c83fe5ba3173c998dc33a956cc031b84bc560bd9044e2a9a426aebdf114f48d",
+        "capturedAt": "2026-10-30T19:18:05.310Z"
+      },
+      {
+        "file": "game-m-e-cast-0.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 36,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "c793b19832a86f072885e342b063a0ca911ac5e762c041eb2691ede407a06330",
+        "capturedAt": "2026-10-30T19:18:06.204Z"
+      },
+      {
+        "file": "game-m-e-cast-100.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 36,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "bf320cae64fe28a797796a705afe60d24c559e54f820ee7b907a21bff26dc690",
+        "capturedAt": "2026-10-30T19:18:07.073Z"
+      },
+      {
+        "file": "game-m-e-cast-360.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 37,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "7c8b49ec21f44727dd7ed53b4c981b4b7f6d2642c8079df5fb3cfff72e746510",
+        "capturedAt": "2026-10-30T19:18:07.970Z"
+      },
+      {
+        "file": "game-m-e-attack-0.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 32,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "3f40d4a9884921387190167e0bb130bb21373aa05e5905c8b6db2c64c24eef01",
+        "capturedAt": "2026-10-30T19:18:08.854Z"
+      },
+      {
+        "file": "game-m-e-attack-100.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 33,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "5d613e3d01fa8fa60c84ce9cca0fb83e0f1a12ef91ad28983c8071f28c14aeec",
+        "capturedAt": "2026-10-30T19:18:09.614Z"
+      },
+      {
+        "file": "game-m-e-attack-190.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 34,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "b98b45329e7295dbe1e6ba7f27541021d836c10e29d80f080471016c91142c88",
+        "capturedAt": "2026-10-30T19:18:10.406Z"
+      },
+      {
+        "file": "game-m-e-attack-260.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 35,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "a5ae5dffdc51ce44c119d6699f686a4c743367193285b231987dd2b0f2e7412b",
+        "capturedAt": "2026-10-30T19:18:11.194Z"
+      },
+      {
+        "file": "game-m-ne-cast-0.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 49,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "7904b6160bf54a5386017a1bc329828a77da8d996b712cb6d87691e5afd5a815",
+        "capturedAt": "2026-10-30T19:18:12.021Z"
+      },
+      {
+        "file": "game-m-ne-cast-100.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 49,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "80fa0edc6e3555d8cf20092f31cc3a9b03406b7d6bf9cbf06d91f735b6536f46",
+        "capturedAt": "2026-10-30T19:18:12.916Z"
+      },
+      {
+        "file": "game-m-ne-cast-360.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 50,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "054f1a61129149dd7f2e34911e7ceb5c62116d15cedc97e1cd9ce4d2ab89be3e",
+        "capturedAt": "2026-10-30T19:18:13.788Z"
+      },
+      {
+        "file": "game-m-ne-attack-0.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 45,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "9d75345ef7ec2fa4ba8faf12449bfb2a8a858b7a96343649a590a2500c22e4f4",
+        "capturedAt": "2026-10-30T19:18:14.577Z"
+      },
+      {
+        "file": "game-m-ne-attack-100.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 46,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "9e5fe3cc503a1b666e9be64b87fac5fd4080cf4baf45161fd29708be800a4a8a",
+        "capturedAt": "2026-10-30T19:18:15.410Z"
+      },
+      {
+        "file": "game-m-ne-attack-190.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 47,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "652f5e2048bd6df96601fd2b4380413e01ae24262d7c01799e8b1939b1dd9ffa",
+        "capturedAt": "2026-10-30T19:18:16.261Z"
+      },
+      {
+        "file": "game-m-ne-attack-260.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 48,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "00f6c71fb6dc15978dcc6dd185e1884d42d16bb824631d31617fc1c6d688909f",
+        "capturedAt": "2026-10-30T19:18:17.178Z"
+      },
+      {
+        "file": "game-m-n-cast-0.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 0,
+        "body": 110,
+        "weapon": 62,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "132b44733322fa4cca26a0cc4dc7249ffc64293d352bf4c8f297907a785ce527",
+        "capturedAt": "2026-10-30T19:18:17.932Z"
+      },
+      {
+        "file": "game-m-n-cast-100.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 100,
+        "body": 111,
+        "weapon": 62,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "349ea31e636b1715804d6575bf7fc20f4b37b596be97b5bdaa953d2bf7ab2063",
+        "capturedAt": "2026-10-30T19:18:18.770Z"
+      },
+      {
+        "file": "game-m-n-cast-360.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 360,
+        "body": 112,
+        "weapon": 63,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "0728296f65d3e2ddc2d3f14885d183e158311a0848b768f7847638f508c5f50a",
+        "capturedAt": "2026-10-30T19:18:19.538Z"
+      },
+      {
+        "file": "game-m-n-attack-0.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 0,
+        "body": 106,
+        "weapon": 58,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "d4b06b75f5108dd99a2988763679326fde8e9b3ac657300b70062c94d7c2a44b",
+        "capturedAt": "2026-10-30T19:18:20.379Z"
+      },
+      {
+        "file": "game-m-n-attack-100.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 100,
+        "body": 107,
+        "weapon": 59,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "87e842935945d746446ceeefd239cb4265b9beb2fad8bd30867e64df1328c310",
+        "capturedAt": "2026-10-30T19:18:21.213Z"
+      },
+      {
+        "file": "game-m-n-attack-190.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 190,
+        "body": 108,
+        "weapon": 60,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "4d6cece1ba715c6efbc401797a0edbc836fc83fffa15bd1680ff19f5348d7294",
+        "capturedAt": "2026-10-30T19:18:22.063Z"
+      },
+      {
+        "file": "game-m-n-attack-260.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 260,
+        "body": 109,
+        "weapon": 61,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "d8cd8ee5affa983ec9cc18159fd9c687e81f2732e2cf34d4d5ddc169cafbac69",
+        "capturedAt": "2026-10-30T19:18:23.064Z"
+      },
+      {
+        "file": "test-m-idle-0.png",
+        "sex": "m",
+        "clip": "idle",
+        "ms": 0,
+        "scene": "VukhiScene",
+        "sha256": "d0c40d743a70347f6e3ade8f13e4284ce1cedd4926ba5304ca80a4d7a08f53fe",
+        "capturedAt": "2026-10-30T19:18:27.830Z"
+      },
+      {
+        "file": "test-m-walk-100.png",
+        "sex": "m",
+        "clip": "walk",
+        "ms": 100,
+        "scene": "VukhiScene",
+        "sha256": "a45b3fd99ffd57247087f910d2119262e41a09b12f998a7028fa4ac7acde6aa8",
+        "capturedAt": "2026-10-30T19:18:32.226Z"
+      },
+      {
+        "file": "test-m-attack-190.png",
+        "sex": "m",
+        "clip": "attack",
+        "ms": 190,
+        "scene": "VukhiScene",
+        "sha256": "9f9b347254f2a59be9c5dd95ca302d23def79cf3abd30b03c8c9b9bd564a736d",
+        "capturedAt": "2026-10-30T19:18:36.441Z"
+      },
+      {
+        "file": "test-m-cast-360.png",
+        "sex": "m",
+        "clip": "cast",
+        "ms": 360,
+        "scene": "VukhiScene",
+        "sha256": "6cc8ac004d90bf67cdbeb7af271cd5751855150204da2543de5ebd90a16a6b4b",
+        "capturedAt": "2026-10-30T19:18:40.782Z"
+      },
+      {
+        "file": "game-f-s-cast-0.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 0,
+        "body": 14,
+        "weapon": 75,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "bb50e6cbc168508c9f6067cd2e706bf1ebbbcda20e6aa4ca4959b40424d77b51",
+        "capturedAt": "2026-10-30T19:19:04.806Z"
+      },
+      {
+        "file": "game-f-s-cast-100.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 100,
+        "body": 15,
+        "weapon": 75,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "57efab49efb915b6a8329f2b281c0462ee04d3b4b9bc605fb7d5c821443fcd04",
+        "capturedAt": "2026-10-30T19:19:05.811Z"
+      },
+      {
+        "file": "game-f-s-cast-360.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 360,
+        "body": 16,
+        "weapon": 76,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "5505a4680b58647924d2e7728fbc3ad563ac092dae3f0d7cb97feda855ac5926",
+        "capturedAt": "2026-10-30T19:19:06.709Z"
+      },
+      {
+        "file": "game-f-s-attack-0.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 0,
+        "body": 10,
+        "weapon": 71,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "e79b5cf898b7d35489ecbfb4ce4f743320bed972080aaa49fba7458daf365604",
+        "capturedAt": "2026-10-30T19:19:07.515Z"
+      },
+      {
+        "file": "game-f-s-attack-100.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 100,
+        "body": 11,
+        "weapon": 72,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "45332c63ef9d9216abf612be80a1c297e58044af73336f35fbebf0120d9ac126",
+        "capturedAt": "2026-10-30T19:19:08.461Z"
+      },
+      {
+        "file": "game-f-s-attack-190.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 190,
+        "body": 12,
+        "weapon": 73,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "c69c1fa955aa96aa4a0f481decceba92991eee133b6e1293203417586845931b",
+        "capturedAt": "2026-10-30T19:19:09.548Z"
+      },
+      {
+        "file": "game-f-s-attack-260.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 260,
+        "body": 13,
+        "weapon": 74,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "ee91fccbce622bcab231311c5bbc3821c62bb9790ec866ba26f317ece6affda2",
+        "capturedAt": "2026-10-30T19:19:10.413Z"
+      },
+      {
+        "file": "game-f-se-cast-0.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 88,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "493c29153ae60321733fd012c3b94c3ddb735928af6ba05da9a5316ecc047e21",
+        "capturedAt": "2026-10-30T19:19:11.318Z"
+      },
+      {
+        "file": "game-f-se-cast-100.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 88,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "d0f05998c7c7c5ec724e1b8ee66b585100fa8e9cd3771bccacd652881a97ad39",
+        "capturedAt": "2026-10-30T19:19:12.171Z"
+      },
+      {
+        "file": "game-f-se-cast-360.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 89,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "ba360310a45f7c59e45d5d10de90e6309e624faa6b974c7b6c8ae3c507ccbb61",
+        "capturedAt": "2026-10-30T19:19:13.068Z"
+      },
+      {
+        "file": "game-f-se-attack-0.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 84,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "88946b5f58a1424dd71fcdfcd0ea35ebc5e743b3209d4e1707fbb69cbfd254c2",
+        "capturedAt": "2026-10-30T19:19:13.887Z"
+      },
+      {
+        "file": "game-f-se-attack-100.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 85,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "f65cadffee154086ec8787c5db07d5adcca92601bf84f0214e862134973c9a9f",
+        "capturedAt": "2026-10-30T19:19:14.859Z"
+      },
+      {
+        "file": "game-f-se-attack-190.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 86,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "c7d6c3e403eafc486063a419e08b1fd44fe36d9b6112732a81c53b3b37383494",
+        "capturedAt": "2026-10-30T19:19:15.761Z"
+      },
+      {
+        "file": "game-f-se-attack-260.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 87,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "fe4cbd03e34de4779dc90ffaf70f52795b5df8cc9fbb1051c565f769f54cce0c",
+        "capturedAt": "2026-10-30T19:19:16.564Z"
+      },
+      {
+        "file": "game-f-e-cast-0.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 101,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "ba3d13e1bbc819b3e2bab9ebe42f5dcd814b4797d5f7f040fca3ebca240fdf14",
+        "capturedAt": "2026-10-30T19:19:17.342Z"
+      },
+      {
+        "file": "game-f-e-cast-100.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 101,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "cb41714545fc65a7e7b4e057a87b9061e5f8515c6c9d3331a1e777cad79db70e",
+        "capturedAt": "2026-10-30T19:19:18.157Z"
+      },
+      {
+        "file": "game-f-e-cast-360.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 102,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "82e68c765ac5a14abb2257d565a0bf4b31d8c09c8bc9a4c3c68bc8c0c656a42e",
+        "capturedAt": "2026-10-30T19:19:19.006Z"
+      },
+      {
+        "file": "game-f-e-attack-0.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 97,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "d30fe0147c9782ae27f43c4bd732a5a82a571872bf850fd0201991961720996a",
+        "capturedAt": "2026-10-30T19:19:19.962Z"
+      },
+      {
+        "file": "game-f-e-attack-100.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 98,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "06a30601cc43d1dfdfc5debf3ec2bf150a640e23503b89f06fca844e36c05f29",
+        "capturedAt": "2026-10-30T19:19:20.744Z"
+      },
+      {
+        "file": "game-f-e-attack-190.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 99,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "41bfa4e15b6548a4df5cfd5789269f3aef5e8611bc643260e13846b353fd37bc",
+        "capturedAt": "2026-10-30T19:19:21.693Z"
+      },
+      {
+        "file": "game-f-e-attack-260.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 100,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "6d209c30a8141977f6cb6a7f636a345bcb14030c78b4d7a83bf34977c59ec58c",
+        "capturedAt": "2026-10-30T19:19:22.648Z"
+      },
+      {
+        "file": "game-f-ne-cast-0.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 114,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "b6aec9d21d8b390bd323bf11e63b7c02eaf60396356915115fc1e58f8b85b72d",
+        "capturedAt": "2026-10-30T19:19:23.663Z"
+      },
+      {
+        "file": "game-f-ne-cast-100.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 114,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "fccb0332f0bd49c0167b4e47200481a934d99108f30dfcdd8ae5a194744595f2",
+        "capturedAt": "2026-10-30T19:19:24.677Z"
+      },
+      {
+        "file": "game-f-ne-cast-360.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 115,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "cd0cd3a16ff471d93d8db65bb2edb4a7f5f896ff774305f753ee7bb7cceb2aec",
+        "capturedAt": "2026-10-30T19:19:25.626Z"
+      },
+      {
+        "file": "game-f-ne-attack-0.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 110,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "d725bd74b34b89572010cf581d688f91732de4bf563e14cef33fef0523e5a89c",
+        "capturedAt": "2026-10-30T19:19:26.618Z"
+      },
+      {
+        "file": "game-f-ne-attack-100.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 111,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "741bcdf724ba0f3575cbc481639c8ebd5833d43a21d5556d32750995fc6f7957",
+        "capturedAt": "2026-10-30T19:19:27.512Z"
+      },
+      {
+        "file": "game-f-ne-attack-190.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 112,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "1e729b24f36457586684d1dcd8bff73705622cd689467657221bced80d748083",
+        "capturedAt": "2026-10-30T19:19:28.252Z"
+      },
+      {
+        "file": "game-f-ne-attack-260.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 113,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "da0a07b29e81c33f4e12ffdac013644b3460ba8b349c56513527e3c883a0c81b",
+        "capturedAt": "2026-10-30T19:19:29.070Z"
+      },
+      {
+        "file": "game-f-n-cast-0.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 0,
+        "body": 110,
+        "weapon": 127,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "3bce5ffc39ade6588c468f5118e24fc2637f8406c2d84d75654e074a7ed3ec2d",
+        "capturedAt": "2026-10-30T19:19:29.900Z"
+      },
+      {
+        "file": "game-f-n-cast-100.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 100,
+        "body": 111,
+        "weapon": 127,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "841df24540a42206c63759646afcf45c17f5348776c2f61e67ce8654714ddf9c",
+        "capturedAt": "2026-10-30T19:19:30.756Z"
+      },
+      {
+        "file": "game-f-n-cast-360.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 360,
+        "body": 112,
+        "weapon": 128,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "a8f426bc2873b429fd7e16aba7d19131987079beb47bcb6f74f683ef73c72fc2",
+        "capturedAt": "2026-10-30T19:19:31.628Z"
+      },
+      {
+        "file": "game-f-n-attack-0.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 0,
+        "body": 106,
+        "weapon": 123,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "de83869fae29722390471ca2133bc91534d7054bad544c9aa9622bfbdf93d018",
+        "capturedAt": "2026-10-30T19:19:32.451Z"
+      },
+      {
+        "file": "game-f-n-attack-100.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 100,
+        "body": 107,
+        "weapon": 124,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "5e556bf93150cdb8d7c6d404d6dcd4478b6641175550836d2d1b6ce247c6a709",
+        "capturedAt": "2026-10-30T19:19:33.373Z"
+      },
+      {
+        "file": "game-f-n-attack-190.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 190,
+        "body": 108,
+        "weapon": 125,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "d7b952bd8a8ea260b5b1aa72e031218827057ee7ecdbd9b7d1270e5c622c6cc9",
+        "capturedAt": "2026-10-30T19:19:34.146Z"
+      },
+      {
+        "file": "game-f-n-attack-260.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 260,
+        "body": 109,
+        "weapon": 126,
+        "texture": "vkanim_xuc_xich_f",
+        "muted": true,
+        "sha256": "ee26fcaff7a3403afb3574127ff3b3dad0f6d7fbf2056dcf4dbdf6bc60027dca",
+        "capturedAt": "2026-10-30T19:19:34.944Z"
+      },
+      {
+        "file": "test-f-idle-0.png",
+        "sex": "f",
+        "clip": "idle",
+        "ms": 0,
+        "scene": "VukhiScene",
+        "sha256": "9bf19a432263d47a79dcc84708b4a9666d2d5ed981f8b8bc74bb17eefe1ca843",
+        "capturedAt": "2026-10-30T19:19:39.729Z"
+      },
+      {
+        "file": "test-f-walk-100.png",
+        "sex": "f",
+        "clip": "walk",
+        "ms": 100,
+        "scene": "VukhiScene",
+        "sha256": "649216cf54a3c7bfad2e9ce9d1d0b2311fd31be0586ae96ac96b52458772a959",
+        "capturedAt": "2026-10-30T19:19:44.170Z"
+      },
+      {
+        "file": "test-f-attack-190.png",
+        "sex": "f",
+        "clip": "attack",
+        "ms": 190,
+        "scene": "VukhiScene",
+        "sha256": "8089da0c1e825efe70823e2db3e7b9f9a25227dc87c34b075e0e8084a3c5ff3e",
+        "capturedAt": "2026-10-30T19:19:48.636Z"
+      },
+      {
+        "file": "test-f-cast-360.png",
+        "sex": "f",
+        "clip": "cast",
+        "ms": 360,
+        "scene": "VukhiScene",
+        "sha256": "b647585d6e3e7083b784fbdb661288039b18e4481c6ae2871776e9cae2f27fd7",
+        "capturedAt": "2026-10-30T19:19:52.941Z"
+      }
+    ],
+    "assets": [
+      {
+        "file": "shared/assets/sprites/vukhianim/xuc_xich_b.png",
+        "sha256": "adaddd4f70f070f2b63ccf92225a63c6040c9bc52fe8167eea7c4fbd4da45388"
+      },
+      {
+        "file": "shared/assets/sprites/vukhianim/xuc_xich_f.png",
+        "sha256": "c650311f598c845a344e327948d910b6db424972fa39a9b78cbb473d57721ead"
+      }
+    ],
+    "limits": "Giữ game live và cố định tuổi hoạt ảnh trong animatePlayer thật; serverRAM riêng/API ngoại hình-thức tỉnh/testgrant/team. Cast0/100/360ms,attack0/100/190/260ms đủ hai giới5hướng; trang thửidle/walk/attack/cast có đối chứng. Tắt tiếng,pfx0. Kiểm renderer, không chứng nhận toàn bộ trận giao chiến/mọi ngoại hình."
+  },
+  "artApproved": true,
+  "approval": "Chủ repo/điều phối giao đợt3, issue#1400; mỹ thuật vũ khí đã duyệt, gộp sau AOapproved/CIxanh, worker không tựmerge."
+}

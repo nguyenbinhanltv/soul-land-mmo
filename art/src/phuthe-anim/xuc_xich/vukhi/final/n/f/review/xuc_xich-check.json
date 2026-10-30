@@ -1,0 +1,133 @@
+{
+  "id": "xuc_xich",
+  "kind": "vukhi",
+  "level": "nhẹ",
+  "group": "A",
+  "frame": 128,
+  "dummyKey": "#00D0D0",
+  "blockLevel": {
+    "n": "nhẹ"
+  },
+  "sheets": [
+    {
+      "sheet": "toE",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "n"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "n",
+          "y": [
+            88,
+            183
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "n",
+          "y": [
+            344,
+            441
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "n",
+          "y": [
+            594,
+            697
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 4,
+          "dir": "n",
+          "y": [
+            824,
+            951
+          ],
+          "figures": 2,
+          "state": "ok"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "n",
+          "anim": "idle",
+          "maxDiff": 0.065
+        },
+        {
+          "dir": "n",
+          "anim": "walk",
+          "maxDiff": 0.218
+        },
+        {
+          "dir": "n",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 0.073
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "hurt-idle",
+          "where": "H1 (n)",
+          "msg": "hurt trùng idle (xor/hợp 0.073): không thấy phản ứng trúng đòn."
+        }
+      ],
+      "draft": "LỖI: toE — hurt trùng idle — H1 (n) — hurt trùng idle (xor/hợp 0.073): không thấy phản ứng trúng đòn."
+    }
+  ]
+}
