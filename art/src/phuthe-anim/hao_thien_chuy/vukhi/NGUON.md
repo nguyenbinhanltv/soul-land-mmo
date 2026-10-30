@@ -1,4 +1,12 @@
-> **Bộ hiện hành:** [atlas tám pose đủ năm hướng](pose-atlas/README.md), [preview](pose-atlas/index.html). Đã cắt hai nửa ở thư mục này, 0 chặn; phần dưới là hồ sơ RAW lịch sử, không phải kết luận mới. Bỏ vác vai theo quyết định điều phối; đã nhập cả hai nửa bằng importer theo phân công tiếp theo, ảnh kiểm trong [ingame/](ingame/index.html).
+> **Bộ hiện hành 2026-10-30:** [gallery một tay dọc đủ năm hướng](pose-a/index.html), [nguồn và hash](pose-a/source.json), [ảnh game](pose-a/ingame/source.json). PR #1320 giữ nháp, chưa duyệt mỹ thuật. Phần dưới là hồ sơ lịch sử của các vòng cũ, không phải kết luận bộ mới.
+
+## Bộ một tay dọc 2026-10-30
+
+Chủ repo cho phép attack/cast dọc chỉ bắt A≤2px, B không bắt buộc chạm cán; khung khác giữ B≤20px. Ngưỡng nhận dọc≤15°, không đổi tay LPC. Atlas riêng không nộm: s dùng RAW lượt3, se/e lượt3, ne/n lượt1; sáu job mới tuần tự, không hướng nào vượt3lượt. Một tỷ lệ raster cố định mỗi atlas, không phóng từng pose. Cán tối đa53,6px / thân thấp nhất47px =1,14lần; đầu các pose dùng20–25,5px, còn cần duyệt độ đồng đều.
+
+Tái tạo: `node tools/assets/phuthe-hammer-atlas-finalize.mjs --sources art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a/sources.json --pose-a --out <temp>/final`, rồi `phuthe-hammer-atlas-cut.mjs --dir <temp>/final --out <temp>/import`, `phuthe-import.mjs --id hao_thien_chuy --kind vukhi --dir <temp>/import`, `credits.mjs`. Đã nhập hai nửa vào game theo yêu cầu, không sửa tay manifest/credits.json.
+
+130khung nam/nữ:0chặn hình học,0mép, A tối đa1,63px sau cắt. Checker cảnh báo chân/cỡ (cụ thể ở `pose-a/final/report.json`), không kế thừa chấp nhận cảnh báo của mẫu khác. Cutter0chặn/0nhẹ/7ghi chú mỗi giới. 48ảnh native mới:8trang thử năm hướng và40GameScene (nam/nữ × s/se/e/ne/n × attack0/100/190/260ms). GameScene đăng nhập RAM, cấp bằng hook test, chọn ra trận qua UI; dừng scene và gọi đường animatePlayer thật ở mốc xác định, không chứng minh toàn bộ trận đánh. Chrome luôn --mute-audio. Hash sheet/ảnh trong nguồn gallery.
 
 # Hạo Thiên Chùy — thí điểm vũ khí cứng
 

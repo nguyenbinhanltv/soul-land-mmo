@@ -9,7 +9,7 @@
 // KHÔNG kiểm bằng code (xem tờ liên hệ bằng mắt): nhận diện đúng võ hồn so với bảng mô tả, vẽ lại thân / mặt / tay chân người, nộm bị vẽ thêm mặt ở n / ne,
 // se / ne khác e thật sự, hurt lùi đúng hướng. Không sửa tờ, không ghi vào repo (mặc định ghi ở thư mục tạm).
 // Ngưỡng ở đầu file; MỚI đo trên tờ tổng hợp (phuthe-sheet-fake.mjs), chưa có tờ model thật: chỉnh sau khi P3 có tờ thật.
-import { mkdirSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -154,13 +154,28 @@ export function analyzeSheet(file, o) {
  * Kiểu vũ khí: (1) marker điểm cầm còn thấy thì không được trôi khỏi tay nộm (nhẹ > DRIFT_LIGHT, chặn > DRIFT_BLOCK điểm canonical; vũ khí che hết marker thì bỏ qua);
  * (2) ở khung đứng vũ khí phải CHẠM marker (điểm vũ khí gần nhất cách điểm cầm ≤ GRIP_TOUCH): không thì lơ lửng cách tay; chặn với mềm / găng (B), nhẹ với cứng (A) như `diem-gan`.
  */
-function gripChecks(res, cell, obs, px, tag, dir, skip, figure) {
+export function weaponPoseGripPolicy({ id, clip, axisDegrees, primaryDistance, secondaryDistance = 0 }) {
+  const verticalDeviation = Math.abs(90 - ((axisDegrees % 180 + 180) % 180));
+  const primaryOnly = id === "hao_thien_chuy" && ["attack", "cast"].includes(clip) && Number.isFinite(axisDegrees) && verticalDeviation <= 15;
+  return { primaryOnly, verticalDeviation, blocked: !Number.isFinite(primaryDistance) || primaryDistance > 2 || (!primaryOnly && (!Number.isFinite(secondaryDistance) || secondaryDistance > 20)) };
+}
+
+function gripChecks(res, cell, obs, px, tag, dir, skip, figure, o) {
   const { issues } = res;
   for (const [i, g] of obs.entries()) {
     if (g.seen > 0 && g.drift > DRIFT_BLOCK) { issue(issues, "block", "marker-troi", tag, `marker điểm cầm ${i ? "B" : "A"} bị dời ${round(g.drift, 0)} điểm so với tay nộm (> ${DRIFT_BLOCK}).`, { dir }); if (figure) figure.state = "bad"; }
     else if (g.seen > 0 && g.drift > DRIFT_LIGHT) { issue(issues, "light", "marker-troi", tag, `marker điểm cầm ${i ? "B" : "A"} bị dời ${round(g.drift, 0)} điểm so với tay nộm (> ${DRIFT_LIGHT}).`, { dir }); if (figure && figure.state === "ok") figure.state = "warn"; }
   }
-  if (skip || cell.anim !== "idle" || !obs.length) return;
+  if (skip || !obs.length) return;
+  if (o.poseFrames) {
+    const measured = o.poseFrames.find((f) => f.name === `${o.sex}/${dir}/${cell.anim}/${cell.frame}`);
+    if (!measured) { issue(issues, "block", "diem-cam", tag, "thiếu số đo pose tương ứng trong pose-plan.", { dir }); return; }
+    const primaryDistance = minDistToPoint(px, obs[0].nominal) * o.frame / CELL;
+    const policy = weaponPoseGripPolicy({ id: o.id, clip: cell.anim, axisDegrees: measured.axisDegrees, primaryDistance, secondaryDistance: measured.secondaryShaftDistance });
+    if (policy.blocked) { issue(issues, "block", "diem-cam", tag, `A ${round(primaryDistance, 2)} px; ${policy.primaryOnly ? "khung dọc chỉ kiểm A≤2px" : "A≤2px và B tới cán≤20px"}.`, { dir }); if (figure) figure.state = "bad"; }
+    return;
+  }
+  if (cell.anim !== "idle") return;
   const sev = attachSeverity(res.group), far = obs.map((g, i) => ({ i, d: minDistToPoint(px, g.nominal) })).filter((x) => x.d > GRIP_TOUCH);
   if (far.length) { issue(issues, sev, "diem-cam", tag, `vũ khí cách marker điểm cầm ${far.map((x) => `${x.i ? "B" : "A"} ${Math.round(x.d)}`).join(", ")} điểm (> ${GRIP_TOUCH}) ở khung đứng: lơ lửng, không nằm trong tay${sev === "light" ? " (vật cứng: nhẹ)" : ""}.`, { dir }); if (figure && sev === "block") figure.state = "bad"; }
 }
@@ -195,7 +210,7 @@ function analyzeCells(res, raw, o, dir) {
         if (d > lim) { issue(issues, attachSeverity(group), "diem-gan", tag, `phụ thể cách nộm ${d} điểm (> ${Math.round(lim)}) ở khung đứng: không dính vào thân${group === "A" ? " (vật cứng lơ lửng: nhẹ)" : ""}.`, { dir }); if (figure && attachSeverity(group) === "block") figure.state = "bad"; }
       }
     }
-    if (o.kind === "vukhi") gripChecks(res, cell, cellGripObs(prep, cell), ds.px, tag, dir, nomLost || ds.px.length < MIN_SPIRIT_PX, figure);
+    if (o.kind === "vukhi") gripChecks(res, cell, cellGripObs(prep, cell), ds.px, tag, dir, nomLost || ds.px.length < MIN_SPIRIT_PX, figure, o);
     res.cells.push({ ...cell, dir, spirit: ds.px.length });
     res.frames.set(key, { px: ds.px, mask: cellMask(ds.px), area: ds.px.length });
   }
@@ -232,7 +247,7 @@ export function checkPhuThe(id, opt = {}) {
   if (!GROUPS.includes(group)) throw new Error(`nhóm lạ ${group}`);
   const ta = turnaroundFile(dir), files = sheetFiles(dir);
   if (!files.length && !ta) throw new Error(`không có tờ toA.png… trong ${dir}`);
-  const guideKey = opt.guideKey ?? guideKeyOf(id, dummyKey), o = { kind, group, frame, dummyKey, guideKey, ...(kind === "vukhi" ? { gripKey: opt.gripKey ?? gripKeyOf(id, dummyKey, guideKey), gripN: gripCounts(info.hands) } : {}), sex: opt.sex ?? "m" };
+  const guideKey = opt.guideKey ?? guideKeyOf(id, dummyKey), o = { id, poseFrames: opt.poseFrames, kind, group, frame, dummyKey, guideKey, ...(kind === "vukhi" ? { gripKey: opt.gripKey ?? gripKeyOf(id, dummyKey, guideKey), gripN: gripCounts(info.hands) } : {}), sex: opt.sex ?? "m" };
   const sheets = files.map((f) => analyzeSheet(f, o)), turnaround = ta ? analyzeTurnaround(ta, o) : null;
   const sRef = sheets.find((s) => s.dirs[0] === "s");
   if (sRef) for (const s of sheets) {
@@ -325,6 +340,7 @@ function parseArgs(argv) {
     else if (a === "--dummy-key") o.dummyKey = argv[++i];
     else if (a === "--guide-key") o.guideKey = argv[++i];
     else if (a === "--grip-key") o.gripKey = argv[++i];
+    else if (a === "--pose-plan") o.poseFrames = JSON.parse(readFileSync(argv[++i], "utf8")).distances;
     else if (a === "--kind") o.kind = argv[++i];
     else if (a === "--no-image") o.images = false;
     else if (a === "--all") o.all = true;
@@ -344,7 +360,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     let blocked = 0;
     for (const id of o.ids) {
       let r;
-      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}), ...(o.guideKey ? { guideKey: o.guideKey } : {}), ...(o.gripKey ? { gripKey: o.gripKey } : {}), ...(o.kind ? { kind: o.kind } : {}) }); }
+      try { r = checkPhuThe(id, { ...(o.dir ? { dir: o.dir } : {}), ...(o.frame ? { frame: o.frame } : {}), ...(o.dummyKey ? { dummyKey: o.dummyKey } : {}), ...(o.guideKey ? { guideKey: o.guideKey } : {}), ...(o.gripKey ? { gripKey: o.gripKey } : {}), ...(o.kind ? { kind: o.kind } : {}), ...(o.poseFrames ? { poseFrames: o.poseFrames } : {}) }); }
       catch (e) { if (o.all && /không có tờ/.test(e.message)) { console.log(`bỏ qua ${id} (chưa có tờ)`); continue; } throw e; }
       console.log(summary(r));
       if (r.level === "chặn") blocked++;

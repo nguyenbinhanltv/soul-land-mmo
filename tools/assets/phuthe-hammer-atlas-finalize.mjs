@@ -24,7 +24,7 @@ for (const input of [val("--sources"), ...dirs.flatMap((d) => [sources[d].raw, .
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "hao-atlas-finalize-"));
 const compiler = fileURLToPath(new URL("./phuthe-hammer-atlas.mjs", import.meta.url));
 function run(dir, dest, extra = []) {
-  const source = sources[dir], params = [compiler, "--raw", source.raw, "--dir", dir, "--out", dest, ...(source.axes ? ["--axes", source.axes] : []), ...(source.omitUnused?.length ? ["--omit-unused", source.omitUnused.join(",")] : []), ...extra];
+  const source = sources[dir], params = [compiler, "--raw", source.raw, "--dir", dir, "--out", dest, ...(args.includes("--pose-a") ? ["--pose-a"] : []), ...(source.axes ? ["--axes", source.axes] : []), ...(source.omitUnused?.length ? ["--omit-unused", source.omitUnused.join(",")] : []), ...extra];
   const r = spawnSync(process.execPath, params, { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
   if (r.status !== 0) throw Error(`${dir}: ${r.error?.message ?? r.stderr ?? ""}\n${r.stdout ?? ""}`);
   return JSON.parse(fs.readFileSync(path.join(dest, "compose-plan.json"), "utf8"));
@@ -57,8 +57,8 @@ for (const side of ["b", "f"]) if (counts[side]) {
 }
 fs.writeFileSync(path.join(out, "manifest-entry.json"), JSON.stringify(entries, null, 2) + "\n");
 const checks = {};
-for (const sex of ["m", "f"]) { const r = checkPhuThe("hao_thien_chuy", { kind: "vukhi", sex, dir: path.join(out, `boards-${sex}`) }); checks[sex] = toJson(r); writeReport(r, path.join(out, `review-${sex}`)); }
 const distances = plans.flatMap((p) => p.distances);
+for (const sex of ["m", "f"]) { const r = checkPhuThe("hao_thien_chuy", { kind: "vukhi", sex, dir: path.join(out, `boards-${sex}`), ...(args.includes("--pose-a") ? { poseFrames: distances } : {}) }); checks[sex] = toJson(r); writeReport(r, path.join(out, `review-${sex}`)); }
 const report = { dirs, scale, palette, frames: distances.length, maxA: Math.max(...distances.map((d) => d.near[0])), maxB: Math.max(...distances.flatMap((d) => d.near.slice(1))), edge: distances.reduce((n, d) => n + d.edge, 0), geometryFailures: plans.flatMap((p) => p.geometryFailures), checks, preview: "preview/index.html", approvedForImport: false };
 fs.writeFileSync(path.join(out, "report.json"), JSON.stringify(report, null, 2) + "\n");
 fs.writeFileSync(path.join(out, "summary.js"), `window.hammerAtlasSummary = ${JSON.stringify({ dirs, frames: report.frames, scale, maxA: report.maxA, maxB: report.maxB, edge: report.edge })};\n`);

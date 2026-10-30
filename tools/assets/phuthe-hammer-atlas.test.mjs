@@ -9,6 +9,34 @@ import { spawnSync } from "node:child_process";
 import { ROOT } from "./lib.mjs";
 import { readPng } from "./lib.mjs";
 import { DIRS, gameAnims, gameRow } from "./phuthe-sheet-lib.mjs";
+import { weaponPoseGripPolicy } from "./phuthe-sheet-check.mjs";
+
+test("ngoại lệ cán dọc chỉ cho chùy attack/cast và không bỏ kiểm A", () => {
+  const base = { id: "hao_thien_chuy", clip: "attack", axisDegrees: 90, primaryDistance: 1, secondaryDistance: 44 };
+  assert.equal(weaponPoseGripPolicy(base).blocked, false);
+  for (const axisDegrees of [-90, 75, 105, 270]) assert.equal(weaponPoseGripPolicy({ ...base, axisDegrees }).primaryOnly, true);
+  for (const change of [{ primaryDistance: 2.01 }, { axisDegrees: 74.9 }, { axisDegrees: NaN }, { clip: "idle" }, { id: "pha_hon_thuong" }]) assert.equal(weaponPoseGripPolicy({ ...base, ...change }).blocked, true);
+});
+
+test("bộ một tay dọc đã nhập: đúng nguồn, tỷ lệ cố định và A sau cắt đạt cả 130 khung", () => {
+  const base = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a");
+  const report = JSON.parse(fs.readFileSync(path.join(base, "import/_report.json"), "utf8"));
+  assert.equal(report.frames, 130); assert.equal(report.failures.length, 0); assert.equal(report.edge, 0);
+  assert.ok(report.maxA <= 2);
+  for (const side of ["b", "f"]) assert.deepEqual(fs.readFileSync(path.join(base, `import/vkanim_hao_thien_chuy_${side}.png`)), fs.readFileSync(path.join(ROOT, `shared/assets/sprites/vukhianim/hao_thien_chuy_${side}.png`)));
+  for (const dir of DIRS) {
+    const plan = JSON.parse(fs.readFileSync(path.join(base, `final/${dir}/compose-plan.json`), "utf8"));
+    assert.equal(new Set(plan.poses.filter(p => !p.unused).map(p => p.headScale)).size, 1, "không phóng riêng từng pose");
+    assert.equal(plan.geometryFailures.length, 0);
+    for (const f of plan.plan.filter(f => ["attack", "cast"].includes(f.anim))) {
+      const d = plan.distances.find(d => d.name === `${f.sex}/${f.name}`);
+      assert.ok(d.near[0] <= 2);
+      const shaft = plan.poses[f.pose].shaftLength * plan.poses[f.pose].headScale * plan.scale;
+      assert.ok(shaft <= 47 * 1.4, "cán không vượt1,4lần thân LPC thấp nhất");
+      if (!d.primaryOnly) assert.ok(d.secondaryShaftDistance <= 20);
+    }
+  }
+});
 
 test("atlas chùy thật: từ chối thiếu marker; tám pose, 26 khung, grip nam/nữ không chạm mép", () => {
   const base = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/s");
@@ -54,14 +82,15 @@ test("atlas chùy thật: từ chối thiếu marker; tám pose, 26 khung, grip 
   }
 });
 
-test("neo A theo pose: cán nện dọc, B quá 20 điểm phải chặn, không xoay theo hai tay", () => {
+test("neo A theo pose: cán nện dọc chỉ kiểm A, không xoay theo hai tay", () => {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), "hao-pose-a-test-"));
   try {
     const result = spawnSync(process.execPath, [path.join(ROOT, "tools/assets/phuthe-hammer-atlas.mjs"), "--raw", path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-atlas/s/attempt3/poses.raw.png"), "--dir", "s", "--pose-a", "--out", folder], { encoding: "utf8", cwd: ROOT, maxBuffer: 8 * 1024 * 1024 });
-    assert.equal(result.status, 1, "B xa cán không được coi là đạt");
+    assert.equal(result.status, 0, result.stderr + result.stdout);
     const report = JSON.parse(fs.readFileSync(path.join(folder, "grip-check.json"), "utf8"));
-    assert.equal(report.level, "block"); assert.equal(report.secondaryTolerance, 20);
-    assert.equal(report.issues.length, 6);
+    assert.equal(report.level, "ok"); assert.equal(report.secondaryTolerance, 20);
+    assert.equal(report.issues.length, 0);
+    assert.ok(report.distances.filter(d => d.secondaryShaftDistance > 20).every(d => d.primaryOnly));
     for (const d of report.distances) { assert.equal(d.primaryAnchorError, 0); assert.ok(d.near[0] <= 2); assert.equal(d.edge, 0); }
     const impact = report.distances.find((d) => d.name === "m/s/attack/3"), cast = report.distances.find((d) => d.name === "m/s/cast/1");
     assert.ok(Math.abs(impact.axisDegrees - 90) < 1, "góc nện theo pose atlas dọc");

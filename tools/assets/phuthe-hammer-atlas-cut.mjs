@@ -7,6 +7,7 @@ import { Img, readPng, encodePng } from "./lib.mjs";
 import { cutPhuThe } from "./phuthe-sheet-cut.mjs";
 import { DIRS, gameAnims, gameRow } from "./phuthe-sheet-lib.mjs";
 import { buildPreview } from "./phuthe-sheet-preview.mjs";
+import { weaponPoseGripPolicy } from "./phuthe-sheet-check.mjs";
 
 const args = process.argv.slice(2), val = (k) => args[args.indexOf(k) + 1];
 if (!args.includes("--dir") || !args.includes("--out")) throw Error("Cần --dir và --out");
@@ -49,9 +50,11 @@ try {
       pixels++; if (x < 2 || x >= 126 || y < 2 || y >= 126) edge++;
       f.hands.forEach(([hx, hy], i) => { near[i] = Math.min(near[i], Math.hypot(x + .5 - hx, y + .5 - hy)); });
     }
-    geometry.push({ name: `${f.sex}/${f.name}`, near, pixels, edge });
+    const measurement = p.distances.find((d) => d.name === `${f.sex}/${f.name}`);
+    const policy = p.gripPolicy === "pose-a" ? weaponPoseGripPolicy({ id: "hao_thien_chuy", clip: f.anim, axisDegrees: measurement.axisDegrees, primaryDistance: near[0], secondaryDistance: measurement.secondaryShaftDistance }) : null;
+    geometry.push({ name: `${f.sex}/${f.name}`, near, pixels, edge, ...(policy ? { policy } : {}) });
   }
-  const failures = geometry.filter((g) => g.pixels < 15 || g.edge || g.near.some((v) => v > 2));
+  const failures = geometry.filter((g) => g.pixels < 15 || g.edge || (g.policy ? g.policy.blocked : g.near.some((v) => v > 2)));
   if (failures.length) throw Error(`Sheet cắt chưa đạt: ${JSON.stringify(failures)}`);
   const colors = new Set();
   for (const im of Object.values(halves)) for (let i = 0; i < im.data.length; i += 4) if (im.data[i + 3]) colors.add(`${im.data[i]},${im.data[i + 1]},${im.data[i + 2]}`);
