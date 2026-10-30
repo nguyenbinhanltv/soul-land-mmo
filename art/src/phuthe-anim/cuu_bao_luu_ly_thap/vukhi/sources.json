@@ -1,0 +1,37 @@
+{
+  "e": {
+    "raw": "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/e/attempt4/poses.raw.png",
+    "attempt": 4,
+    "references": [
+      "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/references/nine-roofs-guide.png"
+    ]
+  },
+  "s": {
+    "raw": "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/s/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/e/attempt4/poses.raw.png"
+    ]
+  },
+  "se": {
+    "raw": "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/se/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/e/attempt4/poses.raw.png"
+    ]
+  },
+  "ne": {
+    "raw": "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/ne/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/e/attempt4/poses.raw.png"
+    ]
+  },
+  "n": {
+    "raw": "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/n/attempt1/poses.raw.png",
+    "attempt": 1,
+    "references": [
+      "art/src/phuthe-anim/cuu_bao_luu_ly_thap/vukhi/e/attempt4/poses.raw.png"
+    ]
+  }
+}

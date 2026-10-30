@@ -211,3 +211,5 @@ Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các 
 - @VUKHI-GANG Liệt Hỏa Thương Lang (#1390): giữ khối xám nâu than, chỉ chóp vuốt/khe nứt cam đỏ để không thành găng vàng hoặc bake vệt lửa. Cùng phép đo tay nhỏ Hỏa Ảnh cho175/220 hai grip,45 một grip; đã xem runtime riêng, giữ10 hurt dự phòng và giới hạn pose/FX.
 
 - @VUKHI-GANG Bạch Hổ (#1393): khối giáp xám lạnh, vằn tối và mép lông trắng, không phủ trắng phẳng cả găng. Nêu rõ mặt mu ở s/se và mặt lòng ở ne/n; không dùng FX khí lạnh che chi tiết hoặc grip. Khi Bạch Hổ đã có vũ khí phải đổi đối chứng runtime sang võ hồn chưa có sheet, kiểm manifest trước chụp.
+
+- @VUKHI-CUNG Cửu Bảo (#1399): phải đếm mái rõ, bệ/chóp không phải tầng. Sáu lượt đông kể cả sơ đồ9tầng vẫn8; chủ repo cho phép8thay9, công khai hồ sơ. Vật bưng lấy đáy tại tay count1 đúng bước, không dùng hình học cán chùy; checker/cutter chung và đo lại grip sau cắt, xem cast360ms GameScene nam/nữ.
