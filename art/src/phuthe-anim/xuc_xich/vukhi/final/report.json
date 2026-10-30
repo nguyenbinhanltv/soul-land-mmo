@@ -1,0 +1,1352 @@
+{
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "scale": 0.14,
+  "palette": [
+    [
+      1,
+      0,
+      1
+    ],
+    [
+      11,
+      1,
+      5
+    ],
+    [
+      22,
+      2,
+      2
+    ],
+    [
+      30,
+      3,
+      5
+    ],
+    [
+      45,
+      13,
+      8
+    ],
+    [
+      70,
+      10,
+      10
+    ],
+    [
+      90,
+      6,
+      5
+    ],
+    [
+      81,
+      30,
+      24
+    ],
+    [
+      121,
+      19,
+      4
+    ],
+    [
+      153,
+      23,
+      1
+    ],
+    [
+      120,
+      12,
+      16
+    ],
+    [
+      131,
+      18,
+      56
+    ],
+    [
+      142,
+      42,
+      9
+    ],
+    [
+      166,
+      44,
+      4
+    ],
+    [
+      125,
+      43,
+      27
+    ],
+    [
+      133,
+      58,
+      44
+    ],
+    [
+      184,
+      50,
+      2
+    ],
+    [
+      203,
+      55,
+      1
+    ],
+    [
+      190,
+      60,
+      14
+    ],
+    [
+      204,
+      26,
+      50
+    ],
+    [
+      213,
+      73,
+      2
+    ],
+    [
+      210,
+      77,
+      11
+    ],
+    [
+      228,
+      82,
+      2
+    ],
+    [
+      233,
+      95,
+      4
+    ],
+    [
+      233,
+      104,
+      11
+    ],
+    [
+      244,
+      110,
+      4
+    ],
+    [
+      249,
+      131,
+      12
+    ],
+    [
+      250,
+      193,
+      5
+    ],
+    [
+      230,
+      121,
+      30
+    ],
+    [
+      245,
+      175,
+      31
+    ],
+    [
+      240,
+      175,
+      61
+    ],
+    [
+      251,
+      233,
+      147
+    ]
+  ],
+  "frames": 130,
+  "maxA": 0.7071067811865476,
+  "maxB": null,
+  "edge": 0,
+  "geometryFailures": [],
+  "checks": {
+    "m": {
+      "id": "xuc_xich",
+      "kind": "vukhi",
+      "level": "pass",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "pass",
+        "e": "pass",
+        "ne": "pass",
+        "n": "pass"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                82,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                340,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                588,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                818,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.11
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.386
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.636,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                590,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                816,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.119
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.988
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                590,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                820,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.091
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 0.982
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                590,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                820,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.094
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.985
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                342,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                582,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                824,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.09
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.306
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.134
+            }
+          ],
+          "issues": [],
+          "draft": null
+        }
+      ]
+    },
+    "f": {
+      "id": "xuc_xich",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "pass",
+        "e": "pass",
+        "ne": "pass",
+        "n": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                342,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                590,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                818,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.091
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.263
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.608,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                588,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                820,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.1
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                590,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                822,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.087
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                590,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                822,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.101
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                441
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                594,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                824,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.065
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.218
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.073
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "hurt-idle",
+              "where": "H1 (n)",
+              "msg": "hurt trùng idle (xor/hợp 0.073): không thấy phản ứng trúng đòn."
+            }
+          ],
+          "draft": "LỖI: toE — hurt trùng idle — H1 (n) — hurt trùng idle (xor/hợp 0.073): không thấy phản ứng trúng đòn."
+        }
+      ]
+    }
+  },
+  "preview": "preview/index.html",
+  "approvedForImport": false
+}
