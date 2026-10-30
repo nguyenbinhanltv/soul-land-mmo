@@ -1,7 +1,7 @@
 // Hàm thuần về vật phẩm / túi / đồ đang mặc (GAME_DESIGN.md mục 5.7, 5.15), tách khỏi MapRoom.ts (#702): sinh ô vật phẩm, chỉ số tổng của đồ
 // mặc, lớp nhìn LPC, đếm ô túi, thứ tự xếp túi. Không giữ phòng, không ghi DB; MapRoom chỉ gọi. Nguyên văn từ MapRoom, không đổi hành vi.
 import { randomUUID } from "node:crypto";
-import { itemDef, ITEMS, ITEM_KINDS, lpcGearCode, parseEquip, equipStats, equipTemplate, type ItemDef } from "../../../shared/data.ts";
+import { itemDef, ITEMS, ITEM_KINDS, lpcGearCode, parseEquip, equipStats, equipTemplate, formatYears, BONE_ITEM, boneName, parseBone, CORE_ITEM, coreName, parseCore, EQUIP_ITEM, equipName, type ItemDef } from "../../../shared/data.ts";
 import type { Item } from "../db.ts";
 import type { PlayerState } from "./schema.ts";
 
@@ -37,3 +37,18 @@ export function gearLook(p: PlayerState, gear: Item[]) {
 export const bagUsed = (bag: Item[]) => bag.filter((i) => i.vohonId === null).length;
 /** Thứ tự xếp túi (#215 "Sắp xếp"): nhóm theo ITEM_KINDS, rồi loại theo ITEMS. */
 export const KIND_ORDER = Object.keys(ITEM_KINDS), ITEM_ORDER = new Map(ITEMS.map((x, k) => [x.id, k]));
+
+/** Tên một ô để báo trong log: "Hồn hoàn 437 năm", "3 Hồi Huyết Đan", "hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". */
+export function itemLabel(it: Item) {
+  const bone = it.code === BONE_ITEM && it.years !== null ? parseBone(it.stats) : null;
+  if (bone) return `hồn cốt ${boneName(bone.beast, bone.slot, it.years!, it.enhance)}`;
+  const core = it.code === CORE_ITEM ? parseCore(it.stats) : null;
+  if (core) return coreName(core.set, it.stars ?? 1, it.enhance).replace("Hồn hạch", "hồn hạch");
+  const eq = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+  if (eq) return equipName(eq.tpl, it.enhance);
+  const name = itemDef(it.code)?.name ?? "vật phẩm lạ";
+  return it.years !== null ? `${name} ${formatYears(it.years)}` : it.qty > 1 ? `${it.qty} ${name}` : name;
+}
+
+/** Tổng số mảnh mã `code` trong túi (mọi ô). */
+export const shardCount = (bag: Item[], code: string) => bag.reduce((n, i) => n + (i.code === code && i.vohonId === null ? i.qty : 0), 0);
