@@ -150,7 +150,7 @@ GameScene.prototype.create = function(...a) {
   // 4. Mở bảng nhả phím đang giữ, kể cả khi hệ điều hành còn gửi phím lặp.
   await page.keyboard.down("KeyD"); await sleep(60);
   const held = await page.evaluate(() => !!window.__u1.keys.KeyD);
-  await page.click("#bagBtn"); await sleep(60);
+  await page.keyboard.press("KeyB"); await sleep(60);
   await page.keyboard.down("KeyD"); await sleep(60); await page.keyboard.down("KeyD"); await sleep(60); // lặp phím
   const afterOpen = await page.evaluate(() => !!window.__u1.keys.KeyD);
   await page.keyboard.up("KeyD"); await page.keyboard.down("KeyD"); await sleep(60);
@@ -170,19 +170,20 @@ GameScene.prototype.create = function(...a) {
   check(swapState.bag && !swapState.keyD && swapState.charZ > swapState.bagZ && res.swap.openAfterEsc.join() === "bag", `nút ⇆: ${JSON.stringify(res.swap)}`);
   await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
 
+  const hubOpen = (id) => page.evaluate((i) => { if (document.getElementById("hub").hidden) document.getElementById("hubBtn").click(); document.querySelector(`[data-hub="${i}"]`).click(); }, id);
   // 4c. Nút Cài đặt / Tự động khi bảng khác đang mở (#1044): chỉ còn một bảng; đóng bằng đúng hàm của bảng (hết dual-win, aria-expanded về false).
   await page.keyboard.press("KeyH"); await page.keyboard.press("KeyB");
   await page.waitForFunction(() => !document.getElementById("char").hidden && !document.getElementById("bag").hidden);
-  await page.evaluate(() => document.getElementById("audioBtn").click()); await sleep(80);
-  res.settingsOverDual = await page.evaluate(() => ({ dual: document.body.classList.contains("dual-win"), tabs: !!document.getElementById("dualTabs") && !document.getElementById("dualTabs").hidden, bagBtn: document.getElementById("bagBtn").getAttribute("aria-expanded") }));
+  await hubOpen("settings"); await sleep(80);
+  res.settingsOverDual = await page.evaluate(() => ({ dual: document.body.classList.contains("dual-win"), tabs: !!document.getElementById("dualTabs") && !document.getElementById("dualTabs").hidden, bagHidden: document.getElementById("bag").hidden }));
   res.settingsOverDual.open = await open();
-  check(res.settingsOverDual.open.join() === "audio" && !res.settingsOverDual.dual && !res.settingsOverDual.tabs && res.settingsOverDual.bagBtn !== "true", `Cài đặt đóng Nhân vật + Túi đúng cách: ${JSON.stringify(res.settingsOverDual)}`);
+  check(res.settingsOverDual.open.join() === "audio" && !res.settingsOverDual.dual && !res.settingsOverDual.tabs && res.settingsOverDual.bagHidden, `Cài đặt đóng Nhân vật + Túi đúng cách: ${JSON.stringify(res.settingsOverDual)}`);
   await page.keyboard.press("Escape");
   await page.keyboard.press("KeyL"); await page.waitForFunction(() => !document.getElementById("friends").hidden);
-  await page.evaluate(() => document.getElementById("autoBtn").click()); await sleep(80);
+  await hubOpen("auto"); await sleep(80);
   res.autoOverFriends = await open();
   check(res.autoOverFriends.join() === "autoPanel", `Tự động đóng Bạn bè: ${JSON.stringify(res.autoOverFriends)}`);
-  await page.evaluate(() => document.getElementById("audioBtn").click()); await sleep(80);
+  await hubOpen("settings"); await sleep(80);
   res.settingsOverAuto = await open();
   check(res.settingsOverAuto.join() === "audio", `Cài đặt đóng Tự động: ${JSON.stringify(res.settingsOverAuto)}`);
   await page.keyboard.press("Escape"); await sleep(80);

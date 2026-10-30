@@ -1,9 +1,9 @@
-/* UI v2: hoàn thiện hub (đợt 4b, Part of #885): chấm đỏ / mũi tên xanh toàn hệ (kho badges.ts) trên rail hub và nút HUD cũ, mục rail "Chưa có", hộp Thông báo.
+/* UI v2: hoàn thiện hub (đợt 4b, Part of #885): chấm đỏ / mũi tên xanh toàn hệ (kho badges.ts) trên rail hub, mục rail "Chưa có", hộp Thông báo.
    Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Chữ 10 / 12 (Galmuri), không ký tự ngoài phông nhúng; dấu hiệu là HÌNH (tròn / tam giác), không chỉ màu. */
 
 /* Dấu trên nút: tròn đỏ son = có việc mới, tam giác xanh ngọc = nâng được. Vẽ bằng CSS (cùng hình với dấu của thẻ ở ui2-parts.css). */
-.minibtn[data-badge],.hub-r[data-badge]{position:relative}
-.minibtn[data-badge]::after,.hub-r[data-badge]::after{content:"";position:absolute;right:var(--sp-1);top:var(--sp-1);width:10px;height:10px;box-sizing:border-box;pointer-events:none}
+.hub-r[data-badge]{position:relative}
+.hub-r[data-badge]::after{content:"";position:absolute;right:var(--sp-1);top:var(--sp-1);width:10px;height:10px;box-sizing:border-box;pointer-events:none}
 [data-badge="new"]::after{border-radius:50%;background:var(--son-l);border:var(--bd-fine) solid var(--plate)}
 [data-badge="up"]::after{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}
 

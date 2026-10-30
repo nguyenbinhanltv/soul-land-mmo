@@ -73,10 +73,6 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 .bar span{position:absolute;inset:0;font-size:10px;font-family:var(--f10);line-height:12px;text-align:center;color:var(--paper);text-shadow:var(--stroke);font-variant-numeric:tabular-nums}
 .hp i{background:var(--hp)} .mp i{background:var(--mp)} .xp i{background:var(--xp)}
 .lei i{background:linear-gradient(90deg,#1f3f8f,#5ab8ff,#e8f6ff)} .lei.full{box-shadow:0 0 8px #7fd0ff;border-color:#7fd0ff}
-.rings{display:flex;gap:6px;margin-top:10px;align-items:center;min-height:22px;flex-wrap:wrap}
-.ring{width:20px;height:20px;border-radius:50%;border:4px solid currentColor;box-shadow:0 0 0 1px #1a1020,inset 0 0 0 1px #1a1020,0 0 6px currentColor}
-.ring.empty{border:2px dashed var(--muted);box-shadow:none;opacity:.7}
-.rings small{color:var(--muted);font-size:12px;font-family:var(--f12)}
 .buffs{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
 .buffs:empty{display:none}
 .buffs span{font-size:10px;font-family:var(--f10);padding:1px 5px;border:1px solid currentColor;background:var(--ink-panel);text-shadow:var(--stroke)}
@@ -434,9 +430,6 @@ body.touch #prompt{bottom:160px}
 .trm:disabled{opacity:.35;cursor:default}
 .tpick:focus-visible,.trm:focus-visible{outline:2px solid var(--xp);outline-offset:-2px}
 /* Túi đồ và Hồn Tệ (bước 3.1): mở bằng phím B hoặc nút trong khung chỉ số; cùng chỗ với bảng đội hình */
-.minirow{display:flex;gap:6px}
-.minirow .minibtn{flex:1;padding:5px 4px}
-#autoBtn[aria-pressed="true"]{color:#235b37;border-color:#235b37}
 #bag{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,94vw);max-height:80%;overflow-y:auto;
   padding:10px;pointer-events:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:7px;
   backdrop-filter:blur(6px)}
@@ -1071,13 +1064,8 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 /* Đang mở bảng giữa màn hình thì ẩn gợi ý nói chuyện (cùng chỗ). */
 :is(#roster,#bag,#reso,#friends,#world):not([hidden]) ~ #talk{display:none}
 /* Nút nhỏ trong khung chỉ số: một dòng, font 10. */
-.minirow .minibtn{white-space:normal;font-size:10px;font-family:var(--f10);line-height:1.1}
-.minirow .minibtn kbd{margin-left:2px;padding:0 2px}
-.minirow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;margin-top:5px}
-.minirow .minibtn{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;padding:3px 2px}
 .menu-icon{font:16px "Segoe UI Symbol","Noto Sans Symbols 2",system-ui,sans-serif;line-height:1}
 .menu-label{flex:1 1 auto;min-width:0;overflow:visible;text-overflow:clip;white-space:normal;text-align:center}
-.hud-menu-btn{display:none}
 #party.collapsed .pmem,#party.collapsed .pinvite,#party.collapsed .pinv,#party.collapsed .phint{display:none}
 #zoneName,#online{max-width:150px;margin-left:auto;margin-right:auto}
 #online{font-size:10px;font-family:var(--f10);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1087,9 +1075,6 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
   :where(body.ui-h460) .stats{padding:4px 8px 6px;width:194px}
   :where(body.ui-h460) .who{margin-bottom:2px}
   :where(body.ui-h460) .bar{margin-top:2px}
-  :where(body.ui-h460) .rings{margin-top:4px;min-height:0}
-  :where(body.ui-h460) .rings small{display:none}
-  :where(body.ui-h460) .minirow .minibtn{margin-top:4px;padding:1px 4px}
 
 /* Biểu tượng hồn kỹ dùng ký hiệu: font hệ thống (font pixel không có các ký hiệu này). */
 .sk .ico,.kcard .ico,.sk.bsk i{font-family:"Segoe UI Symbol","Noto Sans Symbols 2",system-ui,sans-serif}
@@ -1364,10 +1349,6 @@ body.ui-w640.ui-portrait #bskills{flex-direction:row}
 body.ui-w640.ui-portrait #skills{display:grid;grid-template-columns:repeat(4,52px);width:auto;gap:6px}
 body.ui-w640.ui-portrait #skills:is(.ava,.fus){width:auto}
 /* Nút trong khung chỉ số xếp 3 × 2, mọi màn (trước đây tràn khỏi khung, trên điện thoại mất nút Cài đặt / Tự động). */
-.minirow{flex-wrap:wrap}
-.minirow .minibtn{flex:1 1 28%}
-:where(body.ui-w640) .rings small{display:none}
-:where(body.ui-w640) .minirow .minibtn{margin-top:4px}
 body.touch .minibtn{min-height:40px}
 /* Chạm: mọi nút bấm trong HUD tối thiểu 40 × 40 điểm (ngón tay), kể cả tab, trang túi, nút đóng, ô gắn nhanh, dòng vòng hồn hoàn. */
 body.touch :is(.bslot,.pbtn,.qhead,#chattabs button,.ui-tab,.bpg,.buse,.sbtn,.rlink,.panel-x,.rhead .x,.x,.bq,.cring,.bcell,.ccell,.opt,.aopt,.btn,#chans button){min-height:40px;min-width:40px}
@@ -1390,12 +1371,6 @@ body.touch :is(.cring,.qhead){min-width:0}
 :where(body.ui-w640) #party .phead{flex-wrap:wrap}
 #party .phead b{white-space:nowrap}
 :where(body.touch) .stats{width:176px}
-:where(body.touch) #quickMenu[hidden]{display:none!important}
-:where(body.touch) .hud-menu-btn{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;min-height:40px;padding:5px;border:1px solid var(--line2);background:var(--wash);color:var(--text);font:12px var(--f12)}
-:where(body.touch) .minirow{grid-template-columns:repeat(3,minmax(40px,1fr));margin-top:4px}
-:where(body.touch) .minirow .minibtn{min-height:40px;padding:3px 1px;flex-direction:column;gap:1px}
-:where(body.touch) .minirow .menu-icon{font-size:20px}
-:where(body.touch) .minirow .menu-label{font-size:10px}
 :where(body.ui-w640.ui-portrait) #chatbox:not(.open) #chattabs{display:none}
 /* G6 (#397): trình diễn PK / đấu trường */
 .avs{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:18px;padding:10px 22px;background:linear-gradient(90deg,#3a1018cc,#101020dd,#102a3acc);border:2px solid #ff6b6b;border-radius:6px;pointer-events:none;z-index:30;animation:avin .5s ease-out}

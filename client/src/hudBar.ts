@@ -1,5 +1,5 @@
 // Thanh kỹ năng / hồn cốt / chỉ số nhân vật và khung đội hình nhỏ của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 2); hud.ts re-export để nơi gọi giữ nguyên.
-import { TIERS, VOHON, ringLimit, tierOfYears, vohonIndex, SWITCH_CD, TIEN_CO_MAX, tienCoOf, skillPower, BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, formatYears, MAX_RINGS, MAX_LEVEL, atBottleneck, PHONG_LOI, starSkillMult, starCdMult, starTienCoMult, starRing, PLAYER_STATUS, BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit, BONE_SLOTS, boneSlotIndex, boneName, BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower, boneSkillMult, ringSkill, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat } from "../../shared/data.ts";
+import { TIERS, VOHON, ringLimit, tierOfYears, vohonIndex, SWITCH_CD, TIEN_CO_MAX, tienCoOf, skillPower, BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, formatYears, MAX_RINGS, atBottleneck, PHONG_LOI, starSkillMult, starCdMult, starTienCoMult, starRing, PLAYER_STATUS, BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit, BONE_SLOTS, boneSlotIndex, boneName, BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower, boneSkillMult, ringSkill, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat } from "../../shared/data.ts";
 import { artImg, chanThanImg, fusionImg, skillImg } from "./uiArt.ts";
 import { cbElementMark } from "./a11y.ts";
 import { elementOfVohonIndex } from "./audio/soundMap.ts";
@@ -329,9 +329,11 @@ export function updateStats(p: any, v: Vitals) {
   $("#lvl").textContent = `Cấp ${p.level}`;
   $("#hpFill").style.width = (p.hp / Math.max(1, p.maxHp)) * 100 + "%"; $("#hpTxt").textContent = `Sinh lực ${p.hp} / ${p.maxHp}`;
   $("#mpFill").style.width = (v.mp / Math.max(1, v.maxMp)) * 100 + "%"; $("#mpTxt").textContent = `Hồn lực ${v.mp} / ${v.maxMp}`;
+  const xpBar = $(".stats .bar.xp"), maxed = !v.xpNeed && !atBottleneck(p.level, p.rings.length);
+  xpBar.hidden = maxed; // cấp tối đa: ẩn cả thanh kinh nghiệm (không còn gì để tích)
   if (!v.xpNeed) {
     $("#xpFill").style.width = "100%";
-    $("#xpTxt").textContent = atBottleneck(p.level, p.rings.length) ? `Bình cảnh: cần hồn hoàn thứ ${p.rings.length + 1}` : `Cấp tối đa ${MAX_LEVEL}`;
+    if (!maxed) $("#xpTxt").textContent = `Bình cảnh: cần hồn hoàn thứ ${p.rings.length + 1}`;
   }
   else { $("#xpFill").style.width = (v.xp / v.xpNeed) * 100 + "%"; $("#xpTxt").textContent = `Kinh nghiệm ${v.xp} / ${v.xpNeed}`; }
   // Phong Lôi Chi Lực (2.5c): chỉ hiện khi Lam Điện Bá Vương Long ra trận; đầy thì sáng viền (tự tung Lôi Động Minh Thiên khi đánh trúng).
@@ -344,15 +346,10 @@ export function updateStats(p: any, v: Vitals) {
   const rings: number[] = [...p.rings];
   const key = rings.join(",") + "|" + p.level;
   if (key !== ringsKey) {
-    ringsKey = key; const el = $("#rings"); el.innerHTML = "";
-    rings.forEach((t) => { const d = document.createElement("div"); d.className = "ring"; d.style.color = ringColor(t);
-      if (t === 3) d.style.borderColor = TIERS[3].col; d.title = `Hồn hoàn ${TIERS[t].age}`; el.appendChild(d); });
-    const slot = rings.length + 1, s = document.createElement("small");
-    if (slot <= MAX_RINGS) {
-      const e = document.createElement("div"); e.className = "ring empty"; el.appendChild(e);
-      s.textContent = `Vòng ${slot}: giới hạn ${formatYears(ringLimit(slot))}, cấp ${slot * 10}`;
-    } else s.textContent = `Đủ ${MAX_RINGS} hồn hoàn`;
-    el.appendChild(s);
+    ringsKey = key; // hồn hoàn rút thành chip n/10 (bấm mở bảng Hồn Cốt); chi tiết từng vòng ở chú thích
+    $("#ringChipTxt").textContent = `${rings.length}/${MAX_RINGS}`;
+    const slot = rings.length + 1, lim = slot <= MAX_RINGS ? `Vòng ${slot}: giới hạn ${formatYears(ringLimit(slot))}, cấp ${slot * 10}` : `Đủ ${MAX_RINGS} hồn hoàn`;
+    $("#ringChip").title = `Hồn hoàn ${rings.length}/${MAX_RINGS}\n${rings.map((t, i) => `Vòng ${i + 1}: ${TIERS[t].age}`).concat(lim).join("\n")}`;
   }
   // Hiệu ứng có lợi, rồi trạng thái bất lợi do chiêu báo trước của hồn thú gây (từ 3.5, viền đỏ).
   const buffs = BUFF_IDS.filter((b) => p.buff & buffBit(b)).join(",") + "|" + p.st + "|" + (p.han ?? 0);

@@ -81,7 +81,7 @@ import { phuFaceOf, phuDirRow, weaponHidden } from "../phutheAnim.ts";
 import { PHU_NO_ANCHOR, phuAnchorAt, phuAnchorsOf, phuLayerPlacement } from "../phutheAnchor.ts";
 import { SPIRIT_FAMILY, clipOscK, weaponOscK, spiritPose, spiritScale, spiritPhase, applySpiritPose, newSpiritPose, type SpiritState } from "../spiritMotion.ts";
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
-import { bindAudioPanel, closeAudioPanel } from "../audio/settingsPanel.ts";
+import { bindAudioPanel, closeAudioPanel, toggleSettings } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
 import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
 import { autoJob, autoJobText, bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, setAutoStatus, toggleAutoPanel } from "../autoPanel.ts";
@@ -863,10 +863,6 @@ export class GameScene extends Phaser.Scene {
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target) || hud.looksOpen()) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
     initDualWindows();
-    document.getElementById("charBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); toggleChar(); }, on);
-    document.getElementById("vhBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleRoster(); }, on);
-    document.getElementById("bagBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleBag(); }, on);
-    document.getElementById("resBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleReso(); }, on);
     mapview().beforeOpen = () => { closeAudioPanel(); closeAutoPanel(); }; // nút Vùng do mapview.ts gắn một lần (cảm ứng chạy ngay lúc chạm)
     radar().onOpen = () => mapview().open();
     mapview().onFlag = (t) => this.mapFlag(t);
@@ -879,9 +875,10 @@ export class GameScene extends Phaser.Scene {
     bindFlagBar(() => this.flagGo(), () => this.flagStop("Đã dừng tự đi"), () => this.flagClear());
     hud.onWorldAuto((map) => this.flagToMap(map));
     document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); this.openWorld(); }, on);
-    document.getElementById("audioBtn")!.addEventListener("click", () => mapview().close(), on); // bảng Cài đặt không được chìm sau bản đồ khu vực (#1045)
-    // Nút "Tự động" mở bảng cài đặt (Auto 2); phím T vẫn bật / tắt ngay.
-    document.getElementById("autoBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); mapview().close(); toggleAutoPanel(); }, on);
+    hud.onBeforeBagFromBar(() => this.clearForPanel());
+    // Chip "Tự động" (chỉ hiện khi đang tự săn) và chip hồn hoàn ở khung chỉ số: mở bảng Tự động / Hồn Cốt. Các nút menu cũ đã bỏ, hub (huy hiệu giữa trên / Esc) mở mọi bảng.
+    document.getElementById("autoChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); mapview().close(); toggleAutoPanel(); }, on);
+    document.getElementById("ringChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.openBoneTab(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     hud.onResonanceTop((page, pageSize) => this.room.send("resonance", { op: "top", page, pageSize }));
     // Chọn kênh (mục 6 "Nhiều kênh"): mở danh sách thì xin server số người từng kênh; bấm một kênh thì gửi ý định đổi kênh.
@@ -957,13 +954,12 @@ export class GameScene extends Phaser.Scene {
 
   /** Menu hub ngăn kéo (UI v2): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
   setupHub() {
-    const clickBtn = (id: string) => () => { this.clearForPanel(); document.getElementById(id)?.click(); };
     resetBadges(); // kho chấm tính lại từ tin server gửi lúc vào phòng
     initHub({
       vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
       reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },
       friends: () => { this.clearForPanel(); hud.toggleFriends(true); }, world: () => { this.clearForPanel(); this.openWorld(true); },
-      auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: clickBtn("audioBtn"), guide: () => guideReview(),
+      auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: () => { this.clearForPanel(); mapview().close(); toggleSettings(); }, guide: () => guideReview(),
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
       welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, mail: () => { this.clearForPanel(); openMail(); },
       bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },

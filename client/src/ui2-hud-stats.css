@@ -1,8 +1,9 @@
 /* UI v2: cột chỉ số trái, thanh kỹ năng và đội hình đáy (đợt 1a còn lại, Part of #885). Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Khung kit do ui2-hud.css lo; file này thêm DẤU HIỆU HÌNH
    (không chỉ màu): vạch chia 10% trên thanh sinh lực / hồn lực / kinh nghiệm, ô khoá và ô đội hình gục kẻ chéo. Chữ 10 / 12 qua --fs-*, không ký tự ngoài phông nhúng. */
 #hud .stats .bar::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(26,16,32,.6) calc(10% - 1px) 10%)}
-#hud .stats .bar{height:16px;border:var(--bd) solid var(--ink2)}
-#hud .stats .bar span{font:var(--fs-s)/12px var(--f10);z-index:1}
+#hud .stats .bar{height:calc(var(--fs-s) + 2px);margin-top:var(--sp-2);border:var(--bd-fine) solid var(--ink2)}
+#hud .stats .bar span{font:var(--fs-s)/1 var(--f10);z-index:1}
+#hud .stats .bar[hidden]{display:none}
 #hud .stats .who{gap:var(--sp-4);padding-bottom:var(--sp-3);border-bottom:var(--bd-fine) solid var(--ink2)}
 #hud .stats .portrait{border-color:var(--paper3)}
 #hud #lvl{font:var(--fs-m)/1.2 var(--f12);color:var(--qgold);text-shadow:none}
@@ -11,3 +12,14 @@
 #hud #actbar .sk.ui-cell .key,#hud #actbar .tm.ui-cell .key{background:var(--paper);color:var(--ink);border:var(--bd-fine) solid var(--ink2);font:var(--fs-s)/12px var(--f10)}
 #hud #actbar .sk-state{background:var(--plate);color:var(--plate-text);font:var(--fs-s)/12px var(--f10)}
 #hud #actbar :is(.sk,.tm):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+
+/* Cột trái chỉ còn trạng thái (đợt tối ưu HUD): hàng chip dưới ba thanh. Chip hồn hoàn n/10 luôn có (bấm mở bảng Hồn Cốt); chip Tự động chỉ khi đang tự săn
+   (bấm mở bảng Tự động, có vạch dưới chân + chữ "Tự động" nên không chỉ bằng màu). Menu mở bằng huy hiệu giữa trên / Esc. */
+#hud .stats .chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-3)}
+#hud .stats .stat-chip{display:inline-flex;align-items:center;gap:var(--sp-2);min-height:24px;padding:0 var(--sp-3);background:var(--track);color:var(--plate-text);border:var(--bd-fine) solid var(--ink2);font:var(--fs-s)/1.1 var(--f10);cursor:pointer}
+#hud .stats .stat-chip[hidden]{display:none}
+#hud .stats .stat-chip .menu-icon{font-size:var(--fs-m)}
+#hud .stats .stat-chip.on{box-shadow:inset 0 -3px 0 var(--accent)}
+#hud .stats .stat-chip:hover{border-color:var(--accent)}
+#hud .stats .stat-chip:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+:where(body.touch) #hud .stats .stat-chip{min-height:40px}

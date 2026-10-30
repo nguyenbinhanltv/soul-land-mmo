@@ -18,7 +18,7 @@ import { ringColor, SKILL_KEYS, BONE_SKILL_KEYS, skillCd, cdText, starSkillText,
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
 export function toggleRoster(open = $("#roster").hidden) {
-  $("#roster").hidden = !open; $("#vhBtn").setAttribute("aria-expanded", String(open));
+  $("#roster").hidden = !open;
   if (!open) rosterSel = null;
   else { toggleBag(false); closeNpc(); toggleReso(false); toggleWorld(false); toggleFriends(false); toggleChar(false); } // các bảng cùng chỗ giữa màn hình: mở bảng này thì đóng bảng kia
 }
@@ -283,6 +283,9 @@ let boneFocus: string | null = null;   // hồn cốt trong túi vừa bấm "G�
 let rosterAgain: (() => void) | null = null; // vẽ lại bảng đội hình bằng dữ liệu lần vẽ gần nhất (null = chưa vẽ lần nào)
 /** Vị trí từng ô quanh hình võ hồn (grid-area trong .bfig: hàng / cột). */
 const BONE_AREA: Record<string, string> = { dau: "1 / 2", tay_trai: "2 / 1", tay_phai: "2 / 3", than: "3 / 2", chan_trai: "3 / 1", chan_phai: "3 / 3" };
+
+/** Chip hồn hoàn ở khung chỉ số: mở bảng Võ Hồn ở tab Hồn cốt (không chọn ô nào). */
+export function openBoneTab() { openBones("", ""); }
 
 /** Mở bảng đội hình ở mục hồn cốt, chọn sẵn ô của hồn cốt `itemId` (nút "Gắn…" trong túi đồ). */
 export function openBones(itemId: string, slot: string, rowId: number | null = null) {

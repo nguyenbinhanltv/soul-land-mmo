@@ -16,9 +16,9 @@ export { ringColor, SKILL_KEYS, BONE_SKILL_KEYS, skillCd, cdText, starSkillText,
 // Thanh boss / đếm ngược / xếp hạng đóng góp đã tách sang hudBoss.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { setBossCountdown, updateBossCd, setBossLife, setBossRage, setBossWeak, showBoss, bossRank, type BossWorldView } from "./hudBoss.ts";
 // Bảng Võ Hồn / đội hình, hồn kỹ, hồn cốt, hồn hạch, cường hóa và mảnh võ hồn của HUD đã tách sang hudRoster.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
-export { toggleRoster, type RosterActions, renderRoster, openBones, openCores, wornCores, coreLines } from "./hudRoster.ts";
+export { toggleRoster, type RosterActions, renderRoster, openBones, openBoneTab, openCores, wornCores, coreLines } from "./hudRoster.ts";
 // Túi đồ, hồn tệ, thẻ thao tác, so sánh, tự bán của HUD đã tách sang hudBag.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
-export { openBagTieuHao, setBagCap, toggleBag, boneOf, coreOf, coreSet, itemName, boneStatText, boneFullText, subName, yearsShort, itemColor, itemArt, boneIcon, boneEmptyIcon, coreIcon, type AbsorbOption, type HerbOption, type BagActions, type BagFocus, setBagFocus, bagCap, renderBag, updateBag } from "./hudBag.ts";
+export { openBagTieuHao, onBeforeBagFromBar, setBagCap, toggleBag, boneOf, coreOf, coreSet, itemName, boneStatText, boneFullText, subName, yearsShort, itemColor, itemArt, boneIcon, boneEmptyIcon, coreIcon, type AbsorbOption, type HerbOption, type BagActions, type BagFocus, setBagFocus, bagCap, renderBag, updateBag } from "./hudBag.ts";
 // Hộp thoại NPC đã tách sang hudNpc.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { showTalk, type NpcActions, type TongMsg, type TongBoardMsg, setShardInfo, setLooksInfo, looksOpen, closeLooks, setTong, setTongBoard, npcOpenId, openNpc, closeNpc, npcBag } from "./hudNpc.ts";
 // Cửa hàng NPC đã tách sang hudShop.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
