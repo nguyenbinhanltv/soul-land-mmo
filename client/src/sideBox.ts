@@ -6,7 +6,7 @@ import { badgeOf, onBadges } from "./badges.ts";
 
 export type SideTab = "quest" | "party";
 const TAB_NAME: Record<SideTab, string> = { quest: "Nhiệm vụ", party: "Tổ đội" };
-let tab: SideTab = "quest", collapsed = false, invites = 0, hasQuest = false, wired = false;
+let tab: SideTab = "quest", collapsed = false, invites = 0, inParty = false, hasQuest = false, wired = false;
 
 const root = () => document.getElementById("sideBox");
 
@@ -22,7 +22,7 @@ export function paint() {
   const el = root(); if (!el) return;
   wire(el);
   const dots: Record<SideTab, boolean> = { quest: !!badgeOf("quest"), party: invites > 0 };
-  el.dataset.tab = tab; el.classList.toggle("collapsed", collapsed); el.classList.toggle("inv", invites > 0);
+  el.dataset.tab = tab; el.classList.toggle("collapsed", collapsed); el.classList.toggle("inv", invites > 0); el.classList.toggle("inparty", inParty);
   el.querySelectorAll<HTMLElement>(".sb-tab").forEach((b) => {
     const t = b.dataset.tab as SideTab, on = t === tab;
     b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1;
@@ -43,4 +43,4 @@ export function showSideTab(t: SideTab) { tab = t; collapsed = false; paint(); }
 /** hudQuest.ts báo có gì để theo dõi không (hiện dòng gợi ý khi rỗng). */
 export function sideBoxQuest(any: boolean) { hasQuest = any; paint(); }
 /** hud.ts báo số lời mời đang chờ; tăng thì nhảy sang tab Tổ đội (người chơi đổi lại được, không bị kéo về nữa cho tới lời mời mới). */
-export function sideBoxInvites(n: number) { const more = n > invites; invites = n; if (more) { tab = "party"; collapsed = false; } paint(); }
+export function sideBoxInvites(n: number, inTeam = false) { const more = n > invites; invites = n; inParty = inTeam; if (more) { tab = "party"; collapsed = false; } paint(); }
