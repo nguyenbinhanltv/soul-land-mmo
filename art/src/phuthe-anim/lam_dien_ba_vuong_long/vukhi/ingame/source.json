@@ -1,0 +1,409 @@
+{
+  "date": "2026-10-30",
+  "url": "http://127.0.0.1:5198/choi/?thu=vukhi&vh=lam_dien_ba_vuong_long",
+  "browser": "Chrome headless, --mute-audio; Phaser noAudio; localStorage muted",
+  "records": [
+    {
+      "sex": "m",
+      "clip": "idle",
+      "ms": 0,
+      "file": "m-idle-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "idle",
+      "ms": 100,
+      "file": "m-idle-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "idle",
+      "ms": 250,
+      "file": "m-idle-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "idle",
+      "ms": 400,
+      "file": "m-idle-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "walk",
+      "ms": 0,
+      "file": "m-walk-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "walk",
+      "ms": 100,
+      "file": "m-walk-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "walk",
+      "ms": 250,
+      "file": "m-walk-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "walk",
+      "ms": 400,
+      "file": "m-walk-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "attack",
+      "ms": 0,
+      "file": "m-attack-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "attack",
+      "ms": 100,
+      "file": "m-attack-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "attack",
+      "ms": 250,
+      "file": "m-attack-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "attack",
+      "ms": 400,
+      "file": "m-attack-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "cast",
+      "ms": 0,
+      "file": "m-cast-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "cast",
+      "ms": 100,
+      "file": "m-cast-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "cast",
+      "ms": 250,
+      "file": "m-cast-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "cast",
+      "ms": 400,
+      "file": "m-cast-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "hurt",
+      "ms": 0,
+      "file": "m-hurt-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "hurt",
+      "ms": 100,
+      "file": "m-hurt-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "hurt",
+      "ms": 250,
+      "file": "m-hurt-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "m",
+      "clip": "hurt",
+      "ms": 400,
+      "file": "m-hurt-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "idle",
+      "ms": 0,
+      "file": "f-idle-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "idle",
+      "ms": 100,
+      "file": "f-idle-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "idle",
+      "ms": 250,
+      "file": "f-idle-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "idle",
+      "ms": 400,
+      "file": "f-idle-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "walk",
+      "ms": 0,
+      "file": "f-walk-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "walk",
+      "ms": 100,
+      "file": "f-walk-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "walk",
+      "ms": 250,
+      "file": "f-walk-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "walk",
+      "ms": 400,
+      "file": "f-walk-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "attack",
+      "ms": 0,
+      "file": "f-attack-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "attack",
+      "ms": 100,
+      "file": "f-attack-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "attack",
+      "ms": 250,
+      "file": "f-attack-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "attack",
+      "ms": 400,
+      "file": "f-attack-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "cast",
+      "ms": 0,
+      "file": "f-cast-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "cast",
+      "ms": 100,
+      "file": "f-cast-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "cast",
+      "ms": 250,
+      "file": "f-cast-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "cast",
+      "ms": 400,
+      "file": "f-cast-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "hurt",
+      "ms": 0,
+      "file": "f-hurt-0.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "hurt",
+      "ms": 100,
+      "file": "f-hurt-100.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "hurt",
+      "ms": 250,
+      "file": "f-hurt-250.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    },
+    {
+      "sex": "f",
+      "clip": "hurt",
+      "ms": 400,
+      "file": "f-hurt-400.png",
+      "mode": "that",
+      "ready": true,
+      "shown": 6,
+      "fallback": true
+    }
+  ],
+  "errors": [],
+  "chanThanShown": 0
+}
