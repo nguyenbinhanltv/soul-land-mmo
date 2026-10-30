@@ -1,0 +1,4 @@
+# Giữ hash prompt/script nhất quán trên Windows và Linux.
+*.mjs text eol=lf
+*.txt text eol=lf
+*.json text eol=lf

@@ -1,0 +1,506 @@
+{
+  "items": [
+    {
+      "file": "game-m-s-cast-0.png",
+      "sex": "m",
+      "dir": "s",
+      "clip": "cast",
+      "ms": 0,
+      "body": 14,
+      "weapon": 10,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-s-cast-100.png",
+      "sex": "m",
+      "dir": "s",
+      "clip": "cast",
+      "ms": 100,
+      "body": 15,
+      "weapon": 10,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-s-cast-360.png",
+      "sex": "m",
+      "dir": "s",
+      "clip": "cast",
+      "ms": 360,
+      "body": 16,
+      "weapon": 11,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-s-attack-190.png",
+      "sex": "m",
+      "dir": "s",
+      "clip": "attack",
+      "ms": 190,
+      "body": 12,
+      "weapon": 8,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-se-cast-0.png",
+      "sex": "m",
+      "dir": "se",
+      "clip": "cast",
+      "ms": 0,
+      "body": 62,
+      "weapon": 23,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-se-cast-100.png",
+      "sex": "m",
+      "dir": "se",
+      "clip": "cast",
+      "ms": 100,
+      "body": 63,
+      "weapon": 23,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-se-cast-360.png",
+      "sex": "m",
+      "dir": "se",
+      "clip": "cast",
+      "ms": 360,
+      "body": 64,
+      "weapon": 24,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-se-attack-190.png",
+      "sex": "m",
+      "dir": "se",
+      "clip": "attack",
+      "ms": 190,
+      "body": 60,
+      "weapon": 21,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-e-cast-0.png",
+      "sex": "m",
+      "dir": "e",
+      "clip": "cast",
+      "ms": 0,
+      "body": 62,
+      "weapon": 36,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-e-cast-100.png",
+      "sex": "m",
+      "dir": "e",
+      "clip": "cast",
+      "ms": 100,
+      "body": 63,
+      "weapon": 36,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-e-cast-360.png",
+      "sex": "m",
+      "dir": "e",
+      "clip": "cast",
+      "ms": 360,
+      "body": 64,
+      "weapon": 37,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-e-attack-190.png",
+      "sex": "m",
+      "dir": "e",
+      "clip": "attack",
+      "ms": 190,
+      "body": 60,
+      "weapon": 34,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-ne-cast-0.png",
+      "sex": "m",
+      "dir": "ne",
+      "clip": "cast",
+      "ms": 0,
+      "body": 62,
+      "weapon": 49,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-ne-cast-100.png",
+      "sex": "m",
+      "dir": "ne",
+      "clip": "cast",
+      "ms": 100,
+      "body": 63,
+      "weapon": 49,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-ne-cast-360.png",
+      "sex": "m",
+      "dir": "ne",
+      "clip": "cast",
+      "ms": 360,
+      "body": 64,
+      "weapon": 50,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-ne-attack-190.png",
+      "sex": "m",
+      "dir": "ne",
+      "clip": "attack",
+      "ms": 190,
+      "body": 60,
+      "weapon": 47,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-n-cast-0.png",
+      "sex": "m",
+      "dir": "n",
+      "clip": "cast",
+      "ms": 0,
+      "body": 110,
+      "weapon": 62,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-n-cast-100.png",
+      "sex": "m",
+      "dir": "n",
+      "clip": "cast",
+      "ms": 100,
+      "body": 111,
+      "weapon": 62,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-n-cast-360.png",
+      "sex": "m",
+      "dir": "n",
+      "clip": "cast",
+      "ms": 360,
+      "body": 112,
+      "weapon": 63,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-m-n-attack-190.png",
+      "sex": "m",
+      "dir": "n",
+      "clip": "attack",
+      "ms": 190,
+      "body": 108,
+      "weapon": 60,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "test-m-idle-0.png",
+      "sex": "m",
+      "clip": "idle",
+      "ms": 0,
+      "scene": "VukhiScene"
+    },
+    {
+      "file": "test-m-walk-100.png",
+      "sex": "m",
+      "clip": "walk",
+      "ms": 100,
+      "scene": "VukhiScene"
+    },
+    {
+      "file": "test-m-attack-190.png",
+      "sex": "m",
+      "clip": "attack",
+      "ms": 190,
+      "scene": "VukhiScene"
+    },
+    {
+      "file": "test-m-cast-360.png",
+      "sex": "m",
+      "clip": "cast",
+      "ms": 360,
+      "scene": "VukhiScene"
+    },
+    {
+      "file": "game-f-s-cast-0.png",
+      "sex": "f",
+      "dir": "s",
+      "clip": "cast",
+      "ms": 0,
+      "body": 14,
+      "weapon": 75,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-s-cast-100.png",
+      "sex": "f",
+      "dir": "s",
+      "clip": "cast",
+      "ms": 100,
+      "body": 15,
+      "weapon": 75,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-s-cast-360.png",
+      "sex": "f",
+      "dir": "s",
+      "clip": "cast",
+      "ms": 360,
+      "body": 16,
+      "weapon": 76,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-s-attack-190.png",
+      "sex": "f",
+      "dir": "s",
+      "clip": "attack",
+      "ms": 190,
+      "body": 12,
+      "weapon": 73,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-se-cast-0.png",
+      "sex": "f",
+      "dir": "se",
+      "clip": "cast",
+      "ms": 0,
+      "body": 62,
+      "weapon": 88,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-se-cast-100.png",
+      "sex": "f",
+      "dir": "se",
+      "clip": "cast",
+      "ms": 100,
+      "body": 63,
+      "weapon": 88,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-se-cast-360.png",
+      "sex": "f",
+      "dir": "se",
+      "clip": "cast",
+      "ms": 360,
+      "body": 64,
+      "weapon": 89,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-se-attack-190.png",
+      "sex": "f",
+      "dir": "se",
+      "clip": "attack",
+      "ms": 190,
+      "body": 60,
+      "weapon": 86,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-e-cast-0.png",
+      "sex": "f",
+      "dir": "e",
+      "clip": "cast",
+      "ms": 0,
+      "body": 62,
+      "weapon": 101,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-e-cast-100.png",
+      "sex": "f",
+      "dir": "e",
+      "clip": "cast",
+      "ms": 100,
+      "body": 63,
+      "weapon": 101,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-e-cast-360.png",
+      "sex": "f",
+      "dir": "e",
+      "clip": "cast",
+      "ms": 360,
+      "body": 64,
+      "weapon": 102,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-e-attack-190.png",
+      "sex": "f",
+      "dir": "e",
+      "clip": "attack",
+      "ms": 190,
+      "body": 60,
+      "weapon": 99,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-ne-cast-0.png",
+      "sex": "f",
+      "dir": "ne",
+      "clip": "cast",
+      "ms": 0,
+      "body": 62,
+      "weapon": 114,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-ne-cast-100.png",
+      "sex": "f",
+      "dir": "ne",
+      "clip": "cast",
+      "ms": 100,
+      "body": 63,
+      "weapon": 114,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-ne-cast-360.png",
+      "sex": "f",
+      "dir": "ne",
+      "clip": "cast",
+      "ms": 360,
+      "body": 64,
+      "weapon": 115,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-ne-attack-190.png",
+      "sex": "f",
+      "dir": "ne",
+      "clip": "attack",
+      "ms": 190,
+      "body": 60,
+      "weapon": 112,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-n-cast-0.png",
+      "sex": "f",
+      "dir": "n",
+      "clip": "cast",
+      "ms": 0,
+      "body": 110,
+      "weapon": 127,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-n-cast-100.png",
+      "sex": "f",
+      "dir": "n",
+      "clip": "cast",
+      "ms": 100,
+      "body": 111,
+      "weapon": 127,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-n-cast-360.png",
+      "sex": "f",
+      "dir": "n",
+      "clip": "cast",
+      "ms": 360,
+      "body": 112,
+      "weapon": 128,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "game-f-n-attack-190.png",
+      "sex": "f",
+      "dir": "n",
+      "clip": "attack",
+      "ms": 190,
+      "body": 108,
+      "weapon": 125,
+      "texture": "vkanim_cuu_bao_luu_ly_thap_f",
+      "muted": true
+    },
+    {
+      "file": "test-f-idle-0.png",
+      "sex": "f",
+      "clip": "idle",
+      "ms": 0,
+      "scene": "VukhiScene"
+    },
+    {
+      "file": "test-f-walk-100.png",
+      "sex": "f",
+      "clip": "walk",
+      "ms": 100,
+      "scene": "VukhiScene"
+    },
+    {
+      "file": "test-f-attack-190.png",
+      "sex": "f",
+      "clip": "attack",
+      "ms": 190,
+      "scene": "VukhiScene"
+    },
+    {
+      "file": "test-f-cast-360.png",
+      "sex": "f",
+      "clip": "cast",
+      "ms": 360,
+      "scene": "VukhiScene"
+    }
+  ],
+  "errors": [],
+  "method": "Playwright Chrome --mute-audio, RAM riêng; GameScene.animatePlayer thật, cố định bước thân và đồng hồ để chụp; không sửa repo.",
+  "viewport": [
+    1600,
+    900
+  ]
+}
