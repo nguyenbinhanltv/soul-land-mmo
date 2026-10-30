@@ -16,6 +16,57 @@ import { fakeSheet } from "./phuthe-sheet-fake.mjs";
 import { cutPhuThe } from "./phuthe-sheet-cut.mjs";
 import { prepareSheet } from "./phuthe-sheet-cut-lib.mjs";
 import { buildPreview } from "./phuthe-sheet-preview.mjs";
+import { analyzeSheet } from "./phuthe-sheet-check.mjs";
+
+test("Phá Hồn Thương dọc: n/attack 1,2 giữ tay hiện hữu đúng bước qua dummy/checker/cutter", () => {
+  const id = "pha_hon_thuong", frame = 128, gripN = L.gripCounts("2 tay (theo clip)");
+  const dummyKey = "#D0D000", guideKey = "#7A5CFF", gripKey = "#00FF60";
+  const out = tmp("grip-dung-buoc");
+  for (const sex of ["m", "f"]) {
+    const poseFrames = L.sheetCells("A").map((c) => ({ name: `${sex}/n/${c.anim}/${c.frame}`, axisDegrees: 90, secondaryShaftDistance: 0 }));
+    const options = { group: "A", dir: "n", frame, key: dummyKey, dummyKey, guideKey, gripKey, gripN, sex, id, poseFrames };
+    const board = dummySheet(options);
+    for (const c of board.cells) {
+      const [hx, hy] = c.grip.hands[0];
+      for (let y = Math.floor(hy - 38); y <= Math.ceil(hy); y++) for (let x = Math.floor(hx - 4); x <= Math.ceil(hx + 4); x++) board.img.set(c.col * L.CELL + x, c.row * L.CELL + y, [180, 80, 40, 255]);
+    }
+    const prep = prepareSheet(board.img, options);
+    for (const missing of [undefined, poseFrames.map((p) => ({ ...p, name: p.name.replace(`${sex}/`, "khac/") })), []]) {
+      const unapproved = dummySheet({ ...options, poseFrames: missing });
+      for (const n of [1, 2]) {
+        const g = unapproved.cells.find((c) => c.anim === "attack" && c.frame === n).grip;
+        assert.equal(g.hands.length, 2); assert.equal(g.fallback, true, "thiếu góc đúng giới/khung thì giữ hành vi cũ");
+      }
+    }
+    for (const c of board.cells.filter((c) => c.anim === "cast" || c.anim === "attack" && [0, 3].includes(c.frame))) {
+      assert.equal(c.grip.hands.length, 2); assert.equal(c.grip.fallback, false, "đã đo đủ hai tay thì không bỏ tay B");
+    }
+    for (const n of [1, 2]) {
+      const cell = board.cells.find((c) => c.anim === "attack" && c.frame === n);
+      const prepared = prep.cells.find((c) => c.anim === "attack" && c.frame === n);
+      assert.equal(cell.grip.hands.length, 1); assert.equal(cell.grip.step, n); assert.equal(cell.grip.fallback, false);
+      assert.deepEqual(prepared.grip.hands, cell.grip.hands);
+      const old = gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 2 });
+      assert.equal(old.fallback, true); assert.notEqual(old.step, n, "đối chứng thực: cơ chế cũ lấy tay ở bước khác");
+      for (const axisDegrees of [0, 74.9, 105.1, NaN]) assert.deepEqual(gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 2, id, axisDegrees }), old);
+      assert.deepEqual(gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 2, id: "bang_phuong_hoang", axisDegrees: 90 }), old);
+    }
+    const file = path.join(out, `${sex}.png`); writeFileSync(file, encodePng(board.img));
+    const checked = analyzeSheet(file, { ...options, kind: "vukhi" });
+    assert.equal(checked.issues.filter((i) => i.sev === "block").length, 0, JSON.stringify(checked.issues));
+    for (const extra of [{ id: "bang_phuong_hoang" }, { poseFrames: poseFrames.map((p) => ({ ...p, axisDegrees: 0 })) }]) {
+      const rejected = analyzeSheet(file, { ...options, kind: "vukhi", ...extra });
+      assert.ok(rejected.issues.some((i) => i.sev === "block" && i.code === "diem-cam" && /C[23]/.test(i.where)), "không miễn nominal tay cho mã ngoài danh sách hoặc góc ngang");
+    }
+    const cut = cutPhuThe({ id, kind: "vukhi", sheets: { E: board.img }, frame, dummyKey, guideKey, gripKey, dummySex: sex, poseFrames, partial: true });
+    assert.equal(cut.report.summary.block, 0);
+    for (const n of [1, 2]) {
+      const hand = board.cells.find((c) => c.anim === "attack" && c.frame === n).grip.hands[0];
+      const expected = [+(hand[0] / 2 - 64).toFixed(1), +(hand[1] / 2 - 90).toFixed(1)];
+      for (const e of cut.entries) assert.deepEqual(e.anim.grip[`n/attack/${n}`], expected, "cutter không bịa B hoặc lấy tay từ bước khác");
+    }
+  }
+});
 
 test("số tay theo clip: nộm / chuẩn bị cutter giữ một tay lúc nghỉ, hai tay khi đánh / thi triển", () => {
   const counts = L.gripCounts("2 tay (theo clip)");
