@@ -29,6 +29,7 @@
     "blocked": [
       "cỡ thân sau khớp lệch 19,2% > 10%",
       "cả loài: legacy auto 1,2452 fit 0,7023"
-    ]
+    ],
+    "context": "Lần thử bị chặn phiên 860, trước thay e; số lịch sử, không phải kết quả nhập phiên 862. Phiên 862 không thử lại n, giữ dự phòng theo chủ repo."
   }
 }
