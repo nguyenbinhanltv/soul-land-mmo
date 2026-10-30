@@ -101,7 +101,8 @@ export interface PData {
   target: string;
   accountId: number;
   leaseOwner: string;
-  leaseT: number;
+  /** Mốc giờ thật (`Date.now()`) phải gia hạn lease tài khoản kế tiếp; không tính bằng `dt` vì tick bị kẹp 100 ms (máy tải thì chậm hơn TTL). */
+  leaseAt: number;
   owned: Character[];   // mọi võ hồn sở hữu (chỉ gửi cho chính chủ)
   team: number[];       // đội hình: rowId võ hồn theo ô (TEAM_SIZE ô, 0 = trống); chỉ gửi cho chính chủ
   ch: Character;        // võ hồn đang ra trận, là một phần tử của owned và luôn nằm trong team
@@ -861,7 +862,8 @@ export class MapRoom extends Room<MapState> {
   partyT = 0;
   /** Khung giờ đang lấy suất thú vương (đặt trước `await takeKingSeat`): tin `spawn` tới trùng không lấy thêm suất / sinh thêm thú vương. */
   kingTaking = 0;
-  channelT = 0;
+  /** Mốc giờ thật (`Date.now()`) gia hạn kênh kế tiếp (cùng lý do với `PData.leaseAt`). */
+  channelAt = 0;
   kickSub = (m: { accountId: number; sessionId: string }) => {
     for (const other of this.clients) if (other.sessionId !== m.sessionId && (other.auth as AuthData)?.accountId === m.accountId) other.leave(4001);
   };
