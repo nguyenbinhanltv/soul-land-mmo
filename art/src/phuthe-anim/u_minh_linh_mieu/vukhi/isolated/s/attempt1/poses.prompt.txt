@@ -1,0 +1,26 @@
+Use case: stylized-concept. Game weapon pose atlas, no character.
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Transparent background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+SPIRIT: U Minh Linh Mieu's handheld weapon: ONE empty panther claw gauntlet with exactly FOUR long dark purple talons, midnight violet almost black cuff and backplate, bright lavender hard thin rim, tiny dark pink tip accents, engraved violet claw rune. No actual panther, head, ears, tail, skin, fingers, arm, human, mannequin or smoke. Only the empty weapon. The empty cuff root is clearly marked by one small solid yellow registration dot at the middle of its wrist opening.
+TECHNICAL overrides: solid flat #FF00FF magenta background, no transparency for this atlas. A clean 3 columns by 2 rows layout of exactly SIX disconnected poses of this SAME single gauntlet, even spacing generous blank margins, no grid lines, no labels. Entire object fits each slot with 20% margins. All six have the same physical scale. SOUTH-facing FRONT view seen slightly from above, looking at the backplate from the front of a south-facing hero. Four talons point DOWN the image away from the cuff, foreshortened, visibly different from side view. Preserve the same six gesture roles but orient the hand toward the viewer. Reference image only supplies weapon design and palette; do NOT copy east orientation. Slots row-major: 1 relaxed gauntlet with claws pointing diagonally down-right; 2 attack windup claws pointing up-right; 3 attack extended claws pointing right; 4 attack followthrough claws pointing down-right; 5 cast raised claws pointing up-right partially open; 6 cast with four talons spread open pointing up-right. Keep cuff compact and claws distinct, no connecting trails between claws or objects.
+CRITICAL: This is NOT a side view. ALL six gauntlets have cuff at the TOP and four talons pointing DOWN, aimed straight toward the bottom edge of the picture. Bilaterally symmetric front camera; both left and right cuff edges visible equally. No object points to the right. Layout remains 3x2, yellow dot at top wrist root. Pose 1 relaxed four downward blades close together, pose 2 flexed downward blades, pose3 downward extended, pose4 downward followthrough, pose5 four talons slightly open downward, pose6 four talons wide downward. All objects vertically oriented.

@@ -121,7 +121,7 @@ Tái dùng tối đa đường P1 (#1022) / P2 (#1023); thêm chế độ **"vũ
 | Chủ repo duyệt bảng (dạng vũ khí, nhóm, tay, 3 mẫu thí điểm) | hướng đã chốt 2026-10-29 (epic #1020); mẫu mềm Lam Ngân Thảo đã chấp nhận (#1322); bảng đủ 25 dòng vẫn duyệt dần theo từng mẫu |
 | Công cụ kiểu `--kind vukhi` (nộm + marker, prompt, cutter, kiểm) | xong (#1313) |
 | Nhập `vkanim_<id>_b` / `_f` vào game (`phuthe-import.mjs --kind vukhi`, validate nhận khoá `vkanim`, trang thử `?thu=vukhi`) | xong (#1312) |
-| Thí điểm Hạo Thiên Chùy / Lam Ngân Thảo / võ hồn găng-vuốt | Lam Ngân Thảo xong (#1322); Hạo Thiên Chùy #1319 (PR #1320 nháp, chưa đạt); Hỏa Long mềm #1338; găng-vuốt chưa mở |
+| Thí điểm Hạo Thiên Chùy / Lam Ngân Thảo / võ hồn găng-vuốt | Lam Ngân Thảo xong (#1322); Hạo Thiên Chùy #1319 (PR #1320 nháp, chưa đạt); Hỏa Long mềm #1338; U Minh Linh Miêu găng-vuốt #1358: mẫu atlas riêng đủ năm hướng, đã kiểm game, chưa duyệt mỹ thuật; giới hạn hai tay / hurt / khói / clip ở hồ sơ `art/src/phuthe-anim/u_minh_linh_mieu/vukhi/NGUON.md` |
 | Client: vũ khí theo võ hồn ra trận, Chân Thân thu về | xong (#1314); thiếu sheet vẫn chạy nhánh hiện nay |
 | Phụ thể cũ chỉ hiện khi Chân Thân; sửa `trang-bi.md` | mở sau thí điểm |
 

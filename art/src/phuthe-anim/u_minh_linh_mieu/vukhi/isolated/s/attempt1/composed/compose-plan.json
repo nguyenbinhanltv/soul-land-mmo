@@ -1,0 +1,1366 @@
+{
+  "dir": "s",
+  "F": 96,
+  "scale": 0.036,
+  "poses": [
+    {
+      "anchor": [
+        269.6015228426396,
+        52.68781725888325
+      ],
+      "box": [
+        151,
+        40,
+        386,
+        448
+      ]
+    },
+    {
+      "anchor": [
+        773.9689265536723,
+        54.567796610169495
+      ],
+      "box": [
+        652,
+        40,
+        892,
+        431
+      ]
+    },
+    {
+      "anchor": [
+        1263.5983606557377,
+        51.05191256830601
+      ],
+      "box": [
+        1152,
+        37,
+        1424,
+        477
+      ]
+    },
+    {
+      "anchor": [
+        261.4891304347826,
+        552.6141304347826
+      ],
+      "box": [
+        148,
+        539,
+        431,
+        966
+      ]
+    },
+    {
+      "anchor": [
+        772.8854166666666,
+        552.5416666666666
+      ],
+      "box": [
+        629,
+        539,
+        930,
+        950
+      ]
+    },
+    {
+      "anchor": [
+        1258.016129032258,
+        552.7795698924731
+      ],
+      "box": [
+        1048,
+        540,
+        1474,
+        967
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "sex": "m",
+      "name": "s/idle/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -12.9,
+        -11.9,
+        12.9,
+        -11.9
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.5656854249492461,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.565685424949236,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/idle/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -12.9,
+        -11.9,
+        12.9,
+        -11.9
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.5656854249492461,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.565685424949236,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/idle/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -12.5,
+        -12.2,
+        12.5,
+        -12.2
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 86,
+          "near": 0.7000000000000028,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 86,
+          "near": 0.7000000000000028,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/idle/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -12.5,
+        -12.2,
+        12.5,
+        -12.2
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 86,
+          "near": 0.7000000000000028,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 86,
+          "near": 0.7000000000000028,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -12.9,
+        -11.9,
+        12.9,
+        -11.9
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.5656854249492461,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.565685424949236,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/walk/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -12.722,
+        -10.611,
+        12.955,
+        -14.045
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183884,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 92,
+          "near": 0.6428243465332233,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/walk/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -12.722,
+        -10.611,
+        12.955,
+        -14.045
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183884,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 92,
+          "near": 0.6428243465332233,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/walk/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -12.9,
+        -11.9,
+        12.9,
+        -11.9
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.5656854249492461,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.565685424949236,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/walk/4",
+      "step": 4,
+      "measuredStep": 4,
+      "fallback": false,
+      "grip": [
+        -13.1,
+        -14.1,
+        11.722,
+        -8.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.565685424949231,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183944,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/walk/5",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "grip": [
+        -12.955,
+        -14.045,
+        12.722,
+        -10.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 92,
+          "near": 0.6428243465332233,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183884,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -11,
+        -12.75,
+        6.833,
+        -12.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 93,
+          "near": 0.5590169943749506,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 91,
+          "near": 0.35136418446315654,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -11.214,
+        -11.214,
+        -2.5,
+        -11.125
+      ],
+      "pose": 1,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 76,
+          "near": 0.40406101782087783,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 73,
+          "near": 0.375,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -9.214,
+        -11.929,
+        9.643,
+        -12.071
+      ],
+      "pose": 2,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 95,
+          "near": 0.5150787536377099,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 97,
+          "near": 0.4517539514526285,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/attack/3",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -9.214,
+        -11.929,
+        9.643,
+        -12.071
+      ],
+      "pose": 3,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 86,
+          "near": 0.5150787536377099,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 84,
+          "near": 0.4517539514526285,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/attack/4",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -11.1,
+        -12.1,
+        24.929,
+        -19.357
+      ],
+      "pose": 2,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 107,
+          "near": 0.565685424949236,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 102,
+          "near": 0.4517539514526285,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/attack/5",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -11.1,
+        -12.1,
+        24.929,
+        -19.357
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.565685424949236,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 95,
+          "near": 0.4517539514526285,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/cast/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -12.773,
+        -14.045,
+        12.773,
+        -14.045
+      ],
+      "pose": 4,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 83,
+          "near": 0.5300865358950265,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 83,
+          "near": 0.5300865358950265,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/cast/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -16.417,
+        -17.083,
+        16.417,
+        -17.083
+      ],
+      "pose": 4,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 80,
+          "near": 0.4249182927993969,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 80,
+          "near": 0.4249182927993983,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/cast/2",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -16.417,
+        -17.083,
+        16.417,
+        -17.083
+      ],
+      "pose": 5,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 100,
+          "near": 0.4249182927993969,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 100,
+          "near": 0.4249182927993983,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/cast/3",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -21.929,
+        -30.929,
+        21.929,
+        -30.929
+      ],
+      "pose": 5,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 93,
+          "near": 0.6060915267313294,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 93,
+          "near": 0.6060915267313294,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/hurt/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": true,
+      "grip": [
+        14.722,
+        -10.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.7856742013183954,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "m",
+      "name": "s/hurt/1",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "grip": [
+        14.722,
+        -10.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.7856742013183954,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/idle/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -11.722,
+        -11.611,
+        11.722,
+        -11.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183803,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183944,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/idle/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -11.722,
+        -11.611,
+        11.722,
+        -11.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183803,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183944,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/idle/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -11.227,
+        -12.045,
+        11.227,
+        -12.045
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.5300865358950204,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.5300865358950204,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/idle/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -11.227,
+        -12.045,
+        11.227,
+        -12.045
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.5300865358950204,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.5300865358950204,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -11.722,
+        -11.611,
+        11.722,
+        -11.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183803,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183944,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/walk/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -10.4,
+        -10.5,
+        11.955,
+        -13.045
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 86,
+          "near": 0.8999999999999986,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 92,
+          "near": 0.6428243465332233,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/walk/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -11.722,
+        -10.611,
+        11.955,
+        -13.045
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183814,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 92,
+          "near": 0.6428243465332233,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/walk/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -11.722,
+        -11.611,
+        11.722,
+        -11.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183803,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183944,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/walk/4",
+      "step": 4,
+      "measuredStep": 4,
+      "fallback": false,
+      "grip": [
+        -10.722,
+        -12.611,
+        9.4,
+        -10.5
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183874,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 86,
+          "near": 0.8999999999999986,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/walk/5",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "grip": [
+        -11.955,
+        -13.045,
+        11.722,
+        -10.611
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 92,
+          "near": 0.6428243465332233,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 88,
+          "near": 0.7856742013183954,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -10.5,
+        -11,
+        7.3,
+        -12.3
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 84,
+          "near": 0.5,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.8246211251235231,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -10.5,
+        -11,
+        -2,
+        -10.167
+      ],
+      "pose": 1,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 74,
+          "near": 0.5,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 81,
+          "near": 0.6009252125773329,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -9,
+        -11.75,
+        8.5,
+        -10.375
+      ],
+      "pose": 2,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 99,
+          "near": 0.5590169943749475,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 94,
+          "near": 0.875,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/attack/3",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -9,
+        -11.75,
+        8.5,
+        -10.375
+      ],
+      "pose": 3,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 83,
+          "near": 0.5590169943749475,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 85,
+          "near": 0.875,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/attack/4",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -10.1,
+        -12.1,
+        25.167,
+        -20.667
+      ],
+      "pose": 2,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 107,
+          "near": 0.565685424949236,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 97,
+          "near": 0.3726779962499724,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/attack/5",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "grip": [
+        -10.1,
+        -12.1,
+        25.167,
+        -20.667
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 90,
+          "near": 0.565685424949236,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 92,
+          "near": 0.3726779962499724,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/cast/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "grip": [
+        -11.722,
+        -13.833,
+        11.722,
+        -13.833
+      ],
+      "pose": 4,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 82,
+          "near": 0.4006168083848991,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 82,
+          "near": 0.40061680838489117,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/cast/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -13.917,
+        -15.333,
+        13.917,
+        -15.333
+      ],
+      "pose": 4,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.4487637339278763,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 89,
+          "near": 0.448763733927863,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/cast/2",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "grip": [
+        -13.917,
+        -15.333,
+        13.917,
+        -15.333
+      ],
+      "pose": 5,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 99,
+          "near": 0.4487637339278763,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 99,
+          "near": 0.448763733927863,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/cast/3",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "grip": [
+        -20.9,
+        -31.7,
+        20.9,
+        -31.7
+      ],
+      "pose": 5,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 95,
+          "near": 0.447213595499958,
+          "edge": 0
+        },
+        {
+          "hand": 1,
+          "side": "f",
+          "pixels": 95,
+          "near": 0.4472135954999643,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/hurt/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": true,
+      "grip": [
+        12.4,
+        -10.5
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 85,
+          "near": 0.8999999999999986,
+          "edge": 0
+        }
+      ]
+    },
+    {
+      "sex": "f",
+      "name": "s/hurt/1",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "grip": [
+        12.4,
+        -10.5
+      ],
+      "pose": 0,
+      "counts": [
+        {
+          "hand": 0,
+          "side": "f",
+          "pixels": 85,
+          "near": 0.8999999999999986,
+          "edge": 0
+        }
+      ]
+    }
+  ],
+  "maxGripDistance": 0.8999999999999986
+}
