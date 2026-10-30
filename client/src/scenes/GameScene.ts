@@ -75,7 +75,7 @@ import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } f
 /** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
 const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
-import { footDustCount, rootSnareDiameter } from "../combatFeelRules.ts";
+import { footDustCount, rootSnareDiameter, shouldForceShake, flashAllowed } from "../combatFeelRules.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { phuFaceOf, phuDirRow, weaponHidden } from "../phutheAnim.ts";
 import { PHU_NO_ANCHOR, phuAnchorAt, phuAnchorsOf, phuLayerPlacement } from "../phutheAnchor.ts";
@@ -427,7 +427,7 @@ export class GameScene extends Phaser.Scene {
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
       this.contextCursor?.destroy(); this.contextCursor = null;
-      this.slowmo = 1; this.hitstopEnd = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); clearQuestArrow(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
+      this.slowmo = 1; this.hitstopEnd = 0; this.shakeEnd = 0; this.shakeInt = 0; this.flashTimes.length = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); clearQuestArrow(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} }); resetBiCanhRoom();
       this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons
@@ -1791,8 +1791,16 @@ export class GameScene extends Phaser.Scene {
 
   // ---------- G1 (#392): cảm giác đánh (chỉ hiển thị cục bộ) ----------
   /** Rung màn hình theo mức hiệu ứng (Thấp / Giảm chuyển động: không rung). */
-  shake(ms: number, intensity: number) { const k = shakeK(); if (k > 0) this.cameras.main.shake(ms, intensity * k); }
-  flash(ms: number, r: number, g: number, b: number) { if (flashOn()) this.cameras.main.flash(ms, r, g, b); }
+  shakeEnd = 0; shakeInt = 0; flashTimes: number[] = [];
+  shake(ms: number, intensity: number) {
+    const k = shakeK(); if (k <= 0) return;
+    const now = performance.now(), i = intensity * k;
+    const force = shouldForceShake(this.shakeEnd - now, this.shakeInt, ms, i); // Phaser 3.90.0 nuốt rung mới khi đang rung, trừ khi force
+    if (!force) return;
+    this.shakeEnd = now + ms; this.shakeInt = i;
+    this.cameras.main.shake(ms, i, true);
+  }
+  flash(ms: number, r: number, g: number, b: number) { if (flashOn() && flashAllowed(this.flashTimes, performance.now())) this.cameras.main.flash(ms, r, g, b); }
   nearMe(x: number, y: number, r: number) { const me = this.players.get(this.me); return !!me && Math.hypot(me.wx - x, me.wy - y) < r; }
   /** Mình đang tự săn (tắt mọi rung / zoom / dừng hình khi đánh hồn thú thường). */
   autoOn() { return !!this.room.state.players.get(this.me)?.auto; }

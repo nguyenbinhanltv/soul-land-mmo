@@ -5,8 +5,10 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 **Nguồn và giấy phép**
 
 ## Nguồn ảnh được phép (hiện hành)
+
 | Asset | Nguồn | Ghi chú |
 |---|---|---|
+| Nền bản đồ thế giới M (`art/src/world-map/`) | Codex builtin OpenAI `image_gen.imagegen` (Q53), 31/10/2026; không dùng asset bên thứ ba làm đầu vào | Không CC0; prompt, RAW nguyên byte và SHA-256 ở `art/src/world-map/`; quy cách ở [ban-do-the-gioi.md](ban-do-the-gioi.md); chưa nhập client, chờ duyệt PR art |
 | Họ asset C1–C16 (cảm giác đánh, khung / nền giao diện, trang phục LPC phương Đông, âm thanh tuyệt kỹ CC0, công cụ chất lượng, màn đăng nhập / tải, HUD, nhãn, thanh kỹ năng, hộp thoại, nhiệm vụ, biểu tượng UI, phản hồi UI, khả năng tiếp cận, màn chết / đấu trường…) | **Codex (tthoadev)**: vẽ bằng code + sinh ảnh model (ChatGPT / Codex, Q44) + hậu kỳ pixel | `art/CREDITS.md` ghi model + prompt |
 | Hồn sư người chơi, NPC phụ, dân thường, lính gác | **LPC** (Universal LPC Spritesheet Character Generator), 4 hướng | Hồn sư có hai cách tạo: Mẫu dựng sẵn (`LPC_PRESETS`) và Tự tạo (`LPC_PARTS`); xem `hon-su-lpc.md` |
 | Phụ thể võ hồn, hồn thú | Đã xong: ảnh tĩnh (phụ thể 5 hướng, hồn thú kiểu lai 3 hướng) + chuyển động bằng code | Ảnh cũ từ PixelLab / ComfyUI vẫn trong game, giữ ghi nguồn ở `art/CREDITS.md` |

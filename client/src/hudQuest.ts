@@ -3,6 +3,7 @@ import { NpcActions, npcDefOpen, renderNpc, tongBoardMsg, tongMsg, npcGoTo, type
 import type { QuestStatus } from "../../shared/data.ts";
 import { tierOfYears, MAPS, NPCS, formatHonTe, QUESTS, QUEST_STARTER, QUEST_AFTER, questChain, questRewardText, questBoneText, type QuestReward, type QuestStep, DAILY } from "../../shared/data.ts";
 import { resolveQuestMarker } from "./nameplate.ts";
+import { sideBoxQuest, showSideTab } from "./sideBox.ts";
 import type { QuestMsg, DailyMsg } from "./net.ts";
 import { TONG_MON, TONG_POINTS, TONG_WEEK_MIN, TONG_WEEK_REWARD, tongDef, type TongRank } from "../../shared/data.ts";
 import { ringColor } from "./hudBar.ts";
@@ -29,7 +30,7 @@ export function questTracked(): QuestMsg[] {
 }
 /** Mở rộng mọi mục của khung theo dõi (thẻ Nhiệm Vụ ở hub, ui2): bỏ trạng thái thu gọn rồi vẽ lại; trả số chuỗi + khảo hạch đang hiện. Không đổi dữ liệu / tin mạng. */
 export function revealQuestTracker(): number {
-  questFold.clear(); dailyFold = false; renderQuestTracker();
+  questFold.clear(); dailyFold = false; renderQuestTracker(); showSideTab("quest"); // mở khung gộp ở tab Nhiệm vụ
   return questTracked().length + (dailyMsg?.list.filter((x) => x.status !== "done").length ?? 0);
 }
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
@@ -64,6 +65,7 @@ function renderQuestTracker() {
   for (const q of questTracked()) any = renderChainTracker(el, q) || any;
   const daily = renderDailyTracker(el);
   el.hidden = !any && !daily;
+  sideBoxQuest(!el.hidden); // khung gộp: hiện dòng gợi ý khi không có gì theo dõi
 }
 /**
  * Nút bấm / chạm của khung theo dõi (#190): `pointerdown` + preventDefault như thanh hồn kỹ (chạm trên điện thoại không phải lúc nào

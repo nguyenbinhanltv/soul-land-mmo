@@ -1,0 +1,846 @@
+{
+  "version": 1,
+  "units": "normalized-image",
+  "origin": "top-left",
+  "background": {
+    "file": "nen-the-gioi.png",
+    "width": 1672,
+    "height": 941
+  },
+  "safeArea": {
+    "x": 0.12,
+    "y": 0.12,
+    "width": 0.76,
+    "height": 0.78
+  },
+  "portrait": {
+    "aspectRatio": "9:16",
+    "initialCenter": {
+      "x": 0.5,
+      "y": 0.5
+    },
+    "strategy": "pan-horizontal-or-contain",
+    "note": "Chỉ cắt trang trí ở mép; không dùng cover cố định làm mất nút. Tranh và overlay phải dùng chung phép biến đổi."
+  },
+  "maps": [
+    {
+      "id": "thanh_hon_thon",
+      "name": "Thánh Hồn Thôn",
+      "kind": "hunt",
+      "position": {
+        "x": 0.25,
+        "y": 0.75
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/thanh_hon_thon.v2.json",
+      "waypoints": [
+        {
+          "key": "thanh_hon_thon:lang",
+          "name": "Quảng trường làng",
+          "position": {
+            "x": 0.23,
+            "y": 0.7
+          },
+          "sourceObjectId": 4,
+          "sourceObjectName": "lang"
+        },
+        {
+          "key": "thanh_hon_thon:bai_tap",
+          "name": "Bãi tập hồn sư",
+          "position": {
+            "x": 0.3,
+            "y": 0.68
+          },
+          "sourceObjectId": 5,
+          "sourceObjectName": "bai_tap"
+        },
+        {
+          "key": "thanh_hon_thon:hau_son",
+          "name": "Hậu Sơn",
+          "position": {
+            "x": 0.25,
+            "y": 0.61
+          },
+          "sourceObjectId": 6,
+          "sourceObjectName": "hau_son"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Đi Nặc Đinh Thành",
+          "to": "nac_dinh_thanh",
+          "arrive": "tu_thanh_hon_thon",
+          "boat": false
+        }
+      ]
+    },
+    {
+      "id": "nac_dinh_thanh",
+      "name": "Nặc Đinh Thành",
+      "kind": "town",
+      "position": {
+        "x": 0.43,
+        "y": 0.65
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/nac_dinh_thanh.v2.json",
+      "waypoints": [
+        {
+          "key": "nac_dinh_thanh:quang_truong",
+          "name": "Quảng trường Nặc Đinh",
+          "position": {
+            "x": 0.43,
+            "y": 0.6
+          },
+          "sourceObjectId": 8,
+          "sourceObjectName": "quang_truong"
+        },
+        {
+          "key": "nac_dinh_thanh:cong_tay",
+          "name": "Cổng tây Nặc Đinh",
+          "position": {
+            "x": 0.38,
+            "y": 0.59
+          },
+          "sourceObjectId": 9,
+          "sourceObjectName": "cong_tay"
+        },
+        {
+          "key": "nac_dinh_thanh:cong_dong",
+          "name": "Cổng đông Nặc Đinh",
+          "position": {
+            "x": 0.48,
+            "y": 0.59
+          },
+          "sourceObjectId": 10,
+          "sourceObjectName": "cong_dong"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Về Thánh Hồn Thôn",
+          "to": "thanh_hon_thon",
+          "arrive": "tu_nac_dinh_thanh",
+          "boat": false
+        },
+        {
+          "sourceObjectId": 2,
+          "name": "Đi Tinh Đấu Ngoại vi",
+          "to": "tinh_dau_ngoai_vi",
+          "arrive": "tu_nac_dinh_thanh",
+          "boat": false
+        },
+        {
+          "sourceObjectId": 3,
+          "name": "Đi Thiên Đấu Thành",
+          "to": "thien_dau_thanh",
+          "arrive": "tu_nac_dinh_thanh",
+          "boat": false
+        }
+      ]
+    },
+    {
+      "id": "tinh_dau_ngoai_vi",
+      "name": "Tinh Đấu Ngoại vi",
+      "kind": "hunt",
+      "position": {
+        "x": 0.57,
+        "y": 0.77
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/tinh_dau_ngoai_vi.v2.json",
+      "waypoints": [
+        {
+          "key": "tinh_dau_ngoai_vi:trai_cong",
+          "name": "Trại cổng Ngoại vi",
+          "position": {
+            "x": 0.52,
+            "y": 0.68
+          },
+          "sourceObjectId": 6,
+          "sourceObjectName": "trai_cong"
+        },
+        {
+          "key": "tinh_dau_ngoai_vi:rung_thua",
+          "name": "Rừng thưa",
+          "position": {
+            "x": 0.57,
+            "y": 0.69
+          },
+          "sourceObjectId": 7,
+          "sourceObjectName": "rung_thua"
+        },
+        {
+          "key": "tinh_dau_ngoai_vi:tram_gac",
+          "name": "Trạm gác Rìa nội địa",
+          "position": {
+            "x": 0.62,
+            "y": 0.7
+          },
+          "sourceObjectId": 8,
+          "sourceObjectName": "tram_gac"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Về Nặc Đinh Thành",
+          "to": "nac_dinh_thanh",
+          "arrive": "tu_tinh_dau_ngoai_vi",
+          "boat": false
+        },
+        {
+          "sourceObjectId": 2,
+          "name": "Vào Tinh Đấu Nội địa",
+          "to": "tinh_dau_noi_dia",
+          "arrive": "tu_tinh_dau_ngoai_vi",
+          "boat": false
+        }
+      ]
+    },
+    {
+      "id": "tinh_dau_noi_dia",
+      "name": "Tinh Đấu Nội địa",
+      "kind": "hunt",
+      "position": {
+        "x": 0.69,
+        "y": 0.85
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/tinh_dau_noi_dia.v2.json",
+      "waypoints": [
+        {
+          "key": "tinh_dau_noi_dia:trai_cong",
+          "name": "Trại cổng Nội địa",
+          "position": {
+            "x": 0.65,
+            "y": 0.73
+          },
+          "sourceObjectId": 6,
+          "sourceObjectName": "trai_cong"
+        },
+        {
+          "key": "tinh_dau_noi_dia:dam_suong",
+          "name": "Đầm sương độc",
+          "position": {
+            "x": 0.69,
+            "y": 0.7
+          },
+          "sourceObjectId": 7,
+          "sourceObjectName": "dam_suong"
+        },
+        {
+          "key": "tinh_dau_noi_dia:ben_ho",
+          "name": "Bến bờ hồ",
+          "position": {
+            "x": 0.72,
+            "y": 0.77
+          },
+          "sourceObjectId": 8,
+          "sourceObjectName": "ben_ho"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Về Tinh Đấu Ngoại vi",
+          "to": "tinh_dau_ngoai_vi",
+          "arrive": "tu_tinh_dau_noi_dia",
+          "boat": false
+        },
+        {
+          "sourceObjectId": 2,
+          "name": "Đi Lõi Tinh Đấu",
+          "to": "loi_tinh_dau",
+          "arrive": "tu_tinh_dau_noi_dia",
+          "boat": false
+        }
+      ]
+    },
+    {
+      "id": "thien_dau_thanh",
+      "name": "Thiên Đấu Thành",
+      "kind": "town",
+      "position": {
+        "x": 0.49,
+        "y": 0.47
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/thien_dau_thanh.v2.json",
+      "waypoints": [
+        {
+          "key": "thien_dau_thanh:quang_truong",
+          "name": "Quảng trường Thiên Đấu",
+          "position": {
+            "x": 0.49,
+            "y": 0.39
+          },
+          "sourceObjectId": 10,
+          "sourceObjectName": "quang_truong"
+        },
+        {
+          "key": "thien_dau_thanh:ben_thuyen",
+          "name": "Bến thuyền Thiên Đấu",
+          "position": {
+            "x": 0.65,
+            "y": 0.43
+          },
+          "sourceObjectId": 11,
+          "sourceObjectName": "ben_thuyen"
+        },
+        {
+          "key": "thien_dau_thanh:cong_nam",
+          "name": "Cổng nam Thiên Đấu",
+          "position": {
+            "x": 0.48,
+            "y": 0.44
+          },
+          "sourceObjectId": 12,
+          "sourceObjectName": "cong_nam"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Về Nặc Đinh Thành",
+          "to": "nac_dinh_thanh",
+          "arrive": "tu_thien_dau_thanh",
+          "boat": false
+        },
+        {
+          "sourceObjectId": 2,
+          "name": "Đi Lạc Nhật Sâm Lâm",
+          "to": "lac_nhat_sam_lam",
+          "arrive": "tu_thien_dau_thanh",
+          "boat": false
+        },
+        {
+          "sourceObjectId": 3,
+          "name": "Đi Cực Bắc Chi Địa",
+          "to": "cuc_bac_chi_dia",
+          "arrive": "tu_thien_dau_thanh",
+          "boat": false
+        },
+        {
+          "sourceObjectId": 4,
+          "name": "Thuyền đi Hải Thần Đảo",
+          "to": "hai_than_dao",
+          "arrive": "tu_thien_dau_thanh",
+          "boat": true
+        }
+      ]
+    },
+    {
+      "id": "lac_nhat_sam_lam",
+      "name": "Lạc Nhật Sâm Lâm",
+      "kind": "hunt",
+      "position": {
+        "x": 0.24,
+        "y": 0.46
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/lac_nhat_sam_lam.v2.json",
+      "waypoints": [
+        {
+          "key": "lac_nhat_sam_lam:trai_cong",
+          "name": "Trại cổng Lạc Nhật",
+          "position": {
+            "x": 0.33,
+            "y": 0.44
+          },
+          "sourceObjectId": 4,
+          "sourceObjectName": "trai_cong"
+        },
+        {
+          "key": "lac_nhat_sam_lam:bang_hoa",
+          "name": "Băng Hỏa Tuyền",
+          "position": {
+            "x": 0.27,
+            "y": 0.39
+          },
+          "sourceObjectId": 5,
+          "sourceObjectName": "bang_hoa"
+        },
+        {
+          "key": "lac_nhat_sam_lam:luong_nghi",
+          "name": "Suối Lưỡng Nghi",
+          "position": {
+            "x": 0.21,
+            "y": 0.35
+          },
+          "sourceObjectId": 6,
+          "sourceObjectName": "luong_nghi"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Về Thiên Đấu Thành",
+          "to": "thien_dau_thanh",
+          "arrive": "tu_lac_nhat_sam_lam",
+          "boat": false
+        }
+      ]
+    },
+    {
+      "id": "cuc_bac_chi_dia",
+      "name": "Cực Bắc Chi Địa",
+      "kind": "hunt",
+      "position": {
+        "x": 0.49,
+        "y": 0.15
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/cuc_bac_chi_dia.v2.json",
+      "waypoints": [
+        {
+          "key": "cuc_bac_chi_dia:trai_cong",
+          "name": "Trại cổng Cực Bắc",
+          "position": {
+            "x": 0.5,
+            "y": 0.28
+          },
+          "sourceObjectId": 4,
+          "sourceObjectName": "trai_cong"
+        },
+        {
+          "key": "cuc_bac_chi_dia:bang_ha",
+          "name": "Băng hà nứt",
+          "position": {
+            "x": 0.5,
+            "y": 0.22
+          },
+          "sourceObjectId": 5,
+          "sourceObjectName": "bang_ha"
+        },
+        {
+          "key": "cuc_bac_chi_dia:bang_phong",
+          "name": "Băng Phong Cốc",
+          "position": {
+            "x": 0.5,
+            "y": 0.17
+          },
+          "sourceObjectId": 6,
+          "sourceObjectName": "bang_phong"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Về Thiên Đấu Thành",
+          "to": "thien_dau_thanh",
+          "arrive": "tu_cuc_bac_chi_dia",
+          "boat": false
+        }
+      ]
+    },
+    {
+      "id": "hai_than_dao",
+      "name": "Hải Thần Đảo",
+      "kind": "hunt",
+      "position": {
+        "x": 0.84,
+        "y": 0.47
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/hai_than_dao.v2.json",
+      "waypoints": [
+        {
+          "key": "hai_than_dao:ben",
+          "name": "Bến Hải Thần",
+          "position": {
+            "x": 0.77,
+            "y": 0.44
+          },
+          "sourceObjectId": 4,
+          "sourceObjectName": "ben"
+        },
+        {
+          "key": "hai_than_dao:ma_quy",
+          "name": "Ma Quỷ Hải Vực",
+          "position": {
+            "x": 0.75,
+            "y": 0.35
+          },
+          "sourceObjectId": 5,
+          "sourceObjectName": "ma_quy"
+        },
+        {
+          "key": "hai_than_dao:vach",
+          "name": "Vách Hải Thần",
+          "position": {
+            "x": 0.85,
+            "y": 0.32
+          },
+          "sourceObjectId": 6,
+          "sourceObjectName": "vach"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Thuyền về Thiên Đấu Thành",
+          "to": "thien_dau_thanh",
+          "arrive": "tu_hai_than_dao",
+          "boat": true
+        }
+      ]
+    },
+    {
+      "id": "loi_tinh_dau",
+      "name": "Lõi Tinh Đấu",
+      "kind": "boss",
+      "position": {
+        "x": 0.82,
+        "y": 0.88
+      },
+      "entry": "cong-va-truyen-tong",
+      "sourceFile": "shared/assets/loi_tinh_dau.v2.json",
+      "waypoints": [
+        {
+          "key": "loi_tinh_dau:trai_cong",
+          "name": "Trại cổng Lõi Tinh Đấu",
+          "position": {
+            "x": 0.81,
+            "y": 0.81
+          },
+          "sourceObjectId": 4,
+          "sourceObjectName": "trai_cong"
+        }
+      ],
+      "portals": [
+        {
+          "sourceObjectId": 1,
+          "name": "Về Tinh Đấu Nội địa",
+          "to": "tinh_dau_noi_dia",
+          "arrive": "tu_loi_tinh_dau",
+          "boat": false
+        }
+      ]
+    },
+    {
+      "id": "dai_dau_hon_truong",
+      "name": "Đại Đấu Hồn Trường",
+      "kind": "arena",
+      "position": {
+        "x": 0.59,
+        "y": 0.34
+      },
+      "entry": "phong-rieng",
+      "sourceFile": "shared/assets/dai_dau_hon_truong.v2.json",
+      "waypoints": [],
+      "portals": []
+    },
+    {
+      "id": "luyen_hon_canh",
+      "name": "Luyện Hồn Cảnh",
+      "kind": "arena",
+      "position": {
+        "x": 0.14,
+        "y": 0.58
+      },
+      "entry": "phong-rieng",
+      "sourceFile": "shared/assets/luyen_hon_canh.json",
+      "waypoints": [],
+      "portals": []
+    }
+  ],
+  "edges": [
+    {
+      "id": "nac_dinh_thanh--thanh_hon_thon",
+      "from": "nac_dinh_thanh",
+      "to": "thanh_hon_thon",
+      "kind": "di-bo",
+      "points": [
+        {
+          "x": 0.43,
+          "y": 0.65
+        },
+        {
+          "x": 0.25,
+          "y": 0.75
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "nac_dinh_thanh",
+          "objectId": 1,
+          "name": "Về Thánh Hồn Thôn"
+        },
+        {
+          "mapId": "thanh_hon_thon",
+          "objectId": 1,
+          "name": "Đi Nặc Đinh Thành"
+        }
+      ]
+    },
+    {
+      "id": "nac_dinh_thanh--tinh_dau_ngoai_vi",
+      "from": "nac_dinh_thanh",
+      "to": "tinh_dau_ngoai_vi",
+      "kind": "di-bo",
+      "points": [
+        {
+          "x": 0.43,
+          "y": 0.65
+        },
+        {
+          "x": 0.57,
+          "y": 0.77
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "nac_dinh_thanh",
+          "objectId": 2,
+          "name": "Đi Tinh Đấu Ngoại vi"
+        },
+        {
+          "mapId": "tinh_dau_ngoai_vi",
+          "objectId": 1,
+          "name": "Về Nặc Đinh Thành"
+        }
+      ]
+    },
+    {
+      "id": "nac_dinh_thanh--thien_dau_thanh",
+      "from": "nac_dinh_thanh",
+      "to": "thien_dau_thanh",
+      "kind": "di-bo",
+      "points": [
+        {
+          "x": 0.43,
+          "y": 0.65
+        },
+        {
+          "x": 0.49,
+          "y": 0.47
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "nac_dinh_thanh",
+          "objectId": 3,
+          "name": "Đi Thiên Đấu Thành"
+        },
+        {
+          "mapId": "thien_dau_thanh",
+          "objectId": 1,
+          "name": "Về Nặc Đinh Thành"
+        }
+      ]
+    },
+    {
+      "id": "tinh_dau_ngoai_vi--tinh_dau_noi_dia",
+      "from": "tinh_dau_ngoai_vi",
+      "to": "tinh_dau_noi_dia",
+      "kind": "di-bo",
+      "points": [
+        {
+          "x": 0.57,
+          "y": 0.77
+        },
+        {
+          "x": 0.69,
+          "y": 0.85
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "tinh_dau_ngoai_vi",
+          "objectId": 2,
+          "name": "Vào Tinh Đấu Nội địa"
+        },
+        {
+          "mapId": "tinh_dau_noi_dia",
+          "objectId": 1,
+          "name": "Về Tinh Đấu Ngoại vi"
+        }
+      ]
+    },
+    {
+      "id": "lac_nhat_sam_lam--thien_dau_thanh",
+      "from": "lac_nhat_sam_lam",
+      "to": "thien_dau_thanh",
+      "kind": "di-bo",
+      "points": [
+        {
+          "x": 0.24,
+          "y": 0.46
+        },
+        {
+          "x": 0.49,
+          "y": 0.47
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "lac_nhat_sam_lam",
+          "objectId": 1,
+          "name": "Về Thiên Đấu Thành"
+        },
+        {
+          "mapId": "thien_dau_thanh",
+          "objectId": 2,
+          "name": "Đi Lạc Nhật Sâm Lâm"
+        }
+      ]
+    },
+    {
+      "id": "cuc_bac_chi_dia--thien_dau_thanh",
+      "from": "cuc_bac_chi_dia",
+      "to": "thien_dau_thanh",
+      "kind": "di-bo",
+      "points": [
+        {
+          "x": 0.49,
+          "y": 0.15
+        },
+        {
+          "x": 0.49,
+          "y": 0.47
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "cuc_bac_chi_dia",
+          "objectId": 1,
+          "name": "Về Thiên Đấu Thành"
+        },
+        {
+          "mapId": "thien_dau_thanh",
+          "objectId": 3,
+          "name": "Đi Cực Bắc Chi Địa"
+        }
+      ]
+    },
+    {
+      "id": "hai_than_dao--thien_dau_thanh",
+      "from": "hai_than_dao",
+      "to": "thien_dau_thanh",
+      "kind": "thuyen",
+      "points": [
+        {
+          "x": 0.84,
+          "y": 0.47
+        },
+        {
+          "x": 0.68,
+          "y": 0.49
+        },
+        {
+          "x": 0.76,
+          "y": 0.5
+        },
+        {
+          "x": 0.49,
+          "y": 0.47
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "hai_than_dao",
+          "objectId": 1,
+          "name": "Thuyền về Thiên Đấu Thành"
+        },
+        {
+          "mapId": "thien_dau_thanh",
+          "objectId": 4,
+          "name": "Thuyền đi Hải Thần Đảo"
+        }
+      ]
+    },
+    {
+      "id": "loi_tinh_dau--tinh_dau_noi_dia",
+      "from": "loi_tinh_dau",
+      "to": "tinh_dau_noi_dia",
+      "kind": "di-bo",
+      "points": [
+        {
+          "x": 0.82,
+          "y": 0.88
+        },
+        {
+          "x": 0.69,
+          "y": 0.85
+        }
+      ],
+      "portals": [
+        {
+          "mapId": "loi_tinh_dau",
+          "objectId": 1,
+          "name": "Về Tinh Đấu Nội địa"
+        },
+        {
+          "mapId": "tinh_dau_noi_dia",
+          "objectId": 2,
+          "name": "Đi Lõi Tinh Đấu"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "file": "shared/data.ts",
+      "sha256": "3e26108fa7cba439440e267b89b50d15823aafda5734b198e1360ed3985813ce",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/thanh_hon_thon.v2.json",
+      "sha256": "4f5b3c7b6fe1954b9620e054daa1c31b4ba7b2bca912171dc0142c5285db7a90",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/nac_dinh_thanh.v2.json",
+      "sha256": "b7dfe67e9285e63c277042818b407eeb7d4c302071c5b1866e5eda45595f5f3c",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/tinh_dau_ngoai_vi.v2.json",
+      "sha256": "876144045d69a4b36e1e66ffa80916ea9bf188f7ae26502c386cf255054c5c19",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/tinh_dau_noi_dia.v2.json",
+      "sha256": "c2cc6fcde36fd50929d3242c31449d8763b67d7ab42cb746a8c738c3e76e2eb4",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/thien_dau_thanh.v2.json",
+      "sha256": "f7bc30263aa0d4492df369428e353c23bf040ab3691410a2e70f045f9c11594e",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/lac_nhat_sam_lam.v2.json",
+      "sha256": "c5f737ff8cd6a5bc57894ba1af680c71e466250a088df73f6652f27d949eb553",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/cuc_bac_chi_dia.v2.json",
+      "sha256": "939e77fc91270fcc6bd1a4cf58296c92ebcb1e661941aad24014a7c9ef9c118e",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/hai_than_dao.v2.json",
+      "sha256": "870c45252c38fce1040d8a7842cf08afc43beedd86a1c8036029e83a28298bd2",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/loi_tinh_dau.v2.json",
+      "sha256": "8a580af1e55cd5daec241f7ef163b0370e7da82e22cbbd495ec52773af0d8fd5",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/dai_dau_hon_truong.v2.json",
+      "sha256": "10254685452f8c2ecfe5b6a09c10810c7e38d4109be609d2fdb285f2ce897e7d",
+      "textNormalization": "LF"
+    },
+    {
+      "file": "shared/assets/luyen_hon_canh.json",
+      "sha256": "365553d015d7b96977bfed8c790b289e23921a63662dced7c57e4250088463e1",
+      "textNormalization": "LF"
+    }
+  ]
+}

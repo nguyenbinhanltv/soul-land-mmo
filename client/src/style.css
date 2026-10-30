@@ -714,7 +714,7 @@ body.touch #bossRank{top:auto;bottom:200px}
 body.touch .shoprow .buse{min-height:38px}
 
 /* Tổ đội người chơi (7.1): khung dưới khung chỉ số, bảng thao tác khi bấm vào hồn sư. */
-#party{width:232px;padding:6px 10px 8px;font-size:12px;font-family:var(--f12);pointer-events:auto;max-height:46vh;min-height:0;flex:0 1 auto;overflow:auto}
+#party{font-size:12px;font-family:var(--f12);pointer-events:auto}
 #party .phead,#pmenu .phead{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:4px}
 #party .phead .pbtn{padding:2px 5px}
 #party .phead b,#pmenu .phead b{flex:1;font-size:12px;font-family:var(--f12);color:var(--accent)}
@@ -739,7 +739,7 @@ body.touch .shoprow .buse{min-height:38px}
 .pinv input{flex:1;min-width:0;font:inherit;font-size:12px;font-family:var(--f12);padding:3px 6px;background:var(--wash2);border:1px solid var(--line);color:var(--text)}
 #pmenu{position:absolute;left:50%;transform:translateX(-50%);top:46px;padding:8px 12px;font-size:12px;font-family:var(--f12);pointer-events:auto;min-width:200px}
 body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4px 10px}
-/* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */:where(body.ui-w640) #party{width:190px;font-size:12px;font-family:var(--f12)}
+
 /* Bạn bè và chặn (#195): bảng giữa màn hình như Cộng minh; nút "Thêm lại" trong dòng log bấm được cả khi ô chat đóng. */
 #friends{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:80%;overflow-y:auto;padding:10px;pointer-events:auto;touch-action:pan-y;
   display:flex;flex-direction:column;gap:6px;font-size:12px;font-family:var(--f12);backdrop-filter:blur(6px)}
@@ -755,8 +755,7 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
 #log div .chatact{pointer-events:auto;margin-left:6px;vertical-align:middle}
 /* Nhiệm vụ (bước 6.2): khung theo dõi dưới bản đồ nhỏ (ẩn khi có bảng xếp hạng thú vương), trang nhiệm vụ trong hộp thoại NPC */
 #hud{--qgold:#6c4a08}
-#quest{width:212px;flex:0 1 auto;min-height:60px;overflow-y:auto;padding:6px 8px 7px;font-size:12px;font-family:var(--f12);pointer-events:auto;border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
-#hud:has(#bossRank:not([hidden])) #quest{display:none}
+#quest{font-size:12px;font-family:var(--f12);pointer-events:auto}
 #quest .qhead{display:flex;width:100%;align-items:baseline;gap:6px;padding:0;min-height:22px;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
 #quest .qhead b{flex:1;font-size:12px;font-family:var(--f12);color:var(--accent)}
 #quest .qhead i{font-style:normal;color:var(--muted);font-size:10px;font-family:var(--f10)}
@@ -776,14 +775,14 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
 .qbox .qsay{color:var(--muted);line-height:1.35}
 .qbox .buse{align-self:flex-start;margin-top:3px}
 .qbox.qdone{opacity:.6}
-/* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */:where(body.ui-w640) #quest{width:184px}
+
 /* Điện thoại ngang (#190): dưới bản đồ nhỏ chỉ còn ~60px trước thanh đội hình / nút hồn kỹ, khung theo dõi bị che và chạm không tới:
    đặt sát bên trái bản đồ nhỏ (vùng trên giữa màn hình còn trống), cao tối đa tới trên thanh đội hình. */
 /* @media (max-height:500px) → lớp ui-h500 (kích thước logic, uiArt.ts) */body:where(.ui-h500).touch #rcol{display:contents}
 body:where(.ui-h500).touch .mapbox{position:absolute;right:10px;top:10px}
 body:where(.ui-h500).touch #radar{width:120px;height:120px}
 body.arena:where(.ui-h500).touch .mapbox{top:84px}
-body:where(.ui-h500).touch #quest{position:absolute;top:22px;right:180px;width:200px;max-height:max(80px,calc(100% - 230px))}
+body:where(.ui-h500).touch #sideBox{position:absolute;top:22px;right:180px;width:200px;max-height:max(80px,calc(100% - 230px))}
 /* Đại Đấu Hồn Trường (7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng */
 #arenaQ{position:absolute;left:50%;transform:translateX(-50%);top:46px;display:flex;align-items:center;gap:10px;padding:6px 10px;border-color:#ff6b6b;pointer-events:auto}
 #arenaQ b{display:block;font-size:12px;font-family:var(--f12);color:var(--son)}
@@ -805,8 +804,7 @@ body.arena #target{display:none!important}
 #arenaBar .aleave{margin-top:3px;font:inherit;font-size:12px;font-family:var(--f12);padding:2px 8px;min-height:26px;border:1px solid var(--line);background:var(--wash2);color:var(--muted);cursor:pointer}
 body.touch #arenaBar .aleave{min-height:34px;font-size:12px;font-family:var(--f12)}
 body.arena #rcol{top:84px}
-body.arena #quest{display:none}
-body.watching :is(.mapbox,.stats,#team,#actbar,#joy,#chat,#chattabs,#party,#bossbar,#bossCd,#bossRank,#prompt,#portal,#wpbox,#talk,#channel){display:none!important}
+body.watching :is(.mapbox,.stats,#team,#actbar,#joy,#chat,#chattabs,#sideBox,#bossbar,#bossCd,#bossRank,#prompt,#portal,#wpbox,#talk,#channel){display:none!important}
 #arenaBar .awatch{display:block;font-style:normal;font-size:12px;font-family:var(--f12);color:var(--accent);margin-top:2px}
 #arenaBar.watching .aleave{color:var(--text)}
 #arenaBar.watching .aside{cursor:pointer;pointer-events:auto}
@@ -1066,7 +1064,6 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 /* Nút nhỏ trong khung chỉ số: một dòng, font 10. */
 .menu-icon{font:16px "Segoe UI Symbol","Noto Sans Symbols 2",system-ui,sans-serif;line-height:1}
 .menu-label{flex:1 1 auto;min-width:0;overflow:visible;text-overflow:clip;white-space:normal;text-align:center}
-#party.collapsed .pmem,#party.collapsed .pinvite,#party.collapsed .pinv,#party.collapsed .phint{display:none}
 #zoneName,#online{max-width:150px;margin-left:auto;margin-right:auto}
 #online{font-size:10px;font-family:var(--f10);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */:where(body.ui-w640) #zoneName,:where(body.ui-w640) #online{max-width:105px}
@@ -1365,8 +1362,8 @@ body.touch :is(.cring,.qhead){min-width:0}
 .ui-chip[data-tier="3"]::before{content:"IV"} .ui-chip[data-tier="4"]::before{content:"V"}
 .buffs span::before{content:"+ "} .buffs span.debuff::before{content:"– "} .buffs span.passive::before{content:none}
 /* Điện thoại hẹp (≤ 420 điểm logic): hai cột trên không đè nhau, tổ đội gọn, tab chat chỉ hiện khi đang chat. */
-:where(body.ui-w420) :is(.stats,#party){width:172px}
-:where(body.ui-w420) #quest{width:176px}
+:where(body.ui-w420) .stats{width:172px}
+:where(body.ui-w420) #sideBox{width:176px}
 :where(body.ui-w640) #party .phint{display:none}
 :where(body.ui-w640) #party .phead{flex-wrap:wrap}
 #party .phead b{white-space:nowrap}
@@ -1665,15 +1662,12 @@ body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox{position:absolute;left:
 /* Màn thấp vừa (960×540, #722): khung chat 2 dòng; bảng Tổ đội dời sang bên phải khung chỉ số (dưới đó không còn chỗ, đè lên chat); toast gọn, che tạm ô nhiệm vụ thay vì đè radar. */
 /* @media (max-height:560px) → lớp ui-h560 (kích thước logic, uiArt.ts) */
 body:where(.ui-h560){--log-max:50px;--toast-res:290px}
-body:where(.ui-h560) #party{position:absolute;left:calc(100% + 8px);top:0!important;max-height:min(46vh,calc(100vh - 220px))}
 body:where(.ui-h560) #toasts{width:min(200px,60vw)}
 body:where(.ui-h560) #toasts .toast:nth-last-child(n+4){display:none}
-body:where(.ui-h560) #hud:has(#toasts .toast:not(.out)) #quest{visibility:hidden}
+/* Chỉ che khi khung thật sự đang ở tab Nhiệm vụ: không che khi có tổ đội / lời mời, và không che ở trạng thái CSS ép tab Tổ đội (đấu trường, dải xếp hạng boss; ui-h460 đã ẩn riêng). */
+body:where(.ui-h560):not(.arena) #hud:not(:has(#bossRank:not([hidden]))):has(#toasts .toast:not(.out)) #sideBox:not(.inv):not(.inparty)[data-tab="quest"]{visibility:hidden}
 /* Vùng nhìn ≤ 460 cao (cửa sổ 960×540 có khung trình duyệt = 944×445): bản đồ nhỏ đã cao ~305 nên hộp nhiệm vụ rơi xuống dải đội hình / hồn kỹ và chữ lọt qua ô trong suốt (UI P0 #878). Không còn chỗ: ẩn (nhiệm vụ vẫn xem ở hộp thoại NPC). Điện thoại có chỗ riêng ở dòng 796. */
-body:where(.ui-h460):not(.touch) #quest{display:none}
 /* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) neo theo mép phải bảng Tổ đội (10 + 210 + 8 + 232 = 460, +16) và mép trái cột phải (222), không theo giữa màn: đúng ở mọi cỡ logic có ui-h560 (#722) */
-body:where(.ui-h560) #hud:has(#party:not(:empty)) :is(#bossbar,#bossCd,#target){left:476px;transform:none;width:auto;max-width:max(140px,calc(100% - 476px - 222px));overflow:hidden;text-overflow:ellipsis}
-body:where(.ui-h560) #hud:has(#party:not(:empty)) #bossbar{width:min(268px,calc(100% - 476px - 222px));min-width:140px}
 
 /* Icon võ hồn ở ô nhỏ, giữ ảnh hồn sư dự phòng khi thiếu asset. */
 .bmid img.vh-icon,#char .bmid img.vh-icon{width:32px;height:32px;margin:0}

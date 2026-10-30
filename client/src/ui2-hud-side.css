@@ -72,10 +72,40 @@
 /* Màn 960×540 (lớp ui-h560 / ui-h460 của uiArt.ts): khung kit dày hơn khung cũ nên thu gọn đệm; cột phải không tràn. */
 :where(.ui-h560) #hud :is(#bossRank,#portal,#wpbox,#fusion,#pmenu){padding:var(--sp-2) var(--sp-4)}
 :where(.ui-h560) #hud #bossRank{width:min(236px,calc(100% - 20px))}
-/* Huy hiệu hub (ui2) nằm ở giữa-trên, ngay mép phải bảng Tổ đội: dải boss / mục tiêu dời qua phải huy hiệu (476 + 36) thay vì bị che mất tên. */
-:where(.ui-h560) #hud:has(#party:not(:empty)) :is(#bossbar,#bossCd,#target){left:512px;max-width:max(140px,calc(100% - 512px - 222px))}
-:where(.ui-h560) #hud:has(#party:not(:empty)) #bossbar{width:min(268px,calc(100% - 512px - 222px));min-width:140px;overflow:visible}
 :where(.ui-h560) #hud #bossbar .bhead{flex-wrap:wrap;gap:0 var(--sp-4);white-space:normal}
 :where(.ui-h560) #hud #bossbar .bhead .bn{margin-left:0}
 /* Cỡ lớn: huy hiệu hub (44 px, cách mép trên 12 px) đứng đúng giữa-trên nên dải boss / mục tiêu / đếm ngược bắt đầu dưới huy hiệu (12 + 44 + 6). */
 body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,#bossCd){top:calc(var(--sp-5) + 44px + var(--sp-3))}
+
+/* Khung gộp Nhiệm vụ | Tổ đội (#sideBox, sideBox.ts): hàng tab + nút Gọn, thân cuộn riêng. Tab đang chọn có vạch dưới chân (hình), chấm đỏ tròn khi tab có việc
+   (kèm aria-label); thu gọn thì cả khung là một chip. Phần trong (#quest / #party) bỏ khung riêng, khung do .f2-muc-nho của #sideBox. */
+#hud #sideBox :is(#quest,#party){position:static;width:auto;min-height:0;max-height:none;padding:0;overflow:visible;background:none;border:0;box-shadow:none}
+#hud #sideBox .sb-bar{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);padding-bottom:var(--sp-2);border-bottom:var(--bd-fine) solid var(--ink2)}
+#hud #sideBox .sb-tabs{display:flex;flex:1;min-width:0;gap:var(--sp-2)}
+#hud #sideBox .sb-tab,#hud #sideBox .sb-fold{position:relative;min-height:28px;padding:0 var(--sp-3);font:var(--fs-s)/1.1 var(--f10);color:var(--paper3);background:none;border:var(--bd-fine) solid transparent;cursor:pointer}
+#hud #sideBox .sb-tab{flex:1 1 0;min-width:0}
+#hud #sideBox .sb-tab[aria-selected="true"]{color:var(--plate-text);box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--accent)}
+#hud #sideBox .sb-fold{flex:none;border-color:var(--ink2);background:var(--track);color:var(--plate-text)}
+#hud #sideBox :is(.sb-tab,.sb-fold):hover{border-color:var(--accent)}
+#hud #sideBox :is(.sb-tab,.sb-fold):focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+#hud #sideBox :is(.sb-tab,.sb-fold)[data-dot]::after{content:"";position:absolute;top:var(--sp-1);right:var(--sp-1);width:8px;height:8px;box-sizing:border-box;border-radius:50%;background:var(--son-l);border:var(--bd-fine) solid var(--plate);pointer-events:none}
+#hud #sideBox .sb-body{max-height:min(40vh,300px);overflow-y:auto;overscroll-behavior:contain}
+#hud #sideBox .sb-empty{display:block;color:var(--paper3);font:var(--fs-s)/1.3 var(--f10)}
+#hud #sideBox .sb-empty[hidden]{display:none}
+/* Chỉ hiện nội dung của tab đang chọn. */
+#hud #sideBox[data-tab="quest"] #party,#hud #sideBox[data-tab="party"] :is(#quest,.sb-empty){display:none}
+/* Thu gọn: chỉ còn chip. */
+#hud #sideBox.collapsed{width:auto;padding:var(--sp-2)}
+#hud #sideBox.collapsed .sb-bar{margin:0;padding:0;border:0}
+#hud #sideBox.collapsed :is(.sb-tabs,.sb-body){display:none}
+:where(body.touch) #hud #sideBox :is(.sb-tab,.sb-fold){min-height:40px}
+/* Như hành vi cũ: khi dải xếp hạng boss, đấu trường hoặc màn rất thấp chiếm chỗ thì chỉ phần Nhiệm vụ bị ẩn, tab Tổ đội (sinh lực đồng đội, Rời đội, lời mời) vẫn hiện và được ép chọn. */
+#hud:has(#bossRank:not([hidden])) #sideBox :is(#quest,.sb-empty,#sbTabQuest),body.arena #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest),body:where(.ui-h460):not(.touch) #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest){display:none!important}
+/* Màn rất thấp (radar đã cao ~305 px, #878): chỉ hiện khung khi đang có tổ đội hoặc lời mời, đặt bên trái radar và thân thấp hơn để không rơi xuống dải đội hình / hồn kỹ. */
+body:where(.ui-h460):not(.touch) #hud #sideBox:not(.inv):not(.inparty){display:none}
+body:where(.ui-h560):not(.touch) #hud #sideBox{position:absolute;top:0;width:200px}  /* vị trí ngang do sideBox.ts fit() đặt: ngay phải cột chỉ số trái */
+body:where(.ui-h460):not(.touch) #hud #sideBox .sb-body{max-height:112px}
+#hud:has(#bossRank:not([hidden])) #sideBox #party,body.arena #hud #sideBox #party,body:where(.ui-h460):not(.touch) #hud #sideBox #party{display:block!important}
+/* Khung ở hàng trên (màn thấp, class do sideBox.ts đặt): dải boss / mục tiêu / đếm ngược dời qua phải huy hiệu menu (512 = huy hiệu + lề), như khi Tổ đội còn ở cột trái. */
+body:where(.ui-h560) #hud.sb-left :is(#bossbar,#bossCd,#target){left:512px;transform:none;width:auto;max-width:max(140px,calc(100% - 512px - 222px));overflow:hidden;text-overflow:ellipsis}
+body:where(.ui-h560) #hud.sb-left #bossbar{width:min(268px,calc(100% - 512px - 222px));min-width:140px;overflow:visible}

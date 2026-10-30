@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { damageTextStyle, footDustCount, HIT_HE_STYLE, rootSnareDiameter, FxGovernor, GOV, FX_DEFAULT_LEVEL, normalizeFxLevel } from "../src/combatFeelRules.ts";
+import { damageTextStyle, footDustCount, HIT_HE_STYLE, rootSnareDiameter, FxGovernor, GOV, FX_DEFAULT_LEVEL, normalizeFxLevel, shouldForceShake, flashAllowed, FLASH_MAX_PER_SEC } from "../src/combatFeelRules.ts";
 
 assert.equal(footDustCount("low", false, true), 0);
 assert.equal(footDustCount("mid", true, true), 0);
@@ -89,4 +89,20 @@ for (const ok of ["low", "mid", "high"]) assert.equal(normalizeFxLevel(ok), ok);
   for (const sel of infinite) assert.ok(tail.includes(`.reduce-motion ${sel}`), `hoạt ảnh vô hạn ${sel} chưa bị tắt khi Giảm chuyển động`);
   assert.ok(readFileSync(new URL("../src/combatFx.ts", import.meta.url), "utf8").includes('classList.toggle("reduce-motion", fxPrefs.reduce)'));
   console.log("combatfeel-test: mặc định Vừa, máy yếu tự hạ, Giảm chuyển động tắt hoạt ảnh vô hạn đạt");
+}
+
+// G1: rung mạnh hơn ghi đè phần còn lại của rung đang chạy, yếu hơn thì bỏ
+assert.equal(shouldForceShake(0, 0.006, 90, 0.002), true, "không có rung đang chạy");
+assert.equal(shouldForceShake(60, 0.002, 320, 0.006), true, "hạ boss ghi đè rung chí mạng");
+assert.equal(shouldForceShake(200, 0.006, 90, 0.002), false, "rung nhẹ không chặn / ghi đè rung mạnh");
+assert.equal(shouldForceShake(50, 0.004, 120, 0.004), true, "bằng mạnh nhưng dài hơn");
+assert.equal(shouldForceShake(200, 0.004, 120, 0.004), false, "bằng mạnh, không dài hơn");
+// G2: tối đa FLASH_MAX_PER_SEC lần chớp mỗi giây
+{
+  assert.equal(FLASH_MAX_PER_SEC, 3);
+  const t = [];
+  assert.deepEqual([0, 100, 200, 300, 900].map((n) => flashAllowed(t, n)), [true, true, true, false, false]);
+  assert.equal(flashAllowed(t, 1000), true, "mốc đầu đã quá 1 s");
+  assert.equal(flashAllowed(t, 1100), true);
+  assert.equal(flashAllowed(t, 1150), false);
 }

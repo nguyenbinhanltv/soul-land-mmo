@@ -55,6 +55,7 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q43 | 2026-10-25 | Ảnh **concept pháp tướng không thuộc ngoại lệ PixelLab**: PixelLab chỉ cho hoạt ảnh, sheet hiệu ứng, pháp tướng dạng hoạt ảnh và xoay hướng (làm rõ Q22); concept ảnh tĩnh làm bằng công cụ ảnh tĩnh (mục Q44); concept cũ đã có giữ nguyên ghi nguồn | #482, #541 | `docs/art/nguon-giay-phep.md`, `docs/art/phap-tuong.md` |
 | Q44 | 2026-10-25 | **Ảnh sinh bằng model dùng ChatGPT và Codex** (họ C1–C16 vẫn Codex của tthoadev; biểu tượng trang bị E6 làm bằng ChatGPT); ComfyUI vẫn là công cụ ảnh tĩnh của orchestrator; ảnh Gemini cũ đã duyệt giữ nguyên ghi nguồn. Thay quy tắc cũ 2026-10-24 "chỉ Gemini" | #616 | `docs/art/nguon-giay-phep.md`, skill `asset-gen` |
 | Q45 | 2026-10-25 | **Làm khắc may mắn bằng Thần Hồn** theo thiết kế sẵn có; bảng `EQUIP_LUCK_UP` coi như đã duyệt (chủ repo trả lời P4, phương án a); phần may mắn ở `docs/design/trang-bi.md` do việc #662 sửa cùng code | #662 | `docs/design/trang-bi.md` |
+| Q53 | 2026-10-31 | Bản đồ thế giới mở bằng M dùng một tranh vẽ tay thủy mặc trên giấy cổ cùng kit Giấy / Mực, Codex sinh ảnh; không chữ trên nền, nút / nhãn / đường cổng phủ bằng code; bố cục theo dữ liệu thật, chừa lề và có JSON tọa độ chuẩn hóa. Ngoại lệ nền Giấy so với bảng thao tác Mực ở Q49 | #1415 | `docs/art/ban-do-the-gioi.md` |
 
 ## Quy trình, CI, triển khai
 

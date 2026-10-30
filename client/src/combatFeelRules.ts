@@ -95,3 +95,19 @@ export class FxGovernor {
 /** Mức hiệu ứng mặc định (chủ repo chốt 2026-10-23: VỪA) cho người chưa chọn / bản lưu hỏng; bộ điều tốc hạ tiếp về Thấp trên máy yếu. */
 export const FX_DEFAULT_LEVEL: FeelLevel = "mid";
 export const normalizeFxLevel = (v: unknown): FeelLevel => (v === "low" || v === "mid" || v === "high" ? v : FX_DEFAULT_LEVEL);
+
+/** G1: Phaser 3.90.0 `camera.shake` bỏ qua lệnh mới khi một rung đang chạy (trừ khi `force`). Rung mới mạnh hơn phần còn lại của rung đang chạy thì ghi đè; yếu hơn (hoặc bằng mà không dài hơn) thì bỏ. */
+export function shouldForceShake(remainMs: number, runIntensity: number, ms: number, intensity: number): boolean {
+  if (remainMs <= 0) return true;
+  return intensity > runIntensity || (intensity === runIntensity && ms > remainMs);
+}
+
+/** G2 (WCAG 2.3.1): chớp màn tối đa ba lần trong một giây; lần thứ tư trở đi bị bỏ. */
+export const FLASH_MAX_PER_SEC = 3;
+/** `times` là các mốc chớp đã cho phép (ms, tăng dần); hàm thuần theo `now`, cắt mốc cũ rồi ghi mốc mới khi được phép. */
+export function flashAllowed(times: number[], now: number): boolean {
+  while (times.length && now - times[0] >= 1000) times.shift();
+  if (times.length >= FLASH_MAX_PER_SEC) return false;
+  times.push(now);
+  return true;
+}
