@@ -95,7 +95,7 @@ body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,
 /* Chỉ hiện nội dung của tab đang chọn. */
 #hud #sideBox[data-tab="quest"] #party,#hud #sideBox[data-tab="party"] :is(#quest,.sb-empty){display:none}
 /* Thu gọn: hai chip nhỏ (hai tab) cùng hàng, thân ẩn; bấm một chip mở khung ở tab đó. */
-#hud #sideBox.collapsed{padding:var(--sp-2)}
+#hud #sideBox.collapsed{flex:none;padding:var(--sp-2)}  /* hai chip thấp: không để #lcol (max-height chừa chat) ép xẹp về 0 ở màn thấp */
 #hud #sideBox.collapsed .sb-bar{margin:0;padding:0;border:0}
 #hud #sideBox.collapsed .sb-body{display:none}
 #hud #sideBox.collapsed .sb-tab{border-color:var(--ink2);background:var(--track);color:var(--plate-text);box-shadow:none}
