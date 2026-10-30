@@ -1,0 +1,339 @@
+{
+  "tool": "Codex / OpenAI image_gen built-in",
+  "model": "unknown",
+  "seed": "unknown",
+  "terms": "OpenAI output terms; not CC0",
+  "canonicalVerification": {
+    "policyPR": 1367,
+    "checkerPatched": false,
+    "reportsRebuilt": true,
+    "sheetsUnchanged": true,
+    "note": "Rebuilt five directions and cutter against canonical checker after merging main; reports and sheet bytes match previous output."
+  },
+  "history": [
+    {
+      "dir": "s",
+      "attempt": 1,
+      "file": "s/attempt1/poses.raw.png",
+      "sha256": "9300339972b5313bc2be77847478bc234e2c26b44a63fd4b3464514ee7bef97b",
+      "prompt": "s/attempt1/prompt.txt",
+      "promptSha256": "509d678e589b468710e3dcfa036da3a64755c1ececa45aa611a27bcf124226d1",
+      "selected": true,
+      "reference": "e/attempt3/poses.raw.png"
+    },
+    {
+      "dir": "se",
+      "attempt": 1,
+      "file": "se/attempt1/poses.raw.png",
+      "sha256": "8451c4eabf3772cab1025764c64bf8bf3405beec08b7c00fc6f27969d5ec49ca",
+      "prompt": "se/attempt1/prompt.txt",
+      "promptSha256": "52d1f11951521020ede2f90ef44498e5cf558f08084c3dd8b186930a5fde5e4c",
+      "selected": false,
+      "reference": "e/attempt2/poses.raw.png"
+    },
+    {
+      "dir": "se",
+      "attempt": 2,
+      "file": "se/attempt2/poses.raw.png",
+      "sha256": "ec9389f8497cd9847c54e69c0eb109eec4ff8a4e2309e6a2732fd63c71a5af9c",
+      "prompt": "se/attempt2/prompt.txt",
+      "promptSha256": "cc21cead280725e87ace9d3924655069771652e52fb9873ac5415d1f9f8671c7",
+      "selected": true,
+      "reference": "e/attempt3/poses.raw.png"
+    },
+    {
+      "dir": "e",
+      "attempt": 1,
+      "file": "e/attempt1/poses.raw.png",
+      "sha256": "b69c71ed8d268c3c7960551c90b56de905295e301f0102a3e1b15690fe4cac29",
+      "prompt": "e/attempt1/prompt.txt",
+      "promptSha256": "a549988fff7c7a7f06a5b4db9788178ce7cc42228a1311ab720d7b20d3f75fdb",
+      "selected": false,
+      "reference": null
+    },
+    {
+      "dir": "e",
+      "attempt": 2,
+      "file": "e/attempt2/poses.raw.png",
+      "sha256": "eba48e9edb7ba1eb5bccf4371b15d5f2623868fb4d6d85845a9a128db06de7ef",
+      "prompt": "e/attempt2/prompt.txt",
+      "promptSha256": "a5052976027c2724862cdd1f91cb3c94ab14c900e0c054d9749360a8d0834858",
+      "selected": false,
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    {
+      "dir": "e",
+      "attempt": 3,
+      "file": "e/attempt3/poses.raw.png",
+      "sha256": "a95aae49305724471f8b4cf60af4b70fcc1fa60fbe86c8737d62890615c287e0",
+      "prompt": "e/attempt3/prompt.txt",
+      "promptSha256": "7ca49de52e6e243fa864e40db600f16d10dd51fb6305773465e81938a0ebbffb",
+      "selected": true,
+      "reference": "e/attempt2/poses.raw.png"
+    },
+    {
+      "dir": "ne",
+      "attempt": 1,
+      "file": "ne/attempt1/poses.raw.png",
+      "sha256": "7a455b30d5c86ccdcdf211612c70156ed9dc94112a79d49373b10d77a7721926",
+      "prompt": "ne/attempt1/prompt.txt",
+      "promptSha256": "aa430a1b932569a5a6a2b8622f48eb140842237b14c2111c7debdef8cea8e8a4",
+      "selected": true,
+      "reference": "e/attempt3/poses.raw.png"
+    },
+    {
+      "dir": "n",
+      "attempt": 1,
+      "file": "n/attempt1/poses.raw.png",
+      "sha256": "65d687cbcb2432d008f16034425be09b07b19583115a4b1b0a57cc0e05e38ad7",
+      "prompt": "n/attempt1/prompt.txt",
+      "promptSha256": "c59716ca8bd5d6c5e5d133f14a4404573b8b587b4bd972cd1c9dc3e40302bb8e",
+      "selected": true,
+      "reference": "e/attempt3/poses.raw.png"
+    }
+  ],
+  "selectedPoses": [
+    2,
+    4,
+    6,
+    7
+  ],
+  "mapping": {
+    "idle": [
+      2,
+      2
+    ],
+    "walk": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "attack": [
+      2,
+      6,
+      4,
+      7
+    ],
+    "cast": [
+      2,
+      6
+    ],
+    "hurt": [
+      2
+    ]
+  },
+  "pose4": "rotate entire pose180degrees if source points up; north pose4 adds15degrees (actual vertical deviation14.70); preserve scale, no hand-derived angle",
+  "compiler": {
+    "phuthe-hammer-atlas.mjs": "4ce875e7fc03aa5d2872119c896065e3483ff4d95b1820f746ef489ddc7d0c7a",
+    "phuthe-hammer-atlas-finalize.mjs": "3a88168a2e15c1f5adc358c25bbda45c42cec99120f5e9de54cca2c5b351a521",
+    "phuthe-hammer-atlas-cut.mjs": "54d2afa196c3af9e0adc62e31ddbc050ad13d7c354b24834f341286913bea1ac",
+    "phuthe-sheet-check.mjs": "163a6d87721ba2b6b7293917911c9ec01708cc2a5e541951af825e42fe45622a"
+  },
+  "recipeSha256": "f5da180f15b1c046c62229f494ddcbdaadf0646dd8d970abe314db5feed4a50b",
+  "sheets": {
+    "b": "fec524aa64781e9d9ffc719f082dbdbc8414c999cff783bc45b0c26c76faec1b",
+    "f": "ca70c16b73867115c9be7e141e13f3f68ba06edc24319d610017abe48d38bce8"
+  },
+  "maxShaftGamePixels": 16.830584769128233,
+  "bodyReferencePixels": 47,
+  "shaftBodyRatio": 0.3580975482793241,
+  "capture": {
+    "method": "native Chrome Playwright; --mute-audio; localStorage muted true master0;1600x900; no crop/resize/composition",
+    "game": "RAM GAME_TEST=1; UI creation/awakening; paused GameScene animatePlayer and body frames at0/100/190/260ms; renderer inspection, not full combat",
+    "screenshots": [
+      {
+        "file": "game-f-e-0.png",
+        "sha256": "dfbf417e03b8b793f36e068891e677888cfa520dffc3ebb672d3aa1eb212d5f8"
+      },
+      {
+        "file": "game-f-e-100.png",
+        "sha256": "11c58cc60e898f1176de9f43f4cc2481a3d17ee489a25d375d32252bdcbe57f0"
+      },
+      {
+        "file": "game-f-e-190.png",
+        "sha256": "8dbe0eb7801700f71c3a9ddda5f70da954e8919ccbcdcb41bc333b7389fef2e6"
+      },
+      {
+        "file": "game-f-e-260.png",
+        "sha256": "6001fd2adb2dcd1ada5b63d078eb5d9d34ebeafbc6d5d85ecabfed6af6a9f6e1"
+      },
+      {
+        "file": "game-f-n-0.png",
+        "sha256": "7cc448bda27f70b5c8b9993c6f2c07e5cff6cf1e46f4e2aa636fe327b58f7476"
+      },
+      {
+        "file": "game-f-n-100.png",
+        "sha256": "3b8fed2abbbe469d5620cc67e9145c9fea406c34ee518ed59b5606c7f1bf2c96"
+      },
+      {
+        "file": "game-f-n-190.png",
+        "sha256": "a157955683568d6efd96156f7d55b4b184bb27049834252fef5df520a35e3faf"
+      },
+      {
+        "file": "game-f-n-260.png",
+        "sha256": "2afb8e22795eb7c1dd4ea3d111d86ab609c9b533a421664401deac296f794c03"
+      },
+      {
+        "file": "game-f-ne-0.png",
+        "sha256": "bf176771a373b251a0cf61c6f1c6a27d92dc5629ba76825eeec24b563cbf0f5f"
+      },
+      {
+        "file": "game-f-ne-100.png",
+        "sha256": "f6ee5bdffaef91be4c8d5351eaeea48c1d518cc0c2d4051c91c31ef35f30d98a"
+      },
+      {
+        "file": "game-f-ne-190.png",
+        "sha256": "350b9799a2a4a8481ed04abf5f2cc4a120ab928c5f796ec7817d01df92ce3cc0"
+      },
+      {
+        "file": "game-f-ne-260.png",
+        "sha256": "10d1f5fc864bc22e14f13220ddb980534fff71fb20e13ce536d081e9ac588e56"
+      },
+      {
+        "file": "game-f-s-0.png",
+        "sha256": "2d88310d580f4c64bfd404bd086d4a7b7bf79dc2ffd2eb827ece2cfd9ef5e01d"
+      },
+      {
+        "file": "game-f-s-100.png",
+        "sha256": "06176e920c85c08bff56e091cb0f550f30627b304eb379179c99a10087f8ffb7"
+      },
+      {
+        "file": "game-f-s-190.png",
+        "sha256": "aaad00afe7f5e112bdf7fb44d3b00a72b895289ce7369e38c9e39088a6217c88"
+      },
+      {
+        "file": "game-f-s-260.png",
+        "sha256": "f28dc215c3cd737190d25c7bd0907a1aae91df2d21e9bd0d4010345a7af6e129"
+      },
+      {
+        "file": "game-f-se-0.png",
+        "sha256": "e6683747bcd6e6db5d5691a0695b7377d7c04af75ba2d1e1cbda6db92fb7784d"
+      },
+      {
+        "file": "game-f-se-100.png",
+        "sha256": "0fa2adf6c58ee632a1bdc29d054249fbdd6546e8d1828257d073e1f81de5c460"
+      },
+      {
+        "file": "game-f-se-190.png",
+        "sha256": "61ce032c7ce3e8d57dedf4644108d017ce4d58578fd32f9c5daed54cb56c99ad"
+      },
+      {
+        "file": "game-f-se-260.png",
+        "sha256": "993b71f577a4b1b7250e2c9713c3982840b7faedb9ac53722dfdcdb6b8a235dd"
+      },
+      {
+        "file": "game-m-e-0.png",
+        "sha256": "ef8beeea115450f4b8626ae462386e2bae3901c43705b26f0134fa62090ffb1b"
+      },
+      {
+        "file": "game-m-e-100.png",
+        "sha256": "4e4e564269d553aaa9ca4c0f658bf56766e341951f9b37ba5da4eee600dc1cf0"
+      },
+      {
+        "file": "game-m-e-190.png",
+        "sha256": "c69d7b7807bef14dce325081f552bb43f189801e94acf311891ff0e855b542a7"
+      },
+      {
+        "file": "game-m-e-260.png",
+        "sha256": "002c2d94c3c41e00d73ccf66be3f60f88f1230861a9f4ec028976e745bc3d570"
+      },
+      {
+        "file": "game-m-n-0.png",
+        "sha256": "e310e40a32a7a15a456f7a10a7b6474d17f126ffea4f65cccccf5d66d267b135"
+      },
+      {
+        "file": "game-m-n-100.png",
+        "sha256": "9628addaeecb1d6fd0ab9a47795ac389879e408949a8bb9ee6add274d6cc5c58"
+      },
+      {
+        "file": "game-m-n-190.png",
+        "sha256": "ceeba446033d9462e6d73adc4972c20e4382640ec988d5e4ece9b2fd5aec3bcb"
+      },
+      {
+        "file": "game-m-n-260.png",
+        "sha256": "b3a5f3ad59643b79541b1375bc42a2e3d3367b37213550e4d03c9aa7fa5b05bd"
+      },
+      {
+        "file": "game-m-ne-0.png",
+        "sha256": "2fa022e8ce0fa0c1744bd9023dd2409d71315abb8c8c29fe4c00789a8a82bce4"
+      },
+      {
+        "file": "game-m-ne-100.png",
+        "sha256": "7dd9459808d7ca3cf2f6815cc1f513a1b02118cad55988b4c440bf6ebc8fc2ce"
+      },
+      {
+        "file": "game-m-ne-190.png",
+        "sha256": "3a59cd28ee0c4b3cf7d138b7efd58dc1bc5375c0bf9107ca0b60fffaa070d5e9"
+      },
+      {
+        "file": "game-m-ne-260.png",
+        "sha256": "034c02911e4a78b5f78af170f3f103b13344c1ae10ac34e869d9d4234edbce9e"
+      },
+      {
+        "file": "game-m-s-0.png",
+        "sha256": "4849f450622aa02dc92969b2a4e54d6353e0d7d738c47d980b1ac04786f28561"
+      },
+      {
+        "file": "game-m-s-100.png",
+        "sha256": "5e89788d82f6dca6d7a499ac0baf8e5630a17a21197645042c1f0bb363ba6fe7"
+      },
+      {
+        "file": "game-m-s-190.png",
+        "sha256": "5dc5cffcbbd955c87f4c9c12a194090a58d53c3ecf5cd0362cd339d8f277d08a"
+      },
+      {
+        "file": "game-m-s-260.png",
+        "sha256": "a365e0b1575a4626d7f658f6d59fd01cb40956f61aaced5b15f26a8a13665d1a"
+      },
+      {
+        "file": "game-m-se-0.png",
+        "sha256": "2c9c41f655f1256c5d8e624e2a807351d50bc432d4c12c749ea299eb7668eb11"
+      },
+      {
+        "file": "game-m-se-100.png",
+        "sha256": "ad32c655080772d11a636b7e919d8795f6934039c75ebb1d04f8da9254f9918e"
+      },
+      {
+        "file": "game-m-se-190.png",
+        "sha256": "e21a94f168620b13c18eb45f3116fdfda91a37288c3224d5545c7e2dec1f5ec0"
+      },
+      {
+        "file": "game-m-se-260.png",
+        "sha256": "8527ffbe64e994c8a1f2b895a9f9ebd0eba54a616f39009147a12346bfe352c2"
+      },
+      {
+        "file": "test-f-attack.png",
+        "sha256": "543441ab99b7c425fb4295ad89b3a6caf42359a9d641db693f405f09ede167b5"
+      },
+      {
+        "file": "test-f-cast.png",
+        "sha256": "30893a61d87ac1b8de400c0f5a5189cc1724fb87b786ccaa62638aafac16daf4"
+      },
+      {
+        "file": "test-f-idle.png",
+        "sha256": "3ceef8c2e338988ff428ff5f41901c489e9371913ecf0cff4c1c75fa167d74ff"
+      },
+      {
+        "file": "test-f-walk.png",
+        "sha256": "11fda76a648597d37dd1c5c2da6bc0429250c3d68ebb6994084ccaba93b5b0fe"
+      },
+      {
+        "file": "test-m-attack.png",
+        "sha256": "0e88bf3ba356cf641050700dbf8ffa929eab79d01263423bf38a4846b1517da4"
+      },
+      {
+        "file": "test-m-cast.png",
+        "sha256": "3ed6a1ac935a8c4bd46b1c736c1b19983111864dc973039f4013f011f91bfa62"
+      },
+      {
+        "file": "test-m-idle.png",
+        "sha256": "fc81484e8675bd558f6575e0ad686ce68f1b7491c9b113d3114b255d5aec1eca"
+      },
+      {
+        "file": "test-m-walk.png",
+        "sha256": "ef36f42f304c446637a659d3cea73be5a7f9267fc9ef87c88d1a4c5b0e64f708"
+      }
+    ]
+  }
+}
