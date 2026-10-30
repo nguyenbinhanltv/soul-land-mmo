@@ -75,16 +75,16 @@ let lastMp = 0; // hồn lực hiện tại (updateStats ghi), để ô dung h�
 let slotCd: number[] = [];  // hồi chiêu đầy của hồn kỹ ở từng ô (vẽ lớp phủ hồi chiêu trong updateStats)
 let avaDef: ChanThanDef | null = null; // Võ Hồn Chân Thân của võ hồn ra trận (nút R), null = võ hồn chưa có
 /** Hồn kỹ Chân Thân (9.6) hiện ở nút P khi đang biến hình; null = võ hồn chưa có Chân Thân. */
-interface SlotView { name: string; icon: string; art: string; col: string; label: string; tip: TipSpec | string; cost: number; cd: number; tier: number; locked?: boolean }
+interface SlotView { name: string; icon: string; art: string; col: string; label: string; tip: TipSpec | string; cost: number; cd: number; tier: number; locked?: boolean; empty?: boolean }
 let ctSlot: SlotView | null = null;
 let pSlot: SlotView | null = null; // nội dung gốc của nút P (để trả lại khi hết Chân Thân)
 /** Tráo nút P giữa hồn kỹ đang mang và hồn kỹ Chân Thân (class `ct`: viền vàng). Chỉ hiển thị; server quyết định ô P tung gì. */
 function setCtSlot(b: HTMLElement, on: boolean) {
   const sp = b.querySelectorAll<HTMLElement>("span");
   if (on) pSlot = { name: sp[1].textContent ?? "", icon: sp[0].textContent ?? "", art: sp[0].classList.contains("skart") ? sp[0].innerHTML : "", col: sp[0].style.color, label: b.getAttribute("aria-label") ?? "",
-    tip: cellBase.get(b) ?? "", cost: Number(b.dataset.cost), cd: Number(b.dataset.cdfull), tier: Number(b.dataset.tier ?? -1), locked: b.classList.contains("locked") };
+    tip: cellBase.get(b) ?? "", cost: Number(b.dataset.cost), cd: Number(b.dataset.cdfull), tier: Number(b.dataset.tier ?? -1), locked: b.classList.contains("locked"), empty: b.classList.contains("empty") };
   const v = on ? ctSlot : pSlot; if (!v) return;
-  b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked);
+  b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked); b.classList.toggle("empty", !on && !!v.empty); // ô P trống vẫn hiện hồn kỹ Chân Thân khi biến hình
   b.dataset.cool = "0"; // đổi nội dung ô không phải "vừa hồi xong" (paintCell không nháy .ready)
   if (v.art) sp[0].innerHTML = v.art; else sp[0].textContent = v.icon;
   sp[0].classList.toggle("skart", !!v.art); sp[0].style.color = v.col; sp[1].textContent = v.name;

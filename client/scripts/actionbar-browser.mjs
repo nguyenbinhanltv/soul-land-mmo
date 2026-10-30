@@ -290,6 +290,8 @@ try {
       const avatar = page.locator(".sk.ava");
       if (touch) await avatar.tap(); else await avatar.click();
       await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
+      // Hồn kỹ Chân Thân phải thấy biểu tượng, không mang lớp `empty` (ô P trống trước khi biến hình thì lớp này được gỡ).
+      assert.ok(await page.locator('.sk[data-i="3"].ct').evaluate((e) => !e.classList.contains("empty") && e.querySelector(".ico").getBoundingClientRect().width > 0), "Ô Chân Thân phải hiện biểu tượng");
       await screenshot(page, "chan-than", size);
       assert.equal(await avatar.getAttribute("aria-disabled"), "false");
       await hook(page, "rest", { s: 120 });
