@@ -1,0 +1,18 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "agent": "soul_land_game-860",
+  "sourceSha256": "75a6e51916e375deaeac84dd872f985acab27cb5e40044f6d3ca0cdf5a66bb1b",
+  "promptSha256": "eadee7b3e55a18bcd3251a2a9b16b6e126ce2ebaebc736b0bd0d4ce163548fa5",
+  "review": "CHẶN mắt: hai điểm tối đối xứng sát đầu khó phân biệt mắt trong các hàng; không duyệt mặt sau. Trục n và đuôi còn đủ; không nhập.",
+  "imported": false,
+  "turnaroundWaived": "Quyết định chủ repo/orchestrator: bỏ bước turnaround vì cả hai lượt ne lộ mắt",
+  "references": {
+    "source": "shared/assets/sprites/beast/loi_quang_hai_dieu_anim.png",
+    "rows": "0..11 (s,se,e)",
+    "sourceSha256": "d2ef85b74baa940315b84717f02c651d46638baac5698de0df129ca9f846a12c",
+    "cropSha256": "23dcd93d094a6138e0d5317ae695558284871d0b339aba7b3c7f4bb18e1f2e43"
+  }
+}

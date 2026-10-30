@@ -277,3 +277,118 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/loi_quang_hai_dieu/` | - | image_gen.imagegen | RAW hoạt ảnh Lôi Quang Hải Diêu: turnaround 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+## Tờ riêng vòng 4 — ne, lượt 1, phiên 860
+
+Bỏ bước turnaround theo quyết định chủ repo/orchestrator vì cả hai lượt lộ mắt ở ne. Tham chiếu chỉ dùng s/se/e đã nhập; chuẩn idle s=57, se=46, e=31,5 px. Không dùng --scale, không nới ngưỡng, không sửa checker.
+
+### to-ne
+
+- File: `candidates/to-ne-860-attempt1.png`, **1536×1024**, 1638378 byte, SHA256 `0f3a8430e4f97b17d2897fb3ca83e6afecdf848764b1a6c259bc5f48fee2bc38`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-860.
+- Prompt: `candidates/to-ne-860-attempt1.prompt.txt` (SHA256 `088f0aca605403a547d81cf91eb2294839bba94d8e95877dca2088dddc22ce7c`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### Lỗi
+
+```text
+LỖI: to-ne — Mắt đạt: đầu ne lên phải, không thấy mắt, giữ đuôi. Chuẩn sheet nhập 44,8 px, khớp x0,5, residual -4,4% trong 10%. CHẶN nhập: cả loài legacy auto 1,2452 fit 0,7023 và nguồn n cũ vượt khung. Không nhập. (mắt)
+```
+
+## Tờ riêng vòng 4 — ne, lượt 2, phiên 860
+
+Bỏ bước turnaround theo quyết định chủ repo/orchestrator vì cả hai lượt lộ mắt ở ne. Tham chiếu chỉ dùng s/se/e đã nhập; chuẩn idle s=57, se=46, e=31,5 px. Không dùng --scale, không nới ngưỡng, không sửa checker.
+
+### to-ne
+
+- File: `candidates/to-ne-860-attempt2.png`, **1536×1024**, 1618882 byte, SHA256 `7b5cdbc2931434c396b2784279b2c9668feb2778ff4a25321e138f71cfced7db`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-860.
+- Prompt: `candidates/to-ne-860-attempt2.prompt.txt` (SHA256 `901cb40ed21f46aa58c414893a4c504e32a3793f789725d84dae60a7d20dce9f`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### Lỗi
+
+```text
+LỖI: to-ne — Mắt đạt: ne quay ra xa, không thấy mắt, giữ đuôi. Cỡ chuẩn sheet nhập 44,8 px, khớp x0,531, residual 0%, khối ne không chặn. CHẶN nhập: nguồn legacy vượt khung cả loài auto 1,2452 fit 0,7023 và nguồn n cũ vượt khung. Ứng viên ne tốt nhất, chưa nhập. (mắt)
+```
+
+## Tờ riêng vòng 4 — ne, lượt 3, phiên 860
+
+Bỏ bước turnaround theo quyết định chủ repo/orchestrator vì cả hai lượt lộ mắt ở ne. Tham chiếu chỉ dùng s/se/e đã nhập; chuẩn idle s=57, se=46, e=31,5 px. Không dùng --scale, không nới ngưỡng, không sửa checker.
+
+### to-ne
+
+- File: `candidates/to-ne-860-attempt3.png`, **1536×1024**, 1627982 byte, SHA256 `df671dc2b58b129ec9cead2b2495211edf53271550fd2d4fe6fbce6b9a42c609`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-860.
+- Prompt: `candidates/to-ne-860-attempt3.prompt.txt` (SHA256 `0688e41411bd0938486d437ccd38e8cdb2a51cd487115cf32b2e04b5356c1f66`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### Lỗi
+
+```text
+LỖI: to-ne — CHẶN mắt: H3 attack C4 quay đầu/thân sang góc trước, không giữ trục ne. Đã đủ 3 lượt ne, chọn lượt 2 tốt nhất nhưng importer vẫn chặn cả loài; giữ dự phòng ne. (mắt)
+```
+
+## Tờ riêng vòng 4 — n, lượt 1, phiên 860
+
+Bỏ bước turnaround theo quyết định chủ repo/orchestrator vì cả hai lượt lộ mắt ở ne. Tham chiếu chỉ dùng s/se/e đã nhập; chuẩn idle s=57, se=46, e=31,5 px. Không dùng --scale, không nới ngưỡng, không sửa checker.
+
+### to-n
+
+- File: `candidates/to-n-860-attempt1.png`, **1536×1024**, 1640192 byte, SHA256 `75a6e51916e375deaeac84dd872f985acab27cb5e40044f6d3ca0cdf5a66bb1b`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-860.
+- Prompt: `candidates/to-n-860-attempt1.prompt.txt` (SHA256 `eadee7b3e55a18bcd3251a2a9b16b6e126ce2ebaebc736b0bd0d4ce163548fa5`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: n pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### Lỗi
+
+```text
+LỖI: to-n — CHẶN mắt: hai điểm tối đối xứng sát đầu khó phân biệt mắt trong các hàng; không duyệt mặt sau. Trục n và đuôi còn đủ; không nhập. (mắt)
+```
+
+## Tờ riêng vòng 4 — n, lượt 2, phiên 860
+
+Bỏ bước turnaround theo quyết định chủ repo/orchestrator vì cả hai lượt lộ mắt ở ne. Tham chiếu chỉ dùng s/se/e đã nhập; chuẩn idle s=57, se=46, e=31,5 px. Không dùng --scale, không nới ngưỡng, không sửa checker.
+
+### to-n
+
+- File: `candidates/to-n-860-attempt2.png`, **1536×1024**, 1570205 byte, SHA256 `54cb08d0a18000093de45e85a54a2793cd44f3684d781c4c889dd43bbd9c61fd`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-860.
+- Prompt: `candidates/to-n-860-attempt2.prompt.txt` (SHA256 `f44647727b8fb750fa49d4260eca590287e13ce769c96fe7b86bf2ca18d78cd9`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: n pass).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### Lỗi
+
+```text
+LỖI: to-n — Mắt đạt: đầu sau trơn, trục n đúng, giữ đuôi. CHẶN cỡ: chuẩn sheet nhập 44,8 px, khớp x0,5, residual -23,6% quá 10%; cấu hình cùng ne lượt 2 còn chặn cả loài legacy auto 1,2452 fit 0,7023. Không nhập. (mắt)
+```
+
+## Tờ riêng vòng 4 — n, lượt 3, phiên 860
+
+Bỏ bước turnaround theo quyết định chủ repo/orchestrator vì cả hai lượt lộ mắt ở ne. Tham chiếu chỉ dùng s/se/e đã nhập; chuẩn idle s=57, se=46, e=31,5 px. Không dùng --scale, không nới ngưỡng, không sửa checker.
+
+### to-n
+
+- File: `candidates/to-n-860-attempt3.png`, **1536×1024**, 1603641 byte, SHA256 `b5711cf4192832024856431aaeae6b7929a674446f69e4721fc97d35c6414857`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-860.
+- Prompt: `candidates/to-n-860-attempt3.prompt.txt` (SHA256 `60d33fe81dd5113684fe9e2f5797ec7529035933e36fd1fa7bfff446c0632479`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### Lỗi
+
+```text
+LỖI: to-n — chân lệch — H3 (n) C5 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%).
+LỖI: to-n — Mắt đạt: mặt sau trơn, đầu n lên trên, một đuôi cong còn đủ. CHẶN cỡ: chuẩn sheet nhập 44,8 px, khớp x0,5 residual -19,2% quá 10%; vẫn chặn cả loài từ legacy auto 1,2452 fit 0,7023. Đủ 3 lượt n, chọn lượt 3 tốt nhất, giữ dự phòng n, không nhập. (mắt)
+```
