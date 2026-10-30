@@ -94,7 +94,7 @@
     }
   ],
   "recipeSha256": "f6bfbda1eb31bf2c1b91e135aaf89e4b6c0f3fa977c7b0e9a1066063bc684a22",
-  "canonicalCheckerSha256": "7f17a6cf03cb5ce89a84d7c11c65bd69abb6af14a4d176c37e05d25d4ccb973d",
+  "canonicalCheckerSha256": "163a6d87721ba2b6b7293917911c9ec01708cc2a5e541951af825e42fe45622a",
   "sheets": {
     "b": "c3144a68b96a757afede60b5d2b4f8372bd61036d1a9905c909c7deb8a7eb791",
     "f": "a6961c21a29915156a9e3e8b24f798c5c6c9d5176f2ffcf906be0a33ac21e5fa"
@@ -960,5 +960,12 @@
         "sha256": "fe86919e9cea89602dd88410ee9997893831c21626c687a8bf1a9d55c10dbaeb"
       }
     ]
+  },
+  "canonicalVerification": {
+    "policyPR": 1367,
+    "checkerPatched": false,
+    "reportsRebuilt": true,
+    "sheetsUnchanged": true,
+    "note": "Rebuilt five directions and cutter against canonical checker after merging main; sheet bytes match previous output."
   }
 }

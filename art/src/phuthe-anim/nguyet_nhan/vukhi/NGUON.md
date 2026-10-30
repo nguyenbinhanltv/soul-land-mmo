@@ -25,9 +25,9 @@ node tools/assets/credits.mjs
 - Với hai tay đo được, trước cắt đo mặt nạ từng lưỡi riêng, cả A/B≤2px; sau cắt đo tới điểm ảnh sheet ghép cuối, cả A/B≤2px. Trường cũ `secondaryShaftDistance` dùng khoảng cách tới lưỡi B, không tới cán A; `secondaryGripRasterDistance` là phép đo B rõ nghĩa.
 - **Giới hạn tay bị che:** một số khung LPC chỉ trả một điểm tay, ví dụ nữ/e idle và hurt. Chỉ vẽ một lưỡi tại tay đo được, không tự đoán hoặc tạo thêm tay B. `requestedHands`/`visibleHands`, mảng `hands`/`near` ghi đúng số điểm; B không đo được có `secondaryGripRasterDistance: null`, không khẳng định đã đo B. Cần chủ repo duyệt cách xử lý này.
 - ne/n nằm sau thân, chỉ vùng nắm quanh từng tay riêng đưa ra trước. Không dùng một hộp lớn phủ cả khoảng giữa hai tay.
-- Công thức art tái dùng compiler/cutter của mẫu trong thư mục tạm; checker chung giữ nguyên, không đổi mã ngoại lệ. Kiểm bổ sung bằng checker chuẩn không truyền `poseFrames`, lưu `canonical-report.json`.
+- Công thức art tái dùng compiler/cutter của mẫu trong thư mục tạm; import checker chuẩn trực tiếp, không tạo hay vá bản sao. Sau khi merge main có PR #1367, tái tạo đủ năm hướng/cutter và kiểm bổ sung bằng checker chuẩn không truyền `poseFrames`, lưu `canonical-report.json`.
 
-**Dùng một tay A ở khung dọc theo quy trình mẫu là điểm lệch so với bảng #19 ban đầu, chờ chủ repo xác nhận áp dụng cho rollout.** Bộ này vẫn neo cả hai lưỡi khi đo được hai tay; không dùng ngoại lệ đó để bỏ sai lệch B đang nhìn thấy.
+**Dùng một tay A ở khung dọc theo quy trình mẫu là điểm lệch so với bảng #19 ban đầu; chủ repo đã xác nhận áp dụng cho rollout qua điều phối soul_land_game-815, checker chuẩn triển khai ở PR #1367.** Checker chung có thể miễn B ở attack/cast dọc của bộ này, nhưng recipe/cutter vẫn kiểm độc lập `near.some(v => v > 2)` để chặn từng lưỡi lệch tay. Bộ này vẫn neo cả hai lưỡi khi đo được hai tay; ngoại lệ không bỏ phép kiểm riêng B đang nhìn thấy. Giới hạn 16 khung chỉ đo được một tay vẫn cần duyệt mỹ thuật.
 
 ## Kiểm ảnh game
 

@@ -1467,7 +1467,7 @@
       "secondaryShaftDistance": 1.1401754250991443,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.1401754250991443,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.19388998567541194,
       "blocked": false
     },
@@ -1490,7 +1490,7 @@
       "secondaryShaftDistance": 1.077032961426903,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.077032961426903,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 2.3803199413028437,
       "blocked": false
     },
@@ -1513,7 +1513,7 @@
       "secondaryShaftDistance": 0.9848857801796179,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 0.9848857801796179,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.45740735645020436,
       "blocked": false
     },
@@ -1536,7 +1536,7 @@
       "secondaryShaftDistance": 1.2529964086141592,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.2529964086141592,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.6360331921461579,
       "blocked": false
     },
@@ -1559,7 +1559,7 @@
       "secondaryShaftDistance": 0.9848857801796179,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 0.9848857801796179,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.45740735645020436,
       "blocked": false
     },
@@ -1582,7 +1582,7 @@
       "secondaryShaftDistance": 1.4560219778561039,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.4560219778561039,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.6360331921461579,
       "blocked": false
     },
@@ -1765,7 +1765,7 @@
       "secondaryShaftDistance": 1.131370849898472,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.131370849898472,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.19388998567541194,
       "blocked": false
     },
@@ -1788,7 +1788,7 @@
       "secondaryShaftDistance": 1.4240006242195973,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.4240006242195973,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 2.3803199413028437,
       "blocked": false
     },
@@ -1811,7 +1811,7 @@
       "secondaryShaftDistance": 1.0077822185373186,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.0077822185373186,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.45740735645020436,
       "blocked": false
     },
@@ -1834,7 +1834,7 @@
       "secondaryShaftDistance": 1.2133516482134132,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.2133516482134132,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.6360331921461579,
       "blocked": false
     },
@@ -1857,7 +1857,7 @@
       "secondaryShaftDistance": 1.23883906227653,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.23883906227653,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.45740735645020436,
       "blocked": false
     },
@@ -1880,7 +1880,7 @@
       "secondaryShaftDistance": 1.2649110640673564,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.2649110640673564,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.6360331921461579,
       "blocked": false
     },

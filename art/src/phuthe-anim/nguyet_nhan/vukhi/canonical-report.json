@@ -1,5 +1,5 @@
 {
-  "checker": "tools/assets/phuthe-sheet-check.mjs unchanged; no poseFrames override",
+  "checker": "tools/assets/phuthe-sheet-check.mjs canonical after PR1367; no poseFrames override",
   "results": {
     "m": {
       "id": "nguyet_nhan",

@@ -1505,7 +1505,7 @@
       "secondaryShaftDistance": 1.1180339887498898,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.1180339887498898,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 1.0493856703700999,
       "blocked": false
     },
@@ -1528,7 +1528,7 @@
       "secondaryShaftDistance": 1.2369316876853003,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.2369316876853003,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 9.916842905554972,
       "blocked": false
     },
@@ -1551,7 +1551,7 @@
       "secondaryShaftDistance": 1.1045361017187272,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.1045361017187272,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 1.0493856703700999,
       "blocked": false
     },
@@ -1574,7 +1574,7 @@
       "secondaryShaftDistance": 1.3601470508735412,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.3601470508735412,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 9.916842905554972,
       "blocked": false
     },
@@ -1801,7 +1801,7 @@
       "secondaryShaftDistance": 1.1331154474650675,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.1331154474650675,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 1.0493856703700999,
       "blocked": false
     },
@@ -1824,7 +1824,7 @@
       "secondaryShaftDistance": 1.094690416253836,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.094690416253836,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 9.916842905554972,
       "blocked": false
     },
@@ -1847,7 +1847,7 @@
       "secondaryShaftDistance": 1.269295517643976,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.269295517643976,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 1.0493856703700999,
       "blocked": false
     },
@@ -1870,7 +1870,7 @@
       "secondaryShaftDistance": 1.4252192813739224,
       "secondaryTolerance": 20,
       "secondaryGripRasterDistance": 1.4252192813739224,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 9.916842905554972,
       "blocked": false
     },

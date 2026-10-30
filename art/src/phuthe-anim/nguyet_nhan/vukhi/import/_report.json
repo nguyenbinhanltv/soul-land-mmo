@@ -2433,7 +2433,7 @@
       "pixels": 762,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.19388998567541194,
         "blocked": false
       }
@@ -2447,7 +2447,7 @@
       "pixels": 682,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 2.3803199413028437,
         "blocked": false
       }
@@ -2461,7 +2461,7 @@
       "pixels": 767,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.45740735645020436,
         "blocked": false
       }
@@ -2475,7 +2475,7 @@
       "pixels": 838,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.6360331921461579,
         "blocked": false
       }
@@ -2489,7 +2489,7 @@
       "pixels": 770,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.45740735645020436,
         "blocked": false
       }
@@ -2503,7 +2503,7 @@
       "pixels": 832,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.6360331921461579,
         "blocked": false
       }
@@ -2614,7 +2614,7 @@
       "pixels": 773,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.19388998567541194,
         "blocked": false
       }
@@ -2628,7 +2628,7 @@
       "pixels": 677,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 2.3803199413028437,
         "blocked": false
       }
@@ -2642,7 +2642,7 @@
       "pixels": 770,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.45740735645020436,
         "blocked": false
       }
@@ -2656,7 +2656,7 @@
       "pixels": 838,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.6360331921461579,
         "blocked": false
       }
@@ -2670,7 +2670,7 @@
       "pixels": 772,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.45740735645020436,
         "blocked": false
       }
@@ -2684,7 +2684,7 @@
       "pixels": 828,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.6360331921461579,
         "blocked": false
       }
@@ -2795,7 +2795,7 @@
       "pixels": 1079,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 2.2284215697696794,
         "blocked": false
       }
@@ -2823,7 +2823,7 @@
       "pixels": 1407,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.10106955623882641,
         "blocked": false
       }
@@ -2837,7 +2837,7 @@
       "pixels": 1161,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.1518927950271376,
         "blocked": false
       }
@@ -2851,7 +2851,7 @@
       "pixels": 1417,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.10106955623882641,
         "blocked": false
       }
@@ -2865,7 +2865,7 @@
       "pixels": 1172,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.1518927950271376,
         "blocked": false
       }
@@ -2974,7 +2974,7 @@
       "pixels": 1091,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 2.2284215697696794,
         "blocked": false
       }
@@ -3002,7 +3002,7 @@
       "pixels": 1357,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.10106955623882641,
         "blocked": false
       }
@@ -3016,7 +3016,7 @@
       "pixels": 1167,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.1518927950271376,
         "blocked": false
       }
@@ -3030,7 +3030,7 @@
       "pixels": 1368,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.10106955623882641,
         "blocked": false
       }
@@ -3044,7 +3044,7 @@
       "pixels": 1160,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.1518927950271376,
         "blocked": false
       }
@@ -3183,7 +3183,7 @@
       "pixels": 1269,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.4309970234679668,
         "blocked": false
       }
@@ -3197,7 +3197,7 @@
       "pixels": 1147,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 5.009695940796121,
         "blocked": false
       }
@@ -3211,7 +3211,7 @@
       "pixels": 1235,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.4309970234679668,
         "blocked": false
       }
@@ -3225,7 +3225,7 @@
       "pixels": 1142,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 5.009695940796121,
         "blocked": false
       }
@@ -3362,7 +3362,7 @@
       "pixels": 1261,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.4309970234679668,
         "blocked": false
       }
@@ -3376,7 +3376,7 @@
       "pixels": 1142,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 5.009695940796121,
         "blocked": false
       }
@@ -3390,7 +3390,7 @@
       "pixels": 1168,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.4309970234679668,
         "blocked": false
       }
@@ -3404,7 +3404,7 @@
       "pixels": 1149,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 5.009695940796121,
         "blocked": false
       }
@@ -3543,7 +3543,7 @@
       "pixels": 1408,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.0493856703700999,
         "blocked": false
       }
@@ -3557,7 +3557,7 @@
       "pixels": 1216,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 9.916842905554972,
         "blocked": false
       }
@@ -3571,7 +3571,7 @@
       "pixels": 1324,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.0493856703700999,
         "blocked": false
       }
@@ -3585,7 +3585,7 @@
       "pixels": 1226,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 9.916842905554972,
         "blocked": false
       }
@@ -3722,7 +3722,7 @@
       "pixels": 1383,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.0493856703700999,
         "blocked": false
       }
@@ -3736,7 +3736,7 @@
       "pixels": 1219,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 9.916842905554972,
         "blocked": false
       }
@@ -3750,7 +3750,7 @@
       "pixels": 1283,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.0493856703700999,
         "blocked": false
       }
@@ -3764,7 +3764,7 @@
       "pixels": 1225,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 9.916842905554972,
         "blocked": false
       }
@@ -3875,7 +3875,7 @@
       "pixels": 776,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.6458743480317253,
         "blocked": false
       }
@@ -3917,7 +3917,7 @@
       "pixels": 889,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.5983694863991929,
         "blocked": false
       }
@@ -3945,7 +3945,7 @@
       "pixels": 884,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.5983694863991929,
         "blocked": false
       }
@@ -4056,7 +4056,7 @@
       "pixels": 769,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 1.6458743480317253,
         "blocked": false
       }
@@ -4098,7 +4098,7 @@
       "pixels": 890,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.5983694863991929,
         "blocked": false
       }
@@ -4126,7 +4126,7 @@
       "pixels": 890,
       "edge": 0,
       "policy": {
-        "primaryOnly": false,
+        "primaryOnly": true,
         "verticalDeviation": 0.5983694863991929,
         "blocked": false
       }
