@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-31",
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": null,
+  "seed": null,
+  "direction": "e",
+  "attempt": 4,
+  "references": [
+    {
+      "path": "../../references/nine-roofs-guide.png",
+      "sha256": "06a3ae35c982d7457c06649e027d8f645e765420923bea35212d05cadc588241"
+    }
+  ],
+  "status": "selected",
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "202eb5f9b58b3b08eefc2cf80e20df0c55ce2b0cc99b50c6986935d707122c80"
+  },
+  "prompt": {
+    "path": "prompt.txt",
+    "sha256": "74da52610b974fac1674df172c8a69a6c5205327b8153170ed8f30d46831bd18"
+  },
+  "compositor": {
+    "path": "../../compose.mjs",
+    "sha256": "9cc26bdd2818542dcaf6540debba95b26e1f2511a4d28d2acd6e7a60d613f87a"
+  },
+  "license": "Đầu ra OpenAI theo điều khoản dịch vụ; LPC giữ giấy phép lớp nguồn."
+}
