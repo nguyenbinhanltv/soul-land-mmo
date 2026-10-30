@@ -8,7 +8,7 @@ Loài `loi_quang_hai_dieu` (Lôi Quang Hải Diêu), họ `swim`, khung game 96�
 
 - File: `toA.png`, **948×1659**, 1802902 byte, SHA256 `8a9d91f96fd89adbb31e3d7c45391c5a2302ed2e381558f68264e62058be7e04`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `toA.prompt.txt` (SHA256 `d7ab5eb5f5fb1925883c06958168ec6b1bc5a02fd5e0b65d9c0487c066ce0b7f`).
+- Prompt: `toA.prompt.txt` (SHA256 `31f7e8b26215685815c65d9df06a0796bb4e062b0ab836b086c50eb91836bdaa`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: s nhẹ, se nhẹ, e nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (s): cỡ thân idle 120% so với ảnh tĩnh (lệch 20%); cutter neo lại, không chặn.
@@ -20,7 +20,7 @@ Loài `loi_quang_hai_dieu` (Lôi Quang Hải Diêu), họ `swim`, khung game 96�
 
 - File: `toB.png`, **1254×1254**, 1784625 byte, SHA256 `4d56375c1e7a06bc3bb34b82a700e92188df921d1d3d49653fb9578faa6e18e4`.
 - Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1.
-- Prompt: `toB.prompt.txt` (SHA256 `5843072d10f1039c99689decfcbd04596bddca93766df4f9afdb80d751408c47`).
+- Prompt: `toB.prompt.txt` (SHA256 `adf0ea670bfa415368743a6037566fcd313bb26bdcab95602d5fc88afad0885f`).
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: ne nhẹ, n nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (ne): cỡ thân idle 72% so với ảnh tĩnh (lệch 28%, quá 25%); cutter neo lại, không chặn.
@@ -73,8 +73,6 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 | File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
 |---|---|---|---|---|---|
 | `art/src/beast-anim/loi_quang_hai_dieu/` | - | image_gen.imagegen | RAW hoạt ảnh Lôi Quang Hải Diêu: to-e 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
-
-Phiếu nhập cuối: e lượt 1/3 đạt mắt, đủ đuôi; hurt lùi và die giữ hướng. Không cần lượt 2/3 hay vẽ lại se. Giữ RAW legacy và mọi lượt cũ. Cutter tự động 0,5764 ≤ fit 0,7023, 0 block. Dùng cutter v2 thay riêng hàng e (44 px), giữ s/se nguyên byte; normal cũng giữ hàng ngoài e. Sau đó beast:import --dirs-ok s,se,e,ne --force giữ s/se/e nguyên byte và nhập ne phiên 860 lượt 2. Chuẩn cỡ = sheet đã nhập s=57,se=46,e=44 → 49 px; ne ×1,00, residual 7,0% (≤10%). Không --scale, không nới ngưỡng, không đổi công cụ. n vẫn dự phòng, không sinh thêm vì đã đủ ba lượt phiên 860 (residual -19,2%).
 
 ## Phiếu nhập phiên 862
 
