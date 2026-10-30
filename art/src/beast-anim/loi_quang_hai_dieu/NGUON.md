@@ -213,3 +213,67 @@ Không có dòng `LỖI:`.
 - Công cụ: image_gen.imagegen; model/seed: unknown; lượt: 1.
 - Prompt: `candidates/to-n-809-attempt1.prompt.txt`.
 - Kết quả: Không có RAW: công cụ từ chối ở bước lọc output; tính bảo thủ là một lượt đã dùng.
+
+
+## Turnaround vòng 4 — phiên 860 — lượt 1
+
+# Lôi Quang Hải Diêu — RAW hoạt ảnh (#1401)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species loi_quang_hai_dieu`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `loi_quang_hai_dieu` (Lôi Quang Hải Diêu), họ `swim`, khung game 96×96. Mức kiểm chung: **pass**.
+
+## turnaround
+
+- File: `candidates/turnaround-860-attempt1.png`, **1536×1024**, 1568052 byte, SHA256 `30f9c98f8484088a7c5c78d6f744435d5e44623d7dd51bee5a3ace3cd482f7a6`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-860.
+- Prompt: `candidates/turnaround-860-attempt1.prompt.txt` (SHA256 `c672a7f9568e33bb2d6748c873fea7d3e9c53a035f60d4b94b9487144531322f`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## Lỗi
+
+```text
+LỖI: turnaround — hướng — cột ne cả idle/hurt/die — còn thấy mắt ở mép đầu, không dùng làm tham chiếu (mắt)
+```
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/loi_quang_hai_dieu/` | - | image_gen.imagegen | RAW hoạt ảnh Lôi Quang Hải Diêu: turnaround 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
+
+
+## Turnaround vòng 4 — phiên 860 — lượt 2
+
+# Lôi Quang Hải Diêu — RAW hoạt ảnh (#1401)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species loi_quang_hai_dieu`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `loi_quang_hai_dieu` (Lôi Quang Hải Diêu), họ `swim`, khung game 96×96. Mức kiểm chung: **pass**.
+
+## turnaround
+
+- File: `candidates/turnaround-860-attempt2.png`, **1536×1024**, 1596776 byte, SHA256 `7fe7b386de696ed8d5769f6364f2d57796a2fe1ce27404c99e4964bea6807812`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-860.
+- Prompt: `candidates/turnaround-860-attempt2.prompt.txt` (SHA256 `002ef6fd8114c4cd6c3f44ed30f5e2b7c026db227f1c59dd20ef9bd5d498bf2f`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+## Lỗi
+
+```text
+LỖI: turnaround — hướng — cột ne cả idle/hurt/die — còn thấy mắt ở mép đầu, không dùng làm tham chiếu (mắt)
+```
+
+## Ghi công
+
+Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột với các mục AI ở `art/CREDITS.md`); không nối dòng vào `art/CREDITS.md`.
+
+| File | Key | Công cụ | Mô tả / prompt | Ngày | Ghi chú |
+|---|---|---|---|---|---|
+| `art/src/beast-anim/loi_quang_hai_dieu/` | - | image_gen.imagegen | RAW hoạt ảnh Lôi Quang Hải Diêu: turnaround 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
