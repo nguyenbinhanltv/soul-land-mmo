@@ -249,5 +249,13 @@
         "sha256": "94c802af9bfe219cabe92afd00fe4281984cf9daff2d691f5a95d258b3a535c7"
       }
     ]
+  },
+  "canonicalCheckerSha256": "163a6d87721ba2b6b7293917911c9ec01708cc2a5e541951af825e42fe45622a",
+  "canonicalVerification": {
+    "policyPR": 1367,
+    "checkerPatched": false,
+    "reportsRebuilt": true,
+    "sheetsUnchanged": true,
+    "note": "Rebuilt five directions and cutter against canonical checker after merging main; sheet bytes match previous output."
   }
 }

@@ -1291,7 +1291,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.12057733530474479,
       "blocked": false
     },
@@ -1310,7 +1310,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.022566584674152068,
       "blocked": false
     },
@@ -1329,7 +1329,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.0351465867532994,
       "blocked": false
     },
@@ -1348,7 +1348,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.08600339983809135,
       "blocked": false
     },
@@ -1367,7 +1367,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.0351465867532994,
       "blocked": false
     },
@@ -1386,7 +1386,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.08600339983809135,
       "blocked": false
     },
@@ -1538,7 +1538,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.12057733530474479,
       "blocked": false
     },
@@ -1557,7 +1557,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.022566584674152068,
       "blocked": false
     },
@@ -1576,7 +1576,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.0351465867532994,
       "blocked": false
     },
@@ -1595,7 +1595,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.08600339983809135,
       "blocked": false
     },
@@ -1614,7 +1614,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.0351465867532994,
       "blocked": false
     },
@@ -1633,7 +1633,7 @@
       "primaryAnchorError": 0,
       "secondaryShaftDistance": 0,
       "secondaryTolerance": 20,
-      "primaryOnly": false,
+      "primaryOnly": true,
       "verticalDeviation": 0.08600339983809135,
       "blocked": false
     },
