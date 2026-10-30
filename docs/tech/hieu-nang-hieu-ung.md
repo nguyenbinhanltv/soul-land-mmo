@@ -38,6 +38,12 @@ Mỗi lượt kèm hiệu ứng G3, tia lửa theo chất liệu. Đồng thời
 - Nhiễu giữa các lượt ở CPU giả lập cao khá lớn (±10 %); đọc xu hướng, không đọc từng con số.
 - **Điện thoại thật chưa đo** (không có máy); giả lập 4× CPU + màn ngang cho thấy cùng kết luận. Cần chủ repo thử trên máy thật.
 
+**Số nổi (`floatText`) chưa nằm trong bài đo:** `?thu=fx` không dựng số sát thương (`floatText` tạo một `Text` mới mỗi lần gọi, không có pool như `ParticleLayer` / `SheetFx`). Đo riêng khi sửa cách vẽ số (FPS p1, số texture, heap sau gc, 60 giây, 40 người); chưa có số thì ghi "Chưa đo".
+
+## Khi FPS thấp: CPU hay GPU?
+
+Chạy cùng kịch bản hai lần: (a) `--cpu 4` giữ nguyên độ phân giải; (b) CPU 1× nhưng giảm kích thước cửa sổ một nửa. Nếu (a) tụt mà (b) không đổi thì nút thắt ở CPU (script, cấp phát, số đối tượng); nếu (b) cải thiện rõ thì ở GPU (đổ đầy điểm ảnh, lớp cộng sáng chồng nhau). Chỉ sửa phía đã xác định, rồi đo lại cùng kịch bản (vòng đo ở skill `soak-perf`). Công cụ hiện chưa đếm draw call; muốn đếm thì bọc lời gọi ở lớp WebGL của trang đo, đừng dựa vào bộ đếm có sẵn của Phaser (chưa xác minh).
+
 ## Kiểm tung mọi chiêu (`all`)
 
 `__castAll`: 280 lần tung = 25 võ hồn × (9 hồn kỹ vòng 1–6, 8–10 + Chân Thân + tiên cơ) + 5 dung hợp, lần lượt, rồi chờ tan, rồi lặp lại lần hai (kèm hồn sư thử có pháp tướng ra đòn / bùng ở T3).
@@ -58,6 +64,15 @@ Không rò texture, pool không lớn thêm ở vòng hai. Bài này chạy trê
 ## Cân âm lượng (G8)
 
 `node tools/audio/measure-sfx.mjs` giải mã gói âm thanh thật bằng Chrome headless (`--mute-audio`) và đo RMS từng nhóm. Trước G8 mọi clip chỉ cùng đỉnh −3 dB nên độ to chênh tới ~14 dB giữa các nhóm (từ −14 dB gầm boss đến −29,6 dB hồn hoàn rơi; tuyệt kỹ T3 −25 … −29 dB nhỏ hơn cả hồn kỹ thường −17 … −25 dB). Sau khi cân (`GROUP_TRIM_DB`): vung / va chạm ≈ −22, hồn kỹ ≈ −23, T3 ≈ −21 … −23, thú ≈ −22, bước chân ≈ −34, môi trường −26 … −30, giao diện ≈ −22, PK −18 … −22 (chênh trong loại ≤ 2 dB). Đỉnh được chừa ≥ 1,5 dB dưới 0 dBFS; phần còn lại do bộ nén chung lo.
+
+## Còn thiếu
+
+- **Chưa đo kéo dài trên điện thoại thật:** cần một lượt ≥ 5 phút (`?thu=fx&stress=40`) để thấy nhiệt làm tụt FPS; so FPS phút đầu và phút cuối, ghi mức mà `FxGovernor` chọn. Lượt 25–40 giây ở trên không thấy được.
+- **Chưa đo cấp phát liên tục / việc dài trên luồng chính:** `all` chỉ đọc heap sau gc nên bắt rò, không thấy răng cưa cấp phát. Trước khi quyết định hai việc dưới đây, cần phép đo `longtask` (≥ 50 ms) và tốc độ tăng heap không gọi gc.
+- **Khởi động trước pool (pre-warm):** pool sheet tăng dần tới trần trong vòng đầu; chưa biết lần dùng đầu có giật không. Không sửa nếu số đo không có giật.
+- **`dropGlint` tạo `Graphics` mới mỗi lần** (vẽ lại bằng `onUpdate`): ứng viên cho pool nếu phép đo trên cho thấy cấp phát nhiều. Chỉ đo, chưa sửa.
+
+Một số ý (vòng đo, phân loại CPU / GPU, nhiệt khi chạy lâu) phỏng theo skill `performance-optimization` của [awesome-gamedev-agent-skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills) (Apache-2.0), viết lại cho Phaser 3 + Colyseus của repo này.
 
 ## Issue liên quan
 #491 (H8 / S5), #579 (C4), #399 (G8).

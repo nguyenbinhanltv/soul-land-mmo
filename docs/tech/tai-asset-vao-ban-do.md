@@ -234,3 +234,17 @@ Sheet `beast_<loài>_anim` (6 × 20 khung) tính cả `_n`: khung 64 → 3,9 MB,
 `normal.mjs` ghi `_n.png` với 5 bit mỗi kênh (`NORMAL_BITS`, `quantizeNormal` ở `tools/assets/lib.mjs`; lưới bước 8, giữ đúng 128 và 255 nên điểm phẳng (128, 128, 255) không lệch). `normal-quant.mjs` lượng tử lại các `_n` đã có tại chỗ (chạy lại an toàn, chỉ đổi file `_n`, kích thước và alpha giữ nguyên); `normal-quant.mjs --check` nằm trong `npm run check`: `_n` chưa lượng tử hoặc sai số góc lớn nhất > 4° thì lỗi. `iso-atlas.mjs` đã chạy lại cho các trang `_n` (vật đứng).
 - Dung lượng `shared/assets/sprites/**/*_n.png` (281 file): 19,6 MB → 10,3 MB; `beast` 14,4 → 6,9 MB (−52%), `vohon` 1,7 → 1,4 MB, `iso` (lpc + props) 3,5 → 2,1 MB. Trang `_n` của atlas: 3,26 → 2,37 MB. Ô nền `iso/ground` không đổi.
 - Sai số góc pháp tuyến so với bản 8 bit: trung bình 1,28°, lớn nhất 3,11° (mọi điểm có alpha). So ánh sáng Lambert trước / sau (gấu `am_kim_khung_trao_hung_anim`, vật `bang_tinh`, phụ thể `a_ngan_b`): không thấy dải màu; ảnh chênh phóng ×8 chỉ là nhiễu mịn.
+
+## Ngân sách asset
+
+Ngưỡng hiệu năng, **không phải số cân bằng gameplay** (không đưa vào `shared/data.ts`; trần có mã thì đặt cạnh code như `MAX_BYTES` ở `client/src/textureLru.ts`). Vượt mốc ở bảng thì đo lại bằng `load-measure.mjs` (trước / sau) và ghi lý do vào mô tả PR. Số của bảng lấy từ tổng kết #716 và #1062 ở trên; đổi bảng phải kèm số đo. Hiện **chưa có kiểm tự động** chặn PR nhập ảnh lớn.
+
+| Hạng mục | Trần | Số đo hiện có |
+|---|---|---|
+| Texture client được theo dõi (`textureLru`) | 192 MB (`MAX_BYTES`, trần mềm: bản đồ đang dùng không bị gỡ) | đỉnh ~130 MB ở 6 bản đồ săn (#1062); 225–301 MB điểm ảnh khi xoay vòng 5 bản đồ (#716) |
+| Request mỗi lần vào / đổi bản đồ | Chưa có trần, cần chốt | 7–49 mỗi lần đổi bản đồ; 197 lúc vào game (không tính `blob:`) (#716) |
+| Thời gian bản đồ sẵn sàng | Chưa có trần, cần chốt | warp lần sau 0,5–1,8 s, lần đầu 0,7–3,1 s; Thiên Đấu Thành ~1,8 s dù đã có cache (#716) |
+| Kích thước một sheet | Chưa có trần, cần chốt | phụ thể 2304×1152, pháp tướng 2560×800 (trước #716); sheet `beast_<loài>_anim` 3,9 / 8,8 / 15,7 / 35 MB cho khung 64 / 96 / 128 / 192 (#1062) |
+| Tổng điểm ảnh `vohon` / `beast` / `phaptuong` đã nạp | Chưa có trần, cần chốt | một bản đồ săn ~11–12 loài ~100 MB; dự phóng đủ 67 loài ~626 MB (#1062) |
+
+Đặt cảnh báo trước, chỉ chặn sau khi chốt trần và một đợt PR nhập ảnh đã trôi qua, để khỏi chặn nhầm PR hợp lệ.
