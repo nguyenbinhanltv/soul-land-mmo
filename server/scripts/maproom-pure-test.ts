@@ -2,7 +2,7 @@
 // Chạy: npm run test:maproom-pure --prefix server
 import assert from "node:assert/strict";
 import { itemLabel, shardCount } from "../src/rooms/items.ts";
-import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath } from "../src/rooms/calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates } from "../src/rooms/calc.ts";
 import { questBump } from "../src/rooms/questBump.ts";
 import { CORE_SETS, CORE_SET_2, CORE_SET_4, ELITE_RAGE, WORLD, SUPPORT_CONTRIB, QUEST_STARTER, questStart, questChain, itemDef, ITEMS } from "../../shared/data.ts";
 import type { Item } from "../src/db.ts";
@@ -103,4 +103,28 @@ test("dashPath: lướt đủ quãng, dừng trước vật cản, quãng 0 thì
   assert.deepEqual(dashPath(0, 0, { x: 1, y: 0 }, 10, () => false), { x: 10, y: 0, moved: 10 });
   assert.deepEqual(dashPath(0, 0, { x: 1, y: 0 }, 10, (x) => x >= 6), { x: 4, y: 0, moved: 4 });
   assert.deepEqual(dashPath(5, 5, { x: 0, y: 1 }, 0, () => false), { x: 5, y: 5, moved: 0 });
+});
+
+test("dashAim: hướng đơn vị, quãng chừa nửa cỡ mục tiêu + 8, không âm", () => {
+  const a = dashAim({ x: 0, y: 0 }, { x: 100, y: 0 }, 500, 20);
+  assert.deepEqual(a, { dir: { x: 1, y: 0 }, dist: 82 });
+  assert.equal(dashAim({ x: 0, y: 0 }, { x: 100, y: 0 }, 30, 20).dist, 30);
+  assert.equal(dashAim({ x: 0, y: 0 }, { x: 5, y: 0 }, 30, 20).dist, 0);
+  assert.deepEqual(dashAim({ x: 3, y: 3 }, { x: 3, y: 3 }, 30, 0).dir, { x: 0, y: 0 });
+});
+
+test("progressFor: lấy dòng đã lưu theo mã, thiếu thì questStart", () => {
+  const saved = [{ ...questStart("b"), accepted: true }];
+  const r = progressFor(["a", "b"], saved);
+  assert.deepEqual(r[0], questStart("a"));
+  assert.equal(r[1].accepted, true);
+  assert.deepEqual(progressFor(["a"], undefined), [questStart("a")]);
+});
+
+test("giveCandidates: bỏ ô gắn võ hồn / đã cường hóa / đang hấp thụ, rẻ trước", () => {
+  const it = ITEMS.find((i) => i.kind === "hon_hoan" || i.kind === "hoan") ?? ITEMS[0];
+  const bag = [mk(it.id, { id: "1", years: 1000 }), mk(it.id, { id: "2", years: 10 }), mk(it.id, { id: "3", vohonId: 5 }), mk(it.id, { id: "4", enhance: 1 }), mk(it.id, { id: "5" }), mk("khac", { id: "6" })];
+  const ids = giveCandidates(bag, it.id, "5").map((i) => i.id);
+  assert.ok(!ids.some((x) => ["3", "4", "5", "6"].includes(x)));
+  assert.deepEqual([...ids].sort(), ["1", "2"]);
 });
