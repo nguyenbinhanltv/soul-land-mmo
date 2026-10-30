@@ -20,7 +20,7 @@ import { analyzeSheet } from "./phuthe-sheet-check.mjs";
 import { weaponPoseGripPolicy } from "./phuthe-weapon-grip.mjs";
 
 test("cast một tay không mở ngoại lệ B hoặc nới ngưỡng ngoài phạm vi", () => {
-  for (const id of ["ky_nhung_thong_thien_cuc", "bang_phuong_hoang", "khong_ton_tai"]) {
+  for (const id of ["ky_nhung_thong_thien_cuc", "lam_ngan_thao", "khong_ton_tai"]) {
     for (const clip of ["attack", "cast", "idle"]) for (const axisDegrees of [0, 90, 180, NaN]) {
       const p = weaponPoseGripPolicy({ id, clip, axisDegrees, primaryDistance: 0, secondaryDistance: 21 });
       assert.equal(p.primaryOnly, false); assert.equal(p.blocked, true, `${id}/${clip}: B21px vẫn chặn`);
@@ -58,8 +58,8 @@ test("cast một tay: đúng bước giơ tay ở cả hai giới năm hướng 
   }
 });
 
-test("Phá Hồn Thương dọc: n/attack 1,2 giữ tay hiện hữu đúng bước qua dummy/checker/cutter", () => {
-  const id = "pha_hon_thuong", frame = 128, gripN = L.gripCounts("2 tay (theo clip)");
+for (const id of ["pha_hon_thuong", "bang_phuong_hoang"]) test(`${id} dọc: n/attack 1,2 giữ tay hiện hữu đúng bước qua dummy/checker/cutter`, () => {
+  const frame = 128, gripN = L.gripCounts("2 tay (theo clip)");
   const dummyKey = "#D0D000", guideKey = "#7A5CFF", gripKey = "#00FF60";
   const out = tmp("grip-dung-buoc");
   for (const sex of ["m", "f"]) {
@@ -85,16 +85,19 @@ test("Phá Hồn Thương dọc: n/attack 1,2 giữ tay hiện hữu đúng bư�
       const cell = board.cells.find((c) => c.anim === "attack" && c.frame === n);
       const prepared = prep.cells.find((c) => c.anim === "attack" && c.frame === n);
       assert.equal(cell.grip.hands.length, 1); assert.equal(cell.grip.step, n); assert.equal(cell.grip.fallback, false);
+      const single = gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 1 });
+      assert.equal(single.step, n); assert.equal(single.fallback, false);
+      assert.deepEqual(cell.grip.hands, single.hands.slice(0, 1), "A là tay thật của count1 ở chính bước này");
       assert.deepEqual(prepared.grip.hands, cell.grip.hands);
       const old = gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 2 });
       assert.equal(old.fallback, true); assert.notEqual(old.step, n, "đối chứng thực: cơ chế cũ lấy tay ở bước khác");
       for (const axisDegrees of [0, 74.9, 105.1, NaN]) assert.deepEqual(gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 2, id, axisDegrees }), old);
-      assert.deepEqual(gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 2, id: "bang_phuong_hoang", axisDegrees: 90 }), old);
+      assert.deepEqual(gripPoints({ sex, dir: "n", clip: "attack", step: n, frame, count: 2, id: "lam_ngan_thao", axisDegrees: 90 }), old);
     }
     const file = path.join(out, `${sex}.png`); writeFileSync(file, encodePng(board.img));
     const checked = analyzeSheet(file, { ...options, kind: "vukhi" });
     assert.equal(checked.issues.filter((i) => i.sev === "block").length, 0, JSON.stringify(checked.issues));
-    for (const extra of [{ id: "bang_phuong_hoang" }, { poseFrames: poseFrames.map((p) => ({ ...p, axisDegrees: 0 })) }]) {
+    for (const extra of [{ id: "lam_ngan_thao" }, { poseFrames: poseFrames.map((p) => ({ ...p, axisDegrees: 0 })) }]) {
       const rejected = analyzeSheet(file, { ...options, kind: "vukhi", ...extra });
       assert.ok(rejected.issues.some((i) => i.sev === "block" && i.code === "diem-cam" && /C[23]/.test(i.where)), "không miễn nominal tay cho mã ngoài danh sách hoặc góc ngang");
     }

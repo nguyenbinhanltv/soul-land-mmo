@@ -13,7 +13,7 @@ import { weaponPoseGripPolicy } from "./phuthe-sheet-check.mjs";
 
 test("ngoại lệ cán dọc chỉ cho danh sách nhóm cứng đã duyệt, attack/cast và không bỏ kiểm A", () => {
   const base = { clip: "attack", axisDegrees: 90, primaryDistance: 2, secondaryDistance: 44 };
-  for (const id of ["hao_thien_chuy", "ta_hoa_phuong_hoang", "cuu_tinh_that_sat_kiem", "nguyet_nhan", "pha_hon_thuong", "quy_mi"]) {
+  for (const id of ["hao_thien_chuy", "ta_hoa_phuong_hoang", "cuu_tinh_that_sat_kiem", "nguyet_nhan", "pha_hon_thuong", "quy_mi", "bang_phuong_hoang"]) {
     for (const clip of ["attack", "cast"]) for (const axisDegrees of [-90, 75, 90, 105, 270]) {
       const result = weaponPoseGripPolicy({ ...base, id, clip, axisDegrees });
       assert.equal(result.primaryOnly, true, `${id}/${clip}/${axisDegrees}`);
