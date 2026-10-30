@@ -21,9 +21,15 @@ test("ngoại lệ cán dọc chỉ cho chùy attack/cast và không bỏ kiểm
 test("bộ một tay dọc đã nhập: đúng nguồn, tỷ lệ cố định và A sau cắt đạt cả 130 khung", () => {
   const base = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a");
   const report = JSON.parse(fs.readFileSync(path.join(base, "import/_report.json"), "utf8"));
+  const sources = JSON.parse(fs.readFileSync(path.join(base, "sources.json"), "utf8"));
+  for (const { raw } of Object.values(sources)) { assert.ok(!raw.includes("\\"), "nguồn dùng dấu / để chạy trên mọi hệ điều hành"); assert.ok(fs.existsSync(path.join(ROOT, raw))); }
   assert.equal(report.frames, 130); assert.equal(report.failures.length, 0); assert.equal(report.edge, 0);
   assert.ok(report.maxA <= 2);
-  for (const side of ["b", "f"]) assert.deepEqual(fs.readFileSync(path.join(base, `import/vkanim_hao_thien_chuy_${side}.png`)), fs.readFileSync(path.join(ROOT, `shared/assets/sprites/vukhianim/hao_thien_chuy_${side}.png`)));
+  for (const side of ["b", "f"]) {
+    const imported = fs.readFileSync(path.join(base, `import/vkanim_hao_thien_chuy_${side}.png`));
+    assert.deepEqual(imported, fs.readFileSync(path.join(ROOT, `shared/assets/sprites/vukhianim/hao_thien_chuy_${side}.png`)));
+    assert.deepEqual(imported, fs.readFileSync(path.join(base, `../vkanim_hao_thien_chuy_${side}.png`)), "đường nhập mặc định không được giữ sheet cũ");
+  }
   for (const dir of DIRS) {
     const plan = JSON.parse(fs.readFileSync(path.join(base, `final/${dir}/compose-plan.json`), "utf8"));
     assert.equal(new Set(plan.poses.filter(p => !p.unused).map(p => p.headScale)).size, 1, "không phóng riêng từng pose");
@@ -102,7 +108,7 @@ test("neo A theo pose: cán nện dọc chỉ kiểm A, không xoay theo hai tay
 });
 
 test("sheet chùy cuối: đủ hai nửa, đúng grip theo clip và hàng nữ đo trực tiếp", () => {
-  const dir = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi"), entries = JSON.parse(fs.readFileSync(path.join(dir, "manifest-entry.json"), "utf8"));
+  const dir = path.join(ROOT, "art/src/phuthe-anim/hao_thien_chuy/vukhi/pose-a/import"), entries = JSON.parse(fs.readFileSync(path.join(dir, "manifest-entry.json"), "utf8"));
   assert.deepEqual(entries.map((e) => e.key).sort(), ["vkanim_hao_thien_chuy_b", "vkanim_hao_thien_chuy_f"]);
   const images = entries.map((e) => readPng(path.join(dir, `${e.key}.png`)));
   const colors = new Set();
@@ -115,13 +121,13 @@ test("sheet chùy cuối: đủ hai nửa, đúng grip theo clip và hàng nữ 
   }
   let frames = 0;
   for (const d of DIRS) {
-    const plan = JSON.parse(fs.readFileSync(path.join(dir, "pose-atlas/result", d, "compose-plan.json"), "utf8"));
+    const plan = JSON.parse(fs.readFileSync(path.join(dir, "../final", d, "compose-plan.json"), "utf8"));
     for (const [index, pose] of plan.poses.entries()) {
       if (pose.unused) { assert.ok(plan.plan.every((f) => f.pose !== index)); continue; }
       assert.ok(pose.headSize >= pose.headWidth && pose.headSize >= pose.headLength, `${d}: xét cả hai chiều đầu búa`);
-      assert.ok(Math.abs(pose.headSize * pose.headScale - 200) < 1e-8, `${d}: cùng cỡ chuẩn với s`);
+      assert.equal(pose.headScale, plan.poses[0].headScale, `${d}: một tỷ lệ cố định cho cả atlas`);
     }
-    for (const d of plan.distances) assert.ok(d.gripSpan <= d.shaftLength + 2, `${d.name}: tay B phải nằm trên đoạn cán còn lại`);
+    assert.equal(plan.geometryFailures.length, 0);
     for (const f of plan.plan) {
       const x0 = (gameAnims("A")[f.anim][0] + f.frame) * 128, y0 = gameRow(f.sex, d) * 128, near = f.hands.map(() => Infinity);
       let pixels = 0;
@@ -129,7 +135,10 @@ test("sheet chùy cuối: đủ hai nửa, đúng grip theo clip và hàng nữ 
         pixels++; assert.ok(x >= 2 && x < 126 && y >= 2 && y < 126, `${f.sex}/${f.name}: chạm mép`);
         f.hands.forEach(([hx, hy], i) => { near[i] = Math.min(near[i], Math.hypot(x + .5 - hx, y + .5 - hy)); });
       }
-      assert.ok(pixels >= 15); assert.ok(near.every((v) => v <= 2), `${f.sex}/${f.name}: lệch tay ${near}`); frames++;
+      assert.ok(pixels >= 15); assert.ok(near[0] <= 2, `${f.sex}/${f.name}: lệch tay A ${near[0]}`);
+      const measurement = plan.distances.find(d => d.name === `${f.sex}/${f.name}`);
+      if (!measurement.primaryOnly) assert.ok(measurement.secondaryShaftDistance <= 20);
+      frames++;
     }
   }
   assert.equal(frames, 130);

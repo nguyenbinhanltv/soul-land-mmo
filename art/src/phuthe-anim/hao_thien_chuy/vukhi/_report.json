@@ -2,34 +2,29 @@
   "frames": 130,
   "palette": [
     [
-      2,
+      1,
       0,
-      2
+      0
     ],
     [
-      6,
+      5,
+      2,
+      3
+    ],
+    [
+      9,
       4,
       5
     ],
     [
       12,
-      5,
-      9
+      4,
+      8
     ],
     [
-      21,
+      32,
       8,
-      10
-    ],
-    [
-      21,
-      13,
-      20
-    ],
-    [
-      30,
-      14,
-      19
+      7
     ],
     [
       26,
@@ -37,129 +32,134 @@
       32
     ],
     [
-      29,
-      28,
-      30
+      24,
+      16,
+      18
     ],
     [
       35,
-      9,
-      9
-    ],
-    [
-      42,
       29,
       32
     ],
     [
-      58,
-      29,
-      28
+      47,
+      3,
+      3
     ],
     [
-      81,
-      35,
-      30
+      47,
+      13,
+      8
     ],
     [
-      38,
-      28,
-      43
-    ],
-    [
-      44,
-      40,
-      46
+      47,
+      22,
+      25
     ],
     [
       46,
-      43,
-      51
+      36,
+      45
     ],
     [
-      89,
-      47,
-      57
+      67,
+      24,
+      33
     ],
     [
-      51,
-      53,
-      57
-    ],
-    [
-      65,
-      62,
-      62
-    ],
-    [
-      60,
-      61,
-      65
-    ],
-    [
-      70,
-      63,
-      82
-    ],
-    [
-      91,
-      72,
-      89
-    ],
-    [
-      83,
-      82,
-      88
-    ],
-    [
-      132,
-      66,
-      39
-    ],
-    [
-      175,
-      117,
-      62
-    ],
-    [
-      112,
-      61,
-      112
-    ],
-    [
-      103,
-      105,
-      108
+      108,
+      26,
+      25
     ],
     [
       119,
-      121,
-      125
+      27,
+      14
+    ],
+    [
+      169,
+      39,
+      19
+    ],
+    [
+      49,
+      54,
+      55
+    ],
+    [
+      70,
+      56,
+      59
+    ],
+    [
+      60,
+      79,
+      81
+    ],
+    [
+      82,
+      73,
+      83
+    ],
+    [
+      136,
+      55,
+      57
+    ],
+    [
+      191,
+      57,
+      23
+    ],
+    [
+      145,
+      119,
+      83
+    ],
+    [
+      237,
+      169,
+      31
+    ],
+    [
+      83,
+      101,
+      109
+    ],
+    [
+      135,
+      72,
+      120
     ],
     [
       144,
-      153,
-      158
+      154,
+      140
+    ],
+    [
+      158,
+      169,
+      171
+    ],
+    [
+      164,
+      185,
+      186
     ],
     [
       174,
-      165,
-      137
+      210,
+      217
     ],
     [
-      161,
-      182,
-      190
+      222,
+      224,
+      222
     ],
     [
-      204,
-      207,
-      205
-    ],
-    [
-      244,
-      244,
-      237
+      248,
+      249,
+      246
     ]
   ],
   "colors": 32,
@@ -278,11 +278,11 @@
       "outline": "tô lại viền tối sẵn có",
       "halves": {
         "b": {
-          "pixels": 23458,
+          "pixels": 26088,
           "blank": false
         },
         "f": {
-          "pixels": 43590,
+          "pixels": 40398,
           "blank": false
         }
       },
@@ -724,16 +724,16 @@
           "cells": 13
         }
       },
-      "dropped": 0,
+      "dropped": 2,
       "palette": 32,
       "outline": "tô lại viền tối sẵn có",
       "halves": {
         "b": {
-          "pixels": 23558,
+          "pixels": 26214,
           "blank": false
         },
         "f": {
-          "pixels": 43632,
+          "pixels": 40560,
           "blank": false
         }
       },
@@ -1699,1105 +1699,1755 @@
       "near": [
         1.4560219778561039
       ],
-      "pixels": 405,
-      "edge": 0
+      "pixels": 459,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 36.96424326844398,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/idle/1",
       "near": [
-        1.0440306508910542
+        1.2206555615733719
       ],
-      "pixels": 396,
-      "edge": 0
+      "pixels": 465,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.96424326844398,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/walk/0",
       "near": [
-        0.565685424949241
+        1.4560219778561039
       ],
-      "pixels": 521,
-      "edge": 0
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.94933735189139,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/walk/1",
       "near": [
-        0.22360679774997896
+        1.1180339887498898
       ],
-      "pixels": 525,
-      "edge": 0
+      "pixels": 426,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.94933735189136,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/walk/2",
       "near": [
-        0.565685424949241
+        1.4560219778561039
       ],
-      "pixels": 523,
-      "edge": 0
+      "pixels": 424,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.94933735189139,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/walk/3",
       "near": [
-        0.7071067811865476
+        1.5811388300841898
       ],
-      "pixels": 519,
-      "edge": 0
+      "pixels": 421,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.94933735189139,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/attack/0",
       "near": [
         0.5385164807134515,
-        0.31622776601683344
+        12.397580409095957
       ],
-      "pixels": 516,
-      "edge": 0
+      "pixels": 428,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 34.61512053592757,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/attack/1",
       "near": [
-        1.33416640641263,
-        0.4000000000000057
+        0.4242640687119245,
+        4.770744176750622
       ],
-      "pixels": 580,
-      "edge": 0
+      "pixels": 521,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.37206014900292,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/attack/2",
       "near": [
-        0.9219544457292872,
-        0.41231056256177023
+        0.5000000000000029,
+        16.104968177553157
       ],
-      "pixels": 390,
-      "edge": 0
+      "pixels": 426,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/attack/3",
       "near": [
-        1.4560219778561039,
-        1.1704699910719591
+        0.565685424949241,
+        33.465952847633076
       ],
-      "pixels": 441,
-      "edge": 0
+      "pixels": 563,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/cast/0",
       "near": [
-        1.1704699910719658,
-        0.41231056256177023
+        0.4123105625617719,
+        29.902675465583346
       ],
-      "pixels": 514,
-      "edge": 0
+      "pixels": 409,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/cast/1",
       "near": [
-        1.4560219778561019,
-        1.4560219778561039
+        0.8485281374238591,
+        41.40193232205473
       ],
-      "pixels": 546,
-      "edge": 0
+      "pixels": 550,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
     },
     {
       "name": "m/s/hurt/0",
       "near": [
         1.1180339887498898
       ],
-      "pixels": 402,
-      "edge": 0
+      "pixels": 460,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.964243268443994,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/idle/0",
       "near": [
         1.1331154474650664
       ],
-      "pixels": 390,
-      "edge": 0
+      "pixels": 461,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 36.96424326844398,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/idle/1",
       "near": [
         1.3514607952107733
       ],
-      "pixels": 404,
-      "edge": 0
+      "pixels": 462,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.96424326844398,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/walk/0",
       "near": [
-        0.24845199749997735
+        1.1331154474650664
       ],
-      "pixels": 519,
-      "edge": 0
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.94933735189139,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/walk/1",
       "near": [
-        0.24845199749997735
+        1.1331154474650664
       ],
-      "pixels": 525,
-      "edge": 0
+      "pixels": 423,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.94933735189136,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/walk/2",
       "near": [
-        0.24845199749997735
+        1.1331154474650664
       ],
-      "pixels": 522,
-      "edge": 0
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.94933735189139,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/walk/3",
       "near": [
-        0.6428243465332233
+        1.5239140558400175
       ],
-      "pixels": 516,
-      "edge": 0
+      "pixels": 421,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.94933735189139,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/attack/0",
       "near": [
-        1.118033988749895,
-        0.28284271247462306
+        0.5,
+        13.148383931114877
       ],
-      "pixels": 524,
-      "edge": 0
+      "pixels": 427,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 34.61512053592757,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/attack/1",
       "near": [
-        1.118033988749895,
-        0.6009252125773368
+        0.5,
+        4.400126260814689
       ],
-      "pixels": 588,
-      "edge": 0
+      "pixels": 517,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.37206014900292,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/attack/2",
       "near": [
-        0.9013878188659974,
-        0.125
+        0.5590169943749475,
+        14.000558024593163
       ],
-      "pixels": 389,
-      "edge": 0
+      "pixels": 426,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/attack/3",
       "near": [
-        1.4560219778561039,
-        1.0671873729054762
+        0.565685424949241,
+        32.6772941896289
       ],
-      "pixels": 439,
-      "edge": 0
+      "pixels": 563,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/cast/0",
       "near": [
-        1.2388390622765348,
-        0.448763733927863
+        0.4487637339278763,
+        24.41723548825478
       ],
-      "pixels": 536,
-      "edge": 0
+      "pixels": 430,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 2.67009761986958,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/cast/1",
       "near": [
-        0.9999999999999986,
-        1.2649110640673564
+        0.8944271909999127,
+        39.40050761094329
       ],
-      "pixels": 556,
-      "edge": 0
+      "pixels": 552,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.05016688176192474,
+        "blocked": false
+      }
     },
     {
       "name": "f/s/hurt/0",
       "near": [
         1.0049875621120885
       ],
-      "pixels": 390,
-      "edge": 0
+      "pixels": 463,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.964243268443994,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/idle/0",
       "near": [
-        1.0049875621120885
+        1.0999999999999943
       ],
-      "pixels": 522,
-      "edge": 0
+      "pixels": 475,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.783745998782564,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/idle/1",
       "near": [
-        0.6082762530298165
+        1.4035668847618257
       ],
-      "pixels": 519,
-      "edge": 0
+      "pixels": 477,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.78374599878259,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/walk/0",
       "near": [
-        0.6403124237432885
+        1.486606874731856
       ],
-      "pixels": 565,
-      "edge": 0
+      "pixels": 483,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/walk/1",
       "near": [
-        0.10000000000000142
+        1.34536240470737
       ],
-      "pixels": 563,
-      "edge": 0
+      "pixels": 485,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/walk/2",
       "near": [
-        0.22360679774997896
+        1.360147050873538
       ],
-      "pixels": 575,
-      "edge": 0
+      "pixels": 485,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/walk/3",
       "near": [
-        0.4000000000000057
+        1.166190378969057
       ],
-      "pixels": 565,
-      "edge": 0
+      "pixels": 488,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/attack/0",
       "near": [
-        0.22360679774997896,
-        0.4242640687119245
+        1.1180339887498898,
+        18.702406262296844
       ],
-      "pixels": 621,
-      "edge": 0
+      "pixels": 516,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.15615332056785292,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/attack/1",
       "near": [
-        0.10000000000000142,
-        0.5656854249492461
+        1.34536240470737,
+        16.40487732352791
       ],
-      "pixels": 679,
-      "edge": 0
+      "pixels": 517,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.035290572558082545,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/attack/2",
       "near": [
-        1.4560219778561039,
-        0.22360679774997896
+        1.4560219778561088,
+        27.900716836669275
       ],
-      "pixels": 385,
-      "edge": 0
+      "pixels": 516,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/attack/3",
       "near": [
-        1.4560219778561039,
-        1.2369316876853003
+        0.565685424949241,
+        27.300732590903124
       ],
-      "pixels": 456,
-      "edge": 0
+      "pixels": 559,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/cast/0",
       "near": [
-        0.4000000000000057,
-        0.14142135623730648
+        1.077032961426903,
+        19.100261778310788
       ],
-      "pixels": 632,
-      "edge": 0
+      "pixels": 508,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/cast/1",
       "near": [
-        1.3601470508735432,
-        0.49999999999999717
+        0.8062257748298602,
+        28.60157338329485
       ],
-      "pixels": 600,
-      "edge": 0
+      "pixels": 559,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
     },
     {
       "name": "m/se/hurt/0",
       "near": [
         1.1180339887498898
       ],
-      "pixels": 522,
-      "edge": 0
+      "pixels": 479,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 31.783745998782564,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/idle/0",
       "near": [
-        0.4006168083848873
+        1.2668615834434915
       ],
-      "pixels": 531,
-      "edge": 0
+      "pixels": 482,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.783745998782564,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/idle/1",
       "near": [
-        0.7120003121097986
+        1.2936812246883342
       ],
-      "pixels": 517,
-      "edge": 0
+      "pixels": 483,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.78374599878259,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/walk/0",
       "near": [
-        0.375
+        1.1792476415070754
       ],
-      "pixels": 576,
-      "edge": 0
+      "pixels": 487,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 35.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/walk/1",
       "near": [
-        0.5303300858899107
+        1.4252192813739224
       ],
-      "pixels": 564,
-      "edge": 0
+      "pixels": 486,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/walk/2",
       "near": [
-        0.40406101782087284
+        1.31707777961326
       ],
-      "pixels": 563,
-      "edge": 0
+      "pixels": 483,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/walk/3",
       "near": [
-        0.47140452079103506
+        1.3743685418725513
       ],
-      "pixels": 575,
-      "edge": 0
+      "pixels": 487,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.5101290879586,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/attack/0",
       "near": [
-        0.10000000000000142,
-        0.40406101782087284
+        1.34536240470737,
+        18.71646661229036
       ],
-      "pixels": 627,
-      "edge": 0
+      "pixels": 515,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.15615332056785292,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/attack/1",
       "near": [
-        0.20000000000000284,
-        0.10000000000000142
+        1.280624847486568,
+        16.9
       ],
-      "pixels": 686,
-      "edge": 0
+      "pixels": 510,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.035290572558082545,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/attack/2",
       "near": [
-        0.7856742013183874,
-        0.2484519974999837
+        1.1331154474650664,
+        24.889880932610065
       ],
-      "pixels": 387,
-      "edge": 0
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/attack/3",
       "near": [
-        1.5239140558400175,
-        1.2128785512842188
+        0.6428243465332233,
+        26.27335639385169
       ],
-      "pixels": 456,
-      "edge": 0
+      "pixels": 537,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/cast/0",
       "near": [
-        0.5153882032022076,
-        0.5270462766947269
+        1.5051993223490368,
+        16.5008417293718
       ],
-      "pixels": 624,
-      "edge": 0
+      "pixels": 537,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.2755217370544756,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/cast/1",
       "near": [
-        1.2662171161076514,
-        0.7288689868556625
+        0.48956043701222834,
+        27.627545131625432
       ],
-      "pixels": 588,
-      "edge": 0
+      "pixels": 532,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.032461971239229115,
+        "blocked": false
+      }
     },
     {
       "name": "f/se/hurt/0",
       "near": [
-        1.0999999999999943
+        1.345362404707375
       ],
-      "pixels": 522,
-      "edge": 0
+      "pixels": 476,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 31.783745998782564,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/idle/0",
       "near": [
-        1.0999999999999943
+        1.345362404707375
       ],
-      "pixels": 429,
-      "edge": 0
+      "pixels": 499,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.980702551966004,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/idle/1",
       "near": [
-        1.0816653826391924
+        1.4035668847618257
       ],
-      "pixels": 431,
-      "edge": 0
+      "pixels": 501,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.980702551966004,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/walk/0",
       "near": [
         1.486606874731856
       ],
-      "pixels": 493,
-      "edge": 0
+      "pixels": 511,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.10752746730539,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/walk/1",
       "near": [
         1.34536240470737
       ],
-      "pixels": 495,
-      "edge": 0
+      "pixels": 511,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.107527467305374,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/walk/2",
       "near": [
-        1.1180339887498898
+        1.360147050873538
       ],
-      "pixels": 499,
-      "edge": 0
+      "pixels": 503,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.1075274673054,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/walk/3",
       "near": [
         1.166190378969057
       ],
-      "pixels": 497,
-      "edge": 0
+      "pixels": 509,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.1075274673054,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/attack/0",
       "near": [
-        0.22360679774997896,
-        0.4242640687119245
+        1.1180339887498898,
+        18.702406262296844
       ],
-      "pixels": 546,
-      "edge": 0
+      "pixels": 529,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.32152977125200266,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/attack/1",
       "near": [
-        0.10000000000000142,
-        0.5656854249492461
+        1.34536240470737,
+        16.40487732352791
       ],
-      "pixels": 532,
-      "edge": 0
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.054253226623004025,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/attack/2",
       "near": [
-        1.4560219778561039,
-        0.22360679774997896
+        1.4560219778561088,
+        27.900716836669275
       ],
-      "pixels": 440,
-      "edge": 0
+      "pixels": 520,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/attack/3",
       "near": [
-        0.848528137423854,
-        0.3605551275463981
+        0.565685424949241,
+        27.300732590903124
       ],
-      "pixels": 459,
-      "edge": 0
+      "pixels": 540,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/cast/0",
       "near": [
-        0.4000000000000057,
-        0.14142135623730648
+        1.077032961426903,
+        19.100261778310788
       ],
-      "pixels": 525,
-      "edge": 0
+      "pixels": 509,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/cast/1",
       "near": [
-        0.5000000000000029,
-        0.49999999999999717
+        0.8062257748298602,
+        28.60157338329485
       ],
-      "pixels": 599,
-      "edge": 0
+      "pixels": 538,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
     },
     {
       "name": "m/e/hurt/0",
       "near": [
-        1.1180339887498898
+        1.2041594578792318
       ],
-      "pixels": 423,
-      "edge": 0
+      "pixels": 493,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.980702551966004,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/idle/0",
       "near": [
-        1.024393828588097
+        1.3922182317935263
       ],
-      "pixels": 423,
-      "edge": 0
+      "pixels": 494,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.980702551966004,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/idle/1",
       "near": [
         1.2936812246883342
       ],
-      "pixels": 424,
-      "edge": 0
+      "pixels": 498,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.980702551966004,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/walk/0",
       "near": [
         1.1792476415070754
       ],
-      "pixels": 498,
-      "edge": 0
+      "pixels": 510,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.10752746730539,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/walk/1",
       "near": [
         1.4252192813739224
       ],
-      "pixels": 499,
-      "edge": 0
+      "pixels": 513,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.107527467305374,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/walk/2",
       "near": [
         1.31707777961326
       ],
-      "pixels": 496,
-      "edge": 0
+      "pixels": 508,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.1075274673054,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/walk/3",
       "near": [
         1.3743685418725513
       ],
-      "pixels": 503,
-      "edge": 0
+      "pixels": 512,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.1075274673054,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/attack/0",
       "near": [
-        0.10000000000000142,
-        0.40406101782087284
+        1.0049875621120892,
+        19.71635599895557
       ],
-      "pixels": 546,
-      "edge": 0
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.32152977125200266,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/attack/1",
       "near": [
-        0.20000000000000284,
-        0.10000000000000142
+        1.280624847486568,
+        16.9
       ],
-      "pixels": 529,
-      "edge": 0
+      "pixels": 546,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.054253226623004025,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/attack/2",
       "near": [
-        1.1811273125260704,
-        0.2484519974999837
+        1.1331154474650664,
+        25.88984261476465
       ],
-      "pixels": 439,
-      "edge": 0
+      "pixels": 509,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/attack/3",
       "near": [
-        1.5239140558400175,
-        0.3277773886785538
+        0.6428243465332233,
+        26.27335639385169
       ],
-      "pixels": 452,
-      "edge": 0
+      "pixels": 540,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/cast/0",
       "near": [
-        0.5153882032022076,
-        0.5270462766947269
+        1.5051993223490368,
+        16.5008417293718
       ],
-      "pixels": 541,
-      "edge": 0
+      "pixels": 545,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1931050236815821,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/cast/1",
       "near": [
         0.48956043701222834,
-        0.5303300858899107
+        27.627545131625432
       ],
-      "pixels": 586,
-      "edge": 0
+      "pixels": 542,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.08260427460453457,
+        "blocked": false
+      }
     },
     {
       "name": "f/e/hurt/0",
       "near": [
-        1.0049875621120885
+        1.345362404707375
       ],
-      "pixels": 422,
-      "edge": 0
+      "pixels": 497,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 32.980702551966004,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/idle/0",
       "near": [
         1.345362404707375
       ],
-      "pixels": 536,
-      "edge": 0
+      "pixels": 527,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.07501360081773,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/idle/1",
       "near": [
-        1.4035668847618257
+        1.1704699910719658
       ],
-      "pixels": 541,
-      "edge": 0
+      "pixels": 523,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.07501360081773,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/walk/0",
       "near": [
-        1.486606874731856
+        0.6403124237432885
       ],
-      "pixels": 564,
-      "edge": 0
+      "pixels": 535,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/walk/1",
       "near": [
-        1.4866068747318517
+        0.10000000000000142
       ],
-      "pixels": 567,
-      "edge": 0
+      "pixels": 530,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/walk/2",
       "near": [
-        1.360147050873538
+        0.22360679774997896
       ],
-      "pixels": 569,
-      "edge": 0
+      "pixels": 533,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/walk/3",
       "near": [
-        1.5999999999999943
+        0.4000000000000057
       ],
-      "pixels": 568,
-      "edge": 0
+      "pixels": 534,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/attack/0",
       "near": [
-        0.22360679774997896,
-        0.4242640687119245
+        1.1180339887498898,
+        18.702406262296844
       ],
-      "pixels": 551,
-      "edge": 0
+      "pixels": 564,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.12300707585697523,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/attack/1",
       "near": [
-        0.10000000000000142,
-        0.5656854249492461
+        1.34536240470737,
+        16.40487732352791
       ],
-      "pixels": 670,
-      "edge": 0
+      "pixels": 548,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.21545297027772392,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/attack/2",
       "near": [
-        1.4560219778561039,
-        0.22360679774997896
+        1.4560219778561088,
+        27.900716836669275
       ],
-      "pixels": 461,
-      "edge": 0
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/attack/3",
       "near": [
-        1.4560219778561039,
-        0.3605551275463981
+        0.565685424949241,
+        27.300732590903124
       ],
-      "pixels": 478,
-      "edge": 0
+      "pixels": 592,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/cast/0",
       "near": [
-        0.4000000000000057,
-        0.14142135623730648
+        1.077032961426903,
+        19.100261778310788
       ],
-      "pixels": 546,
-      "edge": 0
+      "pixels": 530,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/cast/1",
       "near": [
         0.5000000000000029,
-        0.49999999999999717
+        28.60157338329485
       ],
-      "pixels": 595,
-      "edge": 0
+      "pixels": 579,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
     },
     {
       "name": "m/ne/hurt/0",
       "near": [
-        1.2041594578792318
+        1.1180339887498898
       ],
-      "pixels": 540,
-      "edge": 0
+      "pixels": 529,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.07501360081773,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/idle/0",
       "near": [
         1.3922182317935263
       ],
-      "pixels": 541,
-      "edge": 0
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.07501360081773,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/idle/1",
       "near": [
         1.2936812246883342
       ],
-      "pixels": 538,
-      "edge": 0
+      "pixels": 518,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.07501360081773,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/walk/0",
       "near": [
-        1.375
+        0.375
       ],
-      "pixels": 571,
-      "edge": 0
+      "pixels": 531,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 37.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/walk/1",
       "near": [
-        1.5103807466993213
+        0.5303300858899107
       ],
-      "pixels": 571,
-      "edge": 0
+      "pixels": 526,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 40.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/walk/2",
       "near": [
-        1.7379321515137836
+        0.40406101782087284
       ],
-      "pixels": 569,
-      "edge": 0
+      "pixels": 527,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 44.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/walk/3",
       "near": [
-        1.3743685418725615
+        0.47140452079103506
       ],
-      "pixels": 566,
-      "edge": 0
+      "pixels": 532,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 42.09011825925103,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/attack/0",
       "near": [
-        0.10000000000000142,
-        0.40406101782087284
+        1.34536240470737,
+        18.71646661229036
       ],
-      "pixels": 553,
-      "edge": 0
+      "pixels": 549,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.12300707585697523,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/attack/1",
       "near": [
-        0.20000000000000284,
-        0.10000000000000142
+        1.280624847486568,
+        16.9
       ],
-      "pixels": 696,
-      "edge": 0
+      "pixels": 541,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.21545297027772392,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/attack/2",
       "near": [
-        1.1811273125260704,
-        0.2484519974999837
+        1.1331154474650664,
+        25.88984261476465
       ],
-      "pixels": 463,
-      "edge": 0
+      "pixels": 565,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/attack/3",
       "near": [
-        1.5239140558400175,
-        0.3277773886785538
+        0.6428243465332233,
+        26.27335639385169
       ],
-      "pixels": 483,
-      "edge": 0
+      "pixels": 573,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/cast/0",
       "near": [
-        0.5153882032022076,
-        0.5270462766947269
+        1.5051993223490368,
+        16.5008417293718
       ],
-      "pixels": 543,
-      "edge": 0
+      "pixels": 556,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.5365424684306817,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/cast/1",
       "near": [
         0.48956043701222834,
-        0.5303300858899107
+        27.627545131625432
       ],
-      "pixels": 601,
-      "edge": 0
+      "pixels": 579,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.3650527475783747,
+        "blocked": false
+      }
     },
     {
       "name": "f/ne/hurt/0",
       "near": [
         1.345362404707375
       ],
-      "pixels": 540,
-      "edge": 0
+      "pixels": 524,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.07501360081773,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/idle/0",
       "near": [
-        1.4560219778561105
+        0.5656854249492461
       ],
-      "pixels": 425,
-      "edge": 0
+      "pixels": 519,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.50865065957913,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/idle/1",
       "near": [
-        1.1180339887498898
+        0.22360679774997896
       ],
-      "pixels": 420,
-      "edge": 0
+      "pixels": 522,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.50865065957913,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/walk/0",
       "near": [
-        1.4560219778561105
+        0.5656854249492461
       ],
-      "pixels": 529,
-      "edge": 0
+      "pixels": 535,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/walk/1",
       "near": [
-        1.4560219778561105
+        0.5656854249492461
       ],
-      "pixels": 530,
-      "edge": 0
+      "pixels": 541,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/walk/2",
       "near": [
-        1.4560219778561105
+        0.5656854249492461
       ],
-      "pixels": 526,
-      "edge": 0
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 45.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/walk/3",
       "near": [
-        1.4560219778561105
+        0.5656854249492461
       ],
-      "pixels": 532,
-      "edge": 0
+      "pixels": 542,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/attack/0",
       "near": [
         0.4472135954999643,
-        0.22360679774997896
+        19.20026041490063
       ],
-      "pixels": 559,
-      "edge": 0
+      "pixels": 513,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.09261233344780351,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/attack/1",
       "near": [
         0.4472135954999643,
-        0.22360679774997896
+        19.20026041490063
       ],
-      "pixels": 585,
-      "edge": 0
+      "pixels": 522,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.30765203562859256,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/attack/2",
       "near": [
-        1.077032961426903,
-        1.2041594578792267
+        0.4000000000000057,
+        33.900589965367864
       ],
-      "pixels": 436,
-      "edge": 0
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/attack/3",
       "near": [
-        1.077032961426903,
-        1.2041594578792267
+        0.4000000000000057,
+        33.900589965367864
       ],
-      "pixels": 428,
-      "edge": 0
+      "pixels": 561,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/cast/0",
       "near": [
-        0.09999999999999432,
-        0.09999999999999432
+        1.0999999999999943,
+        30.000166666203704
       ],
-      "pixels": 560,
-      "edge": 0
+      "pixels": 562,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/cast/1",
       "near": [
-        1.4560219778561039,
-        0.7211102550927982
+        0.565685424949241,
+        41.401932322054726
       ],
-      "pixels": 531,
-      "edge": 0
+      "pixels": 562,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
     },
     {
       "name": "m/n/hurt/0",
       "near": [
-        0.9219544457292951
+        1.6278820596099688
       ],
-      "pixels": 427,
-      "edge": 0
+      "pixels": 523,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.50865065957913,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/idle/0",
       "near": [
-        0.9162456945817009
+        0.2484519974999837
       ],
-      "pixels": 428,
-      "edge": 0
+      "pixels": 519,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 39.50865065957913,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/idle/1",
       "near": [
-        1.35146079521078
+        0.5300865358950302
       ],
-      "pixels": 423,
-      "edge": 0
+      "pixels": 525,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.50865065957913,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/walk/0",
       "near": [
-        1.2272623352430356
+        0.2484519974999837
       ],
-      "pixels": 527,
-      "edge": 0
+      "pixels": 543,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 38.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/walk/1",
       "near": [
-        1.4560219778561105
+        0.5656854249492461
       ],
-      "pixels": 524,
-      "edge": 0
+      "pixels": 537,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 41.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/walk/2",
       "near": [
-        1.2272623352430356
+        0.2484519974999837
       ],
-      "pixels": 530,
-      "edge": 0
+      "pixels": 544,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 45.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/walk/3",
       "near": [
-        1.2272623352430356
+        0.2484519974999837
       ],
-      "pixels": 530,
-      "edge": 0
+      "pixels": 540,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 43.29184668508657,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/attack/0",
       "near": [
         0,
-        0.24845199749997735
+        15.22262773182503
       ],
-      "pixels": 556,
-      "edge": 0
+      "pixels": 528,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.09261233344780351,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/attack/1",
       "near": [
         0,
-        0.24845199749997735
+        15.22262773182503
       ],
-      "pixels": 587,
-      "edge": 0
+      "pixels": 548,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.30765203562859256,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/attack/2",
       "near": [
-        1.0680004681646913,
-        0.7856742013183803
+        0.375,
+        31.88966317294603
       ],
-      "pixels": 437,
-      "edge": 0
+      "pixels": 536,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/attack/3",
       "near": [
-        1.0680004681646913,
-        0.7856742013183803
+        0.375,
+        31.88966317294603
       ],
-      "pixels": 428,
-      "edge": 0
+      "pixels": 560,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/cast/0",
       "near": [
-        0.3748277841470707,
-        0.3748277841470707
+        1.3666633071248204,
+        28.098116168729263
       ],
-      "pixels": 563,
-      "edge": 0
+      "pixels": 564,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.1413868427397631,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/cast/1",
       "near": [
-        1.25,
-        1.0307764064044151
+        0.25,
+        39.25
       ],
-      "pixels": 534,
-      "edge": 0
+      "pixels": 576,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": true,
+        "verticalDeviation": 0.059408001742554006,
+        "blocked": false
+      }
     },
     {
       "name": "f/n/hurt/0",
       "near": [
-        1.0049875621120885
+        1.345362404707375
       ],
-      "pixels": 421,
-      "edge": 0
+      "pixels": 526,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.50865065957913,
+        "blocked": false
+      }
     }
   ],
   "failures": [],
-  "maxA": 1.7379321515137836,
-  "maxB": 1.4560219778561039,
+  "maxA": 1.6278820596099688,
+  "maxB": 41.40193232205473,
   "edge": 0,
   "normalizedHeadSize": 22.589811307999998,
   "imported": false
