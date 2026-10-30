@@ -1,0 +1,139 @@
+{
+  "id": "ky_nhung_thong_thien_cuc",
+  "kind": "vukhi",
+  "level": "nhẹ",
+  "group": "A",
+  "frame": 128,
+  "dummyKey": "#00D0D0",
+  "blockLevel": {
+    "s": "nhẹ"
+  },
+  "sheets": [
+    {
+      "sheet": "toA",
+      "size": [
+        1536,
+        1024
+      ],
+      "kind": "huong",
+      "level": "nhẹ",
+      "dirs": [
+        "s"
+      ],
+      "background": {
+        "key": [
+          255,
+          0,
+          255
+        ],
+        "corners": [
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ],
+          [
+            255,
+            0,
+            255
+          ]
+        ],
+        "keyDistFromLock": 0,
+        "cornerSpread": 0
+      },
+      "seVsE": null,
+      "prep": {
+        "shift": {
+          "dx": 0,
+          "dy": 0
+        },
+        "factor": 1,
+        "grid": "gap"
+      },
+      "bands": [
+        {
+          "row": 1,
+          "dir": "s",
+          "y": [
+            68,
+            181
+          ],
+          "figures": 3,
+          "state": "ok"
+        },
+        {
+          "row": 2,
+          "dir": "s",
+          "y": [
+            328,
+            439
+          ],
+          "figures": 4,
+          "state": "ok"
+        },
+        {
+          "row": 3,
+          "dir": "s",
+          "y": [
+            564,
+            759
+          ],
+          "figures": 4,
+          "state": "warn"
+        },
+        {
+          "row": 4,
+          "dir": "s",
+          "y": [
+            812,
+            987
+          ],
+          "figures": 2,
+          "state": "warn"
+        }
+      ],
+      "motion": [
+        {
+          "dir": "s",
+          "anim": "idle",
+          "maxDiff": 0.127
+        },
+        {
+          "dir": "s",
+          "anim": "walk",
+          "maxDiff": 0.55
+        },
+        {
+          "dir": "s",
+          "anim": "hurt-vs-idle",
+          "maxDiff": 1
+        }
+      ],
+      "issues": [
+        {
+          "sev": "light",
+          "code": "chan-lech",
+          "where": "H3 (s) C4",
+          "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 52%)."
+        },
+        {
+          "sev": "light",
+          "code": "chan-lech",
+          "where": "H4 (s) C1–2",
+          "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%)."
+        }
+      ],
+      "draft": "LỖI: toA — chân lệch — H3 (s) C4, H4 (s) C1–2 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 52%); chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%)."
+    }
+  ]
+}
