@@ -1,0 +1,452 @@
+{
+  "tool": "OpenAI image_gen tích hợp Codex",
+  "model": "unknown (công cụ không trả về)",
+  "seed": null,
+  "terms": "Đầu ra OpenAI; không gán CC0",
+  "pathBase": "art/src/phuthe-anim/pha_hon_thuong/vukhi",
+  "history": [
+    {
+      "file": "s/attempt1/poses.raw.png",
+      "sha256": "02f4ca1b41783fce4c42e5e2a7558de112671924d51e0cd13200254ecebed857",
+      "prompt": "s/attempt1/prompt.txt",
+      "reference": null,
+      "selected": false
+    },
+    {
+      "file": "s/attempt2/poses.raw.png",
+      "sha256": "7da7a0099579ef5bbd3103594754574d3ccfd2f796e49f463d2da95bf4e6cd02",
+      "prompt": "s/attempt2/prompt.txt",
+      "reference": "s/attempt1/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "se/attempt1/poses.raw.png",
+      "sha256": "ef3925331090b1efd91db10d2cc5a87b69d581fe2bb3229b1502ccb6e0a57e84",
+      "prompt": "se/attempt1/prompt.txt",
+      "reference": "s/attempt2/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "e/attempt1/poses.raw.png",
+      "sha256": "a11ef578e31c2dab3b491668cf83c50c82cf9688e4ada9160b3fcc8ebc63ff6c",
+      "prompt": "e/attempt1/prompt.txt",
+      "reference": null,
+      "selected": true
+    },
+    {
+      "file": "ne/attempt1/poses.raw.png",
+      "sha256": "5c7de79f3c26ec035eb5fc2a81ef82c750877c3d8ec6ec5d5a509403fb2c986d",
+      "prompt": "ne/attempt1/prompt.txt",
+      "reference": "se/attempt1/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "n/attempt1/poses.raw.png",
+      "sha256": "008d2a588d2bade7239dfcd17ee1f4b7bbc6297c3ffcc972129e41ffcf896d40",
+      "prompt": "n/attempt1/prompt.txt",
+      "reference": "ne/attempt1/poses.raw.png",
+      "selected": false
+    },
+    {
+      "file": "n/attempt2/poses.raw.png",
+      "sha256": "16abbf0f180d9b3af37b56d69f7a03289d4d6d935d4c48791eb570852f6e9e40",
+      "prompt": "n/attempt2/prompt.txt",
+      "reference": "n/attempt1/poses.raw.png",
+      "selected": false
+    },
+    {
+      "file": "n/attempt3/poses.raw.png",
+      "sha256": "8383a99a4cf7c1f2cc3b9761eedf18b9f818b2e3d97a613e4fa12298b623589a",
+      "prompt": "n/attempt3/prompt.txt",
+      "reference": "n/attempt2/poses.raw.png",
+      "selected": true
+    }
+  ],
+  "selectedPoses": {
+    "s": "s/attempt2/poses.raw.png",
+    "se": "se/attempt1/poses.raw.png",
+    "e": "e/attempt1/poses.raw.png",
+    "ne": "ne/attempt1/poses.raw.png",
+    "n": "n/attempt3/poses.raw.png"
+  },
+  "mapping": "idle0; walk1; attack2/3/6/7; cast6/7; hurt0",
+  "markerSegmentation": "RAW giữ nguyên. Chọn tám marker xanh lớn (diện tích≥100px), mỗi ô một marker gắn vũ khí; bỏ đốm xanh8px ở cán n3. Grip dịch vào cán ít nhất3px.",
+  "bodyReferencePixels": 47,
+  "maxShaftGamePixels": 32.51396302770215,
+  "shaftBodyRatio": 0.6917864473979181,
+  "wholeWeaponDiagonalBound": 56.43168566618855,
+  "wholeWeaponBodyBoundRatio": 1.2006741631103948,
+  "recipeSha256": "df9d38d35775e3310b37741122d60d62eb2bc11f235405b316e25e8b30f60caa",
+  "canonicalVerification": {
+    "commit": "1a04a2af88244b1dd07f883e165cb87ba5f42e14",
+    "pr": 1375,
+    "textHashPolicy": "SHA-256 UTF-8 với xuống dòng LF",
+    "tools": {
+      "phuthe-hammer-atlas.mjs": "00bcdc252e9207938fcbb7ca53cb9c62a45fe2edcafbc562b75e0b7c29d65094",
+      "phuthe-hammer-atlas-finalize.mjs": "cbd584d91d087ceb7a2a7ed6eeffae80e7e11664746af231b01b96758170967a",
+      "phuthe-hammer-atlas-cut.mjs": "f833963d9d96f4c8c6be47a957aa3806e87dadc9469fc623428bd588f2af273b",
+      "phuthe-sheet-dummy.mjs": "6c467cc358ce94cfc33a75462149b7d8ee0856e671f9df7673f148eb48cd656a",
+      "phuthe-sheet-cut-lib.mjs": "46ddae551209e05d1e7d167d36555bd29fb1fe02b2a5850dace92a9fcc7b9cbc",
+      "phuthe-sheet-check.mjs": "30182d63548e626712739eca82ad46f64404bceb38affa1f97b63271898166e6",
+      "phuthe-weapon-grip.mjs": "ff6d4c679c7fba602df43f862410e1fe21a45392f571aead66c5d07b802db03b"
+    },
+    "frames": 130,
+    "maxA": 0.7071067811865476,
+    "edge": 0,
+    "failures": [],
+    "singleCurrentStepFrames": [
+      {
+        "name": "m/n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            55.8,
+            80.3
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53,
+            79.3
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            53.27777777777778,
+            79.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            79.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      }
+    ]
+  },
+  "lightIssues": {
+    "m": [
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (s) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 42%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (se) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 28%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (e) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 18%)."
+      },
+      {
+        "sev": "light",
+        "code": "co-phu-the",
+        "where": "khối e",
+        "msg": "cỡ phụ thể so với khối s: idle 81%, walk 82%, attack 87%, hurt 82% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (ne) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (n) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+      }
+    ],
+    "f": [
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (s) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 42%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (se) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 26%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (e) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 16%)."
+      },
+      {
+        "sev": "light",
+        "code": "co-phu-the",
+        "where": "khối e",
+        "msg": "cỡ phụ thể so với khối s: idle 81%, walk 82%, attack 89%, cast 87%, hurt 83% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (ne) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 26%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (n) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 27%)."
+      }
+    ]
+  },
+  "sheets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/pha_hon_thuong_b.png",
+      "sha256": "e8f8bb5f214e75bb230c97fa1569c676c94671529d20182e58a0a598b090333e"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/pha_hon_thuong_f.png",
+      "sha256": "1970f9739a857919fc5ba0ccf2b002f848ac91ca696c9d937bb209d5e7705f32"
+    }
+  ],
+  "capture": {
+    "method": "Chrome Playwright --mute-audio; localStorage master0/mutedtrue trước tải trang; native1600×900, không cắt/resize/ghép",
+    "game": "RAM GAME_TEST=1; tạo nhân vật/thức tỉnh/xếp đội/chọn ra trận qua UI; cấp võ hồn bằng hook test có sẵn; dừng GameScene, gọi animatePlayer thật và đặt khung thân tại0/100/190/260ms; kiểm renderer, không phải toàn bộ trận giao chiến",
+    "pageErrors": {
+      "m": [],
+      "f": []
+    },
+    "selfViewed": [
+      "game-m-n-100.png",
+      "game-f-n-190.png",
+      "game-m-e-260.png",
+      "test-f-attack.png",
+      "game-m-s-190.png",
+      "game-f-se-260.png",
+      "game-m-ne-100.png"
+    ],
+    "screenshots": [
+      {
+        "file": "ingame/game-f-e-0.png",
+        "sha256": "69cf1028c2aa3a87a442290291afafd46e8b53817838211edeb61617665a914f"
+      },
+      {
+        "file": "ingame/game-f-e-100.png",
+        "sha256": "4837a836de3e4b8044517024001f48816ef6c01d2193bd0553def48aee721740"
+      },
+      {
+        "file": "ingame/game-f-e-190.png",
+        "sha256": "72985f3ab952bbc96c84c01e0ab6414c28525ebee1490801813e56135ff8454f"
+      },
+      {
+        "file": "ingame/game-f-e-260.png",
+        "sha256": "74c482812871c369de12b42e4acac2a776dfc41c92dc5d9facbcaf1d2a6c3f98"
+      },
+      {
+        "file": "ingame/game-f-n-0.png",
+        "sha256": "99f612ac3a1b32507dd8493890a1315815c67019f1fd55c35e2685c2fb5b2f56"
+      },
+      {
+        "file": "ingame/game-f-n-100.png",
+        "sha256": "f2a34274a24348cc86ccda9a8f2d3cf612b7feeec092d23a25278ebfce6e6632"
+      },
+      {
+        "file": "ingame/game-f-n-190.png",
+        "sha256": "53a8996f3d309ac246c82de3eb91db6e4c90a0e1a203c808a9f235efcf30f599"
+      },
+      {
+        "file": "ingame/game-f-n-260.png",
+        "sha256": "345eaea1410d8b21c207cdff9588adcd49a7ddf1e8334aa7ab9c4355fc087f04"
+      },
+      {
+        "file": "ingame/game-f-ne-0.png",
+        "sha256": "8e7f1d3894921d44a3e1b4d25c107687a73e92e5b48f9ae981dbb7c9040da1f2"
+      },
+      {
+        "file": "ingame/game-f-ne-100.png",
+        "sha256": "01fe0f8398e8a0b988482c01429a41dcebdf67a744c844556f08174848f5ddaf"
+      },
+      {
+        "file": "ingame/game-f-ne-190.png",
+        "sha256": "7a69e5e65e1cb85f3f635422ff2a9b98b1e1560da4df40fd51b4b8d5d004ad34"
+      },
+      {
+        "file": "ingame/game-f-ne-260.png",
+        "sha256": "0c98d690697583f3f30784cfe4fc08ffa11e3ce6631ef69070a4ce98571723f6"
+      },
+      {
+        "file": "ingame/game-f-s-0.png",
+        "sha256": "df7882387ba41313b50cb3445bb21a4511a073bae5878cdbfcf8f0f045722609"
+      },
+      {
+        "file": "ingame/game-f-s-100.png",
+        "sha256": "87ae1c1dc67d3eaa9da4711ed7efd5dcc6e32e0aaa76e0788779223691dd723e"
+      },
+      {
+        "file": "ingame/game-f-s-190.png",
+        "sha256": "c889a41459254d1dd818826723056f9baa241b7518e17b3355c9993bb5c989f7"
+      },
+      {
+        "file": "ingame/game-f-s-260.png",
+        "sha256": "974cc83d5979fe9d72a070529c69577829e6e62b6bb1716da54da233f35222e8"
+      },
+      {
+        "file": "ingame/game-f-se-0.png",
+        "sha256": "d678a59f6b03dc01b1798670141daadcee750728d50549583fba0b7c2bd2c38b"
+      },
+      {
+        "file": "ingame/game-f-se-100.png",
+        "sha256": "8bf449f39ef7384c7277f074b9cb9292b97c5ec6c5f2f66140f29a120ccad83d"
+      },
+      {
+        "file": "ingame/game-f-se-190.png",
+        "sha256": "fe7e0be6d3cc9fa34a43bc1e78fce6e9d6263fb3abc3df4b44765923afceb013"
+      },
+      {
+        "file": "ingame/game-f-se-260.png",
+        "sha256": "6d74fcfa03b7fe2225f6ee7892a0c582a0936549f2f23636605c837ebca204a4"
+      },
+      {
+        "file": "ingame/game-m-e-0.png",
+        "sha256": "c0333c740b3ad4212769d059d20218e0aff10bcf0f231bf2c814a0fd07acdedb"
+      },
+      {
+        "file": "ingame/game-m-e-100.png",
+        "sha256": "91e6bfc151357b61583fe54ab93b73ba218945eb594a5b5e9f1081aacc8216d9"
+      },
+      {
+        "file": "ingame/game-m-e-190.png",
+        "sha256": "797f4fac04a91c24673c19a03566d2de3a5595c9330693c5584797afde7a0243"
+      },
+      {
+        "file": "ingame/game-m-e-260.png",
+        "sha256": "2bc1eb73059d372a3accfec05f0c85f9d879cc7880f0f7df0be352a876307cfd"
+      },
+      {
+        "file": "ingame/game-m-n-0.png",
+        "sha256": "949c18745e1b05dfad2804619f37ba430078d9dd239033635a13ec8222ae73a9"
+      },
+      {
+        "file": "ingame/game-m-n-100.png",
+        "sha256": "1fe89a49ae3ea3d2a6c3fe14d33bef610cb05f492b29a713f757b57141d0fefd"
+      },
+      {
+        "file": "ingame/game-m-n-190.png",
+        "sha256": "60e436cb0293b0a150a4c1ca0c8215a9bc5862dee81cc345d37f28eed111dd86"
+      },
+      {
+        "file": "ingame/game-m-n-260.png",
+        "sha256": "193e08f8ba027a8fc1247d2ff3c4107137bec747bd00c2eb4b86ea75b08013a0"
+      },
+      {
+        "file": "ingame/game-m-ne-0.png",
+        "sha256": "688a3350f0b26e26efbab1e159826b3b45b181c49517b2cfd5f6e4e38f472506"
+      },
+      {
+        "file": "ingame/game-m-ne-100.png",
+        "sha256": "0c9935ec3fe5615c4cd19b245e67b19063e660166ab4c6c68ad3fe45cacf1408"
+      },
+      {
+        "file": "ingame/game-m-ne-190.png",
+        "sha256": "058aaa173dd1a464cda6d36b814f8a3d26ea4ea8225715c4c950fa31e28171fc"
+      },
+      {
+        "file": "ingame/game-m-ne-260.png",
+        "sha256": "421275e0cecb13bf77bd3978d616ca580086874ece14f347a8a66fd68a41acdf"
+      },
+      {
+        "file": "ingame/game-m-s-0.png",
+        "sha256": "7e04c6d54d7456df7120a57df1065d0a770e96dc54de70747a9c9bb2be08afa9"
+      },
+      {
+        "file": "ingame/game-m-s-100.png",
+        "sha256": "5a2f666e7bcf45824fb9da58d8ac30244ebf8f1f5c7c8229ecec5fe4fbe217ba"
+      },
+      {
+        "file": "ingame/game-m-s-190.png",
+        "sha256": "32887791798f271badac16b1845df8cf91171ba717b5ccba1e8f7bd2bf9a3555"
+      },
+      {
+        "file": "ingame/game-m-s-260.png",
+        "sha256": "b3853474f6051b64b91a8b64e4b8f983e9955e991eab9816d889b2756267cbaf"
+      },
+      {
+        "file": "ingame/game-m-se-0.png",
+        "sha256": "cc7950918508ba92546ad9a9f737bcc4f6d533fc1b4e716621b7256e4ef5631d"
+      },
+      {
+        "file": "ingame/game-m-se-100.png",
+        "sha256": "b47d56a8ea883a4a83ba24301b6299521927e18b36d483dca64bb558c51ba0f7"
+      },
+      {
+        "file": "ingame/game-m-se-190.png",
+        "sha256": "57492960c611df87093966daf7f04b0cbff785bef66b259c394234a4645158a6"
+      },
+      {
+        "file": "ingame/game-m-se-260.png",
+        "sha256": "386a20b24bf13343e666c0bb5de7bf7b6655cd98e0b159776cfbc973b367056b"
+      },
+      {
+        "file": "ingame/test-f-attack.png",
+        "sha256": "7e970d42ebf66f49c1076ce0fd4f5ea28e569fe035cc194834fef8197beb23fa"
+      },
+      {
+        "file": "ingame/test-f-cast.png",
+        "sha256": "4e1b4883c746c3f2c023fba8c545461cc15217bcdbcf5e00c3157ccf64ed3990"
+      },
+      {
+        "file": "ingame/test-f-idle.png",
+        "sha256": "6503f3bb623509e1285f6951f35aeda45f361f2d81544dffe64a0097a5762652"
+      },
+      {
+        "file": "ingame/test-f-walk.png",
+        "sha256": "0904084f31eae075008a5ef838f9a2c55ea418c454c3538d13b876b854f83960"
+      },
+      {
+        "file": "ingame/test-m-attack.png",
+        "sha256": "2142ddb83167b8caf0ff3de75709c7c5871d7e1abff98e8f15be3459484452a8"
+      },
+      {
+        "file": "ingame/test-m-cast.png",
+        "sha256": "ccbe7429a2bc733192f430c8c6f3c1328226ac11cd26852c7f55e397b7d6b775"
+      },
+      {
+        "file": "ingame/test-m-idle.png",
+        "sha256": "27ff194e3c610585a769cc6d3a7f27008ee8ec4274895e466386f8701fce0788"
+      },
+      {
+        "file": "ingame/test-m-walk.png",
+        "sha256": "d48a4958783106f895d265b8eb6931e19332451401df5e147f49e2fd9db29c86"
+      }
+    ]
+  },
+  "artApproved": false
+}
