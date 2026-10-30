@@ -19,3 +19,34 @@ export const contribOf = (dmgBy: ReadonlyMap<string, number>, supBy: ReadonlyMap
 
 /** Mọi người có đóng góp (gây sát thương hoặc hỗ trợ), không trùng. */
 export const contributors = (dmgBy: ReadonlyMap<string, number>, supBy: ReadonlyMap<string, number>) => [...new Set([...dmgBy.keys(), ...supBy.keys()])];
+
+type Pt = { x: number; y: number };
+type HpPt = Pt & { hp: number; maxHp: number };
+
+/** Id gần `p` nhất trong bán kính `r` (xét từng ứng viên `[id, điểm]`); không có thì undefined. */
+export function pickNearest(p: Pt, r: number, cands: Iterable<[string, Pt]>) {
+  let best: string | undefined, bd = r;
+  for (const [bid, b] of cands) { const dd = Math.hypot(b.x - p.x, b.y - p.y); if (dd < bd) { bd = dd; best = bid; } }
+  return best;
+}
+
+/** Id còn ít sinh lực nhất (theo tỉ lệ) trong bán kính `r`; bằng nhau thì con gần hơn. */
+export function pickWeakest(p: Pt, r: number, cands: Iterable<[string, HpPt]>) {
+  let best: string | undefined, bf = 2, bd = r;
+  for (const [bid, b] of cands) {
+    const dd = Math.hypot(b.x - p.x, b.y - p.y), f = b.hp / Math.max(1, b.maxHp);
+    if (dd < r && (f < bf - 1e-6 || (Math.abs(f - bf) <= 1e-6 && dd < bd))) { bf = f; bd = dd; best = bid; }
+  }
+  return best;
+}
+
+/** Điểm hiệu ứng của một tin client: (x, y), rồi (x1, y1), rồi người chơi `id` / `to`, rồi hồn thú `bid`; không có thì null. */
+export function fxPoint(m: Record<string, unknown>, player: (id: string) => Pt | undefined, beast: (id: string) => Pt | undefined): Pt | null {
+  const num = (v: unknown) => typeof v === "number" && Number.isFinite(v);
+  if (num(m.x) && num(m.y)) return { x: m.x as number, y: m.y as number };
+  if (num(m.x1) && num(m.y1)) return { x: m.x1 as number, y: m.y1 as number };
+  const sid = typeof m.id === "string" ? m.id : typeof m.to === "string" ? m.to : null, p = sid ? player(sid) : undefined;
+  if (p) return p;
+  const b = typeof m.bid === "string" ? beast(m.bid) : undefined;
+  return b ?? null;
+}

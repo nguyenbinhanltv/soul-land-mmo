@@ -64,7 +64,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
 import { questBump } from "./questBump.ts";
-import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors } from "./calc.ts";
+import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import * as bones from "./bones.ts";
@@ -1836,21 +1836,10 @@ export class MapRoom extends Room<MapState> {
   unhide(p: PlayerState, d: PData) { if (d.buffs.delete("hide")) this.syncBuffs(p, d); }
 
   /** Hồn thú gần hồn sư nhất trong bán kính r. */
-  nearestBeast(p: PlayerState, r: number) {
-    let best: string | undefined, bd = r;
-    for (const [bid, b] of this.beastsNear(p.x, p.y, r)) { const dd = Math.hypot(b.x - p.x, b.y - p.y); if (dd < bd) { bd = dd; best = bid; } }
-    return best;
-  }
+  nearestBeast(p: PlayerState, r: number) { return pickNearest(p, r, this.beastsNear(p.x, p.y, r)); }
 
   /** Hồn thú còn ít sinh lực nhất (theo tỉ lệ) trong bán kính r; bằng nhau thì con gần hơn (Nguyệt Nhận khóa mục tiêu yếu máu). */
-  weakestBeast(p: PlayerState, r: number) {
-    let best: string | undefined, bf = 2, bd = r;
-    for (const [bid, b] of this.beastsNear(p.x, p.y, r)) {
-      const dd = Math.hypot(b.x - p.x, b.y - p.y), f = b.hp / Math.max(1, b.maxHp);
-      if (dd < r && (f < bf - 1e-6 || (Math.abs(f - bf) <= 1e-6 && dd < bd))) { bf = f; bd = dd; best = bid; }
-    }
-    return best;
-  }
+  weakestBeast(p: PlayerState, r: number) { return pickWeakest(p, r, this.beastsNear(p.x, p.y, r)); }
 
   /** Lướt theo d.dir tối đa `dist` pixel, dừng khi vướng vật cản. Trả về quãng đã lướt. */
   dashStep(p: PlayerState, d: PData, dist: number) {
@@ -2520,13 +2509,7 @@ export class MapRoom extends Room<MapState> {
   }
 
   fxAt(m: Record<string, unknown>): { x: number; y: number } | null {
-    const num = (v: unknown) => typeof v === "number" && Number.isFinite(v);
-    if (num(m.x) && num(m.y)) return { x: m.x as number, y: m.y as number };
-    if (num(m.x1) && num(m.y1)) return { x: m.x1 as number, y: m.y1 as number };
-    const sid = typeof m.id === "string" ? m.id : typeof m.to === "string" ? m.to : null, p = sid ? this.state.players.get(sid) : undefined;
-    if (p) return p;
-    const b = typeof m.bid === "string" ? this.state.beasts.get(m.bid) : undefined;
-    return b ?? null;
+    return fxPoint(m, (id) => this.state.players.get(id), (id) => this.state.beasts.get(id));
   }
 
   /**
