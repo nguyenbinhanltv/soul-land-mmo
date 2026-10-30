@@ -78,6 +78,14 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 
 ## Việc đang chờ chủ repo
 
+### Bổ sung mỹ thuật đã duyệt
+
+| Mã | Ngày | Quyết định | Issue / PR | File thiết kế |
+|---|---|---|---|---|
+| Q53 | 2026-10-31 | Bản đồ thế giới mở bằng M dùng một tranh vẽ tay thủy mặc trên giấy cổ cùng kit Giấy / Mực, Codex sinh ảnh; không chữ trên nền, nút / nhãn / đường cổng phủ bằng code; bố cục theo dữ liệu thật, chừa lề và có JSON tọa độ chuẩn hóa. Ngoại lệ nền Giấy so với bảng thao tác Mực ở Q49 | #1415 | `docs/art/ban-do-the-gioi.md` |
+
+### Các mục còn chờ
+
 | Mã | Ngày ghi | Nội dung | File |
 |---|---|---|---|
 | P5 | 2026-10-25 | Trần số người khi tính máu boss: hiện không có trần; xem lại nếu phòng đông (`ROADMAP.md` mục 8) | `ROADMAP.md` |

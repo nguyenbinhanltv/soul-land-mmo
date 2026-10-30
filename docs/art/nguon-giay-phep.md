@@ -5,6 +5,8 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 **Nguồn và giấy phép**
 
 ## Nguồn ảnh được phép (hiện hành)
+
+Nền thế giới M (31/10/2026): Codex builtin OpenAI `image_gen.imagegen`, không CC0; prompt, RAW nguyên byte và SHA-256 tại `art/src/world-map/`, quy cách và dữ liệu đối chiếu ở [ban-do-the-gioi.md](ban-do-the-gioi.md). Không dùng asset bên thứ ba làm đầu vào; chưa nhập client, chờ duyệt PR art.
 | Asset | Nguồn | Ghi chú |
 |---|---|---|
 | Họ asset C1–C16 (cảm giác đánh, khung / nền giao diện, trang phục LPC phương Đông, âm thanh tuyệt kỹ CC0, công cụ chất lượng, màn đăng nhập / tải, HUD, nhãn, thanh kỹ năng, hộp thoại, nhiệm vụ, biểu tượng UI, phản hồi UI, khả năng tiếp cận, màn chết / đấu trường…) | **Codex (tthoadev)**: vẽ bằng code + sinh ảnh model (ChatGPT / Codex, Q44) + hậu kỳ pixel | `art/CREDITS.md` ghi model + prompt |
