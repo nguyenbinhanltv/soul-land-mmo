@@ -1,0 +1,4154 @@
+{
+  "frames": 130,
+  "palette": [
+    [
+      8,
+      2,
+      4
+    ],
+    [
+      15,
+      8,
+      10
+    ],
+    [
+      27,
+      13,
+      15
+    ],
+    [
+      49,
+      10,
+      13
+    ],
+    [
+      26,
+      16,
+      32
+    ],
+    [
+      49,
+      27,
+      36
+    ],
+    [
+      56,
+      24,
+      52
+    ],
+    [
+      58,
+      43,
+      53
+    ],
+    [
+      71,
+      20,
+      24
+    ],
+    [
+      70,
+      49,
+      57
+    ],
+    [
+      69,
+      48,
+      67
+    ],
+    [
+      77,
+      58,
+      70
+    ],
+    [
+      116,
+      5,
+      13
+    ],
+    [
+      109,
+      42,
+      51
+    ],
+    [
+      167,
+      12,
+      20
+    ],
+    [
+      208,
+      36,
+      39
+    ],
+    [
+      79,
+      63,
+      62
+    ],
+    [
+      85,
+      69,
+      74
+    ],
+    [
+      85,
+      67,
+      84
+    ],
+    [
+      96,
+      74,
+      94
+    ],
+    [
+      112,
+      84,
+      108
+    ],
+    [
+      111,
+      95,
+      106
+    ],
+    [
+      143,
+      84,
+      112
+    ],
+    [
+      137,
+      117,
+      126
+    ],
+    [
+      144,
+      113,
+      144
+    ],
+    [
+      160,
+      143,
+      154
+    ],
+    [
+      181,
+      160,
+      165
+    ],
+    [
+      183,
+      168,
+      186
+    ],
+    [
+      201,
+      188,
+      202
+    ],
+    [
+      221,
+      209,
+      220
+    ],
+    [
+      240,
+      235,
+      237
+    ],
+    [
+      251,
+      250,
+      251
+    ]
+  ],
+  "colors": 32,
+  "cuts": {
+    "m": {
+      "id": "nguyet_nhan",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 10,
+      "palette": 32,
+      "outline": "thêm vòng viền ngoài",
+      "halves": {
+        "b": {
+          "pixels": 49120,
+          "blank": false
+        },
+        "f": {
+          "pixels": 79164,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "f/s/idle/0": [
+          0,
+          0
+        ],
+        "f/s/idle/1": [
+          0,
+          0
+        ],
+        "f/s/walk/0": [
+          0,
+          0
+        ],
+        "f/s/walk/1": [
+          0,
+          0
+        ],
+        "f/s/walk/2": [
+          0,
+          0
+        ],
+        "f/s/walk/3": [
+          0,
+          0
+        ],
+        "f/s/attack/0": [
+          0,
+          0
+        ],
+        "f/s/attack/1": [
+          0,
+          0
+        ],
+        "f/s/attack/2": [
+          0,
+          1
+        ],
+        "f/s/attack/3": [
+          1,
+          0
+        ],
+        "f/s/cast/0": [
+          0,
+          0
+        ],
+        "f/s/cast/1": [
+          0,
+          0
+        ],
+        "f/s/hurt/0": [
+          -1,
+          1
+        ],
+        "f/se/idle/0": [
+          0,
+          0
+        ],
+        "f/se/idle/1": [
+          0,
+          0
+        ],
+        "f/se/walk/0": [
+          0,
+          0
+        ],
+        "f/se/walk/1": [
+          0,
+          0
+        ],
+        "f/se/walk/2": [
+          1,
+          -1
+        ],
+        "f/se/walk/3": [
+          0,
+          -1
+        ],
+        "f/se/attack/0": [
+          0,
+          0
+        ],
+        "f/se/attack/1": [
+          0,
+          -1
+        ],
+        "f/se/attack/2": [
+          0,
+          -1
+        ],
+        "f/se/attack/3": [
+          -1,
+          0
+        ],
+        "f/se/cast/0": [
+          0,
+          -1
+        ],
+        "f/se/cast/1": [
+          0,
+          0
+        ],
+        "f/se/hurt/0": [
+          -1,
+          1
+        ],
+        "f/e/idle/0": [
+          0,
+          0
+        ],
+        "f/e/idle/1": [
+          0,
+          0
+        ],
+        "f/e/walk/0": [
+          0,
+          0
+        ],
+        "f/e/walk/1": [
+          0,
+          0
+        ],
+        "f/e/walk/2": [
+          1,
+          -1
+        ],
+        "f/e/walk/3": [
+          0,
+          -1
+        ],
+        "f/e/attack/0": [
+          0,
+          0
+        ],
+        "f/e/attack/1": [
+          0,
+          -1
+        ],
+        "f/e/attack/2": [
+          0,
+          -1
+        ],
+        "f/e/attack/3": [
+          -1,
+          0
+        ],
+        "f/e/cast/0": [
+          0,
+          -1
+        ],
+        "f/e/cast/1": [
+          0,
+          0
+        ],
+        "f/e/hurt/0": [
+          -1,
+          1
+        ],
+        "f/ne/idle/0": [
+          0,
+          0
+        ],
+        "f/ne/idle/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/0": [
+          0,
+          0
+        ],
+        "f/ne/walk/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/2": [
+          1,
+          -1
+        ],
+        "f/ne/walk/3": [
+          0,
+          -1
+        ],
+        "f/ne/attack/0": [
+          0,
+          0
+        ],
+        "f/ne/attack/1": [
+          0,
+          -1
+        ],
+        "f/ne/attack/2": [
+          0,
+          -1
+        ],
+        "f/ne/attack/3": [
+          -1,
+          0
+        ],
+        "f/ne/cast/0": [
+          0,
+          -1
+        ],
+        "f/ne/cast/1": [
+          0,
+          0
+        ],
+        "f/ne/hurt/0": [
+          -1,
+          1
+        ],
+        "f/n/idle/0": [
+          0,
+          0
+        ],
+        "f/n/idle/1": [
+          0,
+          0
+        ],
+        "f/n/walk/0": [
+          0,
+          0
+        ],
+        "f/n/walk/1": [
+          0,
+          1
+        ],
+        "f/n/walk/2": [
+          0,
+          0
+        ],
+        "f/n/walk/3": [
+          0,
+          1
+        ],
+        "f/n/attack/0": [
+          -1,
+          0
+        ],
+        "f/n/attack/1": [
+          -1,
+          0
+        ],
+        "f/n/attack/2": [
+          0,
+          0
+        ],
+        "f/n/attack/3": [
+          1,
+          0
+        ],
+        "f/n/cast/0": [
+          0,
+          0
+        ],
+        "f/n/cast/1": [
+          0,
+          0
+        ],
+        "f/n/hurt/0": [
+          -1,
+          1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ B: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung se/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)",
+        "khung se/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ C: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung e/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)",
+        "khung e/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ D: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung ne/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)",
+        "khung ne/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khối ne clip idle: cỡ phụ thể 126% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối se clip walk: cỡ phụ thể 125% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối ne clip walk: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối se clip cast: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối ne clip cast: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối se clip hurt: cỡ phụ thể 132% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối ne clip hurt: cỡ phụ thể 132% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ B: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ C: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ D: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối ne clip idle: cỡ phụ thể 126% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối se clip walk: cỡ phụ thể 125% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối ne clip walk: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối se clip cast: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối ne clip cast: cỡ phụ thể 128% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối se clip hurt: cỡ phụ thể 132% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối ne clip hurt: cỡ phụ thể 132% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        }
+      ],
+      "summary": {
+        "info": 13,
+        "warn": 10,
+        "block": 0,
+        "total": 23,
+        "byCode": {
+          "ghi-chu": 13,
+          "nom-mat": 3,
+          "co-phu-the": 7
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    },
+    "f": {
+      "id": "nguyet_nhan",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 10,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 12,
+          "cells": 13
+        }
+      },
+      "dropped": 21,
+      "palette": 32,
+      "outline": "thêm vòng viền ngoài",
+      "halves": {
+        "b": {
+          "pixels": 48070,
+          "blank": false
+        },
+        "f": {
+          "pixels": 78440,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "m/s/idle/0": [
+          0,
+          0
+        ],
+        "m/s/idle/1": [
+          0,
+          0
+        ],
+        "m/s/walk/0": [
+          0,
+          0
+        ],
+        "m/s/walk/1": [
+          0,
+          0
+        ],
+        "m/s/walk/2": [
+          0,
+          0
+        ],
+        "m/s/walk/3": [
+          0,
+          0
+        ],
+        "m/s/attack/0": [
+          0,
+          0
+        ],
+        "m/s/attack/1": [
+          0,
+          0
+        ],
+        "m/s/attack/2": [
+          0,
+          -1
+        ],
+        "m/s/attack/3": [
+          -1,
+          0
+        ],
+        "m/s/cast/0": [
+          0,
+          0
+        ],
+        "m/s/cast/1": [
+          0,
+          0
+        ],
+        "m/s/hurt/0": [
+          1,
+          -1
+        ],
+        "m/se/idle/0": [
+          0,
+          0
+        ],
+        "m/se/idle/1": [
+          0,
+          0
+        ],
+        "m/se/walk/0": [
+          0,
+          0
+        ],
+        "m/se/walk/1": [
+          0,
+          0
+        ],
+        "m/se/walk/2": [
+          -1,
+          1
+        ],
+        "m/se/walk/3": [
+          0,
+          1
+        ],
+        "m/se/attack/0": [
+          0,
+          0
+        ],
+        "m/se/attack/1": [
+          0,
+          1
+        ],
+        "m/se/attack/2": [
+          0,
+          1
+        ],
+        "m/se/attack/3": [
+          1,
+          0
+        ],
+        "m/se/cast/0": [
+          0,
+          1
+        ],
+        "m/se/cast/1": [
+          0,
+          0
+        ],
+        "m/se/hurt/0": [
+          1,
+          -1
+        ],
+        "m/e/idle/0": [
+          0,
+          0
+        ],
+        "m/e/idle/1": [
+          0,
+          0
+        ],
+        "m/e/walk/0": [
+          0,
+          0
+        ],
+        "m/e/walk/1": [
+          0,
+          0
+        ],
+        "m/e/walk/2": [
+          -1,
+          1
+        ],
+        "m/e/walk/3": [
+          0,
+          1
+        ],
+        "m/e/attack/0": [
+          0,
+          0
+        ],
+        "m/e/attack/1": [
+          0,
+          1
+        ],
+        "m/e/attack/2": [
+          0,
+          1
+        ],
+        "m/e/attack/3": [
+          1,
+          0
+        ],
+        "m/e/cast/0": [
+          0,
+          1
+        ],
+        "m/e/cast/1": [
+          0,
+          0
+        ],
+        "m/e/hurt/0": [
+          1,
+          -1
+        ],
+        "m/ne/idle/0": [
+          0,
+          0
+        ],
+        "m/ne/idle/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/0": [
+          0,
+          0
+        ],
+        "m/ne/walk/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/2": [
+          -1,
+          1
+        ],
+        "m/ne/walk/3": [
+          0,
+          1
+        ],
+        "m/ne/attack/0": [
+          0,
+          0
+        ],
+        "m/ne/attack/1": [
+          0,
+          1
+        ],
+        "m/ne/attack/2": [
+          0,
+          1
+        ],
+        "m/ne/attack/3": [
+          1,
+          0
+        ],
+        "m/ne/cast/0": [
+          0,
+          1
+        ],
+        "m/ne/cast/1": [
+          0,
+          0
+        ],
+        "m/ne/hurt/0": [
+          1,
+          -1
+        ],
+        "m/n/idle/0": [
+          0,
+          0
+        ],
+        "m/n/idle/1": [
+          0,
+          0
+        ],
+        "m/n/walk/0": [
+          0,
+          0
+        ],
+        "m/n/walk/1": [
+          0,
+          -1
+        ],
+        "m/n/walk/2": [
+          0,
+          0
+        ],
+        "m/n/walk/3": [
+          0,
+          -1
+        ],
+        "m/n/attack/0": [
+          1,
+          0
+        ],
+        "m/n/attack/1": [
+          1,
+          0
+        ],
+        "m/n/attack/2": [
+          0,
+          0
+        ],
+        "m/n/attack/3": [
+          -1,
+          0
+        ],
+        "m/n/cast/0": [
+          0,
+          0
+        ],
+        "m/n/cast/1": [
+          0,
+          0
+        ],
+        "m/n/hurt/0": [
+          1,
+          -1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ B: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung se/idle/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung se/idle/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung se/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)",
+        "khung se/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ C: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung e/idle/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung e/idle/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung e/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)",
+        "khung e/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ D: 3 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk1, walk2, cast1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung ne/idle/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung ne/idle/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)",
+        "khung ne/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)",
+        "khung ne/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "tờ E: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: attack1), dùng độ dời trung vị của tờ (0, 0)",
+        "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khối se clip walk: cỡ phụ thể 132% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối ne clip walk: cỡ phụ thể 131% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối se clip cast: cỡ phụ thể 127% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối ne clip cast: cỡ phụ thể 127% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối se clip hurt: cỡ phụ thể 133% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)",
+        "khối ne clip hurt: cỡ phụ thể 134% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ B: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/idle/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/idle/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ C: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: cast1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/idle/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/idle/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ D: 3 / 13 ô không tìm thấy nộm (điểm khớp < 50%: walk1, walk2, cast1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/idle/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/idle/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 3)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/walk/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/walk/3: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 5)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "nom-mat",
+          "msg": "tờ E: 1 / 13 ô không tìm thấy nộm (điểm khớp < 50%: attack1), dùng độ dời trung vị của tờ (0, 0)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/1: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/attack/2: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 2)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối se clip walk: cỡ phụ thể 132% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối ne clip walk: cỡ phụ thể 131% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối se clip cast: cỡ phụ thể 127% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối ne clip cast: cỡ phụ thể 127% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối se clip hurt: cỡ phụ thể 133% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        },
+        {
+          "level": "warn",
+          "code": "co-phu-the",
+          "msg": "khối ne clip hurt: cỡ phụ thể 134% so với khối s (lệch quá 25%; cảnh báo kỹ thuật, không chặn)"
+        }
+      ],
+      "summary": {
+        "info": 19,
+        "warn": 10,
+        "block": 0,
+        "total": 29,
+        "byCode": {
+          "ghi-chu": 19,
+          "nom-mat": 4,
+          "co-phu-the": 6
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    }
+  },
+  "layers": {
+    "m": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.5,
+              -14.400000000000006,
+              -4.5,
+              -8.400000000000006
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              5,
+              -16.5,
+              11,
+              -10.5
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.399999999999999,
+              -14.900000000000006,
+              -4.399999999999999,
+              -8.900000000000006
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              5,
+              -16.5,
+              11,
+              -10.5
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -13.5,
+              -8.399999999999999,
+              -7.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.200000000000003,
+              -14.200000000000003,
+              11.200000000000003,
+              -8.200000000000003
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -13.5,
+              -8.399999999999999,
+              -7.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.200000000000003,
+              -14.200000000000003,
+              11.200000000000003,
+              -8.200000000000003
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -16.700000000000003,
+              -13.599999999999994,
+              -10.700000000000003,
+              -7.599999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.200000000000003,
+              -14.200000000000003,
+              13.200000000000003,
+              -8.200000000000003
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -16.700000000000003,
+              -13.599999999999994,
+              -10.700000000000003,
+              -7.599999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.200000000000003,
+              -14.200000000000003,
+              13.200000000000003,
+              -8.200000000000003
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.700000000000003,
+              -12.599999999999994,
+              -4.700000000000003,
+              -6.599999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.200000000000003,
+              -13.200000000000003,
+              16.200000000000003,
+              -7.200000000000003
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -14.5,
+              -6.399999999999999,
+              -8.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              6.900000000000006,
+              -15.099999999999994,
+              12.900000000000006,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.899999999999999,
+              -14.900000000000006,
+              -7.899999999999999,
+              -8.900000000000006
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              16.400000000000006,
+              -18.299999999999997,
+              22.400000000000006,
+              -12.299999999999997
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.899999999999999,
+              -15.099999999999994,
+              -6.899999999999999,
+              -9.099999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              16.799999999999997,
+              -31.299999999999997,
+              22.799999999999997,
+              -25.299999999999997
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.099999999999994,
+              -20.5,
+              13.099999999999994,
+              -14.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.600000000000001,
+              -20.599999999999994,
+              -8.600000000000001,
+              -14.599999999999994
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.099999999999994,
+              -34.2,
+              16.099999999999994,
+              -28.200000000000003
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -21.1,
+              -34.2,
+              -15.100000000000001,
+              -28.200000000000003
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.700000000000003,
+              -13.599999999999994,
+              17.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -14.099999999999994,
+              15.900000000000006,
+              -8.099999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.899999999999999,
+              -14.099999999999994,
+              -9.899999999999999,
+              -8.099999999999994
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -14.299999999999997,
+              15.400000000000006,
+              -8.299999999999997
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.700000000000003,
+              -14.5,
+              -9.700000000000003,
+              -8.5
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -15.099999999999994,
+              15.900000000000006,
+              -9.099999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.899999999999999,
+              -15.099999999999994,
+              -9.899999999999999,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.099999999999994,
+              -17.099999999999994,
+              16.099999999999994,
+              -11.099999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.899999999999999,
+              -13.900000000000006,
+              -9.899999999999999,
+              -7.900000000000006
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -15.099999999999994,
+              15.900000000000006,
+              -9.099999999999994
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.899999999999999,
+              -15.099999999999994,
+              -9.899999999999999,
+              -9.099999999999994
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -13.900000000000006,
+              15.900000000000006,
+              -7.900000000000006
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -16.1,
+              -17.099999999999994,
+              -10.100000000000001,
+              -11.099999999999994
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.099999999999994,
+              -19.299999999999997,
+              14.099999999999994,
+              -13.299999999999997
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.700000000000003,
+              -12.599999999999994,
+              -7.700000000000003,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.099999999999994,
+              -19.299999999999997,
+              14.099999999999994,
+              -13.299999999999997
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.700000000000003,
+              -12.599999999999994,
+              -7.700000000000003,
+              -6.599999999999994
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              20.900000000000006,
+              -26.5,
+              26.900000000000006,
+              -20.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.399999999999999,
+              -14.299999999999997,
+              -9.399999999999999,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              20.900000000000006,
+              -26.5,
+              26.900000000000006,
+              -20.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.399999999999999,
+              -14.299999999999997,
+              -9.399999999999999,
+              -8.299999999999997
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              13.5,
+              -19.400000000000006,
+              19.5,
+              -13.400000000000006
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -19.5,
+              -19.400000000000006,
+              -13.5,
+              -13.400000000000006
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              18.900000000000006,
+              -31.9,
+              24.900000000000006,
+              -25.9
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -24.9,
+              -31.9,
+              -18.9,
+              -25.9
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.700000000000003,
+              -13.599999999999994,
+              17.700000000000003,
+              -7.599999999999994
+            ]
+          }
+        ]
+      }
+    },
+    "f": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.166666666666671,
+              -14.277777777777771,
+              -5.166666666666671,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.833333333333329,
+              -15.25,
+              -4.833333333333329,
+              -9.25
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.875,
+              -14.125,
+              11.875,
+              -8.125
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -14.5,
+              -8.399999999999999,
+              -8.5
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.875,
+              -14.125,
+              11.875,
+              -8.125
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -14.5,
+              -8.399999999999999,
+              -8.5
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.214285714285722,
+              -14.214285714285722,
+              13.214285714285722,
+              -8.214285714285722
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.722222222222221,
+              -14.611111111111114,
+              -9.722222222222221,
+              -8.611111111111114
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.214285714285722,
+              -14.214285714285722,
+              13.214285714285722,
+              -8.214285714285722
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -15.722222222222221,
+              -14.611111111111114,
+              -9.722222222222221,
+              -8.611111111111114
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.399999999999999,
+              -12.5,
+              -5.399999999999999,
+              -6.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.214285714285722,
+              -13.214285714285722,
+              16.214285714285722,
+              -7.214285714285722
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              6.700000000000003,
+              -13.5,
+              12.700000000000003,
+              -7.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -13.5,
+              -6.399999999999999,
+              -7.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -15.611111111111114,
+              -6.722222222222221,
+              -9.611111111111114
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              15.388888888888886,
+              -18.27777777777777,
+              21.388888888888886,
+              -12.277777777777771
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.954545454545453,
+              -16.045454545454547,
+              -6.954545454545453,
+              -10.045454545454547
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              15.77272727272728,
+              -31.318181818181813,
+              21.77272727272728,
+              -25.318181818181813
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              6.375,
+              -17,
+              12.375,
+              -11
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13,
+              -18.666666666666657,
+              -7,
+              -12.666666666666657
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.954545454545453,
+              -32.68181818181819,
+              15.954545454545453,
+              -26.681818181818187
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -20.125,
+              -33.875,
+              -14.125,
+              -27.875
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.722222222222221,
+              -13.611111111111114,
+              -8.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.22727272727272,
+              -14.045454545454547,
+              14.22727272727272,
+              -8.045454545454547
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.227272727272727,
+              -14.045454545454547,
+              -8.227272727272727,
+              -8.045454545454547
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.722222222222221,
+              -13.611111111111114,
+              -8.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.900000000000006,
+              -14.900000000000006,
+              14.900000000000006,
+              -8.900000000000006
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.722222222222221,
+              -12.611111111111114,
+              -8.722222222222221,
+              -6.611111111111114
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.722222222222221,
+              -13.611111111111114,
+              -8.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -12.611111111111114,
+              14.722222222222229,
+              -6.611111111111114
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.899999999999999,
+              -14.900000000000006,
+              -8.899999999999999,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              4.5,
+              -19.5,
+              10.5,
+              -13.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -13.611111111111114,
+              -7.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              4.5,
+              -19.5,
+              10.5,
+              -13.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -13.611111111111114,
+              -7.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              20.875,
+              -26.5,
+              26.875,
+              -20.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.388888888888886,
+              -14.277777777777771,
+              -7.388888888888886,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              20.875,
+              -26.5,
+              26.875,
+              -20.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.388888888888886,
+              -14.277777777777771,
+              -7.388888888888886,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              12.590909090909093,
+              -20.863636363636374,
+              18.590909090909093,
+              -14.863636363636374
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -18.590909090909093,
+              -20.863636363636374,
+              -12.590909090909093,
+              -14.863636363636374
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              17.75,
+              -32.5,
+              23.75,
+              -26.5
+            ]
+          },
+          {
+            "nhan": "truoc",
+            "hop": [
+              -23.75,
+              -32.5,
+              -17.75,
+              -26.5
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "geometry": [
+    {
+      "name": "m/s/idle/0",
+      "near": [
+        0.565685424949241,
+        0.5656854249492461
+      ],
+      "pixels": 824,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.8178702570402407,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/idle/1",
+      "near": [
+        0.29999999999999716,
+        0.29999999999999716
+      ],
+      "pixels": 808,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.8178702570402407,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/0",
+      "near": [
+        0.565685424949241,
+        0.5656854249492461
+      ],
+      "pixels": 760,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/1",
+      "near": [
+        0.8062257748298514,
+        0.7071067811865476
+      ],
+      "pixels": 761,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/2",
+      "near": [
+        0.565685424949241,
+        0.5656854249492461
+      ],
+      "pixels": 760,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/walk/3",
+      "near": [
+        0.7071067811865476,
+        0.8062257748298514
+      ],
+      "pixels": 761,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/0",
+      "near": [
+        0.5385164807134515,
+        0.7071067811865495
+      ],
+      "pixels": 762,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.19388998567541194,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/1",
+      "near": [
+        0.4242640687119245,
+        0.4000000000000057
+      ],
+      "pixels": 682,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.3803199413028437,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/2",
+      "near": [
+        0.5000000000000029,
+        0.41231056256177023
+      ],
+      "pixels": 767,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.45740735645020436,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/attack/3",
+      "near": [
+        0.565685424949241,
+        0.41231056256177023
+      ],
+      "pixels": 838,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6360331921461579,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/cast/0",
+      "near": [
+        0.4123105625617719,
+        0.41231056256177023
+      ],
+      "pixels": 770,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.45740735645020436,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/cast/1",
+      "near": [
+        0.565685424949236,
+        0.565685424949241
+      ],
+      "pixels": 832,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6360331921461579,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/s/hurt/0",
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 417,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.8178702570402407,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/idle/0",
+      "near": [
+        0.7856742013183874,
+        0.7856742013183803
+      ],
+      "pixels": 820,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.8178702570402407,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/idle/1",
+      "near": [
+        0.5300865358950265,
+        0.5300865358950302
+      ],
+      "pixels": 828,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.8178702570402407,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/0",
+      "near": [
+        0.7856742013183874,
+        0.7856742013183803
+      ],
+      "pixels": 756,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/1",
+      "near": [
+        0.7856742013183874,
+        0.6428243465332233
+      ],
+      "pixels": 760,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/2",
+      "near": [
+        0.7856742013183874,
+        0.7856742013183803
+      ],
+      "pixels": 756,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/walk/3",
+      "near": [
+        0.6428243465332233,
+        0.7856742013183803
+      ],
+      "pixels": 760,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.54000974847213,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/0",
+      "near": [
+        0.5,
+        0.28284271247462306
+      ],
+      "pixels": 773,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.19388998567541194,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/1",
+      "near": [
+        0.5,
+        0.6009252125773368
+      ],
+      "pixels": 677,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.3803199413028437,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/2",
+      "near": [
+        0.5590169943749475,
+        0.125
+      ],
+      "pixels": 770,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.45740735645020436,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/attack/3",
+      "near": [
+        0.565685424949241,
+        0.37267799624996917
+      ],
+      "pixels": 838,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6360331921461579,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/cast/0",
+      "near": [
+        0.4487637339278763,
+        0.448763733927863
+      ],
+      "pixels": 772,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.45740735645020436,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/cast/1",
+      "near": [
+        0.447213595499958,
+        0.4472135954999643
+      ],
+      "pixels": 828,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6360331921461579,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/s/hurt/0",
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 409,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.8178702570402407,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/idle/0",
+      "near": [
+        0.9000000000000057,
+        0.5
+      ],
+      "pixels": 1161,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.6226004696981136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/idle/1",
+      "near": [
+        0.4123105625617719,
+        0.5
+      ],
+      "pixels": 1156,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.6226004696981136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/0",
+      "near": [
+        0.10000000000000142,
+        0.4242640687119245
+      ],
+      "pixels": 1095,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/1",
+      "near": [
+        0.10000000000000142,
+        0.4242640687119245
+      ],
+      "pixels": 1095,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/2",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1152,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/walk/3",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1152,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/0",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1079,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.2284215697696794,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/1",
+      "near": [
+        0.8999999999999986,
+        0.5656854249492461
+      ],
+      "pixels": 955,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 30.269735158480557,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/2",
+      "near": [
+        0.565685424949241,
+        0.22360679774997896
+      ],
+      "pixels": 1407,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.10106955623882641,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/attack/3",
+      "near": [
+        0.565685424949241,
+        0.3605551275463981
+      ],
+      "pixels": 1161,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.1518927950271376,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/cast/0",
+      "near": [
+        0.4000000000000057,
+        0.14142135623730648
+      ],
+      "pixels": 1417,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.10106955623882641,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/cast/1",
+      "near": [
+        0.5000000000000029,
+        0.49999999999999717
+      ],
+      "pixels": 1172,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.1518927950271376,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/se/hurt/0",
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 714,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.6226004696981136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/idle/0",
+      "near": [
+        0.4006168083848873
+      ],
+      "pixels": 711,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.6226004696981136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/idle/1",
+      "near": [
+        0.4166666666666629
+      ],
+      "pixels": 729,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.6226004696981136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/0",
+      "near": [
+        0.5303300858899107,
+        0.8999999999999986
+      ],
+      "pixels": 1284,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/1",
+      "near": [
+        0.5303300858899107,
+        0.8999999999999986
+      ],
+      "pixels": 1284,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/2",
+      "near": [
+        0.40406101782087284,
+        0.24845199749997735
+      ],
+      "pixels": 1315,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/walk/3",
+      "near": [
+        0.40406101782087284,
+        0.24845199749997735
+      ],
+      "pixels": 1315,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 8.044990953665888,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/0",
+      "near": [
+        0.10000000000000142,
+        0.40406101782087284
+      ],
+      "pixels": 1091,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.2284215697696794,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/1",
+      "near": [
+        0.20000000000000284,
+        0.8999999999999986
+      ],
+      "pixels": 1097,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 30.269735158480557,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/2",
+      "near": [
+        0.24845199749997735,
+        0.2484519974999837
+      ],
+      "pixels": 1357,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.10106955623882641,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/attack/3",
+      "near": [
+        0.6428243465332233,
+        0.3277773886785538
+      ],
+      "pixels": 1167,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.1518927950271376,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/cast/0",
+      "near": [
+        0.5153882032022076,
+        0.5270462766947269
+      ],
+      "pixels": 1368,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.10106955623882641,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/cast/1",
+      "near": [
+        0.48956043701222834,
+        0.5303300858899107
+      ],
+      "pixels": 1160,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.1518927950271376,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/se/hurt/0",
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 715,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.6226004696981136,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/idle/0",
+      "near": [
+        0.9000000000000057,
+        0.5
+      ],
+      "pixels": 1076,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.3347117149120322,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/idle/1",
+      "near": [
+        0.4123105625617719,
+        0.5
+      ],
+      "pixels": 1068,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.3347117149120322,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/0",
+      "near": [
+        0.10000000000000142,
+        0.4242640687119245
+      ],
+      "pixels": 995,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/1",
+      "near": [
+        0.10000000000000142,
+        0.4242640687119245
+      ],
+      "pixels": 995,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/2",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1037,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/walk/3",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1037,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/0",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 942,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 22.58299299918383,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/1",
+      "near": [
+        0.10000000000000142,
+        0.5656854249492461
+      ],
+      "pixels": 895,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 23.728794716600817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/2",
+      "near": [
+        0.565685424949241,
+        0.22360679774997896
+      ],
+      "pixels": 1269,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.4309970234679668,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/attack/3",
+      "near": [
+        0.565685424949241,
+        0.3605551275463981
+      ],
+      "pixels": 1147,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 5.009695940796121,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/cast/0",
+      "near": [
+        0.5999999999999943,
+        0.14142135623730648
+      ],
+      "pixels": 1235,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.4309970234679668,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/cast/1",
+      "near": [
+        0.5000000000000029,
+        0.49999999999999717
+      ],
+      "pixels": 1142,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 5.009695940796121,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/e/hurt/0",
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 648,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.3347117149120322,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/idle/0",
+      "near": [
+        0.4006168083848873
+      ],
+      "pixels": 656,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.3347117149120322,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/idle/1",
+      "near": [
+        0.4166666666666629
+      ],
+      "pixels": 646,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.3347117149120322,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/0",
+      "near": [
+        0.5303300858899107,
+        0.10000000000000142
+      ],
+      "pixels": 1121,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/1",
+      "near": [
+        0.5303300858899107,
+        0.10000000000000142
+      ],
+      "pixels": 1121,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/2",
+      "near": [
+        0.40406101782087284,
+        0.24845199749997735
+      ],
+      "pixels": 1148,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/walk/3",
+      "near": [
+        0.40406101782087284,
+        0.24845199749997735
+      ],
+      "pixels": 1148,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 2.979661592557477,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/0",
+      "near": [
+        0.10000000000000142,
+        0.40406101782087284
+      ],
+      "pixels": 937,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 22.58299299918383,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/1",
+      "near": [
+        0.20000000000000284,
+        0.10000000000000142
+      ],
+      "pixels": 1076,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 23.728794716600817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/2",
+      "near": [
+        0.24845199749997735,
+        0.2484519974999837
+      ],
+      "pixels": 1261,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.4309970234679668,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/attack/3",
+      "near": [
+        0.6428243465332233,
+        0.3277773886785538
+      ],
+      "pixels": 1142,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 5.009695940796121,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/cast/0",
+      "near": [
+        0.5153882032022076,
+        0.5270462766947269
+      ],
+      "pixels": 1168,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.4309970234679668,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/cast/1",
+      "near": [
+        0.48956043701222834,
+        0.5303300858899107
+      ],
+      "pixels": 1149,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 5.009695940796121,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/e/hurt/0",
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 647,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.3347117149120322,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/idle/0",
+      "near": [
+        0.9000000000000057,
+        0.5
+      ],
+      "pixels": 1182,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5036838204878222,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/idle/1",
+      "near": [
+        0.4123105625617719,
+        0.5
+      ],
+      "pixels": 1170,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5036838204878222,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/0",
+      "near": [
+        0.10000000000000142,
+        0.4242640687119245
+      ],
+      "pixels": 1138,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/1",
+      "near": [
+        0.10000000000000142,
+        0.4242640687119245
+      ],
+      "pixels": 1138,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/2",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1185,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/walk/3",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1185,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/0",
+      "near": [
+        0.22360679774997896,
+        0.4242640687119245
+      ],
+      "pixels": 1073,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 17.919269637515015,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/1",
+      "near": [
+        0.10000000000000142,
+        0.5656854249492461
+      ],
+      "pixels": 952,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 21.83627860354642,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/2",
+      "near": [
+        0.565685424949241,
+        0.22360679774997896
+      ],
+      "pixels": 1408,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.0493856703700999,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/attack/3",
+      "near": [
+        0.565685424949241,
+        0.3605551275463981
+      ],
+      "pixels": 1216,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 9.916842905554972,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/cast/0",
+      "near": [
+        0.5999999999999943,
+        0.14142135623730648
+      ],
+      "pixels": 1324,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.0493856703700999,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/cast/1",
+      "near": [
+        0.5000000000000029,
+        0.49999999999999717
+      ],
+      "pixels": 1226,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 9.916842905554972,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/ne/hurt/0",
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 715,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5036838204878222,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/idle/0",
+      "near": [
+        0.4006168083848873
+      ],
+      "pixels": 720,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5036838204878222,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/idle/1",
+      "near": [
+        0.4166666666666629
+      ],
+      "pixels": 717,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5036838204878222,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/0",
+      "near": [
+        0.5303300858899107,
+        0.10000000000000142
+      ],
+      "pixels": 1236,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/1",
+      "near": [
+        0.5303300858899107,
+        0.10000000000000142
+      ],
+      "pixels": 1236,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/2",
+      "near": [
+        0.40406101782087284,
+        0.24845199749997735
+      ],
+      "pixels": 1275,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/walk/3",
+      "near": [
+        0.40406101782087284,
+        0.24845199749997735
+      ],
+      "pixels": 1275,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 4.206777753171991,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/0",
+      "near": [
+        0.8999999999999986,
+        0.40406101782087284
+      ],
+      "pixels": 1087,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 17.919269637515015,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/1",
+      "near": [
+        0.20000000000000284,
+        0.10000000000000142
+      ],
+      "pixels": 1059,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 21.83627860354642,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/2",
+      "near": [
+        0.24845199749997735,
+        0.2484519974999837
+      ],
+      "pixels": 1383,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.0493856703700999,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/attack/3",
+      "near": [
+        0.6428243465332233,
+        0.3277773886785538
+      ],
+      "pixels": 1219,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 9.916842905554972,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/cast/0",
+      "near": [
+        0.5153882032022076,
+        0.5270462766947269
+      ],
+      "pixels": 1283,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.0493856703700999,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/cast/1",
+      "near": [
+        0.48956043701222834,
+        0.5303300858899107
+      ],
+      "pixels": 1225,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 9.916842905554972,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/ne/hurt/0",
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 720,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5036838204878222,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/idle/0",
+      "near": [
+        0.5656854249492461,
+        0.565685424949241
+      ],
+      "pixels": 998,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.010887864297998817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/idle/1",
+      "near": [
+        0.22360679774997896,
+        0.20000000000000284
+      ],
+      "pixels": 992,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.010887864297998817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/0",
+      "near": [
+        0.5656854249492461,
+        0.565685424949241
+      ],
+      "pixels": 900,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/1",
+      "near": [
+        0.5656854249492461,
+        0.565685424949241
+      ],
+      "pixels": 911,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/2",
+      "near": [
+        0.5656854249492461,
+        0.565685424949241
+      ],
+      "pixels": 900,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/walk/3",
+      "near": [
+        0.5656854249492461,
+        0.565685424949241
+      ],
+      "pixels": 911,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/0",
+      "near": [
+        0.4472135954999643,
+        0.22360679774997896
+      ],
+      "pixels": 776,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.6458743480317253,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/1",
+      "near": [
+        0.4472135954999643,
+        0.22360679774997896
+      ],
+      "pixels": 769,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 24.90401769233182,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/2",
+      "near": [
+        0.4000000000000057,
+        0.22360679774998216
+      ],
+      "pixels": 937,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.105935394400035,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/attack/3",
+      "near": [
+        0.4000000000000057,
+        0.8062257748298522
+      ],
+      "pixels": 889,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5983694863991929,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/cast/0",
+      "near": [
+        0.9000000000000057,
+        0.9000000000000057
+      ],
+      "pixels": 924,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.105935394400035,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/cast/1",
+      "near": [
+        0.565685424949241,
+        0.565685424949236
+      ],
+      "pixels": 884,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5983694863991929,
+        "blocked": false
+      }
+    },
+    {
+      "name": "m/n/hurt/0",
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 495,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.010887864297998817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/idle/0",
+      "near": [
+        0.2484519974999837,
+        0.24845199749997735
+      ],
+      "pixels": 994,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.010887864297998817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/idle/1",
+      "near": [
+        0.5300865358950302,
+        0.5300865358950265
+      ],
+      "pixels": 998,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.010887864297998817,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/0",
+      "near": [
+        0.2484519974999837,
+        0.24845199749997735
+      ],
+      "pixels": 900,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/1",
+      "near": [
+        0.5656854249492461,
+        0.24845199749997735
+      ],
+      "pixels": 905,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/2",
+      "near": [
+        0.2484519974999837,
+        0.24845199749997735
+      ],
+      "pixels": 900,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/walk/3",
+      "near": [
+        0.2484519974999837,
+        0.565685424949241
+      ],
+      "pixels": 905,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.6991634162619675,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/0",
+      "near": [
+        0,
+        0.24845199749997735
+      ],
+      "pixels": 769,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 1.6458743480317253,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/1",
+      "near": [
+        0,
+        0.24845199749997735
+      ],
+      "pixels": 750,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 24.90401769233182,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/2",
+      "near": [
+        0.375,
+        0.2484519974999837
+      ],
+      "pixels": 935,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.105935394400035,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/attack/3",
+      "near": [
+        0.375,
+        0.2484519974999837
+      ],
+      "pixels": 890,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5983694863991929,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/cast/0",
+      "near": [
+        0.3748277841470707,
+        0.3748277841470707
+      ],
+      "pixels": 932,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 33.105935394400035,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/cast/1",
+      "near": [
+        0.25,
+        0.25
+      ],
+      "pixels": 890,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.5983694863991929,
+        "blocked": false
+      }
+    },
+    {
+      "name": "f/n/hurt/0",
+      "near": [
+        0.9000000000000057
+      ],
+      "pixels": 492,
+      "edge": 0,
+      "policy": {
+        "primaryOnly": false,
+        "verticalDeviation": 0.010887864297998817,
+        "blocked": false
+      }
+    }
+  ],
+  "failures": [],
+  "maxA": 0.9000000000000057,
+  "maxB": 0.9000000000000057,
+  "edge": 0,
+  "normalizedHeadSize": 36,
+  "imported": false
+}
