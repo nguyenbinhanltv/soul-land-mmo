@@ -172,8 +172,9 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     fusLabel = fusBtn.querySelectorAll("span")[1];
   }
   mk("E", "Nhặt hồn hoàn", "Nhặt", "#ffe08a", "pickup", "", false, undefined, { title: "Nhặt hồn hoàn", lines: ["Nhặt hồn hoàn ở gần nhân vật."], foot: "Phím E" }, -1, 0, 0, artImg("item_hon_hoan"));
+  el.lastElementChild!.classList.add("pk");
   $("#itemActions").appendChild(el.lastElementChild!);
-  const bag = document.createElement("button"); bag.className = "sk ui-cell f2-o";
+  const bag = document.createElement("button"); bag.className = "sk ui-cell f2-o bg";
   bag.innerHTML = `<b class="key">B</b><span class="ico skart">${artImg("gi_menu_bag")}</span><span class="sk-name">Tiêu hao</span>`;
   bag.setAttribute("aria-label", "Mở túi dùng vật phẩm tiêu hao (B)");
   setTip(bag, { title: "Vật phẩm tiêu hao", lines: ["Mở túi để dùng đan, phù và vật phẩm."], foot: "Phím B · Túi đồ" });
@@ -181,6 +182,40 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
     openBagTieuHao();
   });
   $("#itemActions").appendChild(bag);
+  buildThumbExtras(act);
+}
+
+// ---------- Cụm ngón cái (mobile: cảm ứng hoặc ≤ 640 px): nút túi nhanh gộp E / B và nút ⋯ mở kỹ năng phụ ----------
+let lootNear = false;
+/** Có hồn hoàn / vật phẩm nhặt được trong tầm (GameScene báo mỗi khung hình): nút túi nhanh đổi sang Nhặt (icon + hành động), không thì mở túi tiêu hao. */
+export function setLootNear(on: boolean) {
+  if (on === lootNear) return;
+  lootNear = on; document.querySelector(".qbag")?.classList.toggle("loot", on);
+}
+let moreBound = false;
+const closeMore = () => { $("#actrow").classList.remove("more"); document.querySelector(".more-btn")?.setAttribute("aria-expanded", "false"); };
+/**
+ * Hai nút chỉ có trên mobile (desktop ẩn bằng CSS `ui2-hud-act.css`): `.qbag` (E nhặt + B túi tiêu hao gộp một) và `.more-btn` (⋯: mở / đóng hàng kỹ năng phụ
+ * R Chân Thân, G Dung hợp, Z / X / C hồn cốt). Chọn một kỹ năng phụ hoặc chạm ngoài cụm thì hàng phụ tự đóng. Chỉ hiển thị; lệnh vẫn qua `act`.
+ */
+function buildThumbExtras(act: (k: string) => void) {
+  const row = $("#actrow"), box = $("#itemActions");
+  const q = document.createElement("button"); q.className = "sk ui-cell f2-o qbag" + (lootNear ? " loot" : "");
+  q.innerHTML = `<span class="ico skart">${artImg("gi_menu_bag")}${artImg("item_hon_hoan", "alt")}</span>`;
+  q.setAttribute("aria-label", "Túi nhanh: nhặt hồn hoàn gần đó hoặc mở túi tiêu hao");
+  setTip(q, { title: "Túi nhanh", lines: ["Có đồ rơi gần nhân vật thì nhặt; không thì mở túi dùng vật phẩm tiêu hao."], foot: "Phím E nhặt · B túi" });
+  bindPress(q, () => { if (lootNear) act("pickup"); else openBagTieuHao(); });
+  const more = document.createElement("button"); more.className = "sk ui-cell f2-o more-btn";
+  more.innerHTML = `<span class="ico dots" aria-hidden="true"></span>`;
+  more.setAttribute("aria-label", "Thêm kỹ năng: Chân Thân, Dung hợp, hồn cốt");
+  more.setAttribute("aria-expanded", String(row.classList.contains("more")));
+  setTip(more, { title: "Thêm kỹ năng", lines: ["Mở / đóng hàng Chân Thân, Dung hợp và kỹ năng hồn cốt."] });
+  bindPress(more, () => { const on = row.classList.toggle("more"); more.setAttribute("aria-expanded", String(on)); });
+  box.append(q, more);
+  if (moreBound) return;
+  moreBound = true;
+  row.addEventListener("click", (e) => { if ((e.target as Element).closest(".sk.ava,.sk.fus,.sk.bsk")) closeMore(); });
+  document.addEventListener("pointerdown", (e) => { if (row.classList.contains("more") && !(e.target as Element).closest("#actrow")) closeMore(); });
 }
 
 // ---------- Võ Hồn Dung Hợp Kỹ (#193, mục 5.9): nút G, lời nhắc có đếm ngược, ô hồi chiêu ----------

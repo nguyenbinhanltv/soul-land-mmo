@@ -154,19 +154,23 @@ try {
     if (!before) {
       assert.equal(await page.locator("#actrow .action-group").count(), 3);
       await page.waitForFunction(() => [...document.querySelectorAll("#bskills .ico img")].every((img) => img.complete && img.naturalWidth > 0));
-      const boneIcons = await page.locator("#bskills .ico img").evaluateAll((imgs) => imgs.map((img) => {
-        const r = img.getBoundingClientRect(), cell = img.closest("button").getBoundingClientRect();
-        return { loaded: img.complete && img.naturalWidth > 0, inside: r.width > 0 && r.height > 0 && r.x >= cell.x && r.y >= cell.y && r.right <= cell.right && r.bottom <= cell.bottom };
-      }));
-      assert.equal(boneIcons.length, 3, "Giữ đủ ba ảnh hồn cốt từ main");
-      assert.ok(boneIcons.every((icon) => icon.loaded && icon.inside), "Ảnh hồn cốt phải tải được và nằm trong ô");
+      // Mobile: ảnh hồn cốt nằm ở hàng phụ (chỉ hiện khi bấm ⋯), kiểm lại ở khối cụm ngón cái.
+      if (!touch) {
+        const boneIcons = await page.locator("#bskills .ico img").evaluateAll((imgs) => imgs.map((img) => {
+          const r = img.getBoundingClientRect(), cell = img.closest("button").getBoundingClientRect();
+          return { loaded: img.complete && img.naturalWidth > 0, inside: r.width > 0 && r.height > 0 && r.x >= cell.x && r.y >= cell.y && r.right <= cell.right && r.bottom <= cell.bottom };
+        }));
+        assert.equal(boneIcons.length, 3, "Giữ đủ ba ảnh hồn cốt từ main");
+        assert.ok(boneIcons.every((icon) => icon.loaded && icon.inside), "Ảnh hồn cốt phải tải được và nằm trong ô");
+      }
       const geometry = await page.evaluate(() => {
-        const buttons = [...document.querySelectorAll("#actbar button")];
+        // Nút ẩn theo bố cục (túi nhanh / ⋯ chỉ có trên mobile; R, G, hồn cốt chỉ hiện khi mở ⋯ trên mobile) không tính vùng chạm.
+        const buttons = [...document.querySelectorAll("#actbar button")].filter((b) => b.getBoundingClientRect().width > 0);
         return buttons.map((b) => {
-          const r = b.getBoundingClientRect(), key = b.querySelector(".key").getBoundingClientRect();
+          const r = b.getBoundingClientRect(), key = b.querySelector(".key")?.getBoundingClientRect();
           const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
           return { label: b.getAttribute("aria-label"), x: r.x, y: r.y, w: r.width, h: r.height,
-            keyInside: key.x >= r.x && key.y >= r.y && key.right <= r.right && key.bottom <= r.bottom,
+            keyInside: !key || key.width === 0 || key.x >= r.x && key.y >= r.y && key.right <= r.right && key.bottom <= r.bottom,
             reachable: b.contains(hit), covering: hit?.closest("[id]")?.id, centered: r.x < innerWidth / 2 + 36 && r.right > innerWidth / 2 - 36 && r.y < innerHeight / 2 + 36 && r.bottom > innerHeight / 2 - 36 };
         });
       });
@@ -178,6 +182,26 @@ try {
         assert.ok(!b.centered, `Nút che vùng cảnh báo giữa màn: ${b.label}`);
       }
       // Ô đội hình: avatar tròn + số cấp + thanh sinh lực, không tên.
+      if (touch) {
+        // Cụm ngón cái: nút Đánh to nhất, 4 hồn kỹ + túi nhanh + ⋯, không đè cần điều khiển; ⋯ mở hàng phụ (R / G / hồn cốt), chọn xong tự đóng.
+        const rect = (sel) => page.locator(sel).first().evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, r: r.right, b: r.bottom }; });
+        const atk = await rect("#skills .sk:first-child"), joy = await rect("#joy");
+        assert.ok(atk.w >= 60 && atk.h >= 60, "Nút Đánh phải to nhất cụm");
+        for (const i of [0, 1, 2, 3]) { const k = await rect(`#skills .sk[data-i="${i}"]`); assert.ok(k.w >= 44 && k.h >= 44 && k.x < atk.x + atk.w && k.b <= atk.b, `Hồn kỹ ${i} phải nằm quanh nút Đánh`); }
+        assert.ok(atk.x > joy.r && (await rect(".qbag")).x > joy.r && (await rect(".more-btn")).x > joy.r, "Cụm ngón cái không đè cần điều khiển");
+        const hidden = await page.locator(".sk.bsk, .sk.ava").evaluateAll((els) => els.every((e) => e.getBoundingClientRect().width === 0));
+        assert.ok(hidden, "Hàng phụ ẩn khi chưa bấm ⋯");
+        await page.locator(".more-btn").tap();
+        await page.waitForFunction(() => document.querySelector(".more-btn").getAttribute("aria-expanded") === "true");
+        const extras = await page.locator(".sk.bsk, .sk.ava").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height, in: r.x >= 0 && r.right <= innerWidth && r.y >= 0 && r.bottom <= innerHeight }; }));
+        assert.ok(extras.length >= 3 && extras.every((e) => e.w >= 44 && e.h >= 44 && e.in), `Hàng phụ phải hiện đủ, ≥ 44 px, trong màn: ${JSON.stringify(extras)}`);
+        await page.waitForFunction(() => [...document.querySelectorAll("#bskills .ico img")].every((img) => img.complete && img.naturalWidth > 0));
+        await screenshot(page, "cum-ngon-cai-mo", size);
+        await page.locator(".more-btn").tap();
+        await page.waitForFunction(() => document.querySelector(".more-btn").getAttribute("aria-expanded") === "false");
+        const chips = await page.locator("#team button").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
+        assert.ok(chips.every((c) => c.w >= 44 && c.h >= 44 && c.x === chips[0].x) && chips.every((c, i) => i === 0 || c.y > chips[i - 1].y) && chips[0].x + 44 <= atk.x, "Chip đội hình xếp dọc, bên trái cụm");
+      }
       const names = await page.locator("#team button").evaluateAll((els) => els.map((e) => {
         const av = e.querySelector(".av")?.getBoundingClientRect(), lv = e.querySelector(".lv"), hp = e.querySelector(".hpb")?.getBoundingClientRect();
         return { avatar: !!av && av.width > 0 && Math.abs(av.width - av.height) < 1, level: lv?.textContent ?? "", hp: !!hp && hp.height > 0, hasName: [...e.children].some((c) => c.matches("span:not(.av)") && c.textContent) };
@@ -213,7 +237,8 @@ try {
         await screenshot(page, "tooltip", size);
       }
       await escClose(page);
-      const bag = page.getByRole("button", { name: "Mở túi dùng vật phẩm tiêu hao (B)" });
+      // Mobile: túi nhanh (gộp E / B) thay nút B; khi không có đồ rơi gần thì mở túi tiêu hao.
+      const bag = page.getByRole("button", { name: touch ? /Túi nhanh/ : "Mở túi dùng vật phẩm tiêu hao (B)" });
       if (touch) await bag.tap(); else await bag.click();
       await page.waitForFunction(() => !document.querySelector("#bag").hidden);
       assert.match(await page.locator("#bag .bfilter .on").innerText(), /Tiêu hao/);
@@ -288,8 +313,9 @@ try {
       await hook(page, "ready");
       await page.waitForFunction(() => document.querySelector(".sk.ava:not(.locked)"));
       const avatar = page.locator(".sk.ava");
-      if (touch) await avatar.tap(); else await avatar.click();
+      if (touch) { await page.locator(".more-btn").tap(); await avatar.tap(); } else await avatar.click();   // mobile: Chân Thân ở hàng phụ (⋯)
       await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
+      if (touch) assert.equal(await page.locator("#actrow.more").count(), 0, "Chọn kỹ năng phụ thì hàng phụ tự đóng");
       await screenshot(page, "chan-than", size);
       assert.equal(await avatar.getAttribute("aria-disabled"), "false");
       await hook(page, "rest", { s: 120 });

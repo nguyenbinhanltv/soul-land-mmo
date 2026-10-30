@@ -12,7 +12,7 @@ import type { PortalInfo, BagItem, PartyView } from "./net.ts";
 // Ô chat đã tách sang chat.ts (Part of #885); giữ tên cũ ở đây để GameScene vẫn gọi hud.chat*.
 export { log, logImp, chatLine, chatWhisper, chatReplyTo, chatSendCh, chatSetTab, chatWhisperTo, chatFocus, chatClose, buildChatTabs, CHAT_COL, type ChatCh, type ChatTab } from "./chat.ts";
 // Thanh kỹ năng / chỉ số / đội nhỏ đã tách sang hudBar.ts (Part of #885 bước 2); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
-export { ringColor, SKILL_KEYS, BONE_SKILL_KEYS, skillCd, cdText, starSkillText, skillSpec, buildSkills, FUSION_KEY, setFusionCd, fusionOp, setFusionPending, updateFusion, AVA_KEY, chanThanText, boneSkillText, buildBoneSkills, statusText, updateStats, setAbsorbing, buildTeam, setSquad, updateTeam, type WornBone } from "./hudBar.ts";
+export { ringColor, SKILL_KEYS, BONE_SKILL_KEYS, skillCd, cdText, starSkillText, skillSpec, buildSkills, setLootNear, FUSION_KEY, setFusionCd, fusionOp, setFusionPending, updateFusion, AVA_KEY, chanThanText, boneSkillText, buildBoneSkills, statusText, updateStats, setAbsorbing, buildTeam, setSquad, updateTeam, type WornBone } from "./hudBar.ts";
 // Thanh boss / đếm ngược / xếp hạng đóng góp đã tách sang hudBoss.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { setBossCountdown, updateBossCd, setBossLife, setBossRage, setBossWeak, showBoss, bossRank, type BossWorldView } from "./hudBoss.ts";
 // Bảng Võ Hồn / đội hình, hồn kỹ, hồn cốt, hồn hạch, cường hóa và mảnh võ hồn của HUD đã tách sang hudRoster.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.

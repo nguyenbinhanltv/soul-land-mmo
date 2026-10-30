@@ -59,6 +59,59 @@
 #hud #actbar .tm.ui-cell.down .av{filter:grayscale(1)}
 #hud #actbar .tm.ui-cell.full::after{content:"★";position:absolute;right:1px;top:-3px;z-index:4;font:var(--fs-s)/12px var(--f10);color:var(--qgold);text-shadow:var(--stroke)}
 
-/* Chạm / màn hẹp (tạm tới PR2 cụm ngón cái): hàng ô xuống dòng, chừa cần điều khiển (130 px + lề) bên trái; bỏ vạch phân nhóm vì nhóm có thể ngắt dòng. */
-:where(body.touch, body.ui-w640) #hud #actrow{flex-wrap:wrap;justify-content:flex-end;gap:var(--sp-2);max-width:calc(100vw - 170px)}
-:where(body.touch, body.ui-w640) #hud #actrow .action-group+.action-group{margin-left:0;padding-left:0;border-left:0}
+/* Nút chỉ dành cho mobile (túi nhanh, ⋯): desktop ẩn. */
+#hud #actbar :is(.qbag,.more-btn){display:none}
+
+/* ===== MOBILE (cảm ứng hoặc ≤ 640 px logic): cụm ngón cái góc phải dưới (HUD tối ưu, PR2) =====
+   Hộp 200 × 164: nút Đánh to (64) ở góc, 4 hồn kỹ (44) quanh cung 90°–180° tâm nút Đánh, cột phải có túi nhanh (nhặt / túi tiêu hao gộp một) và ⋯.
+   ⋯ mở hàng phụ phía trên cụm: R Chân Thân, G Dung hợp, Z / X / C hồn cốt. Đội hình thu thành 4 chip dọc bên trái cụm. Mọi nút ≥ 44 px, không đè cần điều khiển
+   (trái dưới) hay giữa màn. Dùng :is(.touch,.ui-w640) trong mọi luật để thắng độ ưu tiên của luật desktop ở trên. */
+body:is(.touch,.ui-w640) #hud #actbar{position:absolute;right:0;bottom:calc(var(--sp-3) - 4px);width:200px;height:164px;gap:0}
+body:is(.touch,.ui-w640) #hud #actrow{position:absolute;inset:0;display:block;max-width:none}
+body:is(.touch,.ui-w640) #hud #actrow :is(.action-group,#skills,#bskills,#itemActions){display:contents}
+body:is(.touch,.ui-w640) #hud #actrow .action-group+.action-group{margin:0;padding:0;border:0}
+body:is(.touch,.ui-w640) #hud #actbar .sk.ui-cell.f2-o{position:absolute;width:44px;height:44px}
+body:is(.touch,.ui-w640) #hud #actbar :is(.pk,.bg){display:none}   /* E / B gộp vào .qbag */
+body:is(.touch,.ui-w640) #hud #actbar :is(.qbag,.more-btn){display:flex}
+body:is(.touch,.ui-w640) #hud #actbar .qbag .ico.skart{position:relative}
+body:is(.touch,.ui-w640) #hud #actbar .qbag .ico img.alt{display:none}
+body:is(.touch,.ui-w640) #hud #actbar .qbag.loot .ico img:not(.alt){display:none}
+body:is(.touch,.ui-w640) #hud #actbar .qbag.loot .ico img.alt{display:block}
+body:is(.touch,.ui-w640) #hud #actbar .qbag.loot{box-shadow:0 0 0 var(--bd) var(--qgold)}   /* có đồ nhặt: viền vàng + đổi icon (hình, không chỉ màu) */
+body:is(.touch,.ui-w640) #hud #actbar .more-btn .dots{display:block;width:4px;height:4px;background:var(--plate-text);box-shadow:-8px 0 var(--plate-text),8px 0 var(--plate-text)}
+body:is(.touch,.ui-w640) #hud #actbar .more-btn[aria-expanded="true"]{box-shadow:0 0 0 var(--bd) var(--accent)}
+
+/* Toạ độ (góc trên trái hộp): tâm nút Đánh (114, 128); cung bán kính 88. */
+body:is(.touch,.ui-w640) #hud #actbar #skills>.sk.ui-cell.f2-o:first-child{left:82px;top:96px;width:64px;height:64px}   /* J Đánh */
+body:is(.touch,.ui-w640) #hud #actbar #skills>.sk.ui-cell.f2-o:first-child .ico{width:40px;height:40px}
+body:is(.touch,.ui-w640) #hud #actbar .sk[data-i="0"]{left:4px;top:106px}
+body:is(.touch,.ui-w640) #hud #actbar .sk[data-i="1"]{left:16px;top:62px}
+body:is(.touch,.ui-w640) #hud #actbar .sk[data-i="2"]{left:48px;top:30px}
+body:is(.touch,.ui-w640) #hud #actbar .sk[data-i="3"]{left:92px;top:18px}
+body:is(.touch,.ui-w640) #hud #actbar .qbag{left:150px;top:20px}
+body:is(.touch,.ui-w640) #hud #actbar .more-btn{left:150px;top:74px}
+
+/* Hàng phụ (R, G, Z, X, C): ẩn tới khi bấm ⋯; xếp ngang phía trên cụm, căn phải. */
+body:is(.touch,.ui-w640) #hud #actbar .sk:is(.ava,.fus,.bsk){display:none;top:-52px}
+body:is(.touch,.ui-w640) #hud #actrow.more .sk:is(.ava,.fus,.bsk){display:flex}
+body:is(.touch,.ui-w640) #hud #actbar .sk.bsk[data-b="2"]{left:auto;right:0}
+body:is(.touch,.ui-w640) #hud #actbar .sk.bsk[data-b="1"]{left:auto;right:48px}
+body:is(.touch,.ui-w640) #hud #actbar .sk.bsk[data-b="0"]{left:auto;right:96px}
+body:is(.touch,.ui-w640) #hud #actbar .sk.fus{left:auto;right:144px}
+body:is(.touch,.ui-w640) #hud #actbar .sk.ava{left:auto;right:192px}
+
+/* Đội hình: 4 chip dọc bên trái cụm (44 × 44: avatar, số cấp ở góc, thanh sinh lực), ô 1 ở trên. */
+body:is(.touch,.ui-w640) #hud #actbar #team{position:absolute;right:100%;bottom:0;margin-right:var(--sp-3);flex-direction:column;gap:var(--sp-2)}
+body:is(.touch,.ui-w640) #hud #actbar .tm.ui-cell.f2-o{width:44px;height:44px;padding:0;justify-content:center}
+body:is(.touch,.ui-w640) #hud #actbar .tm.ui-cell .av{width:24px;height:24px;margin-bottom:var(--sp-2)}
+body:is(.touch,.ui-w640) #hud #actbar .tm.ui-cell .lv{position:absolute;left:auto;top:auto;right:2px;bottom:5px;margin:0;padding:0 2px;background:var(--plate);line-height:10px}
+body:is(.touch,.ui-w640) #hud #actbar .tm.ui-cell .hpb{bottom:2px}
+/* Cảm ứng không có bàn phím: ẩn thẻ phím. */
+body.touch #hud #actbar :is(.sk,.tm).ui-cell .key{display:none}
+
+/* Mobile ngang thấp: khung radar thu gọn (bỏ chú giải, số người, tên vùng, dòng toạ độ; radar 100 px) để cột phải không chạm cụm ngón cái ở dưới. Nút Kênh / Vùng / Thế giới giữ nguyên. */
+body:is(.touch,.ui-w640).ui-h460:not(.ui-portrait) #hud .mapbox :is(#mapLegend,#online,#zoneName,.c12-radar-info){display:none}
+body:is(.touch,.ui-w640).ui-h460:not(.ui-portrait) #hud #radar{width:100px;height:100px}
+
+/* Mobile dọc: ô gõ chat nằm sát đáy, cụm ngón cái nâng lên trên nó. */
+body:is(.touch,.ui-w640).ui-portrait #hud #actbar{bottom:calc(var(--sp-3) + 44px)}

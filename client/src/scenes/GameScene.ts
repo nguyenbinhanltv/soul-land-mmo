@@ -3840,6 +3840,7 @@ export class GameScene extends Phaser.Scene {
       else hud.showPrompt(dr.item ? `<span class="dot" style="color:${it?.col ?? "#9db3a2"}"></span>${dr.qty} ${it?.name ?? "vật phẩm lạ"}: ${msg}`
         : `<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${formatYears(dr.years)} (${TIERS[dr.tier].color}): ${msg}`);
     } else hud.showPrompt(null);
+    hud.setLootNear(!!dr && me.absorb <= 0);
     this.drawCmdChip();
     this.drawMinimap();
   }
