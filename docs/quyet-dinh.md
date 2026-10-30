@@ -55,6 +55,7 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q43 | 2026-10-25 | Ảnh **concept pháp tướng không thuộc ngoại lệ PixelLab**: PixelLab chỉ cho hoạt ảnh, sheet hiệu ứng, pháp tướng dạng hoạt ảnh và xoay hướng (làm rõ Q22); concept ảnh tĩnh làm bằng công cụ ảnh tĩnh (mục Q44); concept cũ đã có giữ nguyên ghi nguồn | #482, #541 | `docs/art/nguon-giay-phep.md`, `docs/art/phap-tuong.md` |
 | Q44 | 2026-10-25 | **Ảnh sinh bằng model dùng ChatGPT và Codex** (họ C1–C16 vẫn Codex của tthoadev; biểu tượng trang bị E6 làm bằng ChatGPT); ComfyUI vẫn là công cụ ảnh tĩnh của orchestrator; ảnh Gemini cũ đã duyệt giữ nguyên ghi nguồn. Thay quy tắc cũ 2026-10-24 "chỉ Gemini" | #616 | `docs/art/nguon-giay-phep.md`, skill `asset-gen` |
 | Q45 | 2026-10-25 | **Làm khắc may mắn bằng Thần Hồn** theo thiết kế sẵn có; bảng `EQUIP_LUCK_UP` coi như đã duyệt (chủ repo trả lời P4, phương án a); phần may mắn ở `docs/design/trang-bi.md` do việc #662 sửa cùng code | #662 | `docs/design/trang-bi.md` |
+| Q53 | 2026-10-31 | Bản đồ thế giới mở bằng M dùng một tranh vẽ tay thủy mặc trên giấy cổ cùng kit Giấy / Mực, Codex sinh ảnh; không chữ trên nền, nút / nhãn / đường cổng phủ bằng code; bố cục theo dữ liệu thật, chừa lề và có JSON tọa độ chuẩn hóa. Ngoại lệ nền Giấy so với bảng thao tác Mực ở Q49 | #1415 | `docs/art/ban-do-the-gioi.md` |
 
 ## Quy trình, CI, triển khai
 
@@ -75,12 +76,6 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q50 | 2026-10-26 | **Hoạt ảnh hồn thú v2** (chủ repo, thân #861): vẫn sinh ảnh H4 (#767–#781) song song; tờ B cỡ 1254×1254 hợp lệ (cỡ hợp lệ theo **tỉ lệ**, lệch cỡ không còn là LỖI); giữ hoạt ảnh `hurt` đầy đủ (sửa prompt cho lùi theo hướng); RAW vẫn trong git, xem lại sau đợt thử 3 loài; dự phòng theo hướng `anim.dirsOk` ưu tiên thấp | #861, #766 | `docs/art/hon-thu-hoat-anh.md` |
 | Q51 | 2026-10-26 | **Kế hoạch di chuyển & giao chiến** (chủ repo duyệt, thân #746): đợt 1 M1, M2, M4 → M3; đợt 2 M5, M6; sau đó UI #732 U0–U5; **U6 điện thoại không làm, giữ Q40** | #746, #732 | `docs/design/giao-dien.md` |
 | Q52 | 2026-10-28 | **Bảng Xếp Hạng, điểm danh / Phúc Lợi / Lịch** (chủ repo, "tất cả theo đề xuất", 5 câu #1191): (1) v1 thưởng hạng chỉ là danh hiệu hiển thị theo tuần, không thưởng vật phẩm / Hồn Tệ; (2) công khai đội hình 4 ô, mỗi ô chỉ mã võ hồn, cấp, sao; (3) chu kỳ điểm danh riêng mỗi tài khoản từ lần ký đầu, mốc 7 / 14 / 21 theo số thứ tự ô (ký bù ô 7 vẫn có mốc); (4) ký bù = lượt miễn phí mỗi chu kỳ + lượt trả Hồn Tệ lũy tiến, trần số ô ký bù do skill `balance-review` đề xuất, hằng ở `shared/data.ts`; (5) v1 Lịch chỉ liệt kê sự kiện đã có, GM đặt sự kiện tạm / nhân thưởng làm sau | #877, #1191 | `docs/design/xep-hang.md`, `docs/design/phuc-loi.md`, `docs/design/lich-hoat-dong.md` |
-
-## Bổ sung mỹ thuật đã duyệt
-
-| Mã | Ngày | Quyết định | Issue / PR | File thiết kế |
-|---|---|---|---|---|
-| Q53 | 2026-10-31 | Bản đồ thế giới mở bằng M dùng một tranh vẽ tay thủy mặc trên giấy cổ cùng kit Giấy / Mực, Codex sinh ảnh; không chữ trên nền, nút / nhãn / đường cổng phủ bằng code; bố cục theo dữ liệu thật, chừa lề và có JSON tọa độ chuẩn hóa. Ngoại lệ nền Giấy so với bảng thao tác Mực ở Q49 | #1415 | `docs/art/ban-do-the-gioi.md` |
 
 ## Việc đang chờ chủ repo
 
