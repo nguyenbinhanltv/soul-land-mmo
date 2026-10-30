@@ -1,0 +1,971 @@
+{
+  "tool": "Codex / OpenAI image_gen built-in",
+  "model": "unknown",
+  "seed": "unknown",
+  "terms": "OpenAI output terms; not CC0",
+  "history": [
+    {
+      "dir": "s",
+      "attempt": 1,
+      "file": "s/attempt1/poses.raw.png",
+      "sha256": "32eb626b81f9709eaefed8a543adc56effb17bc4021cb87c3488d7cb0fab2dd5",
+      "prompt": "s/attempt1/prompt.txt",
+      "promptSha256": "5e57afb653aef4c2d36d572fe0d0ec2e0b1eebf1e4acb3933b9e3c4599aacb30",
+      "selected": false,
+      "status": "generated",
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    {
+      "dir": "s",
+      "attempt": 2,
+      "file": "s/attempt2/poses.raw.png",
+      "sha256": "d6623e2dfd49ff2e38dee6bf41af1e14616624cb8801b230d6770f068c6377eb",
+      "prompt": "s/attempt2/prompt.txt",
+      "promptSha256": "6a6308a747c913f7bd0c613a8f193cd2fdf02899e2daa2d3f2f5bebfaa4ea2f4",
+      "selected": true,
+      "status": "generated",
+      "reference": "s/attempt1/poses.raw.png"
+    },
+    {
+      "dir": "se",
+      "attempt": 1,
+      "file": null,
+      "sha256": null,
+      "prompt": "se/attempt1/prompt.txt",
+      "promptSha256": "f1badb98b8fdd8512586f68482fcf7196a1cba543b5bbcba4b5f37ebb63c2a34",
+      "selected": false,
+      "status": "input_rejected",
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    {
+      "dir": "se",
+      "attempt": 2,
+      "file": "se/attempt2/poses.raw.png",
+      "sha256": "a369f0cb9b27fc1e1865d8083b164008ae9466a27bdff2b1b1026931cfeb2dc2",
+      "prompt": "se/attempt2/prompt.txt",
+      "promptSha256": "b30bf02ad64da735360515e931225f9f23092b4897b43c000ba65c65e1bd4a42",
+      "selected": true,
+      "status": "generated",
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    {
+      "dir": "e",
+      "attempt": 1,
+      "file": "e/attempt1/poses.raw.png",
+      "sha256": "baa34060db1ffb864d1adcc10f88945b7f5a1e518c8cfa8902f35446812a548c",
+      "prompt": "e/attempt1/prompt.txt",
+      "promptSha256": "aec46b8eb506e8e4be57329e646d31473dee554c119742098662bb634f251739",
+      "selected": true,
+      "status": "generated",
+      "reference": null
+    },
+    {
+      "dir": "ne",
+      "attempt": 1,
+      "file": "ne/attempt1/poses.raw.png",
+      "sha256": "47d6dd3e2e75dcc19245961b1cdb3b5a113cebe6c1d43ac8acf5e2d6ba00413f",
+      "prompt": "ne/attempt1/prompt.txt",
+      "promptSha256": "ff81b55d58524b228e087e7162f85194db01a120d272afbd28971ea1c712b351",
+      "selected": true,
+      "status": "generated",
+      "reference": "e/attempt1/poses.raw.png"
+    },
+    {
+      "dir": "n",
+      "attempt": 1,
+      "file": "n/attempt1/poses.raw.png",
+      "sha256": "1bbc973013023d36d9b271ba290a068183e3c8214b8b86f2e6a7a9f83dfc4944",
+      "prompt": "n/attempt1/prompt.txt",
+      "promptSha256": "cf024cb3ffed65a75a1ee01c52affa538687e3a76a1b4f805c476f91bc7081f4",
+      "selected": false,
+      "status": "generated",
+      "reference": "ne/attempt1/poses.raw.png"
+    },
+    {
+      "dir": "n",
+      "attempt": 2,
+      "file": "n/attempt2/poses.raw.png",
+      "sha256": "ca2cccd072194c9ca6af715912e3ce4dfd07dafd1597e7ddeb20bcb89be06212",
+      "prompt": "n/attempt2/prompt.txt",
+      "promptSha256": "ee89cae3e40168905b1e9cdeef9a843f45cdf154052427267d7255a6da1e1da5",
+      "selected": true,
+      "status": "generated",
+      "reference": "n/attempt1/poses.raw.png"
+    }
+  ],
+  "recipeSha256": "f6bfbda1eb31bf2c1b91e135aaf89e4b6c0f3fa977c7b0e9a1066063bc684a22",
+  "canonicalCheckerSha256": "163a6d87721ba2b6b7293917911c9ec01708cc2a5e541951af825e42fe45622a",
+  "sheets": {
+    "b": "c3144a68b96a757afede60b5d2b4f8372bd61036d1a9905c909c7deb8a7eb791",
+    "f": "a6961c21a29915156a9e3e8b24f798c5c6c9d5176f2ffcf906be0a33ac21e5fa"
+  },
+  "composition": "one source blade per pose; mirrored twin around independent B grip; no LPC modification",
+  "visibility": {
+    "frames": [
+      {
+        "name": "m/s/idle/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/idle/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/s/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/s/idle/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/idle/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/s/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "m/se/idle/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/idle/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/se/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/se/idle/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/se/idle/1",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/se/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/se/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "m/e/idle/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/idle/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/e/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/e/idle/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/e/idle/1",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/e/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/e/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "m/ne/idle/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/idle/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/ne/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/ne/idle/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/ne/idle/1",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/ne/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/ne/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "m/n/idle/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/idle/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "m/n/hurt/0",
+        "requested": 2,
+        "visible": 1
+      },
+      {
+        "name": "f/n/idle/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/idle/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/walk/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/walk/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/walk/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/walk/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/attack/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/attack/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/attack/2",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/attack/3",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/cast/0",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/cast/1",
+        "requested": 2,
+        "visible": 2
+      },
+      {
+        "name": "f/n/hurt/0",
+        "requested": 2,
+        "visible": 1
+      }
+    ],
+    "oneVisible": 16,
+    "twoVisible": 114,
+    "policy": "Only measured visible hands; missing B omitted and marked null, no inferred anchor; owner art approval required"
+  },
+  "maxAAfterCut": 0.9000000000000057,
+  "maxMeasuredBAfterCut": 0.9000000000000057,
+  "maxSingleBladeDiagonalGamePixels": 54.05259992279437,
+  "bodyReferencePixels": 47,
+  "gripLengthUpperBoundBodyRatio": 1.1500553175062633,
+  "gripBoundReason": "A short grip is contained inside whole blade bounding diagonal; this upper bound is below1.4body",
+  "capture": {
+    "method": "native Chrome Playwright; --mute-audio; master0/muted true before load;1600x900; no crop/resize/composition",
+    "game": "RAM GAME_TEST=1; UI creation/awakening; paused GameScene animatePlayer and actual body frames at0/100/190/260ms; renderer inspection, not full combat",
+    "screenshots": [
+      {
+        "file": "game-f-e-0.png",
+        "sha256": "e4ff958cf868eb3e9d8fadca369322391a690925c003762efb7e256425d3f357"
+      },
+      {
+        "file": "game-f-e-100.png",
+        "sha256": "b310af6a5d2093381a2bfcd9c352f7b327c632cf899fc051186a5f567bdb8ce6"
+      },
+      {
+        "file": "game-f-e-190.png",
+        "sha256": "f3660fa2f4f68ec3505cffe040f6324d88c80d70ca5bdfa85bc333d0973d2553"
+      },
+      {
+        "file": "game-f-e-260.png",
+        "sha256": "246c3df7718b6dde1c40ea5736294fdc4edb839e6d1e01de511d69e482cf8cf5"
+      },
+      {
+        "file": "game-f-n-0.png",
+        "sha256": "69c7d22f4b21717dfb4e85f4efe534980a13d0060618aeeae76264cf9c55697a"
+      },
+      {
+        "file": "game-f-n-100.png",
+        "sha256": "d776ec1cd0a9258491499f70fe9cbd513430b0aea0b061ff658f62fc6c07c26d"
+      },
+      {
+        "file": "game-f-n-190.png",
+        "sha256": "bea86b7332822833367a846f067a60c9e4f68459b38643646f749b5fed6db408"
+      },
+      {
+        "file": "game-f-n-260.png",
+        "sha256": "e138983cf0668a00545c3d81e20737fa389c3575b85bc0d9c20634082e0395d3"
+      },
+      {
+        "file": "game-f-ne-0.png",
+        "sha256": "89f97e75a0cb45be64656bcd2ed114446b5b2b46989c8ccc05f0bb5b48702dc1"
+      },
+      {
+        "file": "game-f-ne-100.png",
+        "sha256": "1597c9392f6789140ff348897dfcf3010c63d6e66ad192db92dd359b7bd69f26"
+      },
+      {
+        "file": "game-f-ne-190.png",
+        "sha256": "56df5955a8b67bb8afc679e3e25d39d7b526ee89e7d285d0fdf4ca000cf0cf7b"
+      },
+      {
+        "file": "game-f-ne-260.png",
+        "sha256": "197ba8d25ac53156c8a73ace029597be9d9f66e4bacbd24c2bb8b73ef5b21471"
+      },
+      {
+        "file": "game-f-s-0.png",
+        "sha256": "8ef52c675f5d9d4c51870eb4b4e8e6c7bc70a0539cd2a6a836e6d0790c6a0aa8"
+      },
+      {
+        "file": "game-f-s-100.png",
+        "sha256": "025eebd71c68920b6e4f740c6fd6dbfbfc956badc6fdd24cdf4de0823e5c4c20"
+      },
+      {
+        "file": "game-f-s-190.png",
+        "sha256": "514f50dd5ae2368be358fdcd18c2c3f1159aceec1f8af9b97c1615860f6b9c57"
+      },
+      {
+        "file": "game-f-s-260.png",
+        "sha256": "f7970b5b33366f52c11de96e5e624e277ffb968df520a9777418b8c8960e4df0"
+      },
+      {
+        "file": "game-f-se-0.png",
+        "sha256": "999ecc9e18e3278e4b0803e1dafe7ae53e86418cbb7cd7ad48c93d756c8b6fd3"
+      },
+      {
+        "file": "game-f-se-100.png",
+        "sha256": "92f4072e0114159435cd0e852cffb133dd567a03ea487f5ffff2c0d8a8252b65"
+      },
+      {
+        "file": "game-f-se-190.png",
+        "sha256": "8d7db92a39c9d21012d1fd2659de66f4affaf7f6545ac89d9f3277e7e06e1965"
+      },
+      {
+        "file": "game-f-se-260.png",
+        "sha256": "669ee823e56b08c066328eb800290ea82502ddd20bbdf4c8fa36b1c9326ac698"
+      },
+      {
+        "file": "game-m-e-0.png",
+        "sha256": "6cc5771be9323fc499e1b9afa7e9f8b0d4cb265e87c25a067df8e453ca078ac4"
+      },
+      {
+        "file": "game-m-e-100.png",
+        "sha256": "0da07a1eef7cab8d4adb39b5c963bf904788e20c8113feadacfb8193c2f5d3fe"
+      },
+      {
+        "file": "game-m-e-190.png",
+        "sha256": "8186cd4b33bc704cecb737f1abe19746b143b0e42186f7d409acca148951ea25"
+      },
+      {
+        "file": "game-m-e-260.png",
+        "sha256": "e66ad413fff214e020461bec7ea61685b6090ab129b65134bef0028332a75771"
+      },
+      {
+        "file": "game-m-n-0.png",
+        "sha256": "ef6cea4df1c63ec47c51e2cf691e1128527f367567bb0724fbdab0148af44121"
+      },
+      {
+        "file": "game-m-n-100.png",
+        "sha256": "90c068ba65fb311c0b53f7c900c13ee25c49428c331d0f755f4b671a9157d28f"
+      },
+      {
+        "file": "game-m-n-190.png",
+        "sha256": "72ffaea18fda38b88f298a0d4b638b710f8c754f4857d64b7de1d8f0174812d9"
+      },
+      {
+        "file": "game-m-n-260.png",
+        "sha256": "5d15125953de557179b4d8256a9884b4476dfc119746f385d8613a2a3ba5393f"
+      },
+      {
+        "file": "game-m-ne-0.png",
+        "sha256": "b6fc5892d727e7b352a7cfde4cf9bf02f5dccef515ecf426796ec36bd4e4c9a1"
+      },
+      {
+        "file": "game-m-ne-100.png",
+        "sha256": "ca77e6ba4979b2c9aae8ebcfc01f0a0aa00b16eb5480ef1868cf5ffeb493c702"
+      },
+      {
+        "file": "game-m-ne-190.png",
+        "sha256": "bcf7c4939ea49c1091d2fb21b94160bf3b461064d1a85129664d709ef4871587"
+      },
+      {
+        "file": "game-m-ne-260.png",
+        "sha256": "48e6bf7a4636248d6699d455fdf389c6e7bdb6bdb532a7e5eb0c13ba7529de32"
+      },
+      {
+        "file": "game-m-s-0.png",
+        "sha256": "aa6e1fab8fa639562998016aa2cb5727b2c3b61fe19a88282e6543805f5f687e"
+      },
+      {
+        "file": "game-m-s-100.png",
+        "sha256": "aaefffd9af684798575bab7f11abe03cfaf618f5750db4db04cf372c066eb86d"
+      },
+      {
+        "file": "game-m-s-190.png",
+        "sha256": "b0622b7d48a59a7d23c0f052573be2cd2885372e4d526ed78693ec37c29c5945"
+      },
+      {
+        "file": "game-m-s-260.png",
+        "sha256": "b6c8daae78f3aab8e5fc9f5faf78026e36e337e929645fd9a218b93fe1d27931"
+      },
+      {
+        "file": "game-m-se-0.png",
+        "sha256": "f7e7c554359d03e64a1859e8078470a70c88b2a125c0ac9c4b2a14442fa844a7"
+      },
+      {
+        "file": "game-m-se-100.png",
+        "sha256": "5259114f7ccb2a3de2b713425847a596044e9f70a769d00daacbb616cd2e520b"
+      },
+      {
+        "file": "game-m-se-190.png",
+        "sha256": "16b9648cd8fe4dc9f55048bd3f2585360bca7f53b24e90bec7a9b8a15eb6eef7"
+      },
+      {
+        "file": "game-m-se-260.png",
+        "sha256": "d22ff72ca0c1774de697a58f09f627dfaa0f4a66817a8567b0c23fc2f72cbe7f"
+      },
+      {
+        "file": "test-f-attack.png",
+        "sha256": "cd07b95ce96cfa7199c141ed2ca1ee181905ee982ebabaab3ade720f6d37483c"
+      },
+      {
+        "file": "test-f-cast.png",
+        "sha256": "40baacada47225c87fc577b01d8e5f03fa22e32da4c9af66876dc539731ab892"
+      },
+      {
+        "file": "test-f-idle.png",
+        "sha256": "44284f0ffa605f08f90447112b02da7862dc30b2574aa8132dd37c000c908739"
+      },
+      {
+        "file": "test-f-walk.png",
+        "sha256": "59f16c12f1ee84e99dc6bca2d50dc9bc7d3ba1f215d17ad1c41fec1b352aaedd"
+      },
+      {
+        "file": "test-m-attack.png",
+        "sha256": "798af876fc7e069c7b0cf3e9b87dbc0f904dba39379998fb3c1870aae3702a00"
+      },
+      {
+        "file": "test-m-cast.png",
+        "sha256": "f3defd52c2420dba61ccf58199a2e88aaaf2360e06d845d0d9c8c96240451980"
+      },
+      {
+        "file": "test-m-idle.png",
+        "sha256": "225d8fa8eef97c9ae26ec215fa64ae50cbc3a8eafd7404fd4806b1c83d25eb69"
+      },
+      {
+        "file": "test-m-walk.png",
+        "sha256": "fe86919e9cea89602dd88410ee9997893831c21626c687a8bf1a9d55c10dbaeb"
+      }
+    ]
+  },
+  "canonicalVerification": {
+    "policyPR": 1367,
+    "checkerPatched": false,
+    "reportsRebuilt": true,
+    "sheetsUnchanged": true,
+    "note": "Rebuilt five directions and cutter against canonical checker after merging main; sheet bytes match previous output."
+  }
+}
