@@ -382,8 +382,7 @@ let recall: { label: string; secs: number; t0: number } | null = null;
 export function setAuto(m: AutoMsg) {
   const b = $("#autoChip"); if (!b) return;
   b.hidden = !m.on; // chip chỉ hiện khi đang tự săn; bấm mở bảng Tự động
-  $("#autoChipTxt").textContent = `Tự động · còn ${autoTimeText(m.left)}`; // quỹ giờ treo còn lại (gồm Ủy Thác Lệnh nếu có)
-  b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo${m.bonus > 0 ? ` (gồm ${autoTimeText(m.bonus)} từ Ủy Thác Lệnh)` : ""} (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
+  b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
 }
 export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
 /** Thanh niệm truyền tống (gọi trong updateStats khi không hấp thụ). Trả về true nếu đang hiện. */

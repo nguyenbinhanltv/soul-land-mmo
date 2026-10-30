@@ -878,8 +878,6 @@ export class GameScene extends Phaser.Scene {
     hud.onBeforeBagFromBar(() => this.clearForPanel());
     // Chip "Tự động" (chỉ hiện khi đang tự săn) và chip hồn hoàn ở khung chỉ số: mở bảng Tự động / Hồn Cốt. Các nút menu cũ đã bỏ, hub (huy hiệu giữa trên / Esc) mở mọi bảng.
     document.getElementById("autoChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); mapview().close(); toggleAutoPanel(); }, on);
-    document.getElementById("vhChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleRoster(true); }, on);
-    document.getElementById("coinChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleBag(true); }, on);
     document.getElementById("ringChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.openBoneTab(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     hud.onResonanceTop((page, pageSize) => this.room.send("resonance", { op: "top", page, pageSize }));

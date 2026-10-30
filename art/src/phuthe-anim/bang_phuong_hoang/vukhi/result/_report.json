@@ -1,0 +1,3912 @@
+{
+  "frames": 130,
+  "scale": 0.085,
+  "geometry": [
+    {
+      "name": "m/s/idle/0",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.68204432268503,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 273
+    },
+    {
+      "name": "m/s/idle/1",
+      "near": 0.29999999999999716,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.68204432268503,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 282
+    },
+    {
+      "name": "m/s/walk/0",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 287
+    },
+    {
+      "name": "m/s/walk/1",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 287
+    },
+    {
+      "name": "m/s/walk/2",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 287
+    },
+    {
+      "name": "m/s/walk/3",
+      "near": 0.6428243465332233,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 288
+    },
+    {
+      "name": "m/s/attack/0",
+      "near": 0.5590169943749475,
+      "secondaryRasterDistance": 14.911260141662945,
+      "axisDegrees": 89.39797110468639,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 265
+    },
+    {
+      "name": "m/s/attack/1",
+      "near": 0.40406101782087783,
+      "secondaryRasterDistance": 6.0117073282055244,
+      "axisDegrees": 89.77118331102866,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 323
+    },
+    {
+      "name": "m/s/attack/2",
+      "near": 0.5150787536377138,
+      "secondaryRasterDistance": 15.81784061219018,
+      "axisDegrees": 89.77744892804743,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 347
+    },
+    {
+      "name": "m/s/attack/3",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": 32.42888609035507,
+      "axisDegrees": 89.53137744135294,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 272
+    },
+    {
+      "name": "m/s/cast/0",
+      "near": 0.4249182927993899,
+      "secondaryRasterDistance": 29.656599415457066,
+      "axisDegrees": 88.73472515729314,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 316
+    },
+    {
+      "name": "m/s/cast/1",
+      "near": 0.6060915267313294,
+      "secondaryRasterDistance": 40.57369208977559,
+      "axisDegrees": 89.86106890945587,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 365
+    },
+    {
+      "name": "m/s/hurt/0",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.68204432268503,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 292
+    },
+    {
+      "name": "f/s/idle/0",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.68204432268503,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 273
+    },
+    {
+      "name": "f/s/idle/1",
+      "near": 0.5300865358950265,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.68204432268503,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 293
+    },
+    {
+      "name": "f/s/walk/0",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 287
+    },
+    {
+      "name": "f/s/walk/1",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 287
+    },
+    {
+      "name": "f/s/walk/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 287
+    },
+    {
+      "name": "f/s/walk/3",
+      "near": 0.6428243465332233,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.20754797574878,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 288
+    },
+    {
+      "name": "f/s/attack/0",
+      "near": 0.5,
+      "secondaryRasterDistance": 14.821605850919118,
+      "axisDegrees": 89.39797110468639,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 281
+    },
+    {
+      "name": "f/s/attack/1",
+      "near": 0.5,
+      "secondaryRasterDistance": 6.112373606964078,
+      "axisDegrees": 89.77118331102866,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 318
+    },
+    {
+      "name": "f/s/attack/2",
+      "near": 0.5590169943749475,
+      "secondaryRasterDistance": 14.292152567055812,
+      "axisDegrees": 89.77744892804743,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 344
+    },
+    {
+      "name": "f/s/attack/3",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": 31.667105260120554,
+      "axisDegrees": 89.53137744135294,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 272
+    },
+    {
+      "name": "f/s/cast/0",
+      "near": 0.4487637339278763,
+      "secondaryRasterDistance": 24.89045443984946,
+      "axisDegrees": 88.73472515729314,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 318
+    },
+    {
+      "name": "f/s/cast/1",
+      "near": 0.447213595499958,
+      "secondaryRasterDistance": 38.6290046467677,
+      "axisDegrees": 89.86106890945587,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 358
+    },
+    {
+      "name": "f/s/hurt/0",
+      "near": 0.09999999999999432,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.68204432268503,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 272
+    },
+    {
+      "name": "m/se/idle/0",
+      "near": 0.125,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.25160336253846,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 326
+    },
+    {
+      "name": "m/se/idle/1",
+      "near": 0.45175395145262626,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.25160336253846,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 333
+    },
+    {
+      "name": "m/se/walk/0",
+      "near": 0.6403124237432885,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 342
+    },
+    {
+      "name": "m/se/walk/1",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 336
+    },
+    {
+      "name": "m/se/walk/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 341
+    },
+    {
+      "name": "m/se/walk/3",
+      "near": 0.4000000000000057,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 334
+    },
+    {
+      "name": "m/se/attack/0",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": 16.579431565057,
+      "axisDegrees": 89.94414434325009,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 326
+    },
+    {
+      "name": "m/se/attack/1",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": 14.816586988912123,
+      "axisDegrees": 90.42094578102724,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 399
+    },
+    {
+      "name": "m/se/attack/2",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": 24.105222015054366,
+      "axisDegrees": 89.92919266148552,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 420
+    },
+    {
+      "name": "m/se/attack/3",
+      "near": 0.5892556509887863,
+      "secondaryRasterDistance": 25.21215763400633,
+      "axisDegrees": 90.032580332843,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 359
+    },
+    {
+      "name": "m/se/cast/0",
+      "near": 0.36363636363637397,
+      "secondaryRasterDistance": 12.143067225073448,
+      "axisDegrees": 89.89192725883294,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 381
+    },
+    {
+      "name": "m/se/cast/1",
+      "near": 0.5150787536377138,
+      "secondaryRasterDistance": 17.573751298282264,
+      "axisDegrees": 90.29004945853761,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 464
+    },
+    {
+      "name": "m/se/hurt/0",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.25160336253846,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 324
+    },
+    {
+      "name": "f/se/idle/0",
+      "near": 0.4006168083848873,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.25160336253846,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 336
+    },
+    {
+      "name": "f/se/idle/1",
+      "near": 0.4166666666666629,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.25160336253846,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 329
+    },
+    {
+      "name": "f/se/walk/0",
+      "near": 0.375,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 331
+    },
+    {
+      "name": "f/se/walk/1",
+      "near": 0.5303300858899107,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 345
+    },
+    {
+      "name": "f/se/walk/2",
+      "near": 0.40406101782087284,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 337
+    },
+    {
+      "name": "f/se/walk/3",
+      "near": 0.47140452079103506,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.63777489612062,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 340
+    },
+    {
+      "name": "f/se/attack/0",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": 17.530148956839465,
+      "axisDegrees": 89.94414434325009,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 329
+    },
+    {
+      "name": "f/se/attack/1",
+      "near": 0.20000000000000284,
+      "secondaryRasterDistance": 8.899999999999999,
+      "axisDegrees": 90.42094578102724,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 398
+    },
+    {
+      "name": "f/se/attack/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": 22.29238922331903,
+      "axisDegrees": 89.92919266148552,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 413
+    },
+    {
+      "name": "f/se/attack/3",
+      "near": 0.6428243465332233,
+      "secondaryRasterDistance": 23.988978185411845,
+      "axisDegrees": 90.032580332843,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 354
+    },
+    {
+      "name": "f/se/cast/0",
+      "near": 0.5153882032022076,
+      "secondaryRasterDistance": 10.501322668015575,
+      "axisDegrees": 89.89192725883294,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 377
+    },
+    {
+      "name": "f/se/cast/1",
+      "near": 0.48956043701222834,
+      "secondaryRasterDistance": 16.629228785484912,
+      "axisDegrees": 90.29004945853761,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 453
+    },
+    {
+      "name": "f/se/hurt/0",
+      "near": 0.09999999999999432,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.25160336253846,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 327
+    },
+    {
+      "name": "m/e/idle/0",
+      "near": 0.125,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.04775742727882,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 362
+    },
+    {
+      "name": "m/e/idle/1",
+      "near": 0.45175395145262626,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.04775742727882,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 363
+    },
+    {
+      "name": "m/e/walk/0",
+      "near": 0.6403124237432885,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 351
+    },
+    {
+      "name": "m/e/walk/1",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 346
+    },
+    {
+      "name": "m/e/walk/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 345
+    },
+    {
+      "name": "m/e/walk/3",
+      "near": 0.4000000000000057,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 344
+    },
+    {
+      "name": "m/e/attack/0",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": 17.254990405026344,
+      "axisDegrees": 90.0555090531616,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 343
+    },
+    {
+      "name": "m/e/attack/1",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": 15.741068896361517,
+      "axisDegrees": 90.01222811223181,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 372
+    },
+    {
+      "name": "m/e/attack/2",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": 25.91772357020825,
+      "axisDegrees": 90.01860230597929,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 395
+    },
+    {
+      "name": "m/e/attack/3",
+      "near": 0.5892556509887863,
+      "secondaryRasterDistance": 26.454389252897183,
+      "axisDegrees": 89.99462234656231,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 343
+    },
+    {
+      "name": "m/e/cast/0",
+      "near": 0.36363636363637397,
+      "secondaryRasterDistance": 10.14310864879325,
+      "axisDegrees": 90.60936314558963,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 367
+    },
+    {
+      "name": "m/e/cast/1",
+      "near": 0.5150787536377138,
+      "secondaryRasterDistance": 13.57443575705631,
+      "axisDegrees": 89.974523947909,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 451
+    },
+    {
+      "name": "m/e/hurt/0",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.04775742727882,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 369
+    },
+    {
+      "name": "f/e/idle/0",
+      "near": 0.4006168083848873,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.04775742727882,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 345
+    },
+    {
+      "name": "f/e/idle/1",
+      "near": 0.4166666666666629,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.04775742727882,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 335
+    },
+    {
+      "name": "f/e/walk/0",
+      "near": 0.375,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 346
+    },
+    {
+      "name": "f/e/walk/1",
+      "near": 0.5303300858899107,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 353
+    },
+    {
+      "name": "f/e/walk/2",
+      "near": 0.40406101782087284,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 346
+    },
+    {
+      "name": "f/e/walk/3",
+      "near": 0.47140452079103506,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 94.29062058814314,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 345
+    },
+    {
+      "name": "f/e/attack/0",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": 18.22534678150522,
+      "axisDegrees": 90.0555090531616,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 364
+    },
+    {
+      "name": "f/e/attack/1",
+      "near": 0.20000000000000284,
+      "secondaryRasterDistance": 6.899999999999999,
+      "axisDegrees": 90.01222811223181,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 365
+    },
+    {
+      "name": "f/e/attack/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": 23.92013460468341,
+      "axisDegrees": 90.01860230597929,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 388
+    },
+    {
+      "name": "f/e/attack/3",
+      "near": 0.6428243465332233,
+      "secondaryRasterDistance": 25.21215763400633,
+      "axisDegrees": 89.99462234656231,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 341
+    },
+    {
+      "name": "f/e/cast/0",
+      "near": 0.5153882032022076,
+      "secondaryRasterDistance": 7.590198357823798,
+      "axisDegrees": 90.60936314558963,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 361
+    },
+    {
+      "name": "f/e/cast/1",
+      "near": 0.48956043701222834,
+      "secondaryRasterDistance": 11.706034768443155,
+      "axisDegrees": 89.974523947909,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 454
+    },
+    {
+      "name": "f/e/hurt/0",
+      "near": 0.09999999999999432,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.04775742727882,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 344
+    },
+    {
+      "name": "m/ne/idle/0",
+      "near": 0.125,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.42507591644383,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 378
+    },
+    {
+      "name": "m/ne/idle/1",
+      "near": 0.45175395145262626,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.42507591644383,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 377
+    },
+    {
+      "name": "m/ne/walk/0",
+      "near": 0.6403124237432885,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 384
+    },
+    {
+      "name": "m/ne/walk/1",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 392
+    },
+    {
+      "name": "m/ne/walk/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 382
+    },
+    {
+      "name": "m/ne/walk/3",
+      "near": 0.4000000000000057,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 379
+    },
+    {
+      "name": "m/ne/attack/0",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": 14.717059377969978,
+      "axisDegrees": 89.92840911186103,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 386
+    },
+    {
+      "name": "m/ne/attack/1",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": 4.391042017562574,
+      "axisDegrees": 90.04614190640797,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 416
+    },
+    {
+      "name": "m/ne/attack/2",
+      "near": 0.565685424949241,
+      "secondaryRasterDistance": 10.271619776817388,
+      "axisDegrees": 90.037613162911,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 449
+    },
+    {
+      "name": "m/ne/attack/3",
+      "near": 0.5892556509887863,
+      "secondaryRasterDistance": 22.287750035678634,
+      "axisDegrees": 89.95522085069014,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 382
+    },
+    {
+      "name": "m/ne/cast/0",
+      "near": 0.36363636363637397,
+      "secondaryRasterDistance": 17.197086843950267,
+      "axisDegrees": 90.06884008119934,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 406
+    },
+    {
+      "name": "m/ne/cast/1",
+      "near": 0.5150787536377138,
+      "secondaryRasterDistance": 25.01958416594358,
+      "axisDegrees": 89.98747274865849,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 490
+    },
+    {
+      "name": "m/ne/hurt/0",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.42507591644383,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 392
+    },
+    {
+      "name": "f/ne/idle/0",
+      "near": 0.4006168083848873,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.42507591644383,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 393
+    },
+    {
+      "name": "f/ne/idle/1",
+      "near": 0.4166666666666629,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.42507591644383,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 366
+    },
+    {
+      "name": "f/ne/walk/0",
+      "near": 0.375,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 380
+    },
+    {
+      "name": "f/ne/walk/1",
+      "near": 0.5303300858899107,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 392
+    },
+    {
+      "name": "f/ne/walk/2",
+      "near": 0.40406101782087284,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 387
+    },
+    {
+      "name": "f/ne/walk/3",
+      "near": 0.47140452079103506,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 93.52971106301902,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 376
+    },
+    {
+      "name": "f/ne/attack/0",
+      "near": 0.10000000000000142,
+      "secondaryRasterDistance": 14.717059377969978,
+      "axisDegrees": 89.92840911186103,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 411
+    },
+    {
+      "name": "f/ne/attack/1",
+      "near": 0.20000000000000284,
+      "secondaryRasterDistance": 14.771932845772076,
+      "axisDegrees": 90.04614190640797,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 423
+    },
+    {
+      "name": "f/ne/attack/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": 8.086721321301667,
+      "axisDegrees": 90.037613162911,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 449
+    },
+    {
+      "name": "f/ne/attack/3",
+      "near": 0.6428243465332233,
+      "secondaryRasterDistance": 21.27350425931456,
+      "axisDegrees": 89.95522085069014,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 384
+    },
+    {
+      "name": "f/ne/cast/0",
+      "near": 0.5153882032022076,
+      "secondaryRasterDistance": 14.774226808120208,
+      "axisDegrees": 90.06884008119934,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 409
+    },
+    {
+      "name": "f/ne/cast/1",
+      "near": 0.48956043701222834,
+      "secondaryRasterDistance": 23.901490539294823,
+      "axisDegrees": 89.98747274865849,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 492
+    },
+    {
+      "name": "f/ne/hurt/0",
+      "near": 0.09999999999999432,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.42507591644383,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 381
+    },
+    {
+      "name": "m/n/idle/0",
+      "near": 0.5892556509887762,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.94614328821457,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 303
+    },
+    {
+      "name": "m/n/idle/1",
+      "near": 0.18633899812497823,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.94614328821457,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 314
+    },
+    {
+      "name": "m/n/walk/0",
+      "near": 0.5892556509887762,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 326
+    },
+    {
+      "name": "m/n/walk/1",
+      "near": 0.5656854249492461,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 329
+    },
+    {
+      "name": "m/n/walk/2",
+      "near": 0.5892556509887762,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 326
+    },
+    {
+      "name": "m/n/walk/3",
+      "near": 0.5656854249492461,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 327
+    },
+    {
+      "name": "m/n/attack/0",
+      "near": 0.40655781409088243,
+      "secondaryRasterDistance": 17.22258064143168,
+      "axisDegrees": 89.99793596166269,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 300
+    },
+    {
+      "name": "m/n/attack/1",
+      "near": 0.32777738867854794,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.95759078078144,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 376
+    },
+    {
+      "name": "m/n/attack/2",
+      "near": 0.5590169943749475,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.48708962293318,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 409
+    },
+    {
+      "name": "m/n/attack/3",
+      "near": 0.375,
+      "secondaryRasterDistance": 32.05127065526863,
+      "axisDegrees": 89.95385472340526,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 309
+    },
+    {
+      "name": "m/n/cast/0",
+      "near": 0.0769230769230802,
+      "secondaryRasterDistance": 28.429503801342236,
+      "axisDegrees": 90.02893853685248,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 394
+    },
+    {
+      "name": "m/n/cast/1",
+      "near": 0.6060915267313294,
+      "secondaryRasterDistance": 37.01654346094349,
+      "axisDegrees": 89.54214658626348,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 436
+    },
+    {
+      "name": "m/n/hurt/0",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.94614328821457,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 313
+    },
+    {
+      "name": "f/n/idle/0",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.94614328821457,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 313
+    },
+    {
+      "name": "f/n/idle/1",
+      "near": 0.5300865358950302,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.94614328821457,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 295
+    },
+    {
+      "name": "f/n/walk/0",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 324
+    },
+    {
+      "name": "f/n/walk/1",
+      "near": 0.5656854249492461,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 327
+    },
+    {
+      "name": "f/n/walk/2",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 324
+    },
+    {
+      "name": "f/n/walk/3",
+      "near": 0.2484519974999837,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 95.53999467015663,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 324
+    },
+    {
+      "name": "f/n/attack/0",
+      "near": 0,
+      "secondaryRasterDistance": 14.222656243377463,
+      "axisDegrees": 89.99793596166269,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 312
+    },
+    {
+      "name": "f/n/attack/1",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.95759078078144,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 381
+    },
+    {
+      "name": "f/n/attack/2",
+      "near": 0.24845199749997735,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 90.48708962293318,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 410
+    },
+    {
+      "name": "f/n/attack/3",
+      "near": 0.375,
+      "secondaryRasterDistance": 30.062075694498013,
+      "axisDegrees": 89.95385472340526,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 309
+    },
+    {
+      "name": "f/n/cast/0",
+      "near": 0.3748277841470707,
+      "secondaryRasterDistance": 26.636518770879295,
+      "axisDegrees": 90.02893853685248,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 392
+    },
+    {
+      "name": "f/n/cast/1",
+      "near": 0.25,
+      "secondaryRasterDistance": 34.95801052691643,
+      "axisDegrees": 89.54214658626348,
+      "primaryOnly": true,
+      "edge": 0,
+      "pixels": 423
+    },
+    {
+      "name": "f/n/hurt/0",
+      "near": 0.09999999999999432,
+      "secondaryRasterDistance": null,
+      "axisDegrees": 89.94614328821457,
+      "primaryOnly": false,
+      "edge": 0,
+      "pixels": 312
+    }
+  ],
+  "cuts": {
+    "m": {
+      "id": "bang_phuong_hoang",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 0,
+      "palette": 32,
+      "outline": "thêm vòng viền ngoài",
+      "halves": {
+        "b": {
+          "pixels": 17340,
+          "blank": false
+        },
+        "f": {
+          "pixels": 28650,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "f/s/idle/0": [
+          0,
+          0
+        ],
+        "f/s/idle/1": [
+          0,
+          0
+        ],
+        "f/s/walk/0": [
+          0,
+          0
+        ],
+        "f/s/walk/1": [
+          0,
+          0
+        ],
+        "f/s/walk/2": [
+          0,
+          0
+        ],
+        "f/s/walk/3": [
+          0,
+          0
+        ],
+        "f/s/attack/0": [
+          0,
+          0
+        ],
+        "f/s/attack/1": [
+          0,
+          0
+        ],
+        "f/s/attack/2": [
+          0,
+          1
+        ],
+        "f/s/attack/3": [
+          1,
+          0
+        ],
+        "f/s/cast/0": [
+          0,
+          0
+        ],
+        "f/s/cast/1": [
+          0,
+          0
+        ],
+        "f/s/hurt/0": [
+          -1,
+          1
+        ],
+        "f/se/idle/0": [
+          0,
+          0
+        ],
+        "f/se/idle/1": [
+          0,
+          0
+        ],
+        "f/se/walk/0": [
+          0,
+          0
+        ],
+        "f/se/walk/1": [
+          0,
+          0
+        ],
+        "f/se/walk/2": [
+          1,
+          -1
+        ],
+        "f/se/walk/3": [
+          0,
+          -1
+        ],
+        "f/se/attack/0": [
+          0,
+          0
+        ],
+        "f/se/attack/1": [
+          0,
+          -1
+        ],
+        "f/se/attack/2": [
+          0,
+          -1
+        ],
+        "f/se/attack/3": [
+          -1,
+          0
+        ],
+        "f/se/cast/0": [
+          0,
+          -1
+        ],
+        "f/se/cast/1": [
+          0,
+          0
+        ],
+        "f/se/hurt/0": [
+          -1,
+          1
+        ],
+        "f/e/idle/0": [
+          0,
+          0
+        ],
+        "f/e/idle/1": [
+          0,
+          0
+        ],
+        "f/e/walk/0": [
+          0,
+          0
+        ],
+        "f/e/walk/1": [
+          0,
+          0
+        ],
+        "f/e/walk/2": [
+          1,
+          -1
+        ],
+        "f/e/walk/3": [
+          0,
+          -1
+        ],
+        "f/e/attack/0": [
+          0,
+          0
+        ],
+        "f/e/attack/1": [
+          0,
+          -1
+        ],
+        "f/e/attack/2": [
+          0,
+          -1
+        ],
+        "f/e/attack/3": [
+          -1,
+          0
+        ],
+        "f/e/cast/0": [
+          0,
+          -1
+        ],
+        "f/e/cast/1": [
+          0,
+          0
+        ],
+        "f/e/hurt/0": [
+          -1,
+          1
+        ],
+        "f/ne/idle/0": [
+          0,
+          0
+        ],
+        "f/ne/idle/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/0": [
+          0,
+          0
+        ],
+        "f/ne/walk/1": [
+          0,
+          0
+        ],
+        "f/ne/walk/2": [
+          1,
+          -1
+        ],
+        "f/ne/walk/3": [
+          0,
+          -1
+        ],
+        "f/ne/attack/0": [
+          0,
+          0
+        ],
+        "f/ne/attack/1": [
+          0,
+          -1
+        ],
+        "f/ne/attack/2": [
+          0,
+          -1
+        ],
+        "f/ne/attack/3": [
+          -1,
+          0
+        ],
+        "f/ne/cast/0": [
+          0,
+          -1
+        ],
+        "f/ne/cast/1": [
+          0,
+          0
+        ],
+        "f/ne/hurt/0": [
+          -1,
+          1
+        ],
+        "f/n/idle/0": [
+          0,
+          0
+        ],
+        "f/n/idle/1": [
+          0,
+          0
+        ],
+        "f/n/walk/0": [
+          0,
+          0
+        ],
+        "f/n/walk/1": [
+          0,
+          1
+        ],
+        "f/n/walk/2": [
+          0,
+          0
+        ],
+        "f/n/walk/3": [
+          0,
+          1
+        ],
+        "f/n/attack/0": [
+          -1,
+          0
+        ],
+        "f/n/attack/1": [
+          -1,
+          0
+        ],
+        "f/n/attack/2": [
+          0,
+          0
+        ],
+        "f/n/attack/3": [
+          1,
+          0
+        ],
+        "f/n/cast/0": [
+          0,
+          0
+        ],
+        "f/n/cast/1": [
+          0,
+          0
+        ],
+        "f/n/hurt/0": [
+          -1,
+          1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        }
+      ],
+      "summary": {
+        "info": 5,
+        "warn": 0,
+        "block": 0,
+        "total": 5,
+        "byCode": {
+          "ghi-chu": 5
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    },
+    "f": {
+      "id": "bang_phuong_hoang",
+      "kind": "vukhi",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "gripKey": "#00FF60",
+      "sheets": {
+        "A": {
+          "dir": "s",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "B": {
+          "dir": "se",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "C": {
+          "dir": "e",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "D": {
+          "dir": "ne",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        },
+        "E": {
+          "dir": "n",
+          "size": [
+            1536,
+            1024
+          ],
+          "factor": 1,
+          "key": [
+            255,
+            0,
+            255
+          ],
+          "grid": "gap",
+          "shift": {
+            "dx": 0,
+            "dy": 0
+          },
+          "registered": 13,
+          "cells": 13
+        }
+      },
+      "dropped": 2,
+      "palette": 32,
+      "outline": "thêm vòng viền ngoài",
+      "halves": {
+        "b": {
+          "pixels": 17308,
+          "blank": false
+        },
+        "f": {
+          "pixels": 28538,
+          "blank": false
+        }
+      },
+      "sexShift": {
+        "m/s/idle/0": [
+          0,
+          0
+        ],
+        "m/s/idle/1": [
+          0,
+          0
+        ],
+        "m/s/walk/0": [
+          0,
+          0
+        ],
+        "m/s/walk/1": [
+          0,
+          0
+        ],
+        "m/s/walk/2": [
+          0,
+          0
+        ],
+        "m/s/walk/3": [
+          0,
+          0
+        ],
+        "m/s/attack/0": [
+          0,
+          0
+        ],
+        "m/s/attack/1": [
+          0,
+          0
+        ],
+        "m/s/attack/2": [
+          0,
+          -1
+        ],
+        "m/s/attack/3": [
+          -1,
+          0
+        ],
+        "m/s/cast/0": [
+          0,
+          0
+        ],
+        "m/s/cast/1": [
+          0,
+          0
+        ],
+        "m/s/hurt/0": [
+          1,
+          -1
+        ],
+        "m/se/idle/0": [
+          0,
+          0
+        ],
+        "m/se/idle/1": [
+          0,
+          0
+        ],
+        "m/se/walk/0": [
+          0,
+          0
+        ],
+        "m/se/walk/1": [
+          0,
+          0
+        ],
+        "m/se/walk/2": [
+          -1,
+          1
+        ],
+        "m/se/walk/3": [
+          0,
+          1
+        ],
+        "m/se/attack/0": [
+          0,
+          0
+        ],
+        "m/se/attack/1": [
+          0,
+          1
+        ],
+        "m/se/attack/2": [
+          0,
+          1
+        ],
+        "m/se/attack/3": [
+          1,
+          0
+        ],
+        "m/se/cast/0": [
+          0,
+          1
+        ],
+        "m/se/cast/1": [
+          0,
+          0
+        ],
+        "m/se/hurt/0": [
+          1,
+          -1
+        ],
+        "m/e/idle/0": [
+          0,
+          0
+        ],
+        "m/e/idle/1": [
+          0,
+          0
+        ],
+        "m/e/walk/0": [
+          0,
+          0
+        ],
+        "m/e/walk/1": [
+          0,
+          0
+        ],
+        "m/e/walk/2": [
+          -1,
+          1
+        ],
+        "m/e/walk/3": [
+          0,
+          1
+        ],
+        "m/e/attack/0": [
+          0,
+          0
+        ],
+        "m/e/attack/1": [
+          0,
+          1
+        ],
+        "m/e/attack/2": [
+          0,
+          1
+        ],
+        "m/e/attack/3": [
+          1,
+          0
+        ],
+        "m/e/cast/0": [
+          0,
+          1
+        ],
+        "m/e/cast/1": [
+          0,
+          0
+        ],
+        "m/e/hurt/0": [
+          1,
+          -1
+        ],
+        "m/ne/idle/0": [
+          0,
+          0
+        ],
+        "m/ne/idle/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/0": [
+          0,
+          0
+        ],
+        "m/ne/walk/1": [
+          0,
+          0
+        ],
+        "m/ne/walk/2": [
+          -1,
+          1
+        ],
+        "m/ne/walk/3": [
+          0,
+          1
+        ],
+        "m/ne/attack/0": [
+          0,
+          0
+        ],
+        "m/ne/attack/1": [
+          0,
+          1
+        ],
+        "m/ne/attack/2": [
+          0,
+          1
+        ],
+        "m/ne/attack/3": [
+          1,
+          0
+        ],
+        "m/ne/cast/0": [
+          0,
+          1
+        ],
+        "m/ne/cast/1": [
+          0,
+          0
+        ],
+        "m/ne/hurt/0": [
+          1,
+          -1
+        ],
+        "m/n/idle/0": [
+          0,
+          0
+        ],
+        "m/n/idle/1": [
+          0,
+          0
+        ],
+        "m/n/walk/0": [
+          0,
+          0
+        ],
+        "m/n/walk/1": [
+          0,
+          -1
+        ],
+        "m/n/walk/2": [
+          0,
+          0
+        ],
+        "m/n/walk/3": [
+          0,
+          -1
+        ],
+        "m/n/attack/0": [
+          1,
+          0
+        ],
+        "m/n/attack/1": [
+          1,
+          0
+        ],
+        "m/n/attack/2": [
+          0,
+          0
+        ],
+        "m/n/attack/3": [
+          -1,
+          0
+        ],
+        "m/n/cast/0": [
+          0,
+          0
+        ],
+        "m/n/cast/1": [
+          0,
+          0
+        ],
+        "m/n/hurt/0": [
+          1,
+          -1
+        ]
+      },
+      "dirs": {
+        "s": "ok",
+        "se": "ok",
+        "e": "ok",
+        "ne": "ok",
+        "n": "ok"
+      },
+      "gripFrames": 65,
+      "warnings": [
+        "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)",
+        "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung s/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung se/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung e/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung ne/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        },
+        {
+          "level": "info",
+          "code": "ghi-chu",
+          "msg": "khung n/hurt/0: tay đo ở khung thân lân cận (cẳng tay bị che ở bước thân 1)"
+        }
+      ],
+      "summary": {
+        "info": 5,
+        "warn": 0,
+        "block": 0,
+        "total": 5,
+        "byCode": {
+          "ghi-chu": 5
+        }
+      },
+      "frames": 65,
+      "missing": 0,
+      "blank": []
+    }
+  },
+  "layers": {
+    "m": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.5,
+              -14.375,
+              -4.5,
+              -8.375
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.357142857142861,
+              -14.92857142857143,
+              -4.357142857142861,
+              -8.92857142857143
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -4,
+              -13.099999999999994,
+              2,
+              -7.099999999999994
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14.399999999999999,
+              -13.5,
+              -8.399999999999999,
+              -7.5
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -16.72222222222222,
+              -13.611111111111114,
+              -10.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -8.5,
+              -14.099999999999994,
+              -2.5,
+              -8.099999999999994
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.722222222222221,
+              -12.611111111111114,
+              -4.722222222222221,
+              -6.611111111111114
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.399999999999999,
+              -14.5,
+              -6.399999999999999,
+              -8.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.899999999999999,
+              -14.900000000000006,
+              -7.899999999999999,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.916666666666671,
+              -15.083333333333343,
+              -6.916666666666671,
+              -9.083333333333343
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.136363636363626,
+              -20.5,
+              13.136363636363626,
+              -14.5
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.07142857142857,
+              -34.214285714285715,
+              16.07142857142857,
+              -28.214285714285715
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.722222222222229,
+              -13.611111111111114,
+              17.72222222222223,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.916666666666657,
+              -14.083333333333343,
+              15.916666666666657,
+              -8.083333333333343
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.416666666666657,
+              -14.333333333333343,
+              15.416666666666657,
+              -8.333333333333343
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.916666666666657,
+              -15.083333333333343,
+              15.916666666666657,
+              -9.083333333333343
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              10.099999999999994,
+              -17.099999999999994,
+              16.099999999999994,
+              -11.099999999999994
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.916666666666657,
+              -15.083333333333343,
+              15.916666666666657,
+              -9.083333333333343
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.900000000000006,
+              -13.900000000000006,
+              15.900000000000006,
+              -7.900000000000006
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.136363636363626,
+              -19.318181818181813,
+              14.136363636363626,
+              -13.318181818181813
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.227272727272727,
+              -12.681818181818187,
+              -5.227272727272727,
+              -6.681818181818187
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -14,
+              -13.75,
+              -8,
+              -7.75
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              20.875,
+              -26.5,
+              26.875,
+              -20.5
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              13.5,
+              -19.42307692307692,
+              19.5,
+              -13.42307692307692
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              18.92857142857143,
+              -31.92857142857143,
+              24.92857142857143,
+              -25.92857142857143
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              11.722222222222229,
+              -13.611111111111114,
+              17.72222222222223,
+              -7.611111111111114
+            ]
+          }
+        ]
+      }
+    },
+    "f": {
+      "huong": {
+        "s": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "se": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "e": {
+          "mac_dinh": "truoc",
+          "vung": []
+        },
+        "ne": {
+          "mac_dinh": "sau",
+          "vung": []
+        },
+        "n": {
+          "mac_dinh": "sau",
+          "vung": []
+        }
+      },
+      "khung": {
+        "ne/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.166666666666671,
+              -14.277777777777771,
+              -5.166666666666671,
+              -8.277777777777771
+            ]
+          }
+        ],
+        "ne/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -10.833333333333329,
+              -15.25,
+              -4.833333333333329,
+              -9.25
+            ]
+          }
+        ],
+        "ne/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -3.5,
+              -13.125,
+              2.5,
+              -7.125
+            ]
+          }
+        ],
+        "ne/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              5.875,
+              -14.125,
+              11.875,
+              -8.125
+            ]
+          }
+        ],
+        "ne/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              7.214285714285722,
+              -14.214285714285722,
+              13.214285714285722,
+              -8.214285714285722
+            ]
+          }
+        ],
+        "ne/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -7.833333333333329,
+              -13.166666666666657,
+              -1.8333333333333286,
+              -7.166666666666657
+            ]
+          }
+        ],
+        "ne/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -11.399999999999999,
+              -12.5,
+              -5.399999999999999,
+              -6.5
+            ]
+          }
+        ],
+        "ne/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              6.700000000000003,
+              -13.5,
+              12.700000000000003,
+              -7.5
+            ]
+          }
+        ],
+        "ne/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -15.611111111111114,
+              -6.722222222222221,
+              -9.611111111111114
+            ]
+          }
+        ],
+        "ne/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.954545454545453,
+              -16.045454545454547,
+              -6.954545454545453,
+              -10.045454545454547
+            ]
+          }
+        ],
+        "ne/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              6.375,
+              -17,
+              12.375,
+              -11
+            ]
+          }
+        ],
+        "ne/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.954545454545453,
+              -32.68181818181819,
+              15.954545454545453,
+              -26.681818181818187
+            ]
+          }
+        ],
+        "ne/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ],
+        "n/idle/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/idle/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.22727272727272,
+              -14.045454545454547,
+              14.22727272727272,
+              -8.045454545454547
+            ]
+          }
+        ],
+        "n/walk/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.900000000000006,
+              -14.900000000000006,
+              14.900000000000006,
+              -8.900000000000006
+            ]
+          }
+        ],
+        "n/walk/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -13.611111111111114,
+              14.722222222222229,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/walk/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              8.722222222222229,
+              -12.611111111111114,
+              14.722222222222229,
+              -6.611111111111114
+            ]
+          }
+        ],
+        "n/attack/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              4.5,
+              -19.5,
+              10.5,
+              -13.5
+            ]
+          }
+        ],
+        "n/attack/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -13.722222222222221,
+              -13.611111111111114,
+              -7.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/2": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              -12.722222222222221,
+              -13.611111111111114,
+              -6.722222222222221,
+              -7.611111111111114
+            ]
+          }
+        ],
+        "n/attack/3": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              20.875,
+              -26.5,
+              26.875,
+              -20.5
+            ]
+          }
+        ],
+        "n/cast/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              12.590909090909093,
+              -20.863636363636374,
+              18.590909090909093,
+              -14.863636363636374
+            ]
+          }
+        ],
+        "n/cast/1": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              17.75,
+              -32.5,
+              23.75,
+              -26.5
+            ]
+          }
+        ],
+        "n/hurt/0": [
+          {
+            "nhan": "truoc",
+            "hop": [
+              9.400000000000006,
+              -13.5,
+              15.400000000000006,
+              -7.5
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "checks": {
+    "m": {
+      "id": "bang_phuong_hoang",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                82,
+                197
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                340,
+                451
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                596,
+                707
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                846,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.177
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.365
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.393,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                197
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                455
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                711
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                846,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.138
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối se",
+              "msg": "cỡ phụ thể so với khối s: idle 113%, walk 111%, attack 118%, cast 116% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                197
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                455
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                711
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                846,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.071
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối e",
+              "msg": "cỡ phụ thể so với khối s: idle 113%, cast 111% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                197
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                455
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                711
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                846,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.111
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối ne",
+              "msg": "cỡ phụ thể so với khối s: idle 115%, walk 115%, attack 117%, cast 118%, hurt 112% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                199
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                455
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                711
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                852,
+                955
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.112
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.295
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.292
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối n",
+              "msg": "cỡ phụ thể so với khối s: cast 112% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": null
+        }
+      ]
+    },
+    "f": {
+      "id": "bang_phuong_hoang",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                84,
+                195
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                342,
+                451
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                598,
+                709
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                844,
+                955
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.195
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.294
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.42,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                197
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                455
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                711
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                850,
+                959
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.204
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối se",
+              "msg": "cỡ phụ thể so với khối s: idle 112%, walk 111%, attack 116%, cast 115%, hurt 113% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                197
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                455
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                711
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                848,
+                957
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.24
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối e",
+              "msg": "cỡ phụ thể so với khối s: cast 111%, hurt 110% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                199
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                455
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                713
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                848,
+                957
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.231
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối ne",
+              "msg": "cỡ phụ thể so với khối s: idle 116%, walk 114%, attack 119%, cast 118%, hurt 120% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": null
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                199
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                457
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                711
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                848,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.161
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.243
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.022
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "hurt-idle",
+              "where": "H1 (n)",
+              "msg": "hurt trùng idle (xor/hợp 0.022): không thấy phản ứng trúng đòn."
+            },
+            {
+              "sev": "light",
+              "code": "co-phu-the",
+              "where": "khối n",
+              "msg": "cỡ phụ thể so với khối s: cast 111%, hurt 113% (lệch quá 10%; cảnh báo kỹ thuật, cutter không chặn)."
+            }
+          ],
+          "draft": "LỖI: toE — hurt trùng idle — H1 (n) — hurt trùng idle (xor/hợp 0.022): không thấy phản ứng trúng đòn."
+        }
+      ]
+    }
+  },
+  "maxA": 0.6428243465332233,
+  "edge": 0
+}

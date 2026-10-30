@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-31",
+  "tool": "Codex / OpenAI image_gen",
+  "model": null,
+  "seed": null,
+  "direction": "se",
+  "attempt": 1,
+  "status": "rejected",
+  "reason": "Camera remains too close to east side profile; not imported or used as reference.",
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "f896d2de62819a62f909aa5cea278252f5eb4b6b72d5b8be8f94d2a8984efad2"
+  },
+  "prompt": {
+    "path": "prompt.txt",
+    "sha256": "076a894ed3d99496208d7ffd557c200264fa6e6bd7d198f27b6d4af93dcf13f0"
+  },
+  "references": [
+    {
+      "path": "../../e/attempt1/poses.raw.png",
+      "sha256": "3122f9bad4a0ee5552697aba88b03720d87325d8fac031fc10642cd1415db2d2"
+    }
+  ]
+}

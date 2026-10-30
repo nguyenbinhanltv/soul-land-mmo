@@ -23,24 +23,3 @@
 #hud .stats .stat-chip:hover{border-color:var(--accent)}
 #hud .stats .stat-chip:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
 :where(body.touch) #hud .stats .stat-chip{min-height:40px}
-
-/* Chip thông tin (PR3): võ hồn ra trận (icon hệ + hệ + số sao), Hồn Tệ, hồn hoàn, Tự động. Chip chỉ chứa chữ ngắn; chữ dài cắt bằng dấu ba chấm, đủ nội dung ở chú thích. */
-#hud .stats .stat-chip{max-width:100%;min-width:0}
-#hud .stats .stat-chip .chip-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#hud .stats .stat-chip .chip-ico{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex:none;font:var(--fs-s)/1 var(--f10)}
-#hud .stats .stat-chip .chip-he{width:16px;height:16px;image-rendering:pixelated}
-/* Avatar là nút mở menu (kèm chấm tổng hợp ở ui2-hub.css). */
-#hud .stats button.portrait{padding:0;cursor:pointer;font:24px var(--f12)}
-#hud .stats button.portrait:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
-#hud .stats button.portrait:hover{border-color:var(--accent)}
-
-/* Màn nhỏ (≤ 640 px logic, lớp ui-w640): cột trái thu thành một thanh ngang trên cùng: avatar + tên, ba thanh mỏng xếp chồng (giá trị chỉ còn cho trình đọc màn hình,
-   chú thích ở chip / cấp), chip bên phải; hiệu ứng xuống hàng dưới. Cỡ chữ lớn (a11y-fs-1/2) cho khung và chip dãn / xuống dòng chứ không tràn. */
-:where(body.ui-w640) #lcol{max-width:calc(50% - 26px)}  /* chừa huy hiệu menu giữa trên */
-:where(body.ui-w640) #hud .stats{display:grid;grid-template-columns:minmax(0,auto) 64px;align-items:center;column-gap:var(--sp-3);width:max-content;max-width:100%;padding:var(--sp-2) var(--sp-3)}
-:where(body.ui-w640) #hud .stats .who{grid-column:1;grid-row:1 / span 3;margin:0;padding:0;border:0;min-width:0}
-:where(body.ui-w640) #hud .stats .who-main{flex-direction:column;align-items:flex-start;gap:0}
-:where(body.ui-w640) #hud .stats .bar{grid-column:2;height:8px;margin-top:var(--sp-1)}
-:where(body.ui-w640) #hud .stats .bar span{inset:auto;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-:where(body.ui-w640) #hud .stats .chips{grid-column:1 / -1;grid-row:4;margin-top:var(--sp-2)}
-:where(body.ui-w640) #hud .stats .buffs{grid-column:1 / -1}

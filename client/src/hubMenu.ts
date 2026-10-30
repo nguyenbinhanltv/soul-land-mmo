@@ -101,9 +101,7 @@ function render() {
 
 /** Chấm của huy hiệu menu giữa trên (bất kỳ mục hub nào có việc: chấm đỏ hoặc mũi tên xanh); gọi mỗi khi kho đổi. */
 function syncBadges() {
-  const any = [...allBadges().keys()].some((id) => hubIds.has(id)), av = document.getElementById("vhPortrait");
-  badge?.classList.toggle("has-dot", any);
-  if (av) { if (any) av.dataset.badge = "new"; else delete av.dataset.badge; av.setAttribute("aria-label", any ? "Mở menu: có việc mới" : "Mở menu"); } // chấm tổng hợp trên avatar (cùng nguồn với huy hiệu)
+  badge?.classList.toggle("has-dot", [...allBadges().keys()].some((id) => hubIds.has(id)));
 }
 
 export const isHubOpen = () => !!root && !root.hidden;

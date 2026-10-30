@@ -7,7 +7,9 @@ description: Chạy dài nhiều bot trên bản đồ lớn (bản ×8 mặc đ
 
 Mục tiêu: chứng minh bằng **số đo** rằng server giữ nhịp `TICK_RATE` (20 nhịp/giây, 50 ms mỗi nhịp) với nhiều người trên bản đồ lớn, và bộ nhớ không tăng mãi. Không có số đo thì báo cáo ghi **Chưa đo**, không ước lượng rồi kết luận "ổn".
 
-Ý tưởng phỏng theo skill `soak-test`, `perf-profile` và agent `performance-analyst` của [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) (MIT), viết lại cho Colyseus + repo này.
+**Vòng đo:** đo trước, tìm một nút thắt lớn nhất (mục 5), sửa đúng chỗ đó, chạy lại cùng kịch bản. Số không nhúc nhích thì hoàn tác thay đổi, không giữ "cho chắc". Ưu tiên giảm việc phải làm (chỉ xử lý thực thể gần, chạy ít lần hơn) hơn là vi tối ưu một dòng. Báo trước / sau bằng số, không viết "chắc nhanh hơn".
+
+Ý tưởng phỏng theo skill `soak-test`, `perf-profile` và agent `performance-analyst` của [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) (MIT), viết lại cho Colyseus + repo này. Vòng đo phỏng theo skill `performance-optimization` của [awesome-gamedev-agent-skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills) (Apache-2.0), viết lại bằng lời của repo.
 
 ## 1. Mốc so sánh (11.4, PR #129)
 Bản đồ ×8, server `GAME_TEST=1 PERF_LOG=1`, bot đi lang thang:
