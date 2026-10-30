@@ -30,6 +30,7 @@ Mã ở `client/src/combatFx.ts`.
 
 **Giới hạn và tùy chọn:**
 - Hạt dùng một lớp chung có trần theo mức (`PARTICLE_CAP`).
+- **Rung không bị nuốt** (Phaser 3.90.0): `camera.shake` bỏ qua lệnh mới khi một rung đang chạy. Rung mới mạnh hơn phần còn lại của rung đang chạy thì ghi đè (`force`, hàm `shouldForceShake`); yếu hơn thì bỏ. Rung của chiêu nhẹ không được chặn rung hạ boss.
 - Bảng **Cài đặt**, lưu `localStorage` khóa `soul-land-fx-v1`:
   - **Hiệu ứng hình ảnh** Thấp / Vừa (mặc định) / Cao. Thấp: không hạt, rung, dừng hình, zoom.
   - **Rung màn hình** Tắt (không rung, zoom, dừng hình) / Chỉ boss (mặc định, như trên) / Đầy đủ (thêm rung, zoom, dừng hình khi đánh hồn thú thường, trừ lúc tự săn).
@@ -85,6 +86,7 @@ Mã ở `hitFeel.ts`.
 
 ### Mức hiệu ứng thực và bộ điều tốc
 Mã ở `combatFx.ts`, `combatFeelRules.ts`.
+- **Chớp màn tối đa 3 lần trong 1 giây** (`FLASH_MAX_PER_SEC`, hàm `flashAllowed`), theo WCAG 2.3.1; lần thứ tư trở đi bị bỏ. Giảm chuyển động vẫn tắt hẳn chớp.
 - **Mức thực** `fxLevel()` = mức người chơi chọn (Thấp / Vừa / Cao), hạ thêm khi FPS thấp nếu bật "Tự hạ khi giật" (`fxPrefs.auto`, mặc định bật; bảng Cài đặt). MỌI nơi vẽ hiệu ứng (sheet chiêu, hạt, tia lửa, cảnh cận, pháp tướng, hào quang hồn hoàn, sương mù) đọc `fxLevel()`, không đọc `fxPrefs.level`.
 - **Bộ điều tốc** `FxGovernor` (hằng `GOV`):
   - Lấy trung bình trượt thời gian khung.
