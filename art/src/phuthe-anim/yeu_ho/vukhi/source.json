@@ -1289,8 +1289,12 @@
         "clip": "idle",
         "ms": 0,
         "scene": "VukhiScene",
-        "sha256": "5706c81fba79a0534f95d8c18f1dd53d8b26ccccfbee2aa315331cda9953900e",
-        "capturedAt": "2026-10-30T18:42:08.554Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "28e0937fe15c49577d792e80f69ee731b2ec182315b13c3303ea7417422c01ba",
+        "capturedAt": "2026-10-30T18:48:03.196Z"
       },
       {
         "file": "test-m-walk-100.png",
@@ -1298,8 +1302,12 @@
         "clip": "walk",
         "ms": 100,
         "scene": "VukhiScene",
-        "sha256": "3871bb980feda97543ece7bff252ce037e5306a336474447a1f8162ffadafdf0",
-        "capturedAt": "2026-10-30T18:42:12.895Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "cc0feddbac4a998677cc114871b75fc8e030b352fc3af6a6c9f3c531da4fb71c",
+        "capturedAt": "2026-10-30T18:48:06.401Z"
       },
       {
         "file": "test-m-attack-190.png",
@@ -1307,8 +1315,12 @@
         "clip": "attack",
         "ms": 190,
         "scene": "VukhiScene",
-        "sha256": "b38069759a447169b38e7ec0dc7bc6c71799c241bc4be9c9e3f8217e8b9a6e2c",
-        "capturedAt": "2026-10-30T18:42:17.258Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "65603d6c1a9d95835e75f33a37724b297caf3cf61a5ffa883876bc87eb847c9a",
+        "capturedAt": "2026-10-30T18:48:09.454Z"
       },
       {
         "file": "test-m-cast-360.png",
@@ -1316,8 +1328,12 @@
         "clip": "cast",
         "ms": 360,
         "scene": "VukhiScene",
-        "sha256": "69afbc94c71a6d11ac341e6d1f0843e5dc273a962e5278134242d8a2d2a505eb",
-        "capturedAt": "2026-10-30T18:42:21.786Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "592b2077eedb91592516032313a524fbe8d326e795c4acc13bfcc61fe312f86b",
+        "capturedAt": "2026-10-30T18:48:12.544Z"
       },
       {
         "file": "game-f-s-cast-0.png",
@@ -1780,8 +1796,12 @@
         "clip": "idle",
         "ms": 0,
         "scene": "VukhiScene",
-        "sha256": "c5731d1367e8e7a5b81d19374640ea809a724331f1ab4885504808c13aaaf16b",
-        "capturedAt": "2026-10-30T18:43:18.992Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "00bab7cf5c47c8df42fc8febe787180bc94efafad7e08d270cbe32472fb7fac9",
+        "capturedAt": "2026-10-30T18:48:15.701Z"
       },
       {
         "file": "test-f-walk-100.png",
@@ -1789,8 +1809,12 @@
         "clip": "walk",
         "ms": 100,
         "scene": "VukhiScene",
-        "sha256": "cdbc455b399cc14354c0ccbbeb697d063710c57ef624f40af142cf5141ab464d",
-        "capturedAt": "2026-10-30T18:43:23.279Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "de8b5795dd1b8e906f421776fbd613116fa0196939e24af1ee14121bbc375878",
+        "capturedAt": "2026-10-30T18:48:18.772Z"
       },
       {
         "file": "test-f-attack-190.png",
@@ -1798,8 +1822,12 @@
         "clip": "attack",
         "ms": 190,
         "scene": "VukhiScene",
-        "sha256": "e0bcf32b5d8d2f7037fd8e3ec8ef0c3da1420c8188d4cec07a9ba8a9e93bc1f6",
-        "capturedAt": "2026-10-30T18:43:27.553Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "98b76f26fbd14a42780c1bcbfd5ddc0bf8f54f23dfe772b2bec987c0722df73a",
+        "capturedAt": "2026-10-30T18:48:21.845Z"
       },
       {
         "file": "test-f-cast-360.png",
@@ -1807,8 +1835,12 @@
         "clip": "cast",
         "ms": 360,
         "scene": "VukhiScene",
-        "sha256": "99ec6f5359feb1556f47dc4db866bef9bc5110609e2471697fbfe7eced8750bb",
-        "capturedAt": "2026-10-30T18:43:31.955Z"
+        "comparison": {
+          "id": "bang_phuong_hoang",
+          "expected": "không có sheet vũ khí"
+        },
+        "sha256": "c7cb893e7ea029ff1c2c9e08ed614fc94e524123e1acba8f477554dc17c506c3",
+        "capturedAt": "2026-10-30T18:48:24.864Z"
       }
     ],
     "assets": [
