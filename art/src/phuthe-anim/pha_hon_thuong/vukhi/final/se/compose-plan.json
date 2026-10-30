@@ -1,0 +1,1990 @@
+{
+  "dir": "se",
+  "F": 128,
+  "scale": 0.1,
+  "palette": [
+    [
+      0,
+      1,
+      1
+    ],
+    [
+      5,
+      1,
+      3
+    ],
+    [
+      9,
+      1,
+      8
+    ],
+    [
+      6,
+      8,
+      12
+    ],
+    [
+      9,
+      6,
+      20
+    ],
+    [
+      8,
+      22,
+      28
+    ],
+    [
+      10,
+      38,
+      44
+    ],
+    [
+      10,
+      56,
+      64
+    ],
+    [
+      18,
+      34,
+      45
+    ],
+    [
+      20,
+      66,
+      64
+    ],
+    [
+      34,
+      30,
+      42
+    ],
+    [
+      74,
+      4,
+      25
+    ],
+    [
+      134,
+      14,
+      33
+    ],
+    [
+      178,
+      12,
+      29
+    ],
+    [
+      202,
+      22,
+      48
+    ],
+    [
+      229,
+      40,
+      48
+    ],
+    [
+      13,
+      76,
+      84
+    ],
+    [
+      13,
+      89,
+      95
+    ],
+    [
+      12,
+      105,
+      112
+    ],
+    [
+      14,
+      120,
+      136
+    ],
+    [
+      37,
+      91,
+      93
+    ],
+    [
+      42,
+      117,
+      122
+    ],
+    [
+      73,
+      87,
+      113
+    ],
+    [
+      167,
+      35,
+      119
+    ],
+    [
+      24,
+      156,
+      165
+    ],
+    [
+      62,
+      150,
+      153
+    ],
+    [
+      57,
+      175,
+      190
+    ],
+    [
+      52,
+      213,
+      229
+    ],
+    [
+      123,
+      177,
+      171
+    ],
+    [
+      153,
+      214,
+      222
+    ],
+    [
+      168,
+      237,
+      243
+    ],
+    [
+      233,
+      248,
+      249
+    ]
+  ],
+  "omittedPoses": [],
+  "gripPolicy": "pose-a",
+  "secondaryTolerance": 20,
+  "poses": [
+    {
+      "root": [
+        63.555016181229774,
+        421.9142394822006
+      ],
+      "axis": -0.8605021057143987,
+      "axisPoint": [
+        128.76070306678423,
+        346.09723348893397
+      ],
+      "headWidth": 80.7766322604509,
+      "headLength": 213.29745154344766,
+      "headSize": 213.29745154344766,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 301,
+      "box": [
+        52,
+        32,
+        399,
+        431
+      ],
+      "area": 14371
+    },
+    {
+      "root": [
+        429.24447949526814,
+        420.4558359621451
+      ],
+      "axis": -0.7816290447797332,
+      "axisPoint": [
+        500.2211716498839,
+        350.0121764121976
+      ],
+      "headWidth": 75.59858941240446,
+      "headLength": 209.7963590035838,
+      "headSize": 209.7963590035838,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 303,
+      "box": [
+        418,
+        57,
+        791,
+        430
+      ],
+      "area": 13786
+    },
+    {
+      "root": [
+        983.75,
+        449.8179012345679
+      ],
+      "axis": -1.5665322996922615,
+      "axisPoint": [
+        984.1764014181275,
+        349.8188103295471
+      ],
+      "headWidth": 85.03333938271791,
+      "headLength": 183.32141489715139,
+      "headSize": 183.32141489715139,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 251,
+      "box": [
+        939,
+        15,
+        1024,
+        460
+      ],
+      "area": 13072
+    },
+    {
+      "root": [
+        1355.1072607260726,
+        450.3778877887789
+      ],
+      "axis": -1.5687010866675737,
+      "axisPoint": [
+        1355.316784585502,
+        350.37810729025813
+      ],
+      "headWidth": 86.01238266029361,
+      "headLength": 181.87985134646078,
+      "headSize": 181.87985134646078,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 253,
+      "box": [
+        1311,
+        15,
+        1397,
+        460
+      ],
+      "area": 12972
+    },
+    {
+      "root": [
+        192.3527397260274,
+        534.332191780822
+      ],
+      "axis": 1.5698585821447923,
+      "axisPoint": [
+        192.44651417729418,
+        634.3321478125738
+      ],
+      "headWidth": 91.99339533762296,
+      "headLength": 195.1677514585699,
+      "headSize": 195.1677514585699,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 248,
+      "box": [
+        144,
+        522,
+        236,
+        977
+      ],
+      "area": 13969
+    },
+    {
+      "root": [
+        585.1858108108108,
+        534.331081081081
+      ],
+      "axis": 1.5686220084656708,
+      "axisPoint": [
+        585.4032424724095,
+        634.3308446981644
+      ],
+      "headWidth": 89.99108998891101,
+      "headLength": 194.1707288066931,
+      "headSize": 194.1707288066931,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 249,
+      "box": [
+        538,
+        522,
+        628,
+        977
+      ],
+      "area": 13614
+    },
+    {
+      "root": [
+        983.7212389380531,
+        960.0545722713864
+      ],
+      "axis": -1.5656805930911861,
+      "axisPoint": [
+        984.2328100770522,
+        860.055880805099
+      ],
+      "headWidth": 84.03471081141136,
+      "headLength": 182.56306206191198,
+      "headSize": 182.56306206191198,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 255,
+      "box": [
+        939,
+        522,
+        1023,
+        970
+      ],
+      "area": 13046
+    },
+    {
+      "root": [
+        1355.0862068965516,
+        534.2965517241379
+      ],
+      "axis": 1.5696836059869337,
+      "axisPoint": [
+        1355.197478954386,
+        634.2964898167645
+      ],
+      "headWidth": 89.00217034359433,
+      "headLength": 191.2036343363497,
+      "headSize": 191.2036343363497,
+      "headScale": 1.0379517639359122,
+      "shaftLength": 252,
+      "box": [
+        1309,
+        522,
+        1398,
+        977
+      ],
+      "area": 13620
+    }
+  ],
+  "plan": [
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "name": "se/idle/0",
+      "pose": 0,
+      "hands": [
+        [
+          56.5,
+          78.6
+        ]
+      ],
+      "angle": -0.03490658503988659,
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "bounds": [
+        -11.59126093654985,
+        -416.11624233065817,
+        334.4848060018304,
+        10.09038491927657
+      ],
+      "axisUnit": [
+        0.6251998999224696,
+        -0.7804646597616922
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "name": "se/idle/1",
+      "pose": 0,
+      "hands": [
+        [
+          56.6,
+          78.1
+        ]
+      ],
+      "angle": 0.03490658503988659,
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "bounds": [
+        -11.52502612521651,
+        -391.8139280590504,
+        362.58841229519913,
+        9.832831148481256
+      ],
+      "axisUnit": [
+        0.6781194069355798,
+        -0.7349517466727578
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "name": "se/walk/0",
+      "pose": 1,
+      "hands": [
+        [
+          63,
+          79.9
+        ]
+      ],
+      "angle": -0.06981317007977318,
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "bounds": [
+        -11.411502893960721,
+        -402.0416494065722,
+        348.9532362533528,
+        10.74348073805405
+      ],
+      "axisUnit": [
+        0.6588989521196718,
+        -0.7522314609849807
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "name": "se/walk/1",
+      "pose": 1,
+      "hands": [
+        [
+          52.6,
+          79.5
+        ]
+      ],
+      "angle": -0.017453292519943295,
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "bounds": [
+        -11.222211906188884,
+        -383.2354426454286,
+        369.4078623980614,
+        10.509715036491272
+      ],
+      "axisUnit": [
+        0.6973647068322196,
+        -0.716716447184528
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "name": "se/walk/2",
+      "pose": 1,
+      "hands": [
+        [
+          50.3,
+          79.4
+        ]
+      ],
+      "angle": 0.05235987755982988,
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "bounds": [
+        -11.356655551685385,
+        -356.59015995535515,
+        395.2050152455256,
+        10.642239417719146
+      ],
+      "axisUnit": [
+        0.7456615734858143,
+        -0.6663248590790078
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "name": "se/walk/3",
+      "pose": 1,
+      "hands": [
+        [
+          58.5,
+          78.9
+        ]
+      ],
+      "angle": 0.017453292519943295,
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "bounds": [
+        -11.223811947732424,
+        -370.12921664058933,
+        382.5213457341874,
+        10.500857663660963
+      ],
+      "axisUnit": [
+        0.7219529343801259,
+        -0.6919421656034018
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "name": "se/attack/0",
+      "pose": 2,
+      "hands": [
+        [
+          56.3,
+          80.4
+        ],
+        [
+          77.2,
+          79.8
+        ]
+      ],
+      "angle": 0,
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "bounds": [
+        -45.929365554164114,
+        -450.801031695363,
+        42.29653438038842,
+        11.087503256117879
+      ],
+      "axisUnit": [
+        0.004264014181275201,
+        -0.9999909090502083
+      ],
+      "gripSpan": 20.908610666421627,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "name": "se/attack/1",
+      "pose": 3,
+      "hands": [
+        [
+          54.6,
+          78.5
+        ],
+        [
+          73.9,
+          77.9
+        ]
+      ],
+      "angle": 0,
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "bounds": [
+        -45.26223319104026,
+        -451.38227072708673,
+        44.001618507448185,
+        10.506264224394199
+      ],
+      "axisUnit": [
+        0.0020952385942950183,
+        -0.9999978049852074
+      ],
+      "gripSpan": 19.309324172533852,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "name": "se/attack/2",
+      "pose": 6,
+      "hands": [
+        [
+          53.1,
+          78.1
+        ],
+        [
+          83.4,
+          74.7
+        ]
+      ],
+      "angle": 0,
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "bounds": [
+        -45.89951295918371,
+        -454.1605401073091,
+        41.28843521143291,
+        10.84185013597957
+      ],
+      "axisUnit": [
+        0.005115711389990977,
+        -0.9999869146628741
+      ],
+      "gripSpan": 30.490162347878705,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "name": "se/attack/3",
+      "pose": 7,
+      "hands": [
+        [
+          54.1,
+          77.9
+        ],
+        [
+          83.8,
+          61.7
+        ]
+      ],
+      "angle": 0,
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "bounds": [
+        -47.31628385942321,
+        -12.244251670430144,
+        45.061423130872974,
+        460.0238009204099
+      ],
+      "axisUnit": [
+        0.0011127205783441846,
+        0.9999993809262656
+      ],
+      "gripSpan": 33.8309030325825,
+      "gripOffset": 16.166942169828687
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "name": "se/cast/0",
+      "pose": 6,
+      "hands": [
+        [
+          74.1,
+          72.5
+        ],
+        [
+          52.4,
+          72.4
+        ]
+      ],
+      "angle": 0,
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "bounds": [
+        -45.89951295918371,
+        -454.1605401073091,
+        41.28843521143291,
+        10.84185013597957
+      ],
+      "axisUnit": [
+        0.005115711389990977,
+        -0.9999869146628741
+      ],
+      "gripSpan": 21.700230413523258,
+      "gripOffset": 3
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "name": "se/cast/1",
+      "pose": 7,
+      "hands": [
+        [
+          77.1,
+          58.8
+        ],
+        [
+          45.9,
+          58.8
+        ]
+      ],
+      "angle": 0,
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "bounds": [
+        -47.31628385942321,
+        -12.244251670430144,
+        45.061423130872974,
+        460.0238009204099
+      ],
+      "axisUnit": [
+        0.0011127205783441846,
+        0.9999993809262656
+      ],
+      "gripSpan": 31.199999999999996,
+      "gripOffset": 3
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "name": "se/hurt/0",
+      "pose": 0,
+      "hands": [
+        [
+          78.7,
+          79.4
+        ]
+      ],
+      "angle": -0.13962634015954636,
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "bounds": [
+        -11.856107631748761,
+        -448.7885374586307,
+        289.4817601161993,
+        10.438495856074882
+      ],
+      "axisUnit": [
+        0.5401942179353476,
+        -0.8415403774681391
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "name": "se/idle/0",
+      "pose": 0,
+      "hands": [
+        [
+          55.83333333333333,
+          78.72222222222223
+        ]
+      ],
+      "angle": -0.03490658503988659,
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "bounds": [
+        -11.59126093654985,
+        -416.11624233065817,
+        334.4848060018304,
+        10.09038491927657
+      ],
+      "axisUnit": [
+        0.6251998999224696,
+        -0.7804646597616922
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "name": "se/idle/1",
+      "pose": 0,
+      "hands": [
+        [
+          56.16666666666667,
+          77.75
+        ]
+      ],
+      "angle": 0.03490658503988659,
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "bounds": [
+        -11.52502612521651,
+        -391.8139280590504,
+        362.58841229519913,
+        9.832831148481256
+      ],
+      "axisUnit": [
+        0.6781194069355798,
+        -0.7349517466727578
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "name": "se/walk/0",
+      "pose": 1,
+      "hands": [
+        [
+          63.5,
+          79.875
+        ]
+      ],
+      "angle": -0.06981317007977318,
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "bounds": [
+        -11.411502893960721,
+        -402.0416494065722,
+        348.9532362533528,
+        10.74348073805405
+      ],
+      "axisUnit": [
+        0.6588989521196718,
+        -0.7522314609849807
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "name": "se/walk/1",
+      "pose": 1,
+      "hands": [
+        [
+          72.875,
+          78.875
+        ]
+      ],
+      "angle": -0.017453292519943295,
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "bounds": [
+        -11.222211906188884,
+        -383.2354426454286,
+        369.4078623980614,
+        10.509715036491272
+      ],
+      "axisUnit": [
+        0.6973647068322196,
+        -0.716716447184528
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "name": "se/walk/2",
+      "pose": 1,
+      "hands": [
+        [
+          74.21428571428572,
+          78.78571428571428
+        ]
+      ],
+      "angle": 0.05235987755982988,
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "bounds": [
+        -11.356655551685385,
+        -356.59015995535515,
+        395.2050152455256,
+        10.642239417719146
+      ],
+      "axisUnit": [
+        0.7456615734858143,
+        -0.6663248590790078
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "name": "se/walk/3",
+      "pose": 1,
+      "hands": [
+        [
+          59.16666666666667,
+          79.83333333333334
+        ]
+      ],
+      "angle": 0.017453292519943295,
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "bounds": [
+        -11.223811947732424,
+        -370.12921664058933,
+        382.5213457341874,
+        10.500857663660963
+      ],
+      "axisUnit": [
+        0.7219529343801259,
+        -0.6919421656034018
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "name": "se/attack/0",
+      "pose": 2,
+      "hands": [
+        [
+          55.6,
+          80.5
+        ],
+        [
+          77.21428571428572,
+          79.78571428571428
+        ]
+      ],
+      "angle": 0,
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "bounds": [
+        -45.929365554164114,
+        -450.801031695363,
+        42.29653438038842,
+        11.087503256117879
+      ],
+      "axisUnit": [
+        0.004264014181275201,
+        -0.9999909090502083
+      ],
+      "gripSpan": 21.62608496747408,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "name": "se/attack/1",
+      "pose": 3,
+      "hands": [
+        [
+          73.7,
+          79.5
+        ],
+        [
+          54.6,
+          79.5
+        ]
+      ],
+      "angle": 0,
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "bounds": [
+        -45.26223319104026,
+        -451.38227072708673,
+        44.001618507448185,
+        10.506264224394199
+      ],
+      "axisUnit": [
+        0.0020952385942950183,
+        -0.9999978049852074
+      ],
+      "gripSpan": 19.1,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "name": "se/attack/2",
+      "pose": 6,
+      "hands": [
+        [
+          54.27777777777778,
+          77.38888888888889
+        ],
+        [
+          82.38888888888889,
+          74.72222222222223
+        ]
+      ],
+      "angle": 0,
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "bounds": [
+        -45.89951295918371,
+        -454.1605401073091,
+        41.28843521143291,
+        10.84185013597957
+      ],
+      "axisUnit": [
+        0.005115711389990977,
+        -0.9999869146628741
+      ],
+      "gripSpan": 28.23731005270058,
+      "gripOffset": 3
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "name": "se/attack/3",
+      "pose": 7,
+      "hands": [
+        [
+          54.04545454545455,
+          76.95454545454545
+        ],
+        [
+          82.77272727272728,
+          61.68181818181819
+        ]
+      ],
+      "angle": 0,
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "bounds": [
+        -47.31628385942321,
+        -12.244251670430144,
+        45.061423130872974,
+        460.0238009204099
+      ],
+      "axisUnit": [
+        0.0011127205783441846,
+        0.9999993809262656
+      ],
+      "gripSpan": 32.53478748500157,
+      "gripOffset": 16.166942169828687
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "name": "se/cast/0",
+      "pose": 6,
+      "hands": [
+        [
+          73.375,
+          76
+        ],
+        [
+          54,
+          74.33333333333334
+        ]
+      ],
+      "angle": 0,
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "bounds": [
+        -45.89951295918371,
+        -454.1605401073091,
+        41.28843521143291,
+        10.84185013597957
+      ],
+      "axisUnit": [
+        0.005115711389990977,
+        -0.9999869146628741
+      ],
+      "gripSpan": 19.446552465097195,
+      "gripOffset": 3
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "name": "se/cast/1",
+      "pose": 7,
+      "hands": [
+        [
+          76.95454545454545,
+          60.31818181818181
+        ],
+        [
+          46.875,
+          59.125
+        ]
+      ],
+      "angle": 0,
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "bounds": [
+        -47.31628385942321,
+        -12.244251670430144,
+        45.061423130872974,
+        460.0238009204099
+      ],
+      "axisUnit": [
+        0.0011127205783441846,
+        0.9999993809262656
+      ],
+      "gripSpan": 30.1032014510634,
+      "gripOffset": 3
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "name": "se/hurt/0",
+      "pose": 0,
+      "hands": [
+        [
+          76.4,
+          79.5
+        ]
+      ],
+      "angle": -0.13962634015954636,
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "bounds": [
+        -11.856107631748761,
+        -448.7885374586307,
+        289.4817601161993,
+        10.438495856074882
+      ],
+      "axisUnit": [
+        0.5401942179353476,
+        -0.8415403774681391
+      ],
+      "gripSpan": 0,
+      "gripOffset": 3
+    }
+  ],
+  "distances": [
+    {
+      "name": "m/se/idle/0",
+      "pose": 0,
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 154,
+      "edge": 0,
+      "shaftLength": 28.24234809447096,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -51.303138919555245,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 38.69686108044476,
+      "blocked": false
+    },
+    {
+      "name": "m/se/idle/1",
+      "pose": 0,
+      "near": [
+        0.4123105625617719
+      ],
+      "pixels": 153,
+      "edge": 0,
+      "shaftLength": 28.24234809447096,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -47.30313891955524,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 42.69686108044476,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/0",
+      "pose": 1,
+      "near": [
+        0.6403124237432885
+      ],
+      "pixels": 148,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -48.784045410720736,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 41.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/1",
+      "pose": 1,
+      "near": [
+        0.10000000000000142
+      ],
+      "pixels": 142,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -45.78404541072074,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 44.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/2",
+      "pose": 1,
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 147,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -41.78404541072074,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 48.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/3",
+      "pose": 1,
+      "near": [
+        0.4000000000000057
+      ],
+      "pixels": 147,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -43.784045410720736,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 46.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/0",
+      "pose": 2,
+      "near": [
+        0.22360679774997896,
+        19.742846805868705
+      ],
+      "pixels": 142,
+      "edge": 0,
+      "shaftLength": 23.052589274791394,
+      "gripSpan": 20.908610666421627,
+      "gripOffset": 3,
+      "axisDegrees": -89.75568924328961,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 20.897251590640597,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.24431075671039082,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/1",
+      "pose": 3,
+      "near": [
+        0.10000000000000142,
+        18.404347312523754
+      ],
+      "pixels": 142,
+      "edge": 0,
+      "shaftLength": 23.26017962757858,
+      "gripSpan": 19.309324172533852,
+      "gripOffset": 3,
+      "axisDegrees": -89.87995158363795,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 19.298700493057932,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.12004841636205299,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/2",
+      "pose": 6,
+      "near": [
+        0.565685424949241,
+        28.900692033236854
+      ],
+      "pixels": 137,
+      "edge": 0,
+      "shaftLength": 23.467769980365762,
+      "gripSpan": 30.490162347878705,
+      "gripOffset": 3,
+      "axisDegrees": -89.70689004966455,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 30.282210095559126,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.29310995033544884,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/3",
+      "pose": 7,
+      "near": [
+        0.565685424949241,
+        28.704180880143575
+      ],
+      "pixels": 139,
+      "edge": 0,
+      "shaftLength": 9.989442281356304,
+      "gripSpan": 33.8309030325825,
+      "gripOffset": 16.166942169828687,
+      "axisDegrees": 89.93624579392734,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 29.718007686879258,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.06375420607264459,
+      "blocked": false
+    },
+    {
+      "name": "m/se/cast/0",
+      "pose": 6,
+      "near": [
+        0.4000000000000057,
+        20.18960128382926
+      ],
+      "pixels": 140,
+      "edge": 0,
+      "shaftLength": 23.467769980365762,
+      "gripSpan": 21.700230413523258,
+      "gripOffset": 3,
+      "axisDegrees": -89.70689004966455,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 21.700227619323364,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.29310995033544884,
+      "blocked": false
+    },
+    {
+      "name": "m/se/cast/1",
+      "pose": 7,
+      "near": [
+        0.5000000000000029,
+        29.64877737782791
+      ],
+      "pixels": 141,
+      "edge": 0,
+      "shaftLength": 23.15638445118499,
+      "gripSpan": 31.199999999999996,
+      "gripOffset": 3,
+      "axisDegrees": 89.93624579392734,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 31.19998068489948,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.06375420607264459,
+      "blocked": false
+    },
+    {
+      "name": "m/se/hurt/0",
+      "pose": 0,
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 156,
+      "edge": 0,
+      "shaftLength": 28.24234809447096,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -57.30313891955524,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 32.69686108044476,
+      "blocked": false
+    },
+    {
+      "name": "f/se/idle/0",
+      "pose": 0,
+      "near": [
+        0.4006168083848873
+      ],
+      "pixels": 152,
+      "edge": 0,
+      "shaftLength": 28.24234809447096,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -51.303138919555245,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 38.69686108044476,
+      "blocked": false
+    },
+    {
+      "name": "f/se/idle/1",
+      "pose": 0,
+      "near": [
+        0.4166666666666629
+      ],
+      "pixels": 149,
+      "edge": 0,
+      "shaftLength": 28.24234809447096,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -47.30313891955524,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 42.69686108044476,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/0",
+      "pose": 1,
+      "near": [
+        0.375
+      ],
+      "pixels": 150,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -48.784045410720736,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 41.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/1",
+      "pose": 1,
+      "near": [
+        0.5303300858899107
+      ],
+      "pixels": 148,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -45.78404541072074,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 44.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/2",
+      "pose": 1,
+      "near": [
+        0.40406101782087284
+      ],
+      "pixels": 146,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -41.78404541072074,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 48.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/3",
+      "pose": 1,
+      "near": [
+        0.47140452079103506
+      ],
+      "pixels": 145,
+      "edge": 0,
+      "shaftLength": 28.449938447258138,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -43.784045410720736,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 46.21595458927925,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/0",
+      "pose": 2,
+      "near": [
+        0.10000000000000142,
+        20.716256063925325
+      ],
+      "pixels": 143,
+      "edge": 0,
+      "shaftLength": 23.052589274791394,
+      "gripSpan": 21.62608496747408,
+      "gripOffset": 3,
+      "axisDegrees": -89.75568924328961,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 21.611043495484314,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.24431075671039082,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/1",
+      "pose": 3,
+      "near": [
+        0.20000000000000284,
+        17.927911200137064
+      ],
+      "pixels": 142,
+      "edge": 0,
+      "shaftLength": 23.26017962757858,
+      "gripSpan": 19.1,
+      "gripOffset": 3,
+      "axisDegrees": -89.87995158363795,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 19.099958075217465,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.12004841636205299,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/2",
+      "pose": 6,
+      "near": [
+        0.24845199749997735,
+        26.889807146855134
+      ],
+      "pixels": 143,
+      "edge": 0,
+      "shaftLength": 23.467769980365762,
+      "gripSpan": 28.23731005270058,
+      "gripOffset": 3,
+      "axisDegrees": -89.70689004966455,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 28.09710137070526,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.29310995033544884,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/3",
+      "pose": 7,
+      "near": [
+        0.6428243465332233,
+        27.53870304297674
+      ],
+      "pixels": 140,
+      "edge": 0,
+      "shaftLength": 9.989442281356304,
+      "gripSpan": 32.53478748500157,
+      "gripOffset": 16.166942169828687,
+      "axisDegrees": 89.93624579392734,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 28.744249220896528,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.06375420607264459,
+      "blocked": false
+    },
+    {
+      "name": "f/se/cast/0",
+      "pose": 6,
+      "near": [
+        0.5153882032022076,
+        17.519830034690536
+      ],
+      "pixels": 142,
+      "edge": 0,
+      "shaftLength": 23.467769980365762,
+      "gripSpan": 19.446552465097195,
+      "gripOffset": 3,
+      "axisDegrees": -89.70689004966455,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 19.38327265724317,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.29310995033544884,
+      "blocked": false
+    },
+    {
+      "name": "f/se/cast/1",
+      "pose": 7,
+      "near": [
+        0.48956043701222834,
+        28.723357220213657
+      ],
+      "pixels": 144,
+      "edge": 0,
+      "shaftLength": 23.15638445118499,
+      "gripSpan": 30.1032014510634,
+      "gripOffset": 3,
+      "axisDegrees": 89.93624579392734,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 30.07819915512612,
+      "secondaryTolerance": 20,
+      "primaryOnly": true,
+      "verticalDeviation": 0.06375420607264459,
+      "blocked": false
+    },
+    {
+      "name": "f/se/hurt/0",
+      "pose": 0,
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 149,
+      "edge": 0,
+      "shaftLength": 28.24234809447096,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -57.30313891955524,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 32.69686108044476,
+      "blocked": false
+    }
+  ],
+  "geometryFailures": [],
+  "checks": {
+    "m": {
+      "id": "pha_hon_thuong",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#D0D000",
+      "blockLevel": {
+        "se": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                76,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                586,
+                723
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                832,
+                967
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.5
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (se) C4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 28%)."
+            }
+          ],
+          "draft": "LỖI: toB — chân lệch — H3 (se) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 28%)."
+        }
+      ]
+    },
+    "f": {
+      "id": "pha_hon_thuong",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#D0D000",
+      "blockLevel": {
+        "se": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                78,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                588,
+                721
+              ],
+              "figures": 4,
+              "state": "warn"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                842,
+                971
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.505
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 1
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "chan-lech",
+              "where": "H3 (se) C4",
+              "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 26%)."
+            }
+          ],
+          "draft": "LỖI: toB — chân lệch — H3 (se) C4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 26%)."
+        }
+      ]
+    }
+  },
+  "note": "A raster <=2px; attack/cast vertical <=15deg uses A only; otherwise B shaft distance <=20px. Fixed raster scale per atlas."
+}

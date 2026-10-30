@@ -1,0 +1,17 @@
+{
+    "e":  {
+              "raw":  "art/src/phuthe-anim/pha_hon_thuong/vukhi/e/attempt1/poses.raw.png"
+          },
+    "s":  {
+              "raw":  "art/src/phuthe-anim/pha_hon_thuong/vukhi/s/attempt2/poses.raw.png"
+          },
+    "ne":  {
+               "raw":  "art/src/phuthe-anim/pha_hon_thuong/vukhi/ne/attempt1/poses.raw.png"
+           },
+    "n":  {
+              "raw":  "art/src/phuthe-anim/pha_hon_thuong/vukhi/n/attempt3/poses.raw.png"
+          },
+    "se":  {
+               "raw":  "art/src/phuthe-anim/pha_hon_thuong/vukhi/se/attempt1/poses.raw.png"
+           }
+}
