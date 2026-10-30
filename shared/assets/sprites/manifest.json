@@ -9546,9 +9546,9 @@
       "key": "pt_hoa_anh",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.5,
         "dx": 0,
-        "dy": 0,
+        "dy": -20,
         "back": [
           "s",
           "se",
@@ -9560,8 +9560,13 @@
         ],
         "frontAlpha": 0.7,
         "ghost": 0.88,
+        "glow": "pt_hoa_anh_glow",
         "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
       }
+    },
+    {
+      "key": "pt_hoa_anh_glow",
+      "iso": true
     },
     {
       "key": "pt_hoa_long",

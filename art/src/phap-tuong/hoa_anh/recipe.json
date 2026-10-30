@@ -1,0 +1,42 @@
+{
+  "id": "hoa_anh",
+  "raw": "art/src/phap-tuong/hoa_anh",
+  "glow": "#ff3a4a",
+  "despill": true,
+  "selectedAttempts": {
+    "s": 2,
+    "se": 2,
+    "e": 2,
+    "ne": 3,
+    "n": 1
+  },
+  "display": {
+    "scale": 1.5,
+    "dy": -20,
+    "bob": 2
+  },
+  "cutter": {
+    "gitBlob": "e9189290c797aa640347b7a0229d745ab4f69075",
+    "path": "tools/assets/phaptuong-sheet-cut.mjs"
+  },
+  "colors": 48,
+  "scale": 1,
+  "frame": 160,
+  "origin": [
+    80,
+    124
+  ],
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "verifiedOnMain": {
+    "commit": "399ff4fea66cf2143acb1bded6e91686f4311cf7",
+    "sheetSha256": "00469d697a7f157d31c9045e9e2f60b54e6f514e2fcf7c1959e77531bd2fe404",
+    "glowSha256": "4d4f6470d2330e54e992efdd94ea7f8f391ad361a0a3dbf8b36d067abdb3c6f9"
+  }
+}
