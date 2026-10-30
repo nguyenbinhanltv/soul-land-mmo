@@ -165,7 +165,7 @@ export function renderParty(v: PartyView, act: PartyActions) {
     row.append(t, btns); box.append(row);
   }
   if (!v.id && !v.invites.length && !partyInviting) box.append(el("small", "phint", "Bấm vào hồn sư khác hoặc gõ /moi <tên> để mời."));
-  sideBoxInvites(v.invites.length); // chấm đỏ tab Tổ đội; có lời mời mới thì khung gộp tự nhảy sang tab này
+  sideBoxInvites(v.invites.length, !!v.id); // chấm đỏ tab Tổ đội; có lời mời mới thì khung gộp tự nhảy sang tab này
 }
 
 /** Mỗi lần cập nhật HUD: đếm ngược lời mời. */

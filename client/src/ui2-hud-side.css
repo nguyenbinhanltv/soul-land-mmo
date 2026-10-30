@@ -101,4 +101,8 @@ body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,
 :where(body.touch) #hud #sideBox :is(.sb-tab,.sb-fold){min-height:40px}
 /* Như hành vi cũ: khi dải xếp hạng boss, đấu trường hoặc màn rất thấp chiếm chỗ thì chỉ phần Nhiệm vụ bị ẩn, tab Tổ đội (sinh lực đồng đội, Rời đội, lời mời) vẫn hiện và được ép chọn. */
 #hud:has(#bossRank:not([hidden])) #sideBox :is(#quest,.sb-empty,#sbTabQuest),body.arena #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest),body:where(.ui-h460):not(.touch) #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest){display:none!important}
+/* Màn rất thấp (radar đã cao ~305 px, #878): chỉ hiện khung khi đang có tổ đội hoặc lời mời, đặt bên trái radar và thân thấp hơn để không rơi xuống dải đội hình / hồn kỹ. */
+body:where(.ui-h460):not(.touch) #hud #sideBox:not(.inv):not(.inparty){display:none}
+body:where(.ui-h460):not(.touch) #hud #sideBox{position:absolute;top:0;right:calc(100% + var(--sp-4));width:200px}  /* bên trái radar (hàng trên còn trống), không rơi xuống dải đáy */
+body:where(.ui-h460):not(.touch) #hud #sideBox .sb-body{max-height:112px}
 #hud:has(#bossRank:not([hidden])) #sideBox #party,body.arena #hud #sideBox #party,body:where(.ui-h460):not(.touch) #hud #sideBox #party{display:block!important}
