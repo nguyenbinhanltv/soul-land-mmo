@@ -1,0 +1,508 @@
+{
+  "policy": "pose-a",
+  "units": "game-pixel-frame-128",
+  "primaryAnchor": "exact",
+  "primaryRasterTolerance": 2,
+  "verticalToleranceDegrees": 15,
+  "verticalPolicy": "primary-only",
+  "secondaryTolerance": 20,
+  "level": "ok",
+  "approvedForImport": false,
+  "issues": [],
+  "distances": [
+    {
+      "name": "m/se/idle/0",
+      "pose": 0,
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 182,
+      "edge": 0,
+      "shaftLength": 7.67833861157286,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.7623680998878,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23763190011220559,
+      "blocked": false
+    },
+    {
+      "name": "m/se/idle/1",
+      "pose": 0,
+      "near": [
+        0.4123105625617719
+      ],
+      "pixels": 184,
+      "edge": 0,
+      "shaftLength": 7.67833861157286,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.7623680998878,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23763190011220559,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/0",
+      "pose": 1,
+      "near": [
+        0.6403124237432885
+      ],
+      "pixels": 236,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/1",
+      "pose": 1,
+      "near": [
+        0.10000000000000142
+      ],
+      "pixels": 236,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/2",
+      "pose": 1,
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 241,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "m/se/walk/3",
+      "pose": 1,
+      "near": [
+        0.4000000000000057
+      ],
+      "pixels": 238,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/0",
+      "pose": 2,
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 304,
+      "edge": 0,
+      "shaftLength": 13.238134748176911,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.99520724255859,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.0047927574414075025,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/1",
+      "pose": 3,
+      "near": [
+        0.10000000000000142
+      ],
+      "pixels": 383,
+      "edge": 0,
+      "shaftLength": 9.708105455094975,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.76969411207214,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23030588792785522,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/2",
+      "pose": 6,
+      "near": [
+        0.565685424949241
+      ],
+      "pixels": 387,
+      "edge": 0,
+      "shaftLength": 11.826123030944137,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.87123716275367,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.12876283724632742,
+      "blocked": false
+    },
+    {
+      "name": "m/se/attack/3",
+      "pose": 7,
+      "near": [
+        0.565685424949241
+      ],
+      "pixels": 381,
+      "edge": 0,
+      "shaftLength": 13.767639142139206,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -90.17484031428842,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.17484031428841718,
+      "blocked": false
+    },
+    {
+      "name": "m/se/cast/0",
+      "pose": 6,
+      "near": [
+        0.4000000000000057
+      ],
+      "pixels": 380,
+      "edge": 0,
+      "shaftLength": 11.826123030944137,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.87123716275367,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.12876283724632742,
+      "blocked": false
+    },
+    {
+      "name": "m/se/cast/1",
+      "pose": 7,
+      "near": [
+        0.5000000000000029
+      ],
+      "pixels": 381,
+      "edge": 0,
+      "shaftLength": 13.767639142139206,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -90.17484031428842,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.17484031428841718,
+      "blocked": false
+    },
+    {
+      "name": "m/se/hurt/0",
+      "pose": 0,
+      "near": [
+        0.22360679774997896
+      ],
+      "pixels": 185,
+      "edge": 0,
+      "shaftLength": 7.67833861157286,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.7623680998878,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23763190011220559,
+      "blocked": false
+    },
+    {
+      "name": "f/se/idle/0",
+      "pose": 0,
+      "near": [
+        0.4006168083848873
+      ],
+      "pixels": 184,
+      "edge": 0,
+      "shaftLength": 7.67833861157286,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.7623680998878,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23763190011220559,
+      "blocked": false
+    },
+    {
+      "name": "f/se/idle/1",
+      "pose": 0,
+      "near": [
+        0.4166666666666629
+      ],
+      "pixels": 189,
+      "edge": 0,
+      "shaftLength": 7.67833861157286,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.7623680998878,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23763190011220559,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/0",
+      "pose": 1,
+      "near": [
+        0.375
+      ],
+      "pixels": 237,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/1",
+      "pose": 1,
+      "near": [
+        0.5303300858899107
+      ],
+      "pixels": 239,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/2",
+      "pose": 1,
+      "near": [
+        0.40406101782087284
+      ],
+      "pixels": 233,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "f/se/walk/3",
+      "pose": 1,
+      "near": [
+        0.47140452079103506
+      ],
+      "pixels": 232,
+      "edge": 0,
+      "shaftLength": 10.678863510692508,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -77.26042168682896,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 12.739578313171037,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/0",
+      "pose": 2,
+      "near": [
+        0.10000000000000142
+      ],
+      "pixels": 305,
+      "edge": 0,
+      "shaftLength": 13.238134748176911,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.99520724255859,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.0047927574414075025,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/1",
+      "pose": 3,
+      "near": [
+        0.20000000000000284
+      ],
+      "pixels": 382,
+      "edge": 0,
+      "shaftLength": 9.708105455094975,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.76969411207214,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23030588792785522,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/2",
+      "pose": 6,
+      "near": [
+        0.24845199749997735
+      ],
+      "pixels": 382,
+      "edge": 0,
+      "shaftLength": 11.826123030944137,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.87123716275367,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.12876283724632742,
+      "blocked": false
+    },
+    {
+      "name": "f/se/attack/3",
+      "pose": 7,
+      "near": [
+        0.6428243465332233
+      ],
+      "pixels": 383,
+      "edge": 0,
+      "shaftLength": 13.767639142139206,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -90.17484031428842,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.17484031428841718,
+      "blocked": false
+    },
+    {
+      "name": "f/se/cast/0",
+      "pose": 6,
+      "near": [
+        0.5153882032022076
+      ],
+      "pixels": 386,
+      "edge": 0,
+      "shaftLength": 11.826123030944137,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.87123716275367,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.12876283724632742,
+      "blocked": false
+    },
+    {
+      "name": "f/se/cast/1",
+      "pose": 7,
+      "near": [
+        0.48956043701222834
+      ],
+      "pixels": 379,
+      "edge": 0,
+      "shaftLength": 13.767639142139206,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -90.17484031428842,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.17484031428841718,
+      "blocked": false
+    },
+    {
+      "name": "f/se/hurt/0",
+      "pose": 0,
+      "near": [
+        0.09999999999999432
+      ],
+      "pixels": 182,
+      "edge": 0,
+      "shaftLength": 7.67833861157286,
+      "gripSpan": 0,
+      "gripOffset": 3,
+      "axisDegrees": -89.7623680998878,
+      "primaryAnchorError": 0,
+      "secondaryShaftDistance": 0,
+      "secondaryTolerance": 20,
+      "primaryOnly": false,
+      "verticalDeviation": 0.23763190011220559,
+      "blocked": false
+    }
+  ]
+}
