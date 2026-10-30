@@ -1757,7 +1757,7 @@ body.touch.ui-h460.ui-w640:not(.ui-portrait) #actbar{flex-direction:column}
 body:where(.ui-h560){--log-max:50px;--toast-res:290px}
 body:where(.ui-h560) #toasts{width:min(200px,60vw)}
 body:where(.ui-h560) #toasts .toast:nth-last-child(n+4){display:none}
-body:where(.ui-h560) #hud:has(#toasts .toast:not(.out)) #sideBox{visibility:hidden}
+body:where(.ui-h560) #hud:has(#toasts .toast:not(.out)) #sideBox:not(.inv)[data-tab="quest"]{visibility:hidden}
 /* Vùng nhìn ≤ 460 cao (cửa sổ 960×540 có khung trình duyệt = 944×445): bản đồ nhỏ đã cao ~305 nên hộp nhiệm vụ rơi xuống dải đội hình / hồn kỹ và chữ lọt qua ô trong suốt (UI P0 #878). Không còn chỗ: ẩn (nhiệm vụ vẫn xem ở hộp thoại NPC). Điện thoại có chỗ riêng ở dòng 796. */
 /* Có tổ đội thì dải giữa-trên (thanh máu boss, đếm ngược boss, nhãn mục tiêu) neo theo mép phải bảng Tổ đội (10 + 210 + 8 + 232 = 460, +16) và mép trái cột phải (222), không theo giữa màn: đúng ở mọi cỡ logic có ui-h560 (#722) */
 
