@@ -176,13 +176,13 @@ async function runSize(W, H) {
     });
     await step("cong-minh", async () => { await key("KeyK", "k"); await shot("31-cong-minh"); await key("Escape", "Escape"); });
     await step("ban-be", async () => { await key("KeyL", "l"); await shot("32-ban-be"); await key("Escape", "Escape"); });
-    await step("tu-dong", async () => { await hubOpen("auto"); await sleep(500); await shot("33-tu-dong"); await hubOpen("auto"); });
+    await step("tu-dong", async () => { await hubOpen("auto"); await sleep(500); await shot("33-tu-dong"); await key("Escape", "Escape"); }); // mục hub luôn MỞ (không bật / tắt như nút cũ): đóng bằng Esc
     // Tổng kết tự động và Ủy thác trở về: phát lại tin giả vào bộ nghe của phòng (không gửi gì lên server; chỉ để chụp bố cục).
     const fake = (type, msg) => ev(`(window.__scene.room.onMessageHandlers.emit(${JSON.stringify(type)}, ${JSON.stringify(msg)}), true)`);
     await step("tong-ket", async () => {
       await hubOpen("auto"); await sleep(400);
       await fake("auto", { on: false, left: 36000, max: 43200, bonus: 0, cfg: AUTO_DEFAULTS, why: "Hết đan hồi sinh lực", sum: { secs: 1830, kills: 142, xp: 98200, coins: 3650, loot: [["Hồn hoàn 1000 năm", 2], ["Tiên thảo", 5]], sold: [12, 840] } }).catch(() => {});
-      await sleep(500); await shot("38-tong-ket-tu-dong"); await hubOpen("auto");
+      await sleep(500); await shot("38-tong-ket-tu-dong"); await key("Escape", "Escape");
     });
     await step("uy-thac", async () => {
       await fake("offline", { away: 21600, secs: 21600, used: 21000, map: "Thánh Hồn Thôn", zone: "Rừng ngoài", kills: 1280, weak: 14, xp: 856000, coins: 42500,
