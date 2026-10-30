@@ -209,3 +209,5 @@ Parser hiện chỉ hỗ trợ `@VUKHI`, chưa hỗ trợ tag nhóm mềm. Các 
 - @VUKHI-GANG Hỏa Ảnh (#1382): thử mảng tay nhỏ 4–9px ở đúng bước, dưới ngực/phía đối diện tay đã đo; chỉ thêm khi có đúng một ứng viên. Khôi phục17 khung, giảm62→45 khung một grip, đã xem QA và runtime; không nhận mảng2–3px, không sửa bộ đo chung hoặc bịa tay khuất. Giữ10 hurt dự phòng và giới hạn chuyển động/FX.
 
 - @VUKHI-GANG Liệt Hỏa Thương Lang (#1390): giữ khối xám nâu than, chỉ chóp vuốt/khe nứt cam đỏ để không thành găng vàng hoặc bake vệt lửa. Cùng phép đo tay nhỏ Hỏa Ảnh cho175/220 hai grip,45 một grip; đã xem runtime riêng, giữ10 hurt dự phòng và giới hạn pose/FX.
+
+- @VUKHI-GANG Bạch Hổ (#1393): khối giáp xám lạnh, vằn tối và mép lông trắng, không phủ trắng phẳng cả găng. Nêu rõ mặt mu ở s/se và mặt lòng ở ne/n; không dùng FX khí lạnh che chi tiết hoặc grip. Khi Bạch Hổ đã có vũ khí phải đổi đối chứng runtime sang võ hồn chưa có sheet, kiểm manifest trước chụp.
