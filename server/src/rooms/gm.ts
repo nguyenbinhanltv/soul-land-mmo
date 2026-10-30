@@ -14,6 +14,7 @@ import { chatReset, inviteReset, rallyReset, friendReset } from "../ratelimit.ts
 import { arenaWatchMax, setTestWatchMax, arenaTestSlow } from "./arenaQueue.ts";
 import { itemLockKey } from "../itemLock.ts";
 import { presenceBackend, bg } from "../presence.ts";
+import { wpCooldownKey, remoteCdLeft } from "./travel.ts";
 import { gmAllow, gmEnabled, isAdmin, parseGm, _gmSetAdmin, type GmCmd } from "../gm.ts";
 import { buildPreset } from "../testPreset.ts";
 import { newItem, gearStats, bagUsed } from "./items.ts";
@@ -29,7 +30,7 @@ import { CHANNEL_CAP, channelLeftKey, channelSwitchAt, channelSwitchKey, claimHe
  * `hurt {pct}` (võ hồn ra trận mất pct% sinh lực hiện có, bỏ qua khiên), `clear` (bỏ mọi hồn thú trong vòng 160 pixel quanh mình),
  * `beast {dx, dy}` (đặt một hồn thú thường 1 máu, đứng yên, lệch (dx, dy) so với mình; chỉ bản đồ có vùng săn),
  * `give {code, qty, years}` (thêm vật phẩm vào túi, gộp và giới hạn ô như nhặt đồ; hồn hoàn mang `years` năm), `coin {n}` (đặt
- * Hồn Tệ), `drain {pct}` (mất pct% hồn lực hiện có), `goto {x, y}` (đứng ở điểm đứng được), `drops {s}` (mọi hồn hoàn dưới đất
+ * Hồn Tệ), `wpcd {secs}` (đặt / xóa hồi dịch chuyển từ xa), `drain {pct}` (mất pct% hồn lực hiện có), `goto {x, y}` (đứng ở điểm đứng được), `drops {s}` (mọi hồn hoàn dưới đất
  * già thêm s giây). `rest` cũng trừ hồi chiêu đan. Từ 3.2 `beast`, `spawn`, `kill` nhận thêm `years` (tuổi hồn thú; thiếu thì
  * lấy mốc năm của bậc).
  * Từ 2.5a: `status {s, n, secs, all}` (gây trạng thái lên hồn thú gần nhất trong 160 pixel, `all`: mọi hồn thú trong 160 pixel,
@@ -208,6 +209,12 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     } catch (e) { out = { error: String((e as Error).message) }; }
   }
   else if (op === "coin") { d.honTe = int(o.n, 0, 1e12, d.honTe); d.bagDirty = true; room.sendBag(id); }
+  else if (op === "wpcd") { // hồi dịch chuyển từ xa: `{secs}` đặt còn ngần ấy giây (0 = xóa), tin đáp `{left}` giây còn hồi
+    const secs = int(o.secs, 0, 1e6, -1);
+    if (secs === 0) await presenceBackend.delete(wpCooldownKey(d.accountId));
+    else if (secs > 0) await presenceBackend.putJson(wpCooldownKey(d.accountId), Date.now() + secs * 1000, secs * 1000);
+    out = { left: await remoteCdLeft(d.accountId) };
+  }
   else if (op === "gmadmin") { _gmSetAdmin(d.accountId, o.on !== false); } // #518: bật / tắt quyền admin GM của người gọi (bot không biết trước mã tài khoản)
   else if (op === "shard") {
     const r = int(o.r, -1, 100, -1);

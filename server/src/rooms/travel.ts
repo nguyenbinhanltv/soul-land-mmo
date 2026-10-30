@@ -3,9 +3,9 @@
 // MapRoom chỉ chuyển tiếp `travelDeny` / `travel` / `beginTravel` / `waypointTick` / `waypointAction` / `useRecall` / `finishRecall` / `stopCast` (onMessage, tick, gm.ts, useItem gọi như cũ); `freeze`, `portalHint`, đổi kênh (`switchChannel`) còn ở MapRoom.
 import type { Client } from "colyseus";
 import { store, type Item } from "../db.ts";
-import { MAPS, TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, waypointFee, TRAVEL_LEAVE_SECS, CHANNEL_CD, TEAM_COMBAT_SECS, itemDef, formatHonTe } from "../../../shared/data.ts";
+import { MAPS, TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, WAYPOINT_COOLDOWN_S, waypointFee, TRAVEL_LEAVE_SECS, CHANNEL_CD, TEAM_COMBAT_SECS, itemDef, formatHonTe } from "../../../shared/data.ts";
 import { mapHops, mapLinks, allWaypoints, nearestTown, type Portal } from "../map.ts";
-import { presenceBackend } from "../presence.ts";
+import { presenceBackend, bg } from "../presence.ts";
 import type { PlayerState } from "./schema.ts";
 import { strIn, leftRoom, channelLeftKey, pickChannel, type MapRoom, type PData, type RecallCast } from "./MapRoom.ts";
 
@@ -108,6 +108,13 @@ export function waypointTick(room: MapRoom, id: string, p: PlayerState, d: PData
   room.broadcast("fx", { k: "wpopen", x: w.cx, y: w.cy });
 }
 
+/** Presence (có TTL = thời gian hồi): giờ hết hồi (ms) dịch chuyển từ bất kỳ đâu của tài khoản; theo tài khoản nên không mất khi đổi bản đồ / kênh / vào lại. */
+export const wpCooldownKey = (accountId: number) => `wp-cd:${accountId}`;
+export async function remoteCdLeft(accountId: number) {
+  const until = await presenceBackend.getJson<number>(wpCooldownKey(accountId)).catch(() => null);
+  return typeof until === "number" ? Math.max(0, Math.ceil((until - Date.now()) / 1000)) : 0;
+}
+
 /** `wp {op}`: `list` gửi bản đồ thế giới, `go {key}` niệm truyền tống tới trận `key`, `cancel` thôi niệm. */
 export function waypointAction(room: MapRoom, id: string, op: unknown, key: unknown) {
   if (op === "list") return sendWorld(room, id);
@@ -119,11 +126,14 @@ export function waypointAction(room: MapRoom, id: string, op: unknown, key: unkn
  * Tin riêng `world` (bảng bản đồ thế giới): bản đồ đang ở, trận đang đứng (`cur`, "" = không đứng trên trận nào: chỉ xem), Hồn Tệ,
  * các cặp bản đồ nối bằng cổng (`links`), mọi truyền tống trận theo thứ tự MAPS với tên, đã mở chưa, phí từ bản đồ này (null = không tới được bằng cổng).
  */
-export function sendWorld(room: MapRoom, id: string) {
+export async function sendWorld(room: MapRoom, id: string) {
   const p = room.state.players.get(id), d = room.pdata.get(id), c = room.clients.getById(id); if (!p || !d || !c) return;
+  const cd = await remoteCdLeft(d.accountId); // giây còn hồi của dịch chuyển từ bất kỳ đâu (0 = dùng được); chỉ thêm trường, client cũ bỏ qua
+  if (!room.state.players.get(id) || !room.clients.getById(id)) return;
   const hops = mapHops(room.state.mapId), here = room.map.waypointAt(p.x, p.y);
-  c.send("world", { map: room.state.mapId, cur: here?.key ?? "", honTe: d.honTe, links: mapLinks(),
-    list: allWaypoints().map((w) => ({ key: w.key, map: w.map, label: w.label, open: d.wps.has(w.key), fee: hops[w.map] === undefined ? null : waypointFee(hops[w.map]) })) });
+  c.send("world", { map: room.state.mapId, cur: here?.key ?? "", honTe: d.honTe, links: mapLinks(), remoteCd: cd, remoteCdMax: WAYPOINT_COOLDOWN_S,
+    list: allWaypoints().map((w) => ({ key: w.key, map: w.map, label: w.label, open: d.wps.has(w.key), fee: hops[w.map] === undefined ? null : waypointFee(hops[w.map]),
+      feeRemote: hops[w.map] === undefined ? null : waypointFee(hops[w.map], true) })) });
 }
 
 /** Lý do không niệm truyền tống / Hồi Thành Phù được lúc này (null = được, "" = bỏ qua im lặng). Kiểm lại lúc niệm xong. */
@@ -155,23 +165,43 @@ export function stopCast(room: MapRoom, id: string, why: string) {
   if (wp) { room.clients.getById(id)?.send("recall", { on: false }); room.broadcast("fx", { k: "wpcast", id, t: 0 }); }
 }
 
-/** Xin truyền tống tới trận `key`: đứng trên một truyền tống trận, trận đích đã mở khóa, khác trận đang đứng, đủ Hồn Tệ, ngoài giao chiến. */
+/**
+ * Xin truyền tống tới trận `key`: trận đích đã mở khóa, đủ Hồn Tệ, ngoài giao chiến. Đứng trên một trận khác thì phí thường, không hồi;
+ * KHÔNG đứng trên trận (từ bất kỳ đâu): thêm phụ phí WAYPOINT_FEE.remote, hồi WAYPOINT_COOLDOWN_S giây, và không dùng khi đang tự săn /
+ * ủy thác treo hay trong sân đấu / Bí Cảnh. Client chỉ gửi `key`; mọi điều kiện kiểm ở đây, kiểm lại lúc niệm xong (finishRecall).
+ */
 export function startWaypoint(room: MapRoom, id: string, key: string) {
   const why = recallDeny(room, id);
   if (why !== null) { if (why) room.log(id, why, "#ffb35c"); return; }
   const p = room.state.players.get(id)!, d = room.pdata.get(id)!, warn = (t: string) => room.log(id, t, "#ffb35c");
-  const here = room.map.waypointAt(p.x, p.y);
-  if (!here) return warn("Hãy đứng trên một truyền tống trận rồi mới dịch chuyển được (phím M chỉ để xem bản đồ).");
+  const here = room.map.waypointAt(p.x, p.y), remote = !here;
+  if (remote) {
+    if (MAPS[room.state.mapId].kind === "arena") return warn("Trong sân đấu không dịch chuyển được."); // phòng thủ thêm: ArenaRoom / BiCanhRoom đã chặn tin `wp`
+    if (d.auto) return warn("Đang tự săn: hãy tắt tự săn rồi mới dịch chuyển được.");
+  }
   const to = allWaypoints().find((w) => w.key === key);
   if (!to) return warn("Truyền tống trận không tồn tại.");
   if (!d.wps.has(to.key)) return warn(`Chưa mở khóa truyền tống trận ${to.label}: hãy tới đó bước lên trận một lần.`);
-  if (to.key === here.key) return warn("Đang đứng ở chính trận này.");
+  if (to.key === here?.key) return warn("Đang đứng ở chính trận này.");
   const hops = mapHops(room.state.mapId)[to.map];
   if (hops === undefined) return warn(`Không tới được ${MAPS[to.map].name} từ đây.`);
-  const fee = waypointFee(hops);
+  const fee = waypointFee(hops, remote);
   if (d.honTe < fee) return warn(`Không đủ Hồn Tệ: truyền tống tới ${to.label} cần ${formatHonTe(fee)}.`);
-  beginRecall(room, id, recallDest(room, to.map, to.cx, to.cy), { label: `${to.label} (${MAPS[to.map].name})`, fee });
-  room.log(id, `Đang niệm truyền tống tới ${to.label} (${WAYPOINT_CAST} giây, ${formatHonTe(fee)})…`, "#8fe0ff");
+  const begin = () => {
+    beginRecall(room, id, recallDest(room, to.map, to.cx, to.cy), { label: `${to.label} (${MAPS[to.map].name})`, fee, remote });
+    room.log(id, `Đang niệm truyền tống${remote ? " từ xa" : ""} tới ${to.label} (${WAYPOINT_CAST} giây, ${formatHonTe(fee)})…`, "#8fe0ff");
+  };
+  if (!remote) return begin();
+  // Thời gian hồi đọc từ presence (bất đồng bộ): sau khi chờ, kiểm lại toàn bộ (người chơi có thể đã đổi trạng thái / đã niệm bản khác).
+  void remoteCdLeft(d.accountId).then((left) => {
+    if (room.pdata.get(id) !== d) return;
+    if (left > 0) return warn(`Dịch chuyển từ xa đang hồi: còn ${left} giây (đứng trên truyền tống trận thì không bị hồi).`);
+    const again = recallDeny(room, id);
+    if (again !== null) { if (again) warn(again); return; }
+    const p2 = room.state.players.get(id), here2 = p2 && room.map.waypointAt(p2.x, p2.y);
+    if (!p2 || here2 || d.honTe < fee || d.auto) return;
+    begin();
+  });
 }
 
 /** Dùng Hồi Thành Phù `it`: niệm WAYPOINT_CAST giây về thành gần nhất (nearestTown), cùng luật cấm / hủy như truyền tống trận. */
@@ -202,6 +232,10 @@ export function finishRecall(room: MapRoom, id: string, dest: Portal, wp: Recall
   const it = wp.itemId ? d.bag.find((i) => i.id === wp.itemId && i.vohonId === null) : undefined;
   if (wp.itemId && !it) return room.log(id, "Hồi Thành Phù không còn trong túi đồ.", "#ffb35c");
   if (d.honTe < wp.fee) return room.log(id, `Không đủ Hồn Tệ: cần ${formatHonTe(wp.fee)}.`, "#ffb35c");
+  if (wp.remote) { // hồi tính từ lúc dịch chuyển xong; hủy niệm không tính. Lưu lỗi (undo bên dưới) thì xóa hồi.
+    if (d.auto) return room.log(id, "Đang tự săn: hãy tắt tự săn rồi mới dịch chuyển được.", "#ffb35c");
+    bg(presenceBackend.putJson(wpCooldownKey(d.accountId), Date.now() + WAYPOINT_COOLDOWN_S * 1000, WAYPOINT_COOLDOWN_S * 1000), "presence wp-cd");
+  }
   d.honTe -= wp.fee; d.bagDirty = true;
   const code = it?.code;
   if (it) room.takeItem(d, it, 1);
@@ -219,6 +253,7 @@ export function finishRecall(room: MapRoom, id: string, dest: Portal, wp: Recall
   }
   beginTravel(room, id, dest, undefined, () => {
     room.addCoin(d, wp.fee);
+    if (wp.remote) bg(presenceBackend.delete(wpCooldownKey(d.accountId)), "presence wp-cd");
     if (code) room.addItem(d, code, 1);
     room.sendBag(id);
   });

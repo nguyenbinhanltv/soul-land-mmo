@@ -255,7 +255,7 @@ export interface AuthData { accountId: number; ch: Character; owned: Character[]
  * Niệm truyền tống (11.2): tên nơi đến, phí (đồng, trừ lúc dịch chuyển), ô Hồi Thành Phù sẽ dùng (không có = truyền tống trận), chỗ
  * đứng lúc bắt đầu (lệch quá 2 pixel thì hủy: di chuyển, bị đẩy / kéo), tổng số giây (thanh niệm của client).
  */
-export interface RecallCast { label: string; fee: number; itemId?: string; x0: number; y0: number; dur: number; }
+export interface RecallCast { label: string; fee: number; remote?: boolean; itemId?: string; x0: number; y0: number; dur: number; }
 /** Một trạng thái trên hồn thú: giây còn lại, số tầng, độ lớn mỗi tầng (sát thương mỗi giây hoặc tỉ lệ), người gây. */
 export interface SInst { t: number; n: number; v: number; src: string; pair?: string; } // pair (#192): đồng đội dung hợp chia đôi đóng góp
 export interface BData {

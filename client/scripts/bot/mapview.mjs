@@ -5,7 +5,7 @@ import { findLongPath, buildNav, navNode, clearLine, pathLength } from "../../..
 import { autoLeg } from "../../../shared/autowalk.ts";
 import { readFileSync } from "node:fs";
 import { checkBeastYears, checkGateClear, post, sleep, waitFor, ok, mapFileOf, mapUrl, zonesByName, bot, enter, qtyOf, bagKey, npcSpot, talk, trade, same, test, needHookSkip } from "./lib.mjs";
-import { TRAVEL_CAST, itemDef, formatHonTe, TEAM_COMBAT_SECS, MAPS, parseLevelRange, RING_ITEM, BOAT_CAST, npcDef, NPC_RANGE, SHOP, sellPrice, PLAYER_SPEED, TICK_RATE, WAYPOINT_CAST, WAYPOINT_FEE, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands, RADAR, RALLY, MAPS as RALLY_MAPS, FOG, AUTO_MOVE, AUTOWALK, TILE } from "../../../shared/data.ts";
+import { TRAVEL_CAST, itemDef, formatHonTe, TEAM_COMBAT_SECS, MAPS, parseLevelRange, RING_ITEM, BOAT_CAST, npcDef, NPC_RANGE, SHOP, sellPrice, PLAYER_SPEED, TICK_RATE, WAYPOINT_CAST, WAYPOINT_FEE, WAYPOINT_COOLDOWN_S, waypointFee, SYNC_VIEW, CAMP_MERCHANT, CAMP_SHOP, CAMP_STEP, shopOf, shopExpands, RADAR, RALLY, MAPS as RALLY_MAPS, FOG, AUTO_MOVE, AUTOWALK, TILE } from "../../../shared/data.ts";
 import { VIT_FIELDS } from "./vit.mjs";
 import { rallyUpsert, rallyPrune } from "../../../shared/rally.ts";
 import { fogDims, fogCount, fogGet, fogCellOf, fogValid } from "../../../shared/fog.ts";
@@ -258,6 +258,7 @@ export async function waypointTest(){
     else ok(list.length>=1&&list.length<=3&&list.every(w=>w.label),`${MAPS[id].name}: ${list.length} truyền tống trận (${list.map(w=>w.label).join(", ")})`);
     for(const w of list) wps[w.key]=w;
   }
+  ok(WAYPOINT_FEE.remote>0&&waypointFee(1,true)===waypointFee(1)+WAYPOINT_FEE.remote&&WAYPOINT_COOLDOWN_S>0,`phụ phí từ xa ${formatHonTe(WAYPOINT_FEE.remote)}, hồi ${WAYPOINT_COOLDOWN_S} giây`);
   ok(WAYPOINT_CAST===3&&waypointFee(0)===WAYPOINT_FEE.base&&waypointFee(2)===WAYPOINT_FEE.base+2*WAYPOINT_FEE.perHop,`phí truyền tống: ${[0,1,2,3].map(h=>formatHonTe(waypointFee(h))).join(" / ")} theo số lần đi cổng, niệm ${WAYPOINT_CAST} giây`);
   const phu=itemDef("hoi_thanh_phu"), phuPrice=SHOP.find(r=>r.code==="hoi_thanh_phu")?.price;
   ok(phu?.recall&&phu.kind==="phu"&&phuPrice>0&&sellPrice({code:"hoi_thanh_phu",years:null,stars:null,enhance:0})===null,`Hồi Thành Phù: thương nhân bán ${formatHonTe(phuPrice??0)}, không mua lại`);
@@ -286,7 +287,8 @@ export async function waypointTest(){
   ok(w&&w.cur===""&&w.list.length===Object.keys(wps).length&&w.list.every(x=>wps[x.key]),`bản đồ thế giới: ${w?.list.length} trận, không đứng trên trận nào`);
   ok(w&&w.links.some(([a,b])=>[a,b].sort().join()==="nac_dinh_thanh,thanh_hon_thon"),"bản đồ thế giới có nét nối Thánh Hồn Thôn – Nặc Đinh Thành");
   ok(w?.list.find(x=>x.key===nd)?.fee===waypointFee(1)&&w.list.find(x=>x.key===lang)?.fee===waypointFee(0),"phí theo số lần đi cổng từ bản đồ đang ở");
-  ok(/đứng trên một truyền tống trận/.test(await go(lang)),"không đứng trên trận: chỉ xem, không dịch chuyển được");
+  ok(w?.list.find(x=>x.key===nd)?.feeRemote===waypointFee(1,true)&&w.remoteCdMax===WAYPOINT_COOLDOWN_S,"bản đồ thế giới gửi phí từ xa (feeRemote) và hồi tối đa");
+  ok(/Chưa mở khóa/.test(await go(lang)),"không đứng trên trận, trận chưa mở: từ chối (từ xa chỉ tới trận đã mở)");
   // Bước lên trận làng: mở khóa.
   T.wpUnlock=[]; await stand(lang);
   ok(await waitFor(()=>T.wpUnlock.includes(lang)||T.world?.list.find(x=>x.key===lang)?.open,1500),"bước lên trận Quảng trường làng: mở khóa (tin wp unlock)");
@@ -329,6 +331,38 @@ export async function waypointTest(){
     await rejoin();
     ok(T.room.state.mapId==="nac_dinh_thanh"&&at(wps[nd]),`tới trận Quảng trường Nặc Đinh (${tme().x},${tme().y})`);
     ok(T.bag.honTe===h-fee,`phí đã trừ và lưu qua đi cổng: ${formatHonTe(h)} → ${formatHonTe(T.bag.honTe)}`); }
+  // Dịch chuyển TỪ BẤT KỲ ĐÂU (chủ repo duyệt 2026-10-31): phụ phí + hồi, giữ qua đổi bản đồ; đứng trên trận thì không hồi.
+  { const nd2=wps[nd], offFrom=async(w0)=>{ for(const [dx,dy] of [[90,0],[-90,0],[0,90],[0,-90],[160,0],[-160,0]]){ await test(T,"goto",{x:w0.x+dx,y:w0.y+dy}); await sleep(300); if((await world())?.cur==="") break; } await test(T,"clear",{all:true}); }, off=()=>offFrom(nd2);
+    await off(); w=await world(); ok(w?.cur==="","đứng ngoài trận (cách trận Nặc Đinh)");
+    const fr=waypointFee(1,true), h0=3000; await coin(h0); await test(T,"wpcd",{secs:0});
+    // Điều kiện chặn.
+    await coin(waypointFee(1,true)-1); ok(/Không đủ Hồn Tệ/.test(await go(tc)),"từ xa thiếu Hồn Tệ (thiếu 1 đồng so với phí + phụ phí): từ chối, không niệm");
+    await coin(h0); ok(/không tồn tại/.test(await go("khong:co")),"từ xa tới trận không tồn tại: từ chối");
+    await test(T,"hurt",{pct:1}); ok(/Đang giao chiến/.test(await go(tc)),"từ xa khi đang giao chiến: từ chối");
+    await sleep(TEAM_COMBAT_SECS*1000+300);
+    await test(T,"wpcd",{secs:60}); { const r=await go(tc); ok(/đang hồi: còn \d+ giây/.test(r)&&!T.recall?.on&&T.bag.honTe===h0,`từ xa đang hồi: từ chối, không trừ phí (${r})`); }
+    ok((await world())?.remoteCd>0,"bản đồ thế giới báo thời gian hồi còn lại");
+    await test(T,"wpcd",{secs:0});
+    // Hủy niệm không mất gì, không tính hồi.
+    ok(/Đang niệm truyền tống từ xa/.test(await go(tc)),`từ xa: niệm (${formatHonTe(fr)})`);
+    await sleep(500); { const l=T.logs.length; T.room.send("input",{x:1,y:0}); await sleep(250); T.room.send("input",{x:0,y:0}); await waitFor(()=>T.logs.slice(l).some(t=>/Di chuyển: đã hủy/.test(t)),1500); }
+    await sleep(WAYPOINT_CAST*1000); ok(T.bag.honTe===h0&&(await test(T,"wpcd",{}))?.left===0,"hủy niệm từ xa: không trừ phí, không bị hồi");
+    await off(); await test(T,"wpcd",{secs:0});
+    // Đường tốt: sang Trại cổng Ngoại vi (bản đồ khác): trừ phụ phí, đi đúng transaction đi cổng, bị hồi.
+    T.travel=null; ok(/Đang niệm truyền tống từ xa/.test(await go(tc)),"từ xa tới Trại cổng Ngoại vi");
+    ok(await waitFor(()=>T.travel?.mapId==="tinh_dau_ngoai_vi",WAYPOINT_CAST*1000+2500),"niệm xong: server cho chuyển bản đồ"); await rejoin();
+    ok(at(wps[tc])&&T.bag.honTe===h0-fr,`tới trận, trừ ${formatHonTe(fr)} gồm phụ phí (còn ${formatHonTe(T.bag.honTe)})`);
+    { const left=(await test(T,"wpcd",{}))?.left; ok(left>WAYPOINT_COOLDOWN_S-15&&left<=WAYPOINT_COOLDOWN_S,`hồi ${left} giây, vẫn còn sau khi đổi bản đồ`); }
+    // Đứng trên trận thì không bị hồi, không phụ phí.
+    { const h=T.bag.honTe, f=waypointFee(0); await stand(tc); ok(/Đang niệm/.test(await go(rt)),"đứng trên trận: dịch chuyển dù đang hồi"); ok(await waitFor(()=>at(wps[rt])&&T.bag.honTe===h-f,3500),`đứng trên trận: không phụ phí, chỉ ${formatHonTe(f)}`); }
+    // Đang hồi thì từ xa vẫn bị chặn sau khi bước ra khỏi trận.
+    await offFrom(wps[rt]); ok((await world())?.cur==="","đã ra khỏi trận Rừng thưa");
+    ok(/đang hồi/.test(await go(tc)),"ra khỏi trận: từ xa vẫn đang hồi");
+    // Đang tự săn: từ chối.
+    await test(T,"wpcd",{secs:0}); T.autoMsg=null; T.room.send("auto",{op:"on"}); await waitFor(()=>T.autoMsg,1500);
+    if(T.autoMsg?.on){ ok(/tắt tự săn/.test(await go(tc)),"từ xa khi đang tự săn: từ chối"); T.room.send("auto",{op:"off"}); await sleep(300); } else console.log("  (không bật được tự săn ở chỗ này, bỏ qua phép thử tự săn)");
+  }
+  await test(T,"wpcd",{secs:0}); await warp("nac_dinh_thanh",wps[nd].x,wps[nd].y); // về Nặc Đinh Thành cho phần Hồi Thành Phù
   // Hồi Thành Phù: mua ở thương nhân, dùng ở Tinh Đấu Nội địa (bản đồ săn) thì về thành gần nhất (Nặc Đinh Thành).
   { const sp=npcSpot("nac_dinh_thanh","thuong_nhan"); await test(T,"goto",{x:sp.x,y:sp.y+16}); await coin(500);
     const t=await trade(T,"buy",{code:"hoi_thanh_phu",qty:3}); ok(qtyOf(T,"hoi_thanh_phu")===3&&T.bag.honTe===500-3*phuPrice,`mua 3 Hồi Thành Phù (${t})`); }
