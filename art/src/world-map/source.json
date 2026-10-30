@@ -26,55 +26,67 @@
       "note": "Agent xem để hiểu chất liệu; không gửi ảnh tham chiếu cho model."
     }
   ],
-  "layoutSha256": "e4b19d8d10bced856023ac1a3da5679a173154c969df194bb1ec7c272f6ebe51",
+  "layoutSha256": "19d1c90ca13350933984e2c101e0d0dd119d3f0ed86fd9a88a7b5077493c5025",
   "dataSources": [
     {
       "file": "shared/data.ts",
-      "sha256": "917d5cea84b5f0792ea5d44e6fcdaaac85de9daafa1e98961778e72de9175e89"
+      "sha256": "3e26108fa7cba439440e267b89b50d15823aafda5734b198e1360ed3985813ce",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/thanh_hon_thon.v2.json",
-      "sha256": "4f5b3c7b6fe1954b9620e054daa1c31b4ba7b2bca912171dc0142c5285db7a90"
+      "sha256": "4f5b3c7b6fe1954b9620e054daa1c31b4ba7b2bca912171dc0142c5285db7a90",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/nac_dinh_thanh.v2.json",
-      "sha256": "b7dfe67e9285e63c277042818b407eeb7d4c302071c5b1866e5eda45595f5f3c"
+      "sha256": "b7dfe67e9285e63c277042818b407eeb7d4c302071c5b1866e5eda45595f5f3c",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/tinh_dau_ngoai_vi.v2.json",
-      "sha256": "876144045d69a4b36e1e66ffa80916ea9bf188f7ae26502c386cf255054c5c19"
+      "sha256": "876144045d69a4b36e1e66ffa80916ea9bf188f7ae26502c386cf255054c5c19",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/tinh_dau_noi_dia.v2.json",
-      "sha256": "c2cc6fcde36fd50929d3242c31449d8763b67d7ab42cb746a8c738c3e76e2eb4"
+      "sha256": "c2cc6fcde36fd50929d3242c31449d8763b67d7ab42cb746a8c738c3e76e2eb4",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/thien_dau_thanh.v2.json",
-      "sha256": "f7bc30263aa0d4492df369428e353c23bf040ab3691410a2e70f045f9c11594e"
+      "sha256": "f7bc30263aa0d4492df369428e353c23bf040ab3691410a2e70f045f9c11594e",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/lac_nhat_sam_lam.v2.json",
-      "sha256": "c5f737ff8cd6a5bc57894ba1af680c71e466250a088df73f6652f27d949eb553"
+      "sha256": "c5f737ff8cd6a5bc57894ba1af680c71e466250a088df73f6652f27d949eb553",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/cuc_bac_chi_dia.v2.json",
-      "sha256": "939e77fc91270fcc6bd1a4cf58296c92ebcb1e661941aad24014a7c9ef9c118e"
+      "sha256": "939e77fc91270fcc6bd1a4cf58296c92ebcb1e661941aad24014a7c9ef9c118e",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/hai_than_dao.v2.json",
-      "sha256": "870c45252c38fce1040d8a7842cf08afc43beedd86a1c8036029e83a28298bd2"
+      "sha256": "870c45252c38fce1040d8a7842cf08afc43beedd86a1c8036029e83a28298bd2",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/loi_tinh_dau.v2.json",
-      "sha256": "8a580af1e55cd5daec241f7ef163b0370e7da82e22cbbd495ec52773af0d8fd5"
+      "sha256": "8a580af1e55cd5daec241f7ef163b0370e7da82e22cbbd495ec52773af0d8fd5",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/dai_dau_hon_truong.v2.json",
-      "sha256": "10254685452f8c2ecfe5b6a09c10810c7e38d4109be609d2fdb285f2ce897e7d"
+      "sha256": "10254685452f8c2ecfe5b6a09c10810c7e38d4109be609d2fdb285f2ce897e7d",
+      "textNormalization": "LF"
     },
     {
       "file": "shared/assets/luyen_hon_canh.json",
-      "sha256": "365553d015d7b96977bfed8c790b289e23921a63662dced7c57e4250088463e1"
+      "sha256": "365553d015d7b96977bfed8c790b289e23921a63662dced7c57e4250088463e1",
+      "textNormalization": "LF"
     }
   ]
 }

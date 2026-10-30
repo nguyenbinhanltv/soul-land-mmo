@@ -25,7 +25,7 @@ Gốc tọa độ ở góc trên trái ảnh; x sang phải, y xuống dưới. 
 
 ## Dữ liệu đối chiếu
 
-Nguồn thật là `shared/data.ts` và `shared/assets/<mapId>.v2.json` nếu tồn tại, nếu không dùng `<mapId>.json`, đúng mặc định `server/src/map.ts`; checkout không có `shared/maps/`. JSON ghi hash từng nguồn để nhận biết khi cần cập nhật. `MAP_V1` là đường lùi server, không phải bố cục thay thế của tranh.
+Nguồn thật là `shared/data.ts` và `shared/assets/<mapId>.v2.json` nếu tồn tại, nếu không dùng `<mapId>.json`, đúng mặc định `server/src/map.ts`; checkout không có `shared/maps/`. JSON ghi hash từng nguồn để nhận biết khi cần cập nhật: chuẩn hóa CRLF thành LF trước khi băm văn bản nguồn (`textNormalization: LF`); ảnh, prompt và bố cục băm nguyên byte. `.gitattributes` cục bộ giữ prompt / JSON ở LF giữa Windows và Linux. `MAP_V1` là đường lùi server, không phải bố cục thay thế của tranh.
 
 | Bản đồ | Bản đồ kề qua cổng | Số trận |
 |---|---|---:|

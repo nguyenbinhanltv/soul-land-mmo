@@ -76,15 +76,13 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q51 | 2026-10-26 | **Kế hoạch di chuyển & giao chiến** (chủ repo duyệt, thân #746): đợt 1 M1, M2, M4 → M3; đợt 2 M5, M6; sau đó UI #732 U0–U5; **U6 điện thoại không làm, giữ Q40** | #746, #732 | `docs/design/giao-dien.md` |
 | Q52 | 2026-10-28 | **Bảng Xếp Hạng, điểm danh / Phúc Lợi / Lịch** (chủ repo, "tất cả theo đề xuất", 5 câu #1191): (1) v1 thưởng hạng chỉ là danh hiệu hiển thị theo tuần, không thưởng vật phẩm / Hồn Tệ; (2) công khai đội hình 4 ô, mỗi ô chỉ mã võ hồn, cấp, sao; (3) chu kỳ điểm danh riêng mỗi tài khoản từ lần ký đầu, mốc 7 / 14 / 21 theo số thứ tự ô (ký bù ô 7 vẫn có mốc); (4) ký bù = lượt miễn phí mỗi chu kỳ + lượt trả Hồn Tệ lũy tiến, trần số ô ký bù do skill `balance-review` đề xuất, hằng ở `shared/data.ts`; (5) v1 Lịch chỉ liệt kê sự kiện đã có, GM đặt sự kiện tạm / nhân thưởng làm sau | #877, #1191 | `docs/design/xep-hang.md`, `docs/design/phuc-loi.md`, `docs/design/lich-hoat-dong.md` |
 
-## Việc đang chờ chủ repo
-
-### Bổ sung mỹ thuật đã duyệt
+## Bổ sung mỹ thuật đã duyệt
 
 | Mã | Ngày | Quyết định | Issue / PR | File thiết kế |
 |---|---|---|---|---|
 | Q53 | 2026-10-31 | Bản đồ thế giới mở bằng M dùng một tranh vẽ tay thủy mặc trên giấy cổ cùng kit Giấy / Mực, Codex sinh ảnh; không chữ trên nền, nút / nhãn / đường cổng phủ bằng code; bố cục theo dữ liệu thật, chừa lề và có JSON tọa độ chuẩn hóa. Ngoại lệ nền Giấy so với bảng thao tác Mực ở Q49 | #1415 | `docs/art/ban-do-the-gioi.md` |
 
-### Các mục còn chờ
+## Việc đang chờ chủ repo
 
 | Mã | Ngày ghi | Nội dung | File |
 |---|---|---|---|
