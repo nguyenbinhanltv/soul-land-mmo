@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-31",
+  "tool": "Codex / OpenAI image_gen",
+  "model": null,
+  "seed": null,
+  "direction": "ne",
+  "attempt": 1,
+  "status": "rejected",
+  "reason": "Still exposes bright front feather faces and front jewel, rear camera insufficient.",
+  "rawUnmodified": true,
+  "image": {
+    "path": "poses.raw.png",
+    "sha256": "320fcf391f20c16257a386fc301ed976587cf607b2b4179e4f8865a833b6b7fe"
+  },
+  "prompt": {
+    "path": "prompt.txt",
+    "sha256": "32f75af3cbfe838be5125d9bebbafa179d22e93a5407d016116c63a1b5da6e99"
+  },
+  "references": [
+    {
+      "path": "../../e/attempt1/poses.raw.png",
+      "sha256": "3122f9bad4a0ee5552697aba88b03720d87325d8fac031fc10642cd1415db2d2"
+    }
+  ]
+}
