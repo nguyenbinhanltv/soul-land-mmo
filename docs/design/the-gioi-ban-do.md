@@ -31,6 +31,9 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**.
 | Hải Thần Đảo / Ma Quỷ Hải Vực (`hai_than_dao`) | Săn | Đảo giữa biển sâu, cầu tàu ở bờ tây; rạn nông có đường đá nối các bãi; đền Hải Thần với tượng đinh ba trên Vách Hải Thần, sân trước đền là vùng `safe` **Thánh địa Hải Thần** (không hồn thú, không giao chiến; tự săn đi vòng); trại Bến Hải Thần có vùng `safe` nhỏ quanh Hải Mã Đấu La; hồn thú biển; nơi duy nhất có hồn thú thường 10 vạn năm | Thiên Đấu Thành (bến thuyền) |
 | Lõi Tinh Đấu (`loi_tinh_dau`) | Boss | Hồ trung tâm Tinh Đấu Đại Sâm Lâm: Hồ Sinh Mệnh phát sáng (rìa nước nông có sen, rêu phát quang quanh bờ), sàn đấu boss thế giới lát đá giữa vòng cột tinh thể, cổ thụ phát quang | Nội địa |
 | Đại Đấu Hồn Trường (`dai_dau_hon_truong`) | Sân đấu | Sân nhỏ cho một trận 1v1 hoặc 2v2 (`ARENA_MAP`): khán đài hai phía, sàn đá có huy hiệu giữa sân cát, cột cờ, lò lửa, sư tử vàng | – |
+| Luyện Hồn Cảnh (`luyen_hon_canh`) | Phòng riêng (`arena`) | Bí Cảnh theo kịch bản sóng; không đi cổng, không lưu vị trí như bản đồ thế giới | – |
+
+Tranh nền và tọa độ lớp phủ của bản đồ thế giới M: [bàn giao mỹ thuật](../art/ban-do-the-gioi.md). Danh sách / mã trận và cổng trong JSON được đối chiếu từ `MAPS` và Tiled mặc định, không suy tuyến từ tranh.
 
 ## Cổng và truyền tống
 

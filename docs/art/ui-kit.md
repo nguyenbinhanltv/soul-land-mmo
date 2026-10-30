@@ -6,6 +6,8 @@ Liên quan: `docs/design/giao-dien.md` (bố cục, hành vi bảng), skill `cli
 
 ## Hai chất liệu
 
+Ngoại lệ nền thế giới M được chủ repo duyệt 31/10/2026: một tranh thủy mặc trên giấy cổ, nút / nhãn / tuyến cổng phủ bằng code; xem [bàn giao bản đồ thế giới](ban-do-the-gioi.md). Ngoại lệ chỉ dành cho tranh nền, không đổi chất liệu của các bảng thao tác khác.
+
 | | **Mực** | **Giấy** |
 |---|---|---|
 | Là gì | nền tối (mực nho / gỗ đen), viền đồng nhạt, lót vân mực | giấy dó ngà, viền son mảnh, gỗ trục |
