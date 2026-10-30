@@ -25,7 +25,7 @@ export const OB_STEPS: readonly ObStep[] = [
   { id: "vohon", title: "Chọn võ hồn ra trận", body: "Mở Đội hình (phím V): xem võ hồn của bạn và chọn người ra trận. Phím 1–4 đổi nhanh khi đánh.",
     target: ["#vhBtn", "#hudMenuBtn", "#hubBtn"], open: ["#roster"] },
   { id: "quest", title: "Nhiệm vụ đầu tiên", body: "Khung ở góc phải ghi việc đang làm: gặp NPC có dấu ! để nhận bài. Mũi tên ở rìa màn chỉ đường. Bấm vào khung để đọc.",
-    target: ["#quest", "#hubBtn"], tap: "#quest" },
+    target: ["#quest", "#sideBox", "#hubBtn"], tap: "#quest" },
   { id: "bag", title: "Mở Túi đồ", body: "Mở Túi đồ (phím B): đồ nhặt được, hồn hoàn và thuốc đều nằm ở đây.",
     target: ["#bagBtn", "#hudMenuBtn", "#hubBtn"], open: ["#bag"] },
   { id: "ring", title: "Gắn hồn hoàn", body: "Chọn hồn hoàn trong Túi, bấm Hấp thụ rồi đứng yên chờ thanh tiến độ. Chưa có thì hạ hồn thú, nhặt bằng E, rồi bấm Làm sau.",

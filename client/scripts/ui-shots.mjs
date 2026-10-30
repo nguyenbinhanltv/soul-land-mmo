@@ -139,6 +139,17 @@ async function runSize(W, H) {
     await test({ op: "set", rowId: rows[0], level: 60, stars: 3, rings: "[1000,1000,10000,10000,30000]" });
     await sleep(1200);
     await step("hud-tien-do", () => shot("11-hud-co-tien-do"));
+    // Khung gộp Nhiệm vụ | Tổ đội (góc phải): tin giả "party" phát lại vào bộ nghe (không gửi gì lên server); dọn toast để khung không bị che.
+    await step("khung-nv-to-doi", async () => {
+      const fakeParty = (m) => ev(`(window.__scene.room.onMessageHandlers.emit("party", ${JSON.stringify(m)}), true)`);
+      const clearToasts = () => ev(`(document.querySelectorAll("#toasts .toast").forEach((e) => e.remove()), true)`);
+      await clearToasts(); await sleep(300); await shot("12-khung-nhiem-vu");
+      await fakeParty({ id: 0, max: 5, members: [], invites: [{ name: "Đường Tam", secs: 30 }] }); await clearToasts(); await sleep(400); await shot("13-khung-to-doi-loi-moi");
+      const me = { name: "Tiểu Vũ", leader: true, me: true, sid: "a", map: "", ch: 1, level: 20, vh: 0, hp: 80, maxHp: 100, dead: false, off: false };
+      await fakeParty({ id: 7, max: 5, members: [me, { ...me, name: "Đường Tam", leader: false, me: false, sid: "b", hp: 40 }], invites: [] }); await clearToasts(); await sleep(400); await shot("14-khung-to-doi");
+      await click("sbFold"); await sleep(300); await shot("15-khung-thu-gon"); await click("sbFold");
+      await click("sbTabQuest"); await fakeParty({ id: 0, max: 5, members: [], invites: [] }); await sleep(200);
+    });
     await step("tui", async () => { await key("KeyB", "b"); await shot("20-tui"); await key("KeyB", "b"); });
     await step("nhan-vat", async () => { await key("KeyH", "h"); await shot("21-nhan-vat-trang-bi"); await key("BracketRight", "]"); await shot("22-nhan-vat-hon-cot"); await key("Escape", "Escape"); });
     await step("hai-cua-so", async () => { await key("KeyH", "h"); await key("KeyB", "b"); await shot("24-hai-cua-so"); await key("Escape", "Escape"); await key("Escape", "Escape"); });
