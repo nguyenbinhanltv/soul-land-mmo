@@ -1,0 +1,4009 @@
+{
+  "id": "thien_can_bach_ngoc_dinh",
+  "F": 128,
+  "scale": 0.08,
+  "palette": [
+    [
+      2,
+      1,
+      5
+    ],
+    [
+      4,
+      11,
+      10
+    ],
+    [
+      9,
+      9,
+      14
+    ],
+    [
+      22,
+      15,
+      16
+    ],
+    [
+      12,
+      22,
+      27
+    ],
+    [
+      32,
+      28,
+      28
+    ],
+    [
+      28,
+      37,
+      37
+    ],
+    [
+      44,
+      35,
+      60
+    ],
+    [
+      28,
+      79,
+      50
+    ],
+    [
+      81,
+      80,
+      43
+    ],
+    [
+      42,
+      95,
+      65
+    ],
+    [
+      69,
+      99,
+      74
+    ],
+    [
+      55,
+      128,
+      76
+    ],
+    [
+      87,
+      131,
+      86
+    ],
+    [
+      104,
+      137,
+      99
+    ],
+    [
+      101,
+      166,
+      109
+    ],
+    [
+      147,
+      107,
+      41
+    ],
+    [
+      158,
+      143,
+      80
+    ],
+    [
+      138,
+      164,
+      117
+    ],
+    [
+      196,
+      173,
+      91
+    ],
+    [
+      160,
+      154,
+      140
+    ],
+    [
+      173,
+      186,
+      145
+    ],
+    [
+      177,
+      197,
+      152
+    ],
+    [
+      198,
+      201,
+      163
+    ],
+    [
+      204,
+      216,
+      157
+    ],
+    [
+      212,
+      219,
+      179
+    ],
+    [
+      219,
+      227,
+      192
+    ],
+    [
+      233,
+      235,
+      199
+    ],
+    [
+      239,
+      243,
+      219
+    ],
+    [
+      251,
+      251,
+      239
+    ],
+    [
+      253,
+      253,
+      252
+    ],
+    [
+      26,
+      16,
+      32
+    ]
+  ],
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "plans": [
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        51.1,
+        78.1
+      ],
+      "pose": 0,
+      "pixels": 514,
+      "near": 1.5231546211727782,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        51.5,
+        77.8
+      ],
+      "pose": 0,
+      "pixels": 530,
+      "near": 1.0440306508910542,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        51.1,
+        78.1
+      ],
+      "pose": 1,
+      "pixels": 507,
+      "near": 1.5231546211727782,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        51.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 512,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        51.1,
+        78.1
+      ],
+      "pose": 1,
+      "pixels": 507,
+      "near": 1.5231546211727782,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        51.04545454545455,
+        75.95454545454545
+      ],
+      "pose": 1,
+      "pixels": 503,
+      "near": 1.5239140558400175,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        53,
+        77.25
+      ],
+      "pose": 2,
+      "pixels": 507,
+      "near": 1.6770509831248424,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        52.785714285714285,
+        78.78571428571428
+      ],
+      "pose": 3,
+      "pixels": 507,
+      "near": 1.0101525445522173,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.785714285714285,
+        78.07142857142857
+      ],
+      "pose": 4,
+      "pixels": 500,
+      "near": 1.4069796859708703,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        52.9,
+        77.9
+      ],
+      "pose": 5,
+      "pixels": 490,
+      "near": 1.4560219778561039,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        47.583333333333336,
+        72.91666666666666
+      ],
+      "pose": 6,
+      "pixels": 538,
+      "near": 1.0069204977995416,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        42.07142857142857,
+        59.07142857142857
+      ],
+      "pose": 7,
+      "pixels": 503,
+      "near": 1.5386185163241453,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "s",
+      "name": "s/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 520,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        78.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 522,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        52.77272727272727,
+        77.95454545454545
+      ],
+      "pose": 0,
+      "pixels": 510,
+      "near": 1.3514607952107733,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        78.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 512,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 512,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        52.27777777777778,
+        78.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 512,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        52.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 1,
+      "pixels": 503,
+      "near": 1.5239140558400175,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        53.5,
+        79
+      ],
+      "pose": 2,
+      "pixels": 510,
+      "near": 1.118033988749895,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        53.5,
+        79
+      ],
+      "pose": 3,
+      "pixels": 503,
+      "near": 1.118033988749895,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        55,
+        78.25
+      ],
+      "pose": 4,
+      "pixels": 498,
+      "near": 1.5206906325745546,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        53.9,
+        77.9
+      ],
+      "pose": 5,
+      "pixels": 490,
+      "near": 1.4560219778561039,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        50.08333333333333,
+        74.66666666666666
+      ],
+      "pose": 6,
+      "pixels": 530,
+      "near": 1.0172129679778137,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        43.1,
+        58.3
+      ],
+      "pose": 7,
+      "pixels": 504,
+      "near": 0.9999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "s",
+      "name": "s/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 533,
+      "near": 1.0049875621120885,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        56.5,
+        78.625
+      ],
+      "pose": 0,
+      "pixels": 510,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.64285714285714,
+        78.07142857142857
+      ],
+      "pose": 0,
+      "pixels": 496,
+      "near": 1.0301575072754277,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63,
+        79.9
+      ],
+      "pose": 1,
+      "pixels": 491,
+      "near": 1.486606874731856,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.6,
+        79.5
+      ],
+      "pose": 1,
+      "pixels": 496,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        50.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 499,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        58.5,
+        78.9
+      ],
+      "pose": 1,
+      "pixels": 494,
+      "near": 1.077032961426903,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        56.27777777777778,
+        80.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 480,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        54.6,
+        78.5
+      ],
+      "pose": 3,
+      "pixels": 508,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53.1,
+        78.1
+      ],
+      "pose": 4,
+      "pixels": 502,
+      "near": 1.4560219778561039,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.08333333333333,
+        77.91666666666666
+      ],
+      "pose": 5,
+      "pixels": 500,
+      "near": 1.4766704288891046,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        74.13636363636363,
+        72.5
+      ],
+      "pose": 6,
+      "pixels": 508,
+      "near": 1.0640636282472422,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.07142857142857,
+        58.785714285714285
+      ],
+      "pose": 7,
+      "pixels": 523,
+      "near": 1.3552618543578765,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "se",
+      "name": "se/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 502,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.83333333333333,
+        78.72222222222223
+      ],
+      "pose": 0,
+      "pixels": 509,
+      "near": 1.024393828588097,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.16666666666667,
+        77.75
+      ],
+      "pose": 0,
+      "pixels": 509,
+      "near": 1.2936812246883342,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63.5,
+        79.875
+      ],
+      "pose": 1,
+      "pixels": 494,
+      "near": 1.0680004681646913,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        72.875,
+        78.875
+      ],
+      "pose": 1,
+      "pixels": 491,
+      "near": 1.4252192813739224,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        74.21428571428572,
+        78.78571428571428
+      ],
+      "pose": 1,
+      "pixels": 492,
+      "near": 1.0101525445522224,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        59.16666666666667,
+        79.83333333333334
+      ],
+      "pose": 1,
+      "pixels": 489,
+      "near": 1.3743685418725513,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        55.6,
+        80.5
+      ],
+      "pose": 2,
+      "pixels": 478,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.7,
+        79.5
+      ],
+      "pose": 3,
+      "pixels": 508,
+      "near": 1.0198039027185575,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        77.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 505,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 5,
+      "pixels": 495,
+      "near": 1.5239140558400175,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.375,
+        76
+      ],
+      "pose": 6,
+      "pixels": 521,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        76.95454545454545,
+        60.31818181818181
+      ],
+      "pose": 7,
+      "pixels": 525,
+      "near": 0.9833321660356298,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "se",
+      "name": "se/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 515,
+      "near": 1.0049875621120885,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        56.5,
+        78.625
+      ],
+      "pose": 0,
+      "pixels": 518,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.64285714285714,
+        78.07142857142857
+      ],
+      "pose": 0,
+      "pixels": 508,
+      "near": 0.9583148474999145,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63,
+        79.9
+      ],
+      "pose": 1,
+      "pixels": 504,
+      "near": 1.486606874731856,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.6,
+        79.5
+      ],
+      "pose": 1,
+      "pixels": 501,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        50.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 503,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        58.5,
+        78.9
+      ],
+      "pose": 1,
+      "pixels": 502,
+      "near": 1.077032961426903,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        56.27777777777778,
+        80.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 505,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        54.6,
+        78.5
+      ],
+      "pose": 3,
+      "pixels": 501,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53.1,
+        78.1
+      ],
+      "pose": 4,
+      "pixels": 492,
+      "near": 1.5231546211727782,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.08333333333333,
+        77.91666666666666
+      ],
+      "pose": 5,
+      "pixels": 506,
+      "near": 1.4766704288891046,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        74.13636363636363,
+        72.5
+      ],
+      "pose": 6,
+      "pixels": 504,
+      "near": 1.0640636282472422,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.07142857142857,
+        58.785714285714285
+      ],
+      "pose": 7,
+      "pixels": 501,
+      "near": 0.914732033918978,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "e",
+      "name": "e/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 511,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.83333333333333,
+        78.72222222222223
+      ],
+      "pose": 0,
+      "pixels": 515,
+      "near": 1.024393828588097,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.16666666666667,
+        77.75
+      ],
+      "pose": 0,
+      "pixels": 516,
+      "near": 1.0034662148993612,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63.5,
+        79.875
+      ],
+      "pose": 1,
+      "pixels": 502,
+      "near": 1.0680004681646913,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        72.875,
+        78.875
+      ],
+      "pose": 1,
+      "pixels": 504,
+      "near": 1.4252192813739224,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        74.21428571428572,
+        78.78571428571428
+      ],
+      "pose": 1,
+      "pixels": 504,
+      "near": 1.0101525445522224,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        59.16666666666667,
+        79.83333333333334
+      ],
+      "pose": 1,
+      "pixels": 501,
+      "near": 1.3743685418725513,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        55.6,
+        80.5
+      ],
+      "pose": 2,
+      "pixels": 505,
+      "near": 0.8999999999999986,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.7,
+        79.5
+      ],
+      "pose": 3,
+      "pixels": 498,
+      "near": 1.0198039027185575,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        77.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 494,
+      "near": 0.9162456945816991,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 5,
+      "pixels": 508,
+      "near": 1.5239140558400175,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.375,
+        76
+      ],
+      "pose": 6,
+      "pixels": 501,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        76.95454545454545,
+        60.31818181818181
+      ],
+      "pose": 7,
+      "pixels": 506,
+      "near": 0.9359663764533586,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "e",
+      "name": "e/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 520,
+      "near": 1.0049875621120885,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        56.5,
+        78.625
+      ],
+      "pose": 0,
+      "pixels": 516,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.64285714285714,
+        78.07142857142857
+      ],
+      "pose": 0,
+      "pixels": 519,
+      "near": 1.0301575072754277,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63,
+        79.9
+      ],
+      "pose": 1,
+      "pixels": 475,
+      "near": 1.486606874731856,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        52.6,
+        79.5
+      ],
+      "pose": 1,
+      "pixels": 474,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        50.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 477,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        58.5,
+        78.9
+      ],
+      "pose": 1,
+      "pixels": 474,
+      "near": 1.077032961426903,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        56.27777777777778,
+        80.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 483,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        54.6,
+        78.5
+      ],
+      "pose": 3,
+      "pixels": 469,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53.1,
+        78.1
+      ],
+      "pose": 4,
+      "pixels": 460,
+      "near": 1.5231546211727782,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.08333333333333,
+        77.91666666666666
+      ],
+      "pose": 5,
+      "pixels": 467,
+      "near": 1.4766704288891046,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        74.13636363636363,
+        72.5
+      ],
+      "pose": 6,
+      "pixels": 534,
+      "near": 1.0640636282472422,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.07142857142857,
+        58.785714285714285
+      ],
+      "pose": 7,
+      "pixels": 468,
+      "near": 1.3552618543578765,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "ne",
+      "name": "ne/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 517,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.83333333333333,
+        78.72222222222223
+      ],
+      "pose": 0,
+      "pixels": 520,
+      "near": 1.024393828588097,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        56.16666666666667,
+        77.75
+      ],
+      "pose": 0,
+      "pixels": 513,
+      "near": 1.0034662148993612,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        63.5,
+        79.875
+      ],
+      "pose": 1,
+      "pixels": 474,
+      "near": 1.0680004681646913,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        72.875,
+        78.875
+      ],
+      "pose": 1,
+      "pixels": 470,
+      "near": 1.4252192813739224,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        74.21428571428572,
+        78.78571428571428
+      ],
+      "pose": 1,
+      "pixels": 476,
+      "near": 1.0101525445522224,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        59.16666666666667,
+        79.83333333333334
+      ],
+      "pose": 1,
+      "pixels": 475,
+      "near": 1.3743685418725513,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        55.6,
+        80.5
+      ],
+      "pose": 2,
+      "pixels": 488,
+      "near": 1.0049875621120892,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.7,
+        79.5
+      ],
+      "pose": 3,
+      "pixels": 473,
+      "near": 1.0198039027185575,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        77.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 462,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        54.04545454545455,
+        76.95454545454545
+      ],
+      "pose": 5,
+      "pixels": 467,
+      "near": 1.5239140558400175,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        73.375,
+        76
+      ],
+      "pose": 6,
+      "pixels": 534,
+      "near": 1.0077822185373186,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        76.95454545454545,
+        60.31818181818181
+      ],
+      "pose": 7,
+      "pixels": 471,
+      "near": 1.2662171161076514,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "ne",
+      "name": "ne/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 517,
+      "near": 1.0049875621120885,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        76.91666666666666,
+        78.91666666666666
+      ],
+      "pose": 0,
+      "pixels": 498,
+      "near": 1.4766704288891008,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        76.41666666666666,
+        78.66666666666666
+      ],
+      "pose": 0,
+      "pixels": 519,
+      "near": 1.0960788698305,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        76.91666666666666,
+        77.91666666666666
+      ],
+      "pose": 1,
+      "pixels": 478,
+      "near": 1.4766704288891008,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        77.1,
+        75.9
+      ],
+      "pose": 1,
+      "pixels": 480,
+      "near": 1.4560219778561105,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        76.91666666666666,
+        77.91666666666666
+      ],
+      "pose": 1,
+      "pixels": 478,
+      "near": 1.4766704288891008,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        76.9,
+        79.1
+      ],
+      "pose": 1,
+      "pixels": 480,
+      "near": 1.5231546211727847,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        75.13636363636363,
+        73.68181818181819
+      ],
+      "pose": 2,
+      "pixels": 484,
+      "near": 1.0365231137264788,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        55.77272727272727,
+        80.31818181818181
+      ],
+      "pose": 3,
+      "pixels": 458,
+      "near": 1.094690416253841,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        53,
+        79.25
+      ],
+      "pose": 4,
+      "pixels": 460,
+      "near": 1.6770509831248424,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        51.611111111111114,
+        78.72222222222223
+      ],
+      "pose": 5,
+      "pixels": 479,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        80.5,
+        73.57692307692308
+      ],
+      "pose": 6,
+      "pixels": 516,
+      "near": 1.0029542161850231,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        85.92857142857143,
+        61.07142857142857
+      ],
+      "pose": 7,
+      "pixels": 474,
+      "near": 1.5386185163241453,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "m",
+      "dir": "n",
+      "name": "n/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        78.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 514,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 0,
+      "col": 0,
+      "row": 0,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/idle/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 0,
+      "pixels": 514,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "idle",
+      "frame": 1,
+      "col": 1,
+      "row": 0,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/idle/1",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        75.22727272727272,
+        78.95454545454545
+      ],
+      "pose": 0,
+      "pixels": 509,
+      "near": 1.35146079521078,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 0,
+      "col": 0,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 479,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 1,
+      "col": 1,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        75.9,
+        78.1
+      ],
+      "pose": 1,
+      "pixels": 480,
+      "near": 1.5231546211727847,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 2,
+      "col": 2,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/2",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        79.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 479,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "walk",
+      "frame": 3,
+      "col": 3,
+      "row": 1,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/walk/3",
+      "step": 5,
+      "measuredStep": 5,
+      "fallback": false,
+      "hand": [
+        75.72222222222223,
+        80.38888888888889
+      ],
+      "pose": 1,
+      "pixels": 479,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 0,
+      "col": 0,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/0",
+      "step": 0,
+      "measuredStep": 0,
+      "fallback": false,
+      "hand": [
+        53.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 2,
+      "pixels": 481,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 1,
+      "col": 1,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/1",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        53.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 3,
+      "pixels": 456,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 2,
+      "col": 2,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/2",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        54.27777777777778,
+        79.38888888888889
+      ],
+      "pose": 4,
+      "pixels": 469,
+      "near": 1.1331154474650664,
+      "edge": 0
+    },
+    {
+      "anim": "attack",
+      "frame": 3,
+      "col": 3,
+      "row": 2,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/attack/3",
+      "step": 3,
+      "measuredStep": 3,
+      "fallback": false,
+      "hand": [
+        53.611111111111114,
+        78.72222222222223
+      ],
+      "pose": 5,
+      "pixels": 479,
+      "near": 1.1331154474650675,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 0,
+      "col": 0,
+      "row": 3,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/cast/0",
+      "step": 1,
+      "measuredStep": 1,
+      "fallback": false,
+      "hand": [
+        79.5909090909091,
+        72.13636363636363
+      ],
+      "pose": 6,
+      "pixels": 522,
+      "near": 0.9791208740244567,
+      "edge": 0
+    },
+    {
+      "anim": "cast",
+      "frame": 1,
+      "col": 1,
+      "row": 3,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/cast/1",
+      "step": 2,
+      "measuredStep": 2,
+      "fallback": false,
+      "hand": [
+        84.75,
+        60.5
+      ],
+      "pose": 7,
+      "pixels": 487,
+      "near": 1.0307764064044151,
+      "edge": 0
+    },
+    {
+      "anim": "hurt",
+      "frame": 0,
+      "col": 2,
+      "row": 0,
+      "sex": "f",
+      "dir": "n",
+      "name": "n/hurt/0",
+      "step": 1,
+      "measuredStep": 0,
+      "fallback": true,
+      "hand": [
+        76.4,
+        79.5
+      ],
+      "pose": 0,
+      "pixels": 521,
+      "near": 1.0049875621120885,
+      "edge": 0
+    }
+  ],
+  "checks": {
+    "m": {
+      "id": "thien_can_bach_ngoc_dinh",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "pass"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                82,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                340,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                596,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                832,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.088
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.317
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 1
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.721,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                830,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.071
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.718
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.967
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H1 (se) C1",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ."
+            },
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H1 (se) C2",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.5 < 0.5); cutter dùng độ dời trung vị của tờ."
+            },
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (se) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toB — mất nộm — H1 (se) C1, H1 (se) C2, H2 (se) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.5 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                832,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.071
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 0.707
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.94
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (e) C1",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+            },
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (e) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toC — mất nộm — H2 (e) C1, H2 (e) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ; nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                832,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.083
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.724
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.951
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (ne) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toD — mất nộm — H2 (ne) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                838,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.097
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.31
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.143
+            }
+          ],
+          "issues": [],
+          "draft": null
+        }
+      ]
+    },
+    "f": {
+      "id": "thien_can_bach_ngoc_dinh",
+      "kind": "vukhi",
+      "level": "nhẹ",
+      "group": "A",
+      "frame": 128,
+      "dummyKey": "#00D0D0",
+      "blockLevel": {
+        "s": "pass",
+        "se": "nhẹ",
+        "e": "nhẹ",
+        "ne": "nhẹ",
+        "n": "nhẹ"
+      },
+      "sheets": [
+        {
+          "sheet": "toA",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "pass",
+          "dirs": [
+            "s"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "s",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "s",
+              "y": [
+                342,
+                439
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "s",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "s",
+              "y": [
+                830,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "s",
+              "anim": "idle",
+              "maxDiff": 0.092
+            },
+            {
+              "dir": "s",
+              "anim": "walk",
+              "maxDiff": 0.247
+            },
+            {
+              "dir": "s",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.969
+            }
+          ],
+          "issues": [],
+          "draft": null
+        },
+        {
+          "sheet": "toB",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "se"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": 0.702,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "se",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "se",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "se",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "se",
+              "y": [
+                834,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "se",
+              "anim": "idle",
+              "maxDiff": 0.118
+            },
+            {
+              "dir": "se",
+              "anim": "walk",
+              "maxDiff": 0.803
+            },
+            {
+              "dir": "se",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.93
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (se) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toB — mất nộm — H2 (se) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toC",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "e"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "e",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "e",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "e",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "e",
+              "y": [
+                834,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "e",
+              "anim": "idle",
+              "maxDiff": 0.132
+            },
+            {
+              "dir": "e",
+              "anim": "walk",
+              "maxDiff": 0.793
+            },
+            {
+              "dir": "e",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.914
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (e) C1",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toC — mất nộm — H2 (e) C1 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toD",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "ne"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "ne",
+              "y": [
+                84,
+                181
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "ne",
+              "y": [
+                342,
+                437
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "ne",
+              "y": [
+                598,
+                693
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "ne",
+              "y": [
+                836,
+                949
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "ne",
+              "anim": "idle",
+              "maxDiff": 0.13
+            },
+            {
+              "dir": "ne",
+              "anim": "walk",
+              "maxDiff": 0.826
+            },
+            {
+              "dir": "ne",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.921
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "nom-mat",
+              "where": "H2 (ne) C4",
+              "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+            }
+          ],
+          "draft": "LỖI: toD — mất nộm — H2 (ne) C4 — nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+        },
+        {
+          "sheet": "toE",
+          "size": [
+            1536,
+            1024
+          ],
+          "kind": "huong",
+          "level": "nhẹ",
+          "dirs": [
+            "n"
+          ],
+          "background": {
+            "key": [
+              255,
+              0,
+              255
+            ],
+            "corners": [
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                255
+              ]
+            ],
+            "keyDistFromLock": 0,
+            "cornerSpread": 0
+          },
+          "seVsE": null,
+          "prep": {
+            "shift": {
+              "dx": 0,
+              "dy": 0
+            },
+            "factor": 1,
+            "grid": "gap"
+          },
+          "bands": [
+            {
+              "row": 1,
+              "dir": "n",
+              "y": [
+                88,
+                183
+              ],
+              "figures": 3,
+              "state": "ok"
+            },
+            {
+              "row": 2,
+              "dir": "n",
+              "y": [
+                344,
+                441
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 3,
+              "dir": "n",
+              "y": [
+                602,
+                697
+              ],
+              "figures": 4,
+              "state": "ok"
+            },
+            {
+              "row": 4,
+              "dir": "n",
+              "y": [
+                836,
+                951
+              ],
+              "figures": 2,
+              "state": "ok"
+            }
+          ],
+          "motion": [
+            {
+              "dir": "n",
+              "anim": "idle",
+              "maxDiff": 0.099
+            },
+            {
+              "dir": "n",
+              "anim": "walk",
+              "maxDiff": 0.237
+            },
+            {
+              "dir": "n",
+              "anim": "hurt-vs-idle",
+              "maxDiff": 0.062
+            }
+          ],
+          "issues": [
+            {
+              "sev": "light",
+              "code": "hurt-idle",
+              "where": "H1 (n)",
+              "msg": "hurt trùng idle (xor/hợp 0.062): không thấy phản ứng trúng đòn."
+            }
+          ],
+          "draft": "LỖI: toE — hurt trùng idle — H1 (n) — hurt trùng idle (xor/hợp 0.062): không thấy phản ứng trúng đòn."
+        }
+      ]
+    }
+  }
+}

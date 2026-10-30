@@ -1,0 +1,2396 @@
+{
+  "tool": "Codex / OpenAI image_gen tích hợp",
+  "model": "unknown (công cụ không trả về)",
+  "seed": null,
+  "terms": "Đầu ra OpenAI; không gán CC0",
+  "history": [
+    {
+      "file": "s/attempt1/poses.raw.png",
+      "sha256": "95b1d180c340ef962421151a718266394e7d7827fc4c2bd17738afae75b5c1ba",
+      "prompt": "s/attempt1/prompt.txt",
+      "promptSha256": "f44235fe8f353cb2f0e531b81ae90d7f1cd8e9489ee4edcbb581dfa04ab61ac5",
+      "references": [
+        "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/e/attempt1/poses.raw.png"
+      ],
+      "selected": true
+    },
+    {
+      "file": "se/attempt1/poses.raw.png",
+      "sha256": "94ac78cca2721bf30409356e24cf66b774658f163e822b72b587fdb0b37e2b9e",
+      "prompt": "se/attempt1/prompt.txt",
+      "promptSha256": "54d4559e5882a7d0405ceb1963af63a371711f27bd381a965e7f3d8a1d1bd8c8",
+      "references": [
+        "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/s/attempt1/poses.raw.png"
+      ],
+      "selected": true
+    },
+    {
+      "file": "e/attempt1/poses.raw.png",
+      "sha256": "e2ca9eb732c0a3d509e4fbfb12f45a221953e190a7af331a1bb788be2ff7b10f",
+      "prompt": "e/attempt1/prompt.txt",
+      "promptSha256": "f48910319661cf0149ce7ed97a8bba94ac3fdda532a31be98ce617501deffae6",
+      "references": [],
+      "selected": true
+    },
+    {
+      "file": "ne/attempt1/poses.raw.png",
+      "sha256": "05510be6a881ba9d4b1fe01b28ac55d4a93e38dbb41ba3833733398f22f0cdc1",
+      "prompt": "ne/attempt1/prompt.txt",
+      "promptSha256": "d5ce6646638bb84ac757118f90e64789f7d833591ae81f88314ccbe54c9cccd2",
+      "references": [
+        "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/e/attempt1/poses.raw.png"
+      ],
+      "selected": true
+    },
+    {
+      "file": "n/attempt1/poses.raw.png",
+      "sha256": "f1dc67030787e50a21cdb104d87eb48d798c9d68a46d650cd3f96b1f3c5adff1",
+      "prompt": "n/attempt1/prompt.txt",
+      "promptSha256": "55ba1b256350bf1be5d301f9633bfa383e9cc62415c5f779987ee5d5f8308b97",
+      "references": [
+        "art/src/phuthe-anim/thien_can_bach_ngoc_dinh/vukhi/ne/attempt1/poses.raw.png"
+      ],
+      "selected": true
+    }
+  ],
+  "selectedPoses": {
+    "s": "s/attempt1/poses.raw.png",
+    "se": "se/attempt1/poses.raw.png",
+    "e": "e/attempt1/poses.raw.png",
+    "ne": "ne/attempt1/poses.raw.png",
+    "n": "n/attempt1/poses.raw.png"
+  },
+  "recipe": "compose.mjs",
+  "recipeSha256": "c99703dce948c6b932a576e09cf35651773a7da8b7399d2758b25279ab6c2f24",
+  "parentRecipe": "cuu_bao_luu_ly_thap/vukhi/compose.mjs đã gộp #1403",
+  "scale": 0.08,
+  "handPolicy": "Một tay bưng đáy đỉnh; marker tại chân giữa. Không sửa checker/whitelist hoặc ngưỡng. Không có cán dài.",
+  "bodyReferencePixels": 47,
+  "maxShaftGamePixels": 0,
+  "shaftBodyRatio": 0,
+  "canonicalVerification": {
+    "commit": "31c9eb04408bf51722087f0fb51edd64ed962e2e",
+    "frames": 130,
+    "maxA": 0.9359663764533586,
+    "edge": 0,
+    "preCutMaxA": 1.6770509831248424,
+    "singleCurrentStepFrames": [
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "m",
+        "dir": "s",
+        "name": "s/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          53,
+          77.25
+        ],
+        "pose": 2,
+        "pixels": 507,
+        "near": 1.6770509831248424,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "m",
+        "dir": "s",
+        "name": "s/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          52.785714285714285,
+          78.78571428571428
+        ],
+        "pose": 3,
+        "pixels": 507,
+        "near": 1.0101525445522173,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "m",
+        "dir": "s",
+        "name": "s/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          54.785714285714285,
+          78.07142857142857
+        ],
+        "pose": 4,
+        "pixels": 500,
+        "near": 1.4069796859708703,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "m",
+        "dir": "s",
+        "name": "s/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          52.9,
+          77.9
+        ],
+        "pose": 5,
+        "pixels": 490,
+        "near": 1.4560219778561039,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "m",
+        "dir": "s",
+        "name": "s/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          47.583333333333336,
+          72.91666666666666
+        ],
+        "pose": 6,
+        "pixels": 538,
+        "near": 1.0069204977995416,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "m",
+        "dir": "s",
+        "name": "s/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          42.07142857142857,
+          59.07142857142857
+        ],
+        "pose": 7,
+        "pixels": 503,
+        "near": 1.5386185163241453,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "f",
+        "dir": "s",
+        "name": "s/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          53.5,
+          79
+        ],
+        "pose": 2,
+        "pixels": 510,
+        "near": 1.118033988749895,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "f",
+        "dir": "s",
+        "name": "s/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          53.5,
+          79
+        ],
+        "pose": 3,
+        "pixels": 503,
+        "near": 1.118033988749895,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "f",
+        "dir": "s",
+        "name": "s/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          55,
+          78.25
+        ],
+        "pose": 4,
+        "pixels": 498,
+        "near": 1.5206906325745546,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "f",
+        "dir": "s",
+        "name": "s/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          53.9,
+          77.9
+        ],
+        "pose": 5,
+        "pixels": 490,
+        "near": 1.4560219778561039,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "f",
+        "dir": "s",
+        "name": "s/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          50.08333333333333,
+          74.66666666666666
+        ],
+        "pose": 6,
+        "pixels": 530,
+        "near": 1.0172129679778137,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "f",
+        "dir": "s",
+        "name": "s/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          43.1,
+          58.3
+        ],
+        "pose": 7,
+        "pixels": 504,
+        "near": 0.9999999999999986,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "m",
+        "dir": "se",
+        "name": "se/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          56.27777777777778,
+          80.38888888888889
+        ],
+        "pose": 2,
+        "pixels": 480,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "m",
+        "dir": "se",
+        "name": "se/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          54.6,
+          78.5
+        ],
+        "pose": 3,
+        "pixels": 508,
+        "near": 1.0049875621120892,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "m",
+        "dir": "se",
+        "name": "se/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          53.1,
+          78.1
+        ],
+        "pose": 4,
+        "pixels": 502,
+        "near": 1.4560219778561039,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "m",
+        "dir": "se",
+        "name": "se/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          54.08333333333333,
+          77.91666666666666
+        ],
+        "pose": 5,
+        "pixels": 500,
+        "near": 1.4766704288891046,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "m",
+        "dir": "se",
+        "name": "se/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          74.13636363636363,
+          72.5
+        ],
+        "pose": 6,
+        "pixels": 508,
+        "near": 1.0640636282472422,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "m",
+        "dir": "se",
+        "name": "se/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          77.07142857142857,
+          58.785714285714285
+        ],
+        "pose": 7,
+        "pixels": 523,
+        "near": 1.3552618543578765,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "f",
+        "dir": "se",
+        "name": "se/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          55.6,
+          80.5
+        ],
+        "pose": 2,
+        "pixels": 478,
+        "near": 1.0049875621120892,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "f",
+        "dir": "se",
+        "name": "se/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          73.7,
+          79.5
+        ],
+        "pose": 3,
+        "pixels": 508,
+        "near": 1.0198039027185575,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "f",
+        "dir": "se",
+        "name": "se/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          54.27777777777778,
+          77.38888888888889
+        ],
+        "pose": 4,
+        "pixels": 505,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "f",
+        "dir": "se",
+        "name": "se/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          54.04545454545455,
+          76.95454545454545
+        ],
+        "pose": 5,
+        "pixels": 495,
+        "near": 1.5239140558400175,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "f",
+        "dir": "se",
+        "name": "se/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          73.375,
+          76
+        ],
+        "pose": 6,
+        "pixels": 521,
+        "near": 1.0077822185373186,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "f",
+        "dir": "se",
+        "name": "se/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          76.95454545454545,
+          60.31818181818181
+        ],
+        "pose": 7,
+        "pixels": 525,
+        "near": 0.9833321660356298,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "m",
+        "dir": "e",
+        "name": "e/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          56.27777777777778,
+          80.38888888888889
+        ],
+        "pose": 2,
+        "pixels": 505,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "m",
+        "dir": "e",
+        "name": "e/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          54.6,
+          78.5
+        ],
+        "pose": 3,
+        "pixels": 501,
+        "near": 1.0049875621120892,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "m",
+        "dir": "e",
+        "name": "e/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          53.1,
+          78.1
+        ],
+        "pose": 4,
+        "pixels": 492,
+        "near": 1.5231546211727782,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "m",
+        "dir": "e",
+        "name": "e/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          54.08333333333333,
+          77.91666666666666
+        ],
+        "pose": 5,
+        "pixels": 506,
+        "near": 1.4766704288891046,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "m",
+        "dir": "e",
+        "name": "e/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          74.13636363636363,
+          72.5
+        ],
+        "pose": 6,
+        "pixels": 504,
+        "near": 1.0640636282472422,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "m",
+        "dir": "e",
+        "name": "e/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          77.07142857142857,
+          58.785714285714285
+        ],
+        "pose": 7,
+        "pixels": 501,
+        "near": 0.914732033918978,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "f",
+        "dir": "e",
+        "name": "e/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          55.6,
+          80.5
+        ],
+        "pose": 2,
+        "pixels": 505,
+        "near": 0.8999999999999986,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "f",
+        "dir": "e",
+        "name": "e/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          73.7,
+          79.5
+        ],
+        "pose": 3,
+        "pixels": 498,
+        "near": 1.0198039027185575,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "f",
+        "dir": "e",
+        "name": "e/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          54.27777777777778,
+          77.38888888888889
+        ],
+        "pose": 4,
+        "pixels": 494,
+        "near": 0.9162456945816991,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "f",
+        "dir": "e",
+        "name": "e/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          54.04545454545455,
+          76.95454545454545
+        ],
+        "pose": 5,
+        "pixels": 508,
+        "near": 1.5239140558400175,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "f",
+        "dir": "e",
+        "name": "e/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          73.375,
+          76
+        ],
+        "pose": 6,
+        "pixels": 501,
+        "near": 1.0077822185373186,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "f",
+        "dir": "e",
+        "name": "e/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          76.95454545454545,
+          60.31818181818181
+        ],
+        "pose": 7,
+        "pixels": 506,
+        "near": 0.9359663764533586,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "m",
+        "dir": "ne",
+        "name": "ne/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          56.27777777777778,
+          80.38888888888889
+        ],
+        "pose": 2,
+        "pixels": 483,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "m",
+        "dir": "ne",
+        "name": "ne/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          54.6,
+          78.5
+        ],
+        "pose": 3,
+        "pixels": 469,
+        "near": 1.0049875621120892,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "m",
+        "dir": "ne",
+        "name": "ne/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          53.1,
+          78.1
+        ],
+        "pose": 4,
+        "pixels": 460,
+        "near": 1.5231546211727782,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "m",
+        "dir": "ne",
+        "name": "ne/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          54.08333333333333,
+          77.91666666666666
+        ],
+        "pose": 5,
+        "pixels": 467,
+        "near": 1.4766704288891046,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "m",
+        "dir": "ne",
+        "name": "ne/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          74.13636363636363,
+          72.5
+        ],
+        "pose": 6,
+        "pixels": 534,
+        "near": 1.0640636282472422,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "m",
+        "dir": "ne",
+        "name": "ne/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          77.07142857142857,
+          58.785714285714285
+        ],
+        "pose": 7,
+        "pixels": 468,
+        "near": 1.3552618543578765,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "f",
+        "dir": "ne",
+        "name": "ne/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          55.6,
+          80.5
+        ],
+        "pose": 2,
+        "pixels": 488,
+        "near": 1.0049875621120892,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "f",
+        "dir": "ne",
+        "name": "ne/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          73.7,
+          79.5
+        ],
+        "pose": 3,
+        "pixels": 473,
+        "near": 1.0198039027185575,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "f",
+        "dir": "ne",
+        "name": "ne/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          54.27777777777778,
+          77.38888888888889
+        ],
+        "pose": 4,
+        "pixels": 462,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "f",
+        "dir": "ne",
+        "name": "ne/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          54.04545454545455,
+          76.95454545454545
+        ],
+        "pose": 5,
+        "pixels": 467,
+        "near": 1.5239140558400175,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "f",
+        "dir": "ne",
+        "name": "ne/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          73.375,
+          76
+        ],
+        "pose": 6,
+        "pixels": 534,
+        "near": 1.0077822185373186,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "f",
+        "dir": "ne",
+        "name": "ne/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          76.95454545454545,
+          60.31818181818181
+        ],
+        "pose": 7,
+        "pixels": 471,
+        "near": 1.2662171161076514,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "m",
+        "dir": "n",
+        "name": "n/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          75.13636363636363,
+          73.68181818181819
+        ],
+        "pose": 2,
+        "pixels": 484,
+        "near": 1.0365231137264788,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "m",
+        "dir": "n",
+        "name": "n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          55.77272727272727,
+          80.31818181818181
+        ],
+        "pose": 3,
+        "pixels": 458,
+        "near": 1.094690416253841,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "m",
+        "dir": "n",
+        "name": "n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          53,
+          79.25
+        ],
+        "pose": 4,
+        "pixels": 460,
+        "near": 1.6770509831248424,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "m",
+        "dir": "n",
+        "name": "n/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          51.611111111111114,
+          78.72222222222223
+        ],
+        "pose": 5,
+        "pixels": 479,
+        "near": 1.1331154474650675,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "m",
+        "dir": "n",
+        "name": "n/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          80.5,
+          73.57692307692308
+        ],
+        "pose": 6,
+        "pixels": 516,
+        "near": 1.0029542161850231,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "m",
+        "dir": "n",
+        "name": "n/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          85.92857142857143,
+          61.07142857142857
+        ],
+        "pose": 7,
+        "pixels": 474,
+        "near": 1.5386185163241453,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 0,
+        "col": 0,
+        "row": 2,
+        "sex": "f",
+        "dir": "n",
+        "name": "n/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hand": [
+          53.27777777777778,
+          79.38888888888889
+        ],
+        "pose": 2,
+        "pixels": 481,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 1,
+        "col": 1,
+        "row": 2,
+        "sex": "f",
+        "dir": "n",
+        "name": "n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          53.27777777777778,
+          79.38888888888889
+        ],
+        "pose": 3,
+        "pixels": 456,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 2,
+        "col": 2,
+        "row": 2,
+        "sex": "f",
+        "dir": "n",
+        "name": "n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          54.27777777777778,
+          79.38888888888889
+        ],
+        "pose": 4,
+        "pixels": 469,
+        "near": 1.1331154474650664,
+        "edge": 0
+      },
+      {
+        "anim": "attack",
+        "frame": 3,
+        "col": 3,
+        "row": 2,
+        "sex": "f",
+        "dir": "n",
+        "name": "n/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hand": [
+          53.611111111111114,
+          78.72222222222223
+        ],
+        "pose": 5,
+        "pixels": 479,
+        "near": 1.1331154474650675,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 0,
+        "col": 0,
+        "row": 3,
+        "sex": "f",
+        "dir": "n",
+        "name": "n/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hand": [
+          79.5909090909091,
+          72.13636363636363
+        ],
+        "pose": 6,
+        "pixels": 522,
+        "near": 0.9791208740244567,
+        "edge": 0
+      },
+      {
+        "anim": "cast",
+        "frame": 1,
+        "col": 1,
+        "row": 3,
+        "sex": "f",
+        "dir": "n",
+        "name": "n/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hand": [
+          84.75,
+          60.5
+        ],
+        "pose": 7,
+        "pixels": 487,
+        "near": 1.0307764064044151,
+        "edge": 0
+      }
+    ],
+    "tools": {
+      "phuthe-sheet-dummy.mjs": "58962c434ab7ad705a766bbcc37b1eac68c01e4b9b0dfcc47e37328f65aa32f4",
+      "phuthe-sheet-check.mjs": "2c3f865944e59a27f8537792297a079f03aba3960ccb8c889a2e6333e40433c9",
+      "phuthe-sheet-cut.mjs": "be518ada6919cabc9855b27607f2d25fd661a838236d2f3018ecf154cde7658e",
+      "phuthe-sheet-cut-lib.mjs": "4f1260f85d32e3eea1ef1efb222589c6c3486d7c90b5dc84a9f9f07116954bdc",
+      "phuthe-weapon-grip.mjs": "f377bcbebb655aa731d7706a46fb70d435e3fb661584523b616ea37a1880cbf2"
+    }
+  },
+  "lightIssues": {
+    "m": [
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (se) C1",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.48 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H1 (se) C2",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.5 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (se) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.46 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C1",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.49 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (ne) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+      }
+    ],
+    "f": [
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (se) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (e) C1",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "nom-mat",
+        "where": "H2 (ne) C4",
+        "msg": "nộm bị che nhiều hoặc đổi dạng (điểm khớp 0.47 < 0.5); cutter dùng độ dời trung vị của tờ."
+      },
+      {
+        "sev": "light",
+        "code": "hurt-idle",
+        "where": "H1 (n)",
+        "msg": "hurt trùng idle (xor/hợp 0.062): không thấy phản ứng trúng đòn."
+      }
+    ]
+  },
+  "cutterSummaries": {
+    "m": {
+      "info": 5,
+      "warn": 3,
+      "block": 0,
+      "total": 8,
+      "byCode": {
+        "ghi-chu": 5,
+        "nom-mat": 3
+      }
+    },
+    "f": {
+      "info": 5,
+      "warn": 3,
+      "block": 0,
+      "total": 8,
+      "byCode": {
+        "ghi-chu": 5,
+        "nom-mat": 3
+      }
+    }
+  },
+  "sheets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/thien_can_bach_ngoc_dinh_b.png",
+      "sha256": "360d4c9460b351976f3aea31128a667575d8a0cb02c323ee6063cb0cec6ecf29"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/thien_can_bach_ngoc_dinh_f.png",
+      "sha256": "751ff05209a397e6c53fdb72769c1e62f774b5af7a72edb5f32ee3000a1e1594"
+    }
+  ],
+  "capture": {
+    "session": "soul_land_game-859",
+    "artifact": "dinh/index.html",
+    "source": "dinh/capture.source.json",
+    "images": 78,
+    "viewport": [
+      1600,
+      900
+    ],
+    "muted": true,
+    "pfx": 0,
+    "errors": [],
+    "method": "Playwright Chrome --mute-audio, RAM riêng; GameScene.animatePlayer thật, cố định bước thân và đồng hồ để chụp; không sửa repo.",
+    "items": [
+      {
+        "file": "game-m-s-cast-0.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 0,
+        "body": 14,
+        "weapon": 10,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "f2fd42dc4c73b7fd7cdec373c2b417680e4ae71c4e16da502022ba58a7061ba7",
+        "capturedAt": "2026-10-30T19:37:59.260Z"
+      },
+      {
+        "file": "game-m-s-cast-100.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 100,
+        "body": 15,
+        "weapon": 10,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "aa5a3ae6d71b0f739be235f8f045654c6e8bae3fbbd648a0b0c72334d418aaca",
+        "capturedAt": "2026-10-30T19:38:00.157Z"
+      },
+      {
+        "file": "game-m-s-cast-360.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 360,
+        "body": 16,
+        "weapon": 11,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "8a7179c8eeac9ebdc02d1f20fe8cc3169bded4aea99f420e20382ab669bcfe3d",
+        "capturedAt": "2026-10-30T19:38:01.225Z"
+      },
+      {
+        "file": "game-m-s-attack-0.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 0,
+        "body": 10,
+        "weapon": 6,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "3336c9dcc38f4c6839893fa48b4ec9c7b30449ebaf9122221e81e83eb9979a45",
+        "capturedAt": "2026-10-30T19:38:02.217Z"
+      },
+      {
+        "file": "game-m-s-attack-100.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 100,
+        "body": 11,
+        "weapon": 7,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "bf103763a9a5b790e52d351b8c590db8e7a80788ae04d8ab8c3bffc4732dadfc",
+        "capturedAt": "2026-10-30T19:38:03.191Z"
+      },
+      {
+        "file": "game-m-s-attack-190.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 190,
+        "body": 12,
+        "weapon": 8,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "83084144cf66db8e9561f87b6ce9ce28f917445035c5ab1fb3dbca884404b081",
+        "capturedAt": "2026-10-30T19:38:04.094Z"
+      },
+      {
+        "file": "game-m-s-attack-260.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 260,
+        "body": 13,
+        "weapon": 9,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "2ba22fdedd8ab6956ca9187074c32487588e5344ff531c8376071c8e34a04551",
+        "capturedAt": "2026-10-30T19:38:05.221Z"
+      },
+      {
+        "file": "game-m-se-cast-0.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 23,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "b80c99f5e2630a159e5a8ac8c6891b181a5b524def4ab371d1a31aedb5413861",
+        "capturedAt": "2026-10-30T19:38:06.168Z"
+      },
+      {
+        "file": "game-m-se-cast-100.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 23,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "df56d67f24f380f158dcc2c8858e9cda3b091a5994f10abf6d4d7f0f9f4170e7",
+        "capturedAt": "2026-10-30T19:38:07.163Z"
+      },
+      {
+        "file": "game-m-se-cast-360.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 24,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "0fcc9f60bc21bcdebdc573d2a5d24f38911a13b980de2d19065d5bb6e7b987db",
+        "capturedAt": "2026-10-30T19:38:08.124Z"
+      },
+      {
+        "file": "game-m-se-attack-0.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 19,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "f02bbef0151fabe2a3399e00ff1d1cfa60f4a5e13a0a8dbea086a4eba1fc73c7",
+        "capturedAt": "2026-10-30T19:38:09.287Z"
+      },
+      {
+        "file": "game-m-se-attack-100.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 20,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "322935796bac95cf55c4d2709b81fd4a5670c24e313b4c0b4e425edca63a9019",
+        "capturedAt": "2026-10-30T19:38:10.382Z"
+      },
+      {
+        "file": "game-m-se-attack-190.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 21,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "2b4265416244bd36c9eb15c6bde9418af719044a8fc1a5b4d5dafc0ec0f52487",
+        "capturedAt": "2026-10-30T19:38:11.428Z"
+      },
+      {
+        "file": "game-m-se-attack-260.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 22,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "3f9259369d73cd191184bcf96663a407bc59aed307182706be6ffbb1a9bfdf53",
+        "capturedAt": "2026-10-30T19:38:12.345Z"
+      },
+      {
+        "file": "game-m-e-cast-0.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 36,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "c647512451267768e9191158f8d52dbbe3f7234e96a16a9250bec45ea78cef1c",
+        "capturedAt": "2026-10-30T19:38:13.188Z"
+      },
+      {
+        "file": "game-m-e-cast-100.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 36,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "4cd67a0757ad1434e3f70aadc4d777067c0ecf3a35334291a1c360698d9a0704",
+        "capturedAt": "2026-10-30T19:38:14.154Z"
+      },
+      {
+        "file": "game-m-e-cast-360.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 37,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "8ada85cd34a15c1dbe88f2c573dc85f0c7d96fe5951799b8cd1357fd97f2a79a",
+        "capturedAt": "2026-10-30T19:38:14.868Z"
+      },
+      {
+        "file": "game-m-e-attack-0.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 32,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "9321e9e652cb781bc0174a5b9e0d2656123ecfb6e0b676f657558f48d3edf6ee",
+        "capturedAt": "2026-10-30T19:38:15.713Z"
+      },
+      {
+        "file": "game-m-e-attack-100.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 33,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "d33c19541be0f239ba450ca9806b82b59b72aefc95dca67cf7d4b0ef94b211e7",
+        "capturedAt": "2026-10-30T19:38:16.535Z"
+      },
+      {
+        "file": "game-m-e-attack-190.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 34,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "9a19468e5250fc0d90baf4d4488be7f3b26679d0851913a285cb494ab37629ce",
+        "capturedAt": "2026-10-30T19:38:17.421Z"
+      },
+      {
+        "file": "game-m-e-attack-260.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 35,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "a9cd14330ef98f2dfcf5d387a7f91f551d66935035e6baf2617d130b77f40f15",
+        "capturedAt": "2026-10-30T19:38:18.478Z"
+      },
+      {
+        "file": "game-m-ne-cast-0.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 49,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "364ed2ca71584dfc52cb1d69c4ec3de5754bfa31ca188095e54fc889a40c9e17",
+        "capturedAt": "2026-10-30T19:38:19.558Z"
+      },
+      {
+        "file": "game-m-ne-cast-100.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 49,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "efb55bed02ead83431b8ea00f176d492df4faadd6013f6f2ee73405a6e0d66a4",
+        "capturedAt": "2026-10-30T19:38:20.596Z"
+      },
+      {
+        "file": "game-m-ne-cast-360.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 50,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "d52841830ca9a728fe38af2dc21e4bf1754dbb18b071d4e98d941c8c6fac2ac3",
+        "capturedAt": "2026-10-30T19:38:21.530Z"
+      },
+      {
+        "file": "game-m-ne-attack-0.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 45,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "9fdb069db980ae1391d8b7f131f47056413b3c8111ff080030f53924fa11c765",
+        "capturedAt": "2026-10-30T19:38:22.228Z"
+      },
+      {
+        "file": "game-m-ne-attack-100.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 46,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "ff6bda84da8acf14d0c68303cef69c448498b24eed54eea984ebf55b94ce708d",
+        "capturedAt": "2026-10-30T19:38:23.188Z"
+      },
+      {
+        "file": "game-m-ne-attack-190.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 47,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "715fcd0a2d16ccd38abd4c14973e3fdd07ce6316a7a1541053a3ba669476824f",
+        "capturedAt": "2026-10-30T19:38:24.032Z"
+      },
+      {
+        "file": "game-m-ne-attack-260.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 48,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "d481f619a8ebb8e40c31f263054913d75adff94bb64b3d5346988a5b69170329",
+        "capturedAt": "2026-10-30T19:38:25.105Z"
+      },
+      {
+        "file": "game-m-n-cast-0.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 0,
+        "body": 110,
+        "weapon": 62,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "5ab58aa7af4da5d83a2ceed1fba9be4515f256bb8ba8d80781055360c1aebafb",
+        "capturedAt": "2026-10-30T19:38:26.035Z"
+      },
+      {
+        "file": "game-m-n-cast-100.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 100,
+        "body": 111,
+        "weapon": 62,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "13853b228e6976cde1b992f3f5e01ddd509f12ebb4041d7520b63524efd061fe",
+        "capturedAt": "2026-10-30T19:38:27.255Z"
+      },
+      {
+        "file": "game-m-n-cast-360.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 360,
+        "body": 112,
+        "weapon": 63,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "fdddcacbb96a8fbd09d662bede66f15e9c1532d1df10ac7dba54f88dd4281643",
+        "capturedAt": "2026-10-30T19:38:28.211Z"
+      },
+      {
+        "file": "game-m-n-attack-0.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 0,
+        "body": 106,
+        "weapon": 58,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "77e3029a915e63bb11f3cf0e4486af14f6e83c135b0901baa275dea7c028159e",
+        "capturedAt": "2026-10-30T19:38:29.146Z"
+      },
+      {
+        "file": "game-m-n-attack-100.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 100,
+        "body": 107,
+        "weapon": 59,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "22987da485a69112e928d437ac2e9677da220f93f873cae84c3380a6cb631b5f",
+        "capturedAt": "2026-10-30T19:38:29.950Z"
+      },
+      {
+        "file": "game-m-n-attack-190.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 190,
+        "body": 108,
+        "weapon": 60,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "aab1a6fd7b4b7bcbe98a9b53ae54f13ee2b1e70475a20ac97ee54a23bff975b3",
+        "capturedAt": "2026-10-30T19:38:30.880Z"
+      },
+      {
+        "file": "game-m-n-attack-260.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 260,
+        "body": 109,
+        "weapon": 61,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "c0585778bf68d2133f3f30a1e78466be6bd2ed6b6811c741c16fbf30744973ad",
+        "capturedAt": "2026-10-30T19:38:31.773Z"
+      },
+      {
+        "file": "test-m-idle-0.png",
+        "sex": "m",
+        "clip": "idle",
+        "ms": 0,
+        "scene": "VukhiScene",
+        "sha256": "ceebf9161cd0be83b9e927565a435640e4d0ab97644c213ea7f68d0b23d23f31",
+        "capturedAt": "2026-10-30T19:38:36.547Z"
+      },
+      {
+        "file": "test-m-walk-100.png",
+        "sex": "m",
+        "clip": "walk",
+        "ms": 100,
+        "scene": "VukhiScene",
+        "sha256": "57a9e276ba93629210c192bf236ebf064cf400907c98559986df4fa464066cb3",
+        "capturedAt": "2026-10-30T19:38:41.213Z"
+      },
+      {
+        "file": "test-m-attack-190.png",
+        "sex": "m",
+        "clip": "attack",
+        "ms": 190,
+        "scene": "VukhiScene",
+        "sha256": "a39fe239416cc6a241f9643a7b157ea6442aa6250d2fd087abaad2bfdb4db99d",
+        "capturedAt": "2026-10-30T19:38:46.178Z"
+      },
+      {
+        "file": "test-m-cast-360.png",
+        "sex": "m",
+        "clip": "cast",
+        "ms": 360,
+        "scene": "VukhiScene",
+        "sha256": "adcbf829df7502732df35bec17703e4d77d6790544bca72801f845c8e0a73869",
+        "capturedAt": "2026-10-30T19:38:51.058Z"
+      },
+      {
+        "file": "game-f-s-cast-0.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 0,
+        "body": 14,
+        "weapon": 75,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "e1be75ea4c6f51f2f4d98c813f991558ad0f1891dc20bf82ca92b85471aa58b7",
+        "capturedAt": "2026-10-30T19:39:14.994Z"
+      },
+      {
+        "file": "game-f-s-cast-100.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 100,
+        "body": 15,
+        "weapon": 75,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "1748a0ac252524c92813e4385dbe56a067a23df53368431415a8d16a4a8230bf",
+        "capturedAt": "2026-10-30T19:39:15.705Z"
+      },
+      {
+        "file": "game-f-s-cast-360.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 360,
+        "body": 16,
+        "weapon": 76,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "176a2e370021cc6caed270aaeb5272a4878f7caf7efba6d8025da45d9804f5ec",
+        "capturedAt": "2026-10-30T19:39:16.556Z"
+      },
+      {
+        "file": "game-f-s-attack-0.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 0,
+        "body": 10,
+        "weapon": 71,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "edcfe13120f5cdc187448266f9dd69341a9f4c08a7e19ff6f86687687eee13a9",
+        "capturedAt": "2026-10-30T19:39:17.362Z"
+      },
+      {
+        "file": "game-f-s-attack-100.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 100,
+        "body": 11,
+        "weapon": 72,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "0c662aa66937541f91c314d8f26ca291f8399b3505d058d66f882a040fff7045",
+        "capturedAt": "2026-10-30T19:39:18.288Z"
+      },
+      {
+        "file": "game-f-s-attack-190.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 190,
+        "body": 12,
+        "weapon": 73,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "5696934bce999b39acb2d89e30dbb87a5e3b29748df329fb2b6f61aa1696dfab",
+        "capturedAt": "2026-10-30T19:39:19.087Z"
+      },
+      {
+        "file": "game-f-s-attack-260.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 260,
+        "body": 13,
+        "weapon": 74,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "22234cd0386c25dc440c750d7d3088f028aece74534335d29435a8a51cd2ee55",
+        "capturedAt": "2026-10-30T19:39:20.009Z"
+      },
+      {
+        "file": "game-f-se-cast-0.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 88,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "0af21f73377922895f390505b460e01446c44b3d48b695a8e835f0cec74663d1",
+        "capturedAt": "2026-10-30T19:39:21.176Z"
+      },
+      {
+        "file": "game-f-se-cast-100.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 88,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "b49ac30b971a3d69b0471e77131b444aa43552128a5b8964a3bdfcf522473e2d",
+        "capturedAt": "2026-10-30T19:39:22.451Z"
+      },
+      {
+        "file": "game-f-se-cast-360.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 89,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "eb9356c2ca0cea350e43f9d1d9eae8be4c43815bf7856b034f212d5611c58f17",
+        "capturedAt": "2026-10-30T19:39:23.412Z"
+      },
+      {
+        "file": "game-f-se-attack-0.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 84,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "03c24e501a4640034c3727313e2b426a45f1f047766702dcfccfc5ce5fb2be31",
+        "capturedAt": "2026-10-30T19:39:24.254Z"
+      },
+      {
+        "file": "game-f-se-attack-100.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 85,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "6ccc07f66854251611a19cd5dd2b4eb157ea499bd2aee855267b66215eb65051",
+        "capturedAt": "2026-10-30T19:39:25.198Z"
+      },
+      {
+        "file": "game-f-se-attack-190.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 86,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "ed9ec549c2d35ee5019ec87982c6a40c1f525cc20f1d62edd45ea9136940f1b4",
+        "capturedAt": "2026-10-30T19:39:26.311Z"
+      },
+      {
+        "file": "game-f-se-attack-260.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 87,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "95e178a2a34fd364119bf78a728b0f449940aa0a6c1ce64ccba2986faad2ebe4",
+        "capturedAt": "2026-10-30T19:39:27.331Z"
+      },
+      {
+        "file": "game-f-e-cast-0.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 101,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "03f69d7e44ea3ed67eb9726212c85bb3a2fcf16d68040c2eb0ca4a3dbb246eff",
+        "capturedAt": "2026-10-30T19:39:28.268Z"
+      },
+      {
+        "file": "game-f-e-cast-100.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 101,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "0de7c5bb5a403dd3eba906e248177e29eac320582c4f66426cb327660b204f37",
+        "capturedAt": "2026-10-30T19:39:29.064Z"
+      },
+      {
+        "file": "game-f-e-cast-360.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 102,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "03717d0e231cfa7853daf6c6e2a403c4c510926cbf360cc1bfdda497f27daedb",
+        "capturedAt": "2026-10-30T19:39:30.143Z"
+      },
+      {
+        "file": "game-f-e-attack-0.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 97,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "ad856bdabe412b3f837684eb9b8465759a72a589763335b88e71bfb6ffc3051d",
+        "capturedAt": "2026-10-30T19:39:30.885Z"
+      },
+      {
+        "file": "game-f-e-attack-100.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 98,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "168bb71ce09bc98fa290b126dcd226a539dadaa873c906e7fd297b872991b58f",
+        "capturedAt": "2026-10-30T19:39:32.017Z"
+      },
+      {
+        "file": "game-f-e-attack-190.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 99,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "da72246b7a2c1411f4185caa34750c13b8cc85b72e70e9ce73071d71432160b1",
+        "capturedAt": "2026-10-30T19:39:33.418Z"
+      },
+      {
+        "file": "game-f-e-attack-260.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 100,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "04b6af616345a4c383488a905e0af3165e80ec23966e947954b3255a2ca48225",
+        "capturedAt": "2026-10-30T19:39:34.242Z"
+      },
+      {
+        "file": "game-f-ne-cast-0.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 114,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "49bc3bbb79a055abb8d6cb27f0b2eb0e02d5083a296df5b1d816f620b5194c5d",
+        "capturedAt": "2026-10-30T19:39:35.555Z"
+      },
+      {
+        "file": "game-f-ne-cast-100.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 114,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "de82a75c64f868d31d540bcfd16a2bc542d5a1a1308e2a1f760213a0a5f7062e",
+        "capturedAt": "2026-10-30T19:39:36.640Z"
+      },
+      {
+        "file": "game-f-ne-cast-360.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 115,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "b8cb5eac68b6ec0cfa174396abf0e14ffc740bddd21ec8a0662db9f2af3af363",
+        "capturedAt": "2026-10-30T19:39:38.077Z"
+      },
+      {
+        "file": "game-f-ne-attack-0.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 0,
+        "body": 58,
+        "weapon": 110,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "1aa71816f62d3d4b255305473579124d5774a49a86e5d46b7949987050374cd4",
+        "capturedAt": "2026-10-30T19:39:41.266Z"
+      },
+      {
+        "file": "game-f-ne-attack-100.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 100,
+        "body": 59,
+        "weapon": 111,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "32e20a60d68e2074532b142f6a944fb317e1784896e034cafef6187ae88447fe",
+        "capturedAt": "2026-10-30T19:39:43.135Z"
+      },
+      {
+        "file": "game-f-ne-attack-190.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 112,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "d40e730d726fe889499dcf33dfbbcc0890331e9858bedb9eadd1f2b723dd6588",
+        "capturedAt": "2026-10-30T19:39:45.392Z"
+      },
+      {
+        "file": "game-f-ne-attack-260.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 260,
+        "body": 61,
+        "weapon": 113,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "11237696712038d81c3e8c306a835d2385b7e445283f8bcebb810b0f431936ee",
+        "capturedAt": "2026-10-30T19:39:47.427Z"
+      },
+      {
+        "file": "game-f-n-cast-0.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 0,
+        "body": 110,
+        "weapon": 127,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "27267ec1b4dd998fa1f0c48a9406a5f4c50bbd598ca7159f37d485e491b59aa0",
+        "capturedAt": "2026-10-30T19:39:50.148Z"
+      },
+      {
+        "file": "game-f-n-cast-100.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 100,
+        "body": 111,
+        "weapon": 127,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "c5ef3fc5dd39bef6a852a8fe19ed13de8b1154ba570d15e04d1df7ac9271199e",
+        "capturedAt": "2026-10-30T19:39:52.736Z"
+      },
+      {
+        "file": "game-f-n-cast-360.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 360,
+        "body": 112,
+        "weapon": 128,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "ec93820a06c38738f38d1c9c04e77339fe0b40cbddd659bcd24eae2caac450e0",
+        "capturedAt": "2026-10-30T19:39:54.578Z"
+      },
+      {
+        "file": "game-f-n-attack-0.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 0,
+        "body": 106,
+        "weapon": 123,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "f3fbf5f2df3c826a91b3c0ac43c07af3c55f9140d2805b49301f815fb74b0a1e",
+        "capturedAt": "2026-10-30T19:39:57.206Z"
+      },
+      {
+        "file": "game-f-n-attack-100.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 100,
+        "body": 107,
+        "weapon": 124,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "db4a3cd45db12d33ae1a3ba036e14556bb5097be5e8ac1958bff0871ab3a662e",
+        "capturedAt": "2026-10-30T19:39:58.853Z"
+      },
+      {
+        "file": "game-f-n-attack-190.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 190,
+        "body": 108,
+        "weapon": 125,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "1fae3562f0a57644d4e37cfc02da94b9267981cb40b3ff8e58ce58f4c3510697",
+        "capturedAt": "2026-10-30T19:40:01.444Z"
+      },
+      {
+        "file": "game-f-n-attack-260.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 260,
+        "body": 109,
+        "weapon": 126,
+        "texture": "vkanim_thien_can_bach_ngoc_dinh_f",
+        "muted": true,
+        "sha256": "15ff6a34089faa2a8535408142745528683672b8f192b655d9e26aca4fdcf988",
+        "capturedAt": "2026-10-30T19:40:04.524Z"
+      },
+      {
+        "file": "test-f-idle-0.png",
+        "sex": "f",
+        "clip": "idle",
+        "ms": 0,
+        "scene": "VukhiScene",
+        "sha256": "451048d5806a205407f4f8942e55dd979b8c401e9ac42ace5bf546857a6b42ef",
+        "capturedAt": "2026-10-30T19:40:14.246Z"
+      },
+      {
+        "file": "test-f-walk-100.png",
+        "sex": "f",
+        "clip": "walk",
+        "ms": 100,
+        "scene": "VukhiScene",
+        "sha256": "e7f65db0783df7cc32e68175a14094e1b6687037df1f178e2021e92f08a9c294",
+        "capturedAt": "2026-10-30T19:40:18.832Z"
+      },
+      {
+        "file": "test-f-attack-190.png",
+        "sex": "f",
+        "clip": "attack",
+        "ms": 190,
+        "scene": "VukhiScene",
+        "sha256": "741df882a041c514dd2ae1cdb8cb97fa8346437d67c8fce98c2b7ec1e41652a5",
+        "capturedAt": "2026-10-30T19:40:23.278Z"
+      },
+      {
+        "file": "test-f-cast-360.png",
+        "sex": "f",
+        "clip": "cast",
+        "ms": 360,
+        "scene": "VukhiScene",
+        "sha256": "96409b6e5777094057b22a7b0528eac0d9c1cee8823f0b2b8e2bcf80d9464ccd",
+        "capturedAt": "2026-10-30T19:40:27.724Z"
+      }
+    ],
+    "assets": [
+      {
+        "file": "shared/assets/sprites/vukhianim/thien_can_bach_ngoc_dinh_b.png",
+        "sha256": "360d4c9460b351976f3aea31128a667575d8a0cb02c323ee6063cb0cec6ecf29"
+      },
+      {
+        "file": "shared/assets/sprites/vukhianim/thien_can_bach_ngoc_dinh_f.png",
+        "sha256": "751ff05209a397e6c53fdb72769c1e62f774b5af7a72edb5f32ee3000a1e1594"
+      }
+    ],
+    "limits": "Giữ game live và cố định tuổi hoạt ảnh trong animatePlayer thật; serverRAM riêng/API ngoại hình-thức tỉnh/testgrant/team. Cast0/100/360ms,attack0/100/190/260ms đủ hai giới5hướng; trang thửidle/walk/attack/cast có đối chứng. Tắt tiếng,pfx0. Kiểm renderer, không chứng nhận toàn bộ trận giao chiến/mọi ngoại hình."
+  },
+  "artApproved": true,
+  "approval": "Chủ repo/điều phối815 giao đợt3, issue#1408; mỹ thuật đã duyệt, chờ AO duyệt+CI xanh; worker không tựmerge."
+}
