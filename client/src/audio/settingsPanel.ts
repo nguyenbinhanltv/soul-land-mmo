@@ -19,7 +19,6 @@ export function closeAudioPanel(): void {
   const el = panel();
   if (!el) return;
   el.hidden = true;
-  document.getElementById("audioBtn")?.setAttribute("aria-expanded", "false");
 }
 
 export function toggleAudioPanel(): boolean {
@@ -30,7 +29,6 @@ export function toggleAudioPanel(): boolean {
     closeCentrePanels(PANEL_ID); // đúng hàm đóng của từng bảng (dualWindow, aria-expanded, thẻ so sánh…), không đặt `hidden` thô (#1044)
     el.hidden = false;
   } else closeAudioPanel();
-  document.getElementById("audioBtn")?.setAttribute("aria-expanded", String(open));
   return open;
 }
 
@@ -52,10 +50,13 @@ function render(settings: AudioSettings): void {
   if (status) status.textContent = settings.muted ? "Đang tắt tiếng" : "Âm thanh đã bật";
 }
 
+let toggleHook: (() => void) | null = null;
+/** Mở / đóng Cài đặt (mục rail "Cài đặt" của hub; có âm báo và nạp trạng thái Google như nút cũ). */
+export function toggleSettings(): void { toggleHook?.(); }
+
 export function bindAudioPanel(audio: AudioManager, signal: AbortSignal): void {
   const el = panel();
-  const button = document.getElementById("audioBtn");
-  if (!el || !button) return;
+  if (!el) return;
   el.innerHTML = `
     <div class="audio-head"><div><b>Cài đặt</b><small data-audio-status>Âm thanh đã bật</small></div><button class="panel-x" type="button" data-audio-close aria-label="Đóng bảng Cài đặt">×</button></div>
     <div class="set-body">
@@ -137,12 +138,12 @@ Tắt rung màn hình, nháy trắng, dừng hình và phóng to khi đánh.">Gi
   }, { signal });
   el.querySelector<HTMLButtonElement>("[data-credits]")!.addEventListener("click", () => { audio.play("ui_click"); openCredits(); }, { signal });
   el.querySelector<HTMLButtonElement>("[data-audio-close]")!.addEventListener("click", () => { audio.play("ui_panel_close"); closeAudioPanel(); }, { signal });
-  button.addEventListener("click", (event) => {
-    (event.currentTarget as HTMLElement).blur();
+  toggleHook = () => {
     const open = toggleAudioPanel();
     if (open) void refreshGoogle();
     audio.play(open ? "ui_panel_open" : "ui_panel_close");
-  }, { signal });
+  };
+  signal.addEventListener("abort", () => { toggleHook = null; });
   const renderScale = () => {
     const pref = getUiScalePref();
     el.querySelectorAll<HTMLButtonElement>("[data-scale]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.scale === pref)));

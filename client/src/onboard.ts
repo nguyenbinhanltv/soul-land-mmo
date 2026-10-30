@@ -8,7 +8,7 @@
 export type ObEvent = "absorb";
 export interface ObStep {
   id: string; title: string; body: string;
-  /** Bộ chọn nút cần sáng: lấy cái đầu tiên đang hiện (nút menu HUD có thể gấp lại ở màn cảm ứng nên có đường lùi). */
+  /** Bộ chọn nút cần sáng: lấy cái đầu tiên đang hiện (hub đang mở thì tô thẻ mục, chưa mở thì tô huy hiệu menu). */
   target: string[];
   /** Bước xong khi một trong các phần tử này đang mở (không còn `hidden`). */
   open?: string[];
@@ -22,12 +22,12 @@ export interface ObStep {
 
 /** Chữ khớp phím thật ở GameScene.setupInput (V, B, N, M, Esc). */
 export const OB_STEPS: readonly ObStep[] = [
-  { id: "vohon", title: "Chọn võ hồn ra trận", body: "Mở Đội hình (phím V): xem võ hồn của bạn và chọn người ra trận. Phím 1–4 đổi nhanh khi đánh.",
-    target: ["#vhBtn", "#hudMenuBtn", "#hubBtn"], open: ["#roster"] },
+  { id: "vohon", title: "Chọn võ hồn ra trận", body: "Mở Đội hình (phím V, hoặc nút 魂 giữa trên rồi chọn Võ Hồn): xem võ hồn của bạn và chọn người ra trận. Phím 1–4 đổi nhanh khi đánh.",
+    target: ["#hub:not([hidden]) [data-hub=vohon]", "#hubBtn"], open: ["#roster"] },
   { id: "quest", title: "Nhiệm vụ đầu tiên", body: "Khung ở góc phải ghi việc đang làm: gặp NPC có dấu ! để nhận bài. Mũi tên ở rìa màn chỉ đường. Bấm vào khung để đọc.",
     target: ["#quest", "#hubBtn"], tap: "#quest" },
-  { id: "bag", title: "Mở Túi đồ", body: "Mở Túi đồ (phím B): đồ nhặt được, hồn hoàn và thuốc đều nằm ở đây.",
-    target: ["#bagBtn", "#hudMenuBtn", "#hubBtn"], open: ["#bag"] },
+  { id: "bag", title: "Mở Túi đồ", body: "Mở Túi đồ (phím B, hoặc nút 魂 giữa trên rồi chọn Túi Đồ): đồ nhặt được, hồn hoàn và thuốc đều nằm ở đây.",
+    target: ["#hub:not([hidden]) [data-hub=bag]", "#hubBtn"], open: ["#bag"] },
   { id: "ring", title: "Gắn hồn hoàn", body: "Chọn hồn hoàn trong Túi, bấm Hấp thụ rồi đứng yên chờ thanh tiến độ. Chưa có thì hạ hồn thú, nhặt bằng E, rồi bấm Làm sau.",
     target: ["#bag .buse.absorb", "#bag"], event: "absorb", dock: "low" },
   { id: "map", title: "Xem bản đồ", body: "Bản đồ khu vực (phím N) hoặc thế giới (phím M): bấm vào một chỗ để đặt cờ, nhân vật tự đi tới.",
@@ -35,7 +35,7 @@ export const OB_STEPS: readonly ObStep[] = [
   { id: "hub", title: "Mở menu", body: "Nút 魂 (hoặc Esc) mở menu: Nhiệm Vụ, Tông Môn, Cửa Hàng, Cẩm Nang đều ở đây.",
     target: ["#hubBtn"], open: ["#hub"] },
 ];
-export const OB_DONE_TEXT = { title: "Xong phần làm quen", body: "Chúc bạn săn hồn vui vẻ. Cần xem lại thì mở nút ? hoặc Cẩm Nang trong menu." };
+export const OB_DONE_TEXT = { title: "Xong phần làm quen", body: "Chúc bạn săn hồn vui vẻ. Cần xem lại thì mở Cẩm Nang trong menu (nút 魂 hoặc Esc)." };
 
 /** localStorage an toàn (không import net.ts để test bằng node được). */
 const storage = {

@@ -46,7 +46,6 @@ const sumBox = () => document.getElementById("autoSum");
 
 export function closeAutoPanel() {
   const el = panel(); if (el) el.hidden = true;
-  document.getElementById("autoBtn")?.setAttribute("aria-expanded", "false");
 }
 /** Mở / đóng bảng Tự động (nút "Tự động"); mở thì đóng các bảng giữa màn hình khác. Trả về true nếu vừa mở. */
 export function toggleAutoPanel(open = !!panel()?.hidden) {
@@ -54,7 +53,6 @@ export function toggleAutoPanel(open = !!panel()?.hidden) {
   if (!open) { closeAutoPanel(); return false; }
   closeCentrePanels("autoPanel"); // đúng hàm đóng của từng bảng, không đặt `hidden` thô (#1044)
   el.hidden = false;
-  document.getElementById("autoBtn")?.setAttribute("aria-expanded", "true");
   if (last) fill(last); // tên võ hồn / hồn kỹ có thể đã đổi từ lần trước
   ctx?.send("get"); // gợi ý hợp sức theo võ hồn ra trận hiện tại (AH4)
   return true;
