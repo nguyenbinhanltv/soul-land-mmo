@@ -10,7 +10,6 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [x] C8 Thanh kỹ năng tách nhóm, hồi chiêu dạng quạt, trạng thái rõ; thẻ đội hình rút gọn tên theo từ và tooltip đầy đủ (#594).
 - [ ] Giao diện và cảm giác dùng họ asset C1–C16 do Codex (tthoadev) làm, còn mở: C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C13 phản hồi giao diện (#599; đã làm theo UI gốc: toast / chip lệnh / banner / tooltip, chữ bay khi nhận, tiếng giao diện CC0), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601).
 - [ ] Asset ngoài: kho riêng tư, nhập gói itch, MCP `asset-scout`, biểu tượng game-icons (#622, theo dõi).
-- [ ] Tối ưu tài liệu (#619, theo dõi D0–D8).
 - [ ] Tách `MapRoom.ts` theo miền, từng PR nhỏ, hàm thuần trước (#702, theo dõi; đã xong nhiều bước, xem issue).
 - [x] Tách `bot-test.mjs` thành module theo nhóm (#703, xong: mọi bài ở `client/scripts/bot/<nhóm>.mjs`, `bot-test.mjs` chỉ còn bộ chạy + bảng nhóm).
 - [ ] UI gốc (kit Mực + Giấy; #877, #885, #886; luật ở `docs/art/ui-kit.md`, `docs/design/giao-dien.md`): đợt 5c đã gỡ cờ `ui2` / `?ui=` / `body.ui2` (5c-a, 5c-b); 5b-1 (ô hồn kỹ cũ) và 5b-2 (thợ rèn chuyển khung Giấy, gỡ luật C16 của `#npc`) xong; còn **gỡ tiếp luật cũ khỏi `style.css` (đợt 5b)**, đổi tên `ui2-*` nếu cần; icon pilot #884; chuyển nốt màn còn lại (Tự động / Ủy thác offline, cột chỉ số trái, thanh kỹ năng, mục hub "Chưa có").
