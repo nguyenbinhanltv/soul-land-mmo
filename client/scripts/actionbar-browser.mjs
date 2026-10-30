@@ -316,6 +316,8 @@ try {
       if (touch) { await page.locator(".more-btn").tap(); await avatar.tap(); } else await avatar.click();   // mobile: Chân Thân ở hàng phụ (⋯)
       await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
       if (touch) assert.equal(await page.locator("#actrow.more").count(), 0, "Chọn kỹ năng phụ thì hàng phụ tự đóng");
+      // Hồn kỹ Chân Thân phải thấy biểu tượng, không mang lớp `empty` (ô P trống trước khi biến hình thì lớp này được gỡ).
+      assert.ok(await page.locator('.sk[data-i="3"].ct').evaluate((e) => !e.classList.contains("empty") && e.querySelector(".ico").getBoundingClientRect().width > 0), "Ô Chân Thân phải hiện biểu tượng");
       await screenshot(page, "chan-than", size);
       assert.equal(await avatar.getAttribute("aria-disabled"), "false");
       await hook(page, "rest", { s: 120 });
