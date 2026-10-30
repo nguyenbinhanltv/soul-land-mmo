@@ -1,0 +1,18 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 3,
+  "agent": "soul_land_game-860",
+  "sourceSha256": "df671dc2b58b129ec9cead2b2495211edf53271550fd2d4fe6fbce6b9a42c609",
+  "promptSha256": "0688e41411bd0938486d437ccd38e8cdb2a51cd487115cf32b2e04b5356c1f66",
+  "review": "CHẶN mắt: H3 attack C4 quay đầu/thân sang góc trước, không giữ trục ne. Đã đủ 3 lượt ne, chọn lượt 2 tốt nhất nhưng importer vẫn chặn cả loài; giữ dự phòng ne.",
+  "imported": false,
+  "turnaroundWaived": "Quyết định chủ repo/orchestrator: bỏ bước turnaround vì cả hai lượt ne lộ mắt",
+  "references": {
+    "source": "shared/assets/sprites/beast/loi_quang_hai_dieu_anim.png",
+    "rows": "0..11 (s,se,e)",
+    "sourceSha256": "d2ef85b74baa940315b84717f02c651d46638baac5698de0df129ca9f846a12c",
+    "cropSha256": "23dcd93d094a6138e0d5317ae695558284871d0b339aba7b3c7f4bb18e1f2e43"
+  }
+}
