@@ -1,0 +1,44 @@
+﻿STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+SPIRIT: "Blazing Dragon": breath of fire, every scale a glowing coal; the head lunges over the shoulder as if to swallow.
+A dragon body coiling in a vertical S behind, one big horned head with many spikes, curved horns, open mouth, reverse-pointed
+scales (the whole body is SOLID and fully drawn, no human-shaped gap). Colors: dark red (#7a1c10) body, fire red-orange
+(#ff4a2a) lights, yellow-white accent in the mouth core, black smoke on the edges.
+Motifs (only these three): cracked scales revealing a fire core, fire dao runes around the horns, a thin-line fire formation ring.
+
+SHEET: One square 1:1 image, a 4x4 grid of 16 equal square cells (no visible grid lines, no cell numbers, no text).
+Flat solid #FF00FF magenta background in every cell. In EVERY cell draw the SAME single colossal spirit apparition
+(Blazing Dragon spirit), alone, with NO human figure, NO mannequin, NO face of a person, NO ground plane, NO cast shadow.
+The spirit hangs in the air as if floating behind someone's back, centered horizontally, resting on the same baseline
+in every cell (feet / roots / lowest point at the same height), same scale in every cell, fully inside its cell with a margin.
+View: isometric 3/4 view from above, spirit seen from the SOUTH, facing viewer direction. One horned spiky dragon head facing viewer, long serpentine body coiling vertically behind in a clear S, tail below.
+Rows 1-2 (8 cells, left to right, top to bottom): a gentle idle "breathing" loop. Cell 1 is the neutral pose; the shape
+only bobs and sways by 1-2 pixels, never changes silhouette; cell 8 flows back into cell 1.
+Rows 3-4 (8 cells): one attack motion toward the viewer-facing direction of this view. Cells 9-11 wind up (pull back, coil,
+gather); cell 12-13 strike (the pose reaching furthest, cell 13 holds it); cells 14-16 recover back to the neutral pose.
+Solid opaque body, hard-edged pixels only, dark outline #1a1020 1 px, no glow blur, no particles, no smoke, no sparks.
+Use the attached old sprite sheet ONLY as a reference for shape, colors and motifs; do NOT copy its human-shaped empty gap
+or its composition; the spirit must be one complete, self-contained figure.
+
+EXACT16completeDRAGONS4columns4rows square1:1 equalcells. Each WHOLE dragon from horn tips to tailtip including strongest lunge fits150x180px centered in313pxcell,70px clear #FF00FFsides50px topbottom. ONE continuous thick SOLID S-shaped dragon body, visible connected neck/trunk/tail with scales, NO human-shaped central gap and NO mannequin. Natural small gaps between S curves okay, no ring around a person. Darkred #7a1c10 scales, few fire-red #ff4a2a cracks, tiny yellowwhite mouthcore, attachedblack edge shapes. Only motifs crackedscales, abstract firedaorunes aroundhorns, verythin attached firering; no readableletters. First8smallidle,9-11coilback,12AND13samecompact headlunge towardviewer,14-16recover. Samebody/tailbaseline andscale all16. No separatefireball/flamebreath/particles, no human/flesh/legs/clothes/ground/shadow/softglow/text/grid. Oldreference ONLY shape/colorsmotif; do NOT copyhumanemptygap.
