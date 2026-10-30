@@ -1,0 +1,114 @@
+[
+  {
+    "key": "vkanim_ky_nhung_thong_thien_cuc_b",
+    "frame": [
+      128,
+      128
+    ],
+    "iso": true,
+    "anim": {
+      "kind": "vukhi",
+      "frame": 128,
+      "group": "A",
+      "layer": "sau",
+      "dirs": [
+        "s",
+        "se",
+        "e",
+        "ne",
+        "n"
+      ],
+      "sexes": [
+        "m",
+        "f"
+      ],
+      "cols": 13,
+      "rows": 10,
+      "rowsPerSex": 5,
+      "dirsOk": [
+        "ne"
+      ],
+      "anims": {
+        "idle": {
+          "col": 0,
+          "n": 2
+        },
+        "walk": {
+          "col": 2,
+          "n": 4
+        },
+        "attack": {
+          "col": 6,
+          "n": 4
+        },
+        "cast": {
+          "col": 10,
+          "n": 2
+        },
+        "hurt": {
+          "col": 12,
+          "n": 1
+        }
+      },
+      "origin": [
+        64,
+        90
+      ],
+      "grip": {
+        "ne/idle/0": [
+          -7.5,
+          -11.4
+        ],
+        "ne/idle/1": [
+          -7.4,
+          -11.9
+        ],
+        "ne/walk/0": [
+          -1,
+          -10.1
+        ],
+        "ne/walk/1": [
+          -11.4,
+          -10.5
+        ],
+        "ne/walk/2": [
+          -13.7,
+          -10.6
+        ],
+        "ne/walk/3": [
+          -5.5,
+          -11.1
+        ],
+        "ne/attack/0": [
+          -7.7,
+          -9.6
+        ],
+        "ne/attack/1": [
+          -9.4,
+          -11.5
+        ],
+        "ne/attack/2": [
+          -10.9,
+          -11.9
+        ],
+        "ne/attack/3": [
+          -9.9,
+          -12.1
+        ],
+        "ne/cast/0": [
+          10.1,
+          -17.5
+        ],
+        "ne/cast/1": [
+          13.1,
+          -31.2
+        ],
+        "ne/hurt/0": [
+          14.7,
+          -10.6
+        ]
+      },
+      "gripSex": "m"
+    }
+  }
+]

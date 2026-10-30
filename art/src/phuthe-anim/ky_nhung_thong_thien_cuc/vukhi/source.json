@@ -1,0 +1,1618 @@
+{
+  "tool": "OpenAI image_gen tích hợp Codex",
+  "model": "unknown (công cụ không trả về)",
+  "seed": null,
+  "terms": "Đầu ra OpenAI; không gán CC0",
+  "pathBase": "art/src/phuthe-anim/ky_nhung_thong_thien_cuc/vukhi",
+  "history": [
+    {
+      "file": "s/attempt1/poses.raw.png",
+      "sha256": "aec13932c102396f9da7be5791a2dc36f7fd034d7136519b44131f8457922849",
+      "prompt": "s/attempt1/prompt.txt",
+      "reference": "e/attempt1/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "se/attempt1/poses.raw.png",
+      "sha256": "a6ac4145927db534d4168c6fababb8441d0b0908d6705adc76bc48376bd07e33",
+      "prompt": "se/attempt1/prompt.txt",
+      "reference": "s/attempt1/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "e/attempt1/poses.raw.png",
+      "sha256": "793578d745cae55fa999da5f933deae7ef993057d0b2b8baabb579802db8d988",
+      "prompt": "e/attempt1/prompt.txt",
+      "reference": null,
+      "selected": true
+    },
+    {
+      "file": "ne/attempt1/poses.raw.png",
+      "sha256": "9bf4d8e06a802b4e8d251367ca233e53ba55cc760dc9581ed1728db76188ec94",
+      "prompt": "ne/attempt1/prompt.txt",
+      "reference": "se/attempt1/poses.raw.png",
+      "selected": true
+    },
+    {
+      "file": "n/attempt1/poses.raw.png",
+      "sha256": "d752b49e071bc28adaa74bd1aa18150fa6f53b2a4c7e8ee0436fb987eebc1870",
+      "prompt": "n/attempt1/prompt.txt",
+      "reference": "ne/attempt1/poses.raw.png",
+      "selected": true
+    }
+  ],
+  "selectedPoses": {
+    "s": "s/attempt1/poses.raw.png",
+    "se": "se/attempt1/poses.raw.png",
+    "e": "e/attempt1/poses.raw.png",
+    "ne": "ne/attempt1/poses.raw.png",
+    "n": "n/attempt1/poses.raw.png"
+  },
+  "handPolicy": "Một tay theo bảng thiết kế, ngoài whitelist ngoại lệ nhóm cứng; không có B để miễn. Checker/dummy/cutter canonical giữ nguyên.",
+  "mapping": "idle0; walk1; attack2/3/6/7; cast6/7; hurt0",
+  "markerSegmentation": "RAW giữ nguyên. Chọn tám marker xanh lớn (diện tích≥100px), mỗi ô một marker gắn vũ khí. Grip dịch vào cán ít nhất3px.",
+  "bodyReferencePixels": 47,
+  "maxShaftGamePixels": 45.66475706331019,
+  "shaftBodyRatio": 0.9715905758151104,
+  "wholeWeaponDiagonalBound": 68.93345563656943,
+  "wholeWeaponBodyBoundRatio": 1.4666692688631795,
+  "recipeSha256": "57ca1ec639a19914603127c1fb23a9582272f7d22ee26765fa31ae1a718f7798",
+  "canonicalVerification": {
+    "commit": "3f7bd61ac21512c4dc2ee68b899171c775395d7b",
+    "pr": 1391,
+    "textHashPolicy": "SHA-256 UTF-8 với xuống dòng LF",
+    "tools": {
+      "phuthe-hammer-atlas.mjs": "00bcdc252e9207938fcbb7ca53cb9c62a45fe2edcafbc562b75e0b7c29d65094",
+      "phuthe-hammer-atlas-finalize.mjs": "cbd584d91d087ceb7a2a7ed6eeffae80e7e11664746af231b01b96758170967a",
+      "phuthe-hammer-atlas-cut.mjs": "f833963d9d96f4c8c6be47a957aa3806e87dadc9469fc623428bd588f2af273b",
+      "phuthe-sheet-dummy.mjs": "100ec760e4740446b3c26e2fbf0faa82987e6c5c5050c7cde4c592b7d9799d9f",
+      "phuthe-sheet-cut-lib.mjs": "46ddae551209e05d1e7d167d36555bd29fb1fe02b2a5850dace92a9fcc7b9cbc",
+      "phuthe-sheet-check.mjs": "30182d63548e626712739eca82ad46f64404bceb38affa1f97b63271898166e6",
+      "phuthe-weapon-grip.mjs": "ff6d4c679c7fba602df43f862410e1fe21a45392f571aead66c5d07b802db03b"
+    },
+    "frames": 130,
+    "maxA": 0.7071067811865476,
+    "edge": 0,
+    "failures": [],
+    "singleCurrentStepFrames": [
+      {
+        "name": "m/s/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            53,
+            77.3
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/s/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            52.8,
+            78.8
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/s/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.8,
+            78.1
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/s/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            52.9,
+            77.9
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/s/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            47.6,
+            72.9
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/s/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            42.1,
+            59.1
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/s/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            53.5,
+            79
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/s/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            53.5,
+            79
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/s/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            55,
+            78.25
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/s/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            53.9,
+            77.9
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/s/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            50.08333333333333,
+            74.66666666666666
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/s/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            43.1,
+            58.3
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/se/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            56.3,
+            80.4
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/se/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            54.6,
+            78.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/se/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53.1,
+            78.1
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/se/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.1,
+            77.9
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/se/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            74.1,
+            72.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/se/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            77.1,
+            58.8
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/se/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            55.6,
+            80.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/se/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.7,
+            79.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/se/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            77.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/se/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.04545454545455,
+            76.95454545454545
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/se/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.375,
+            76
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/se/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            76.95454545454545,
+            60.31818181818181
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/e/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            56.3,
+            80.4
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/e/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            54.6,
+            78.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/e/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53.1,
+            78.1
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/e/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.1,
+            77.9
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/e/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            74.1,
+            72.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/e/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            77.1,
+            58.8
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/e/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            55.6,
+            80.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/e/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.7,
+            79.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/e/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            77.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/e/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.04545454545455,
+            76.95454545454545
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/e/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.375,
+            76
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/e/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            76.95454545454545,
+            60.31818181818181
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/ne/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            56.3,
+            80.4
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/ne/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            54.6,
+            78.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/ne/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53.1,
+            78.1
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/ne/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.1,
+            77.9
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/ne/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            74.1,
+            72.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/ne/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            77.1,
+            58.8
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/ne/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            55.6,
+            80.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/ne/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.7,
+            79.5
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/ne/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            77.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/ne/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            54.04545454545455,
+            76.95454545454545
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/ne/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            73.375,
+            76
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/ne/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            76.95454545454545,
+            60.31818181818181
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/n/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            75.1,
+            73.7
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            55.8,
+            80.3
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            53,
+            79.3
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/n/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            51.6,
+            78.7
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/n/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            80.5,
+            73.6
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "m/n/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            85.9,
+            61.1
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/attack/0",
+        "step": 0,
+        "measuredStep": 0,
+        "fallback": false,
+        "hands": [
+          [
+            53.27777777777778,
+            79.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/attack/1",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            53.27777777777778,
+            79.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/attack/2",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            54.27777777777778,
+            79.38888888888889
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/attack/3",
+        "step": 3,
+        "measuredStep": 3,
+        "fallback": false,
+        "hands": [
+          [
+            53.611111111111114,
+            78.72222222222223
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/cast/0",
+        "step": 1,
+        "measuredStep": 1,
+        "fallback": false,
+        "hands": [
+          [
+            79.5909090909091,
+            72.13636363636363
+          ]
+        ],
+        "secondaryMeasured": false
+      },
+      {
+        "name": "f/n/cast/1",
+        "step": 2,
+        "measuredStep": 2,
+        "fallback": false,
+        "hands": [
+          [
+            84.75,
+            60.5
+          ]
+        ],
+        "secondaryMeasured": false
+      }
+    ]
+  },
+  "lightIssues": {
+    "m": [
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (s) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 52%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (s) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (se) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 48%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (se) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (e) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 52%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (e) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (ne) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 50%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (ne) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (n) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 45%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (n) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%)."
+      }
+    ],
+    "f": [
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (s) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 53%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (s) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 13%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (se) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 47%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (se) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 16%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (e) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 50%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (e) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (ne) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 48%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (ne) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H3 (n) C4",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 47%)."
+      },
+      {
+        "sev": "light",
+        "code": "chan-lech",
+        "where": "H4 (n) C1–2",
+        "msg": "chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 14%)."
+      }
+    ]
+  },
+  "sheets": [
+    {
+      "file": "shared/assets/sprites/vukhianim/ky_nhung_thong_thien_cuc_b.png",
+      "sha256": "6d1e1098abcfe4dd37766bf9a14f13378a1d93ae3a425a09e2f1f81340488a83"
+    },
+    {
+      "file": "shared/assets/sprites/vukhianim/ky_nhung_thong_thien_cuc_f.png",
+      "sha256": "19bb3f29939e426834c91337e81f8b71983e0f2fb57ae1b70188c70d54a53bff"
+    }
+  ],
+  "capture": {
+    "session": "soul_land_game-859",
+    "artifact": "ky-nhung-cast/index.html",
+    "source": "ky-nhung-cast/capture.source.json",
+    "images": 48,
+    "viewport": [
+      1600,
+      900
+    ],
+    "muted": true,
+    "pfx": 0,
+    "errors": [],
+    "method": "Playwright Chrome --mute-audio, RAM riêng; GameScene.animatePlayer thật, cố định bước thân và đồng hồ để chụp; không sửa repo.",
+    "items": [
+      {
+        "file": "game-m-s-cast-0.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 0,
+        "body": 14,
+        "weapon": 10,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "fefb8e27f194c18f1dcab12bab2b54786375d5dcd0c78c5fac25b5e9c55edccc",
+        "capturedAt": "2026-10-30T18:16:13.223Z"
+      },
+      {
+        "file": "game-m-s-cast-100.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 100,
+        "body": 15,
+        "weapon": 10,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "462ceb1b7e5797343567059fc44d92e6f85826eb24b8ac50e482a4f8ec78fdae",
+        "capturedAt": "2026-10-30T18:16:15.400Z"
+      },
+      {
+        "file": "game-m-s-cast-360.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 360,
+        "body": 16,
+        "weapon": 11,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "42805604991541b0a293995b6def9efb7c1a17ed407409c6b6d7a97c62166fa9",
+        "capturedAt": "2026-10-30T18:16:16.905Z"
+      },
+      {
+        "file": "game-m-s-attack-190.png",
+        "sex": "m",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 190,
+        "body": 12,
+        "weapon": 8,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "9911b5165300f27f001832dd41458abd7b8637fc048964f0c9fb321d46d68918",
+        "capturedAt": "2026-10-30T18:16:18.550Z"
+      },
+      {
+        "file": "game-m-se-cast-0.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 23,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "1a99bde3d265f2a71d84dc493fdbf524ca1a85ee57cb98ece8a426d10a1a0810",
+        "capturedAt": "2026-10-30T18:16:19.826Z"
+      },
+      {
+        "file": "game-m-se-cast-100.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 23,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "e5c6d81a5c2f6ce021ba01119135c4a521750c6b7501fbfff9028b8fbac64752",
+        "capturedAt": "2026-10-30T18:16:21.066Z"
+      },
+      {
+        "file": "game-m-se-cast-360.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 24,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "6c767bc86901c359414122cf6fdd2a6a6119f5eb082c8df56701a63556dc686f",
+        "capturedAt": "2026-10-30T18:16:22.423Z"
+      },
+      {
+        "file": "game-m-se-attack-190.png",
+        "sex": "m",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 21,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "e35bb6fa54d668044b81ef882596479a31b9e4dca7256ed3dbd083614a8e9fc6",
+        "capturedAt": "2026-10-30T18:16:23.442Z"
+      },
+      {
+        "file": "game-m-e-cast-0.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 36,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "9445ca3e2b22cc555f64a47668ec345bf52eff19e9780354f0c223e29d432f66",
+        "capturedAt": "2026-10-30T18:16:24.578Z"
+      },
+      {
+        "file": "game-m-e-cast-100.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 36,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "955df334b75e1986d0bd233df820eb532a46fd2d58c6dce2e03e167056861bce",
+        "capturedAt": "2026-10-30T18:16:25.766Z"
+      },
+      {
+        "file": "game-m-e-cast-360.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 37,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "34a859432aede65b17f487efb8e6e830ef1d10d5a00f02224027efa41465d71e",
+        "capturedAt": "2026-10-30T18:16:26.897Z"
+      },
+      {
+        "file": "game-m-e-attack-190.png",
+        "sex": "m",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 34,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "030032d9d00b462187265b67cd3aa8d64c91a97c012a8480e1f53b8c52d4f6dc",
+        "capturedAt": "2026-10-30T18:16:28.054Z"
+      },
+      {
+        "file": "game-m-ne-cast-0.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 49,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "89e7b4916305cadef6904366adfff5285c0e99f2564fdb3cd20c0f97f37112cf",
+        "capturedAt": "2026-10-30T18:16:29.159Z"
+      },
+      {
+        "file": "game-m-ne-cast-100.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 49,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "c7079cd3de3012928c72c5ed4fac14f7004f43b32847e8e79ac96b3e4d7cb853",
+        "capturedAt": "2026-10-30T18:16:30.334Z"
+      },
+      {
+        "file": "game-m-ne-cast-360.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 50,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "23401ff4a45d233df0a51ab5b86a21ed1a0d50e5521c96545068053177805a04",
+        "capturedAt": "2026-10-30T18:16:31.599Z"
+      },
+      {
+        "file": "game-m-ne-attack-190.png",
+        "sex": "m",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 47,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "01534197da0d7333389d8204520320b6dc571883cbe7fbc46001dfacd5e11bf9",
+        "capturedAt": "2026-10-30T18:16:32.876Z"
+      },
+      {
+        "file": "game-m-n-cast-0.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 0,
+        "body": 110,
+        "weapon": 62,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "186dcf269650c4069fc16baf6999bbf46b897c7676ca9f7ec9d3d9826216cdab",
+        "capturedAt": "2026-10-30T18:16:34.543Z"
+      },
+      {
+        "file": "game-m-n-cast-100.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 100,
+        "body": 111,
+        "weapon": 62,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "4734c9bfdb94ab0c1b55f932bbbb574958c224a440b2ba031e43ba7074851cd5",
+        "capturedAt": "2026-10-30T18:16:35.588Z"
+      },
+      {
+        "file": "game-m-n-cast-360.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 360,
+        "body": 112,
+        "weapon": 63,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "75d6fe29a51f079bc5f35e6c7409547dea52d12b9791537bf7574255057f04a7",
+        "capturedAt": "2026-10-30T18:16:36.645Z"
+      },
+      {
+        "file": "game-m-n-attack-190.png",
+        "sex": "m",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 190,
+        "body": 108,
+        "weapon": 60,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "63e52f13134838a1f408455ff39f1243663bea0912c07e5ee8a2d1f4892f24ad",
+        "capturedAt": "2026-10-30T18:16:37.629Z"
+      },
+      {
+        "file": "test-m-idle-0.png",
+        "sex": "m",
+        "clip": "idle",
+        "ms": 0,
+        "scene": "VukhiScene",
+        "sha256": "77c2a23376bfa4a02b54d78d777fb892e8155d09ecedb72371accfdbf7fdeb47",
+        "capturedAt": "2026-10-30T18:16:43.803Z"
+      },
+      {
+        "file": "test-m-walk-100.png",
+        "sex": "m",
+        "clip": "walk",
+        "ms": 100,
+        "scene": "VukhiScene",
+        "sha256": "3b0773b89ef45a1834f029a928833728dc2933b702aea5f056e89adee86a00ed",
+        "capturedAt": "2026-10-30T18:16:49.623Z"
+      },
+      {
+        "file": "test-m-attack-190.png",
+        "sex": "m",
+        "clip": "attack",
+        "ms": 190,
+        "scene": "VukhiScene",
+        "sha256": "5290f612bd00d0487f9820fcf5497cbc6878620e5a02178d98d745f0258ff894",
+        "capturedAt": "2026-10-30T18:16:54.855Z"
+      },
+      {
+        "file": "test-m-cast-360.png",
+        "sex": "m",
+        "clip": "cast",
+        "ms": 360,
+        "scene": "VukhiScene",
+        "sha256": "ee2efafadb61781296cb5a19592e3ed131884351c301fd0bd7a0133a6345704a",
+        "capturedAt": "2026-10-30T18:17:00.238Z"
+      },
+      {
+        "file": "game-f-s-cast-0.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 0,
+        "body": 14,
+        "weapon": 75,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "492710502f6d64d4f4a3f29f688ca8be4fa84f9c83b9a0e8dad232a973ad36cb",
+        "capturedAt": "2026-10-30T18:17:25.573Z"
+      },
+      {
+        "file": "game-f-s-cast-100.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 100,
+        "body": 15,
+        "weapon": 75,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "b2ff3f425dc48bb990d7891b52a7c82340b9f8787252bfcba21bce5a5f276b53",
+        "capturedAt": "2026-10-30T18:17:26.626Z"
+      },
+      {
+        "file": "game-f-s-cast-360.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "cast",
+        "ms": 360,
+        "body": 16,
+        "weapon": 76,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "f5f0948a106f2d74ad51d21888fe8726d771fe521a5512975412aa257f9117e3",
+        "capturedAt": "2026-10-30T18:17:27.457Z"
+      },
+      {
+        "file": "game-f-s-attack-190.png",
+        "sex": "f",
+        "dir": "s",
+        "clip": "attack",
+        "ms": 190,
+        "body": 12,
+        "weapon": 73,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "f172f7cb8fc3fca2d27cc9f1850eec4920312618147583513d30e1f797335b2f",
+        "capturedAt": "2026-10-30T18:17:28.491Z"
+      },
+      {
+        "file": "game-f-se-cast-0.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 88,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "cdc34a17477388eb74718278ccafc5d6aa5439247153cba48c4962c2ad2df489",
+        "capturedAt": "2026-10-30T18:17:29.488Z"
+      },
+      {
+        "file": "game-f-se-cast-100.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 88,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "bb935ce435ada97228c9c7afd9e03d79c2824a6f1b063edd1808c832cf663149",
+        "capturedAt": "2026-10-30T18:17:30.639Z"
+      },
+      {
+        "file": "game-f-se-cast-360.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 89,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "8c685f34ea20b80f3993c2ee0210f3abfd0c3874f9c9057e4936065f8721de74",
+        "capturedAt": "2026-10-30T18:17:31.785Z"
+      },
+      {
+        "file": "game-f-se-attack-190.png",
+        "sex": "f",
+        "dir": "se",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 86,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "dd1de50fad07b7bca6f2144cb7aa86ac23d5d644e65e3fb4f1b4ddf000d9cd20",
+        "capturedAt": "2026-10-30T18:17:32.871Z"
+      },
+      {
+        "file": "game-f-e-cast-0.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 101,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "ef78fa1ce3a5e930beda2c115706486e9c0be7556bd0b08690f4e883f27de637",
+        "capturedAt": "2026-10-30T18:17:34.165Z"
+      },
+      {
+        "file": "game-f-e-cast-100.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 101,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "dbbb74bc5225b2d87ec0d8371b9da2aff271449fd24227ca2aa3786053fa735a",
+        "capturedAt": "2026-10-30T18:17:35.609Z"
+      },
+      {
+        "file": "game-f-e-cast-360.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 102,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "34a38ace1427e2f352aff49f121540020967bc32a309878b2c626e5093cf8d16",
+        "capturedAt": "2026-10-30T18:17:36.557Z"
+      },
+      {
+        "file": "game-f-e-attack-190.png",
+        "sex": "f",
+        "dir": "e",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 99,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "d1dacea24cc2d2123f204780004dbc36954b7192e26bba57c7cdec67f786139d",
+        "capturedAt": "2026-10-30T18:17:37.702Z"
+      },
+      {
+        "file": "game-f-ne-cast-0.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 0,
+        "body": 62,
+        "weapon": 114,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "55213b45a9328bd206124a5dff381a522ea794fe79c412ddab30ac32808d0391",
+        "capturedAt": "2026-10-30T18:17:38.872Z"
+      },
+      {
+        "file": "game-f-ne-cast-100.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 100,
+        "body": 63,
+        "weapon": 114,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "100bd33edcda6e34bf66857e8eebbb33278b871706fd9398200ccff41aeed22f",
+        "capturedAt": "2026-10-30T18:17:39.812Z"
+      },
+      {
+        "file": "game-f-ne-cast-360.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "cast",
+        "ms": 360,
+        "body": 64,
+        "weapon": 115,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "286fdab43cf3082a2577931b3ea64732f5f0abda8286f82519d44d871bbe99e5",
+        "capturedAt": "2026-10-30T18:17:40.793Z"
+      },
+      {
+        "file": "game-f-ne-attack-190.png",
+        "sex": "f",
+        "dir": "ne",
+        "clip": "attack",
+        "ms": 190,
+        "body": 60,
+        "weapon": 112,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "5e1bca926c97857068bce237bd87f1cab9cb62c9008e5b143385048dc13b01a9",
+        "capturedAt": "2026-10-30T18:17:41.789Z"
+      },
+      {
+        "file": "game-f-n-cast-0.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 0,
+        "body": 110,
+        "weapon": 127,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "41009f75f82d9b8bfbeb8f179817fb5fa643e591ab3a85702ebd6af50f2cbd92",
+        "capturedAt": "2026-10-30T18:17:42.686Z"
+      },
+      {
+        "file": "game-f-n-cast-100.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 100,
+        "body": 111,
+        "weapon": 127,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "d95c39451c97be9b18e6c97ff32ef4594d8397cb85c90720a976bf3896eaacf8",
+        "capturedAt": "2026-10-30T18:17:43.705Z"
+      },
+      {
+        "file": "game-f-n-cast-360.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "cast",
+        "ms": 360,
+        "body": 112,
+        "weapon": 128,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "8a69c2bd95e195e71b2f8cbaf5d6cfe720d1d2bd582fdeb7d36a7646bd8ef18d",
+        "capturedAt": "2026-10-30T18:17:44.751Z"
+      },
+      {
+        "file": "game-f-n-attack-190.png",
+        "sex": "f",
+        "dir": "n",
+        "clip": "attack",
+        "ms": 190,
+        "body": 108,
+        "weapon": 125,
+        "texture": "vkanim_ky_nhung_thong_thien_cuc_f",
+        "muted": true,
+        "sha256": "11b9c156e4fdc664ccff13c94b3c1cad21efc566e4ed004c9e15787cc78e12a0",
+        "capturedAt": "2026-10-30T18:17:45.805Z"
+      },
+      {
+        "file": "test-f-idle-0.png",
+        "sex": "f",
+        "clip": "idle",
+        "ms": 0,
+        "scene": "VukhiScene",
+        "sha256": "a53dd96646038003be5229b5ea9cf11c99c553ee9d1f77e488ade25190e66e28",
+        "capturedAt": "2026-10-30T18:17:50.547Z"
+      },
+      {
+        "file": "test-f-walk-100.png",
+        "sex": "f",
+        "clip": "walk",
+        "ms": 100,
+        "scene": "VukhiScene",
+        "sha256": "b6958f319df018b94948c8ab7df969916b1e907f9221b7257917eb56191b93cd",
+        "capturedAt": "2026-10-30T18:17:55.032Z"
+      },
+      {
+        "file": "test-f-attack-190.png",
+        "sex": "f",
+        "clip": "attack",
+        "ms": 190,
+        "scene": "VukhiScene",
+        "sha256": "f2e2ea3286a1cdd96ec4fa9b4101ca88ee58a6d854f38ccf3b6d1ce91037239b",
+        "capturedAt": "2026-10-30T18:17:59.426Z"
+      },
+      {
+        "file": "test-f-cast-360.png",
+        "sex": "f",
+        "clip": "cast",
+        "ms": 360,
+        "scene": "VukhiScene",
+        "sha256": "d3a903a8dc38712d5661fdd280c167ee464d3f78f35f5335d5aa9e0a53c56832",
+        "capturedAt": "2026-10-30T18:18:04.132Z"
+      }
+    ],
+    "assets": [
+      {
+        "file": "shared/assets/sprites/vukhianim/ky_nhung_thong_thien_cuc_b.png",
+        "sha256": "6d1e1098abcfe4dd37766bf9a14f13378a1d93ae3a425a09e2f1f81340488a83"
+      },
+      {
+        "file": "shared/assets/sprites/vukhianim/ky_nhung_thong_thien_cuc_f.png",
+        "sha256": "19bb3f29939e426834c91337e81f8b71983e0f2fb57ae1b70188c70d54a53bff"
+      }
+    ],
+    "limits": "GameScene live, giữ tuổi hoạt ảnh trong wrapper animatePlayer thật; cấp võ hồn bằng hook test, đội hình qua team. Mốc0/100/360ms cast và190ms attack. Một số đầu hoa có thể bị cảnh vật thật che; trang thử bổ sung cho thấy trọn hình. pfx=0 tắt gói asset riêng vắng mặt; lỗi private/present.json của lượt chẩn đoán không liên quan Kỳ Nhung."
+  },
+  "knownVisualBlocker": null,
+  "artApproved": true,
+  "approval": "Chủ repo/điều phối duyệt mỹ thuật vũ khí, tiếp tục #1385 sau PR1391; chờ AO review và CI xanh, worker không tự merge."
+}
