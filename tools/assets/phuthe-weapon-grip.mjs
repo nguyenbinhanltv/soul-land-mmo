@@ -1,7 +1,7 @@
 // Chủ repo xác nhận: chỉ các mã này được dùng một tay ở attack/cast dọc.
 const PRIMARY_ONLY_VERTICAL_WEAPONS = new Set([
   "hao_thien_chuy", "ta_hoa_phuong_hoang", "cuu_tinh_that_sat_kiem", "nguyet_nhan",
-  "pha_hon_thuong", "quy_mi",
+  "pha_hon_thuong", "quy_mi", "bang_phuong_hoang",
 ]);
 
 export function weaponPoseGripPolicy({ id, clip, axisDegrees, primaryDistance, secondaryDistance = 0 }) {
