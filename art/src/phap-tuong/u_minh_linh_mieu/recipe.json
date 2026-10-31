@@ -1,0 +1,29 @@
+{
+  "id": "u_minh_linh_mieu",
+  "raw": "art/src/phap-tuong/u_minh_linh_mieu",
+  "native": [
+    1254,
+    1254
+  ],
+  "frame": 160,
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "selectedAttempts": {
+    "s": 2,
+    "se": 2,
+    "e": 2,
+    "ne": 2,
+    "n": 2
+  },
+  "despill": false,
+  "glow": "#b06bff",
+  "glowBuilder": "tools/assets/phuthe-to-phaptuong-lib.mjs:buildGlow",
+  "sheetSha256": "572b5abe56138245244cb941a6e7a9b24987a5744ca2cf326effd3e8b4887628",
+  "glowSha256": "19e93a03ce7e254e614bd4378fb4fce8c89cab342fd71e3ca55d8e00e8af52e7"
+}
