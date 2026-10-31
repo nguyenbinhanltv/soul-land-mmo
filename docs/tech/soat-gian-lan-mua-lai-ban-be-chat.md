@@ -32,7 +32,7 @@ Lưu ý đọc kết quả: Colyseus Redis chia phòng giữa hai tiến trình 
 
 ### 3c. Khóa kênh đích chỉ ở RAM tiến trình gốc (#819)
 
-Khi đi cổng / đổi kênh, `MapRoom.ts` ghi `leftRoom.set(…, { roomId: dest.roomId, travel: true })` vào Map trong RAM, **không** ghi presence như khóa "tự rời kênh" (`channelLeftKey`). `leftLock` đọc presence rồi mới Map cục bộ. Hệ quả khi chạy nhiều tiến trình:
+Khi đi cổng / đổi kênh, `travel.ts` ghi `leftRoom.set(…, { roomId: dest.roomId, travel: true })` vào Map trong RAM, **không** ghi presence như khóa "tự rời kênh" (`channelLeftKey`). `leftLock` đọc presence rồi mới Map cục bộ. Hệ quả khi chạy nhiều tiến trình:
 
 - Vào phòng ở tiến trình khác tiến trình gốc: không thấy khóa, client `joinById` được kênh server không chọn (luật #164). Đọc mã, **chưa dựng bài lách hoàn chỉnh** (cần ba kênh trải hai tiến trình).
 - Khóa cũ ở tiến trình đã giữ lần đi cổng trước còn sống tới hết `CHANNEL_CD` và chặn nhầm lần vào hợp lệ kế tiếp: **tái hiện được** (lần chạy đầu của bài: 409 "Hãy vào kênh 1 (kênh server đã chọn)" dù server vừa chỉ kênh 2; ghi log `this` / `back` / bản RAM / bản presence cho thấy khóa kênh 1 cũ trong RAM, presence rỗng).

@@ -70,7 +70,7 @@ Mọi phòng chạy trên cùng một luồng, nên tổng tick + vá của cả
   Bot tự săn nhặt đồ tới khi túi đầy `BAG_SLOTS` ô (tự săn dừng vì "túi đồ đã đầy", tự bán mặc định tắt). 40 bot × `BAG_SLOTS` ô × ~1 KB (ô trong `pdata`, chuỗi JSON đã gửi, bản lưu) ≈ 10 MB với giá trị `BAG_SLOTS` ở commit `257570e`, khớp mức tăng. Phần này có trần, **không phải rò**.
 - **RSS** tăng ~100 → 250–270 MB trong 10 phút đầu rồi phẳng, và không về khi rảnh. Lý do giống soak 30 phút trước: V8 / allocator giữ lại trang và bộ đệm mã hóa 1 MB mỗi phòng (11.4).
 - `Map` mức tiến trình (skill `soak-perf` mục 4): `kingSeats`, `eliteLocks` bỏ mục hết hạn khi tra; `party.ts` dọn ở `party.sweep` mỗi tick; `ratelimit.ts` dọn mỗi 5 phút.
-  `channelSwitchAt` và `leftRoom` (`MapRoom.ts`) không bao giờ xóa mục của tài khoản không quay lại, nhưng mỗi tài khoản chỉ giữ một mục vài chục byte. Không đáng sửa ở quy mô server bạn bè.
+  `channelSwitchAt` và `leftRoom` (`procState.ts`) không bao giờ xóa mục của tài khoản không quay lại, nhưng mỗi tài khoản chỉ giữ một mục vài chục byte. Không đáng sửa ở quy mô server bạn bè.
 
 ## 4. CPU
 Profile CPU 120 giây (inspector, 60 bot tự săn, một kênh): tiến trình bận ~13 % một nhân. Trong phần bận:

@@ -10,7 +10,8 @@ import { TIERS, VOHON, tierOfYears, vohonIndex, beastIndex, starSkillMult, starC
 import { store } from "../db.ts";
 import * as party from "../party.ts";
 import { presenceBackend } from "../presence.ts";
-import { fusionCdLeft, fusionReady, type MapRoom, type PData, type Hit, type FusHit } from "./MapRoom.ts";
+import { type MapRoom, type PData, type Hit, type FusHit } from "./MapRoom.ts";
+import { fusionCdLeft, fusionReady } from "./procState.ts";
 import { fusionKey } from "./common.ts";
 
 /**

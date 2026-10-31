@@ -5,7 +5,8 @@ import { itemDef, BEAST_COIN, STARTER_ITEMS } from "../../../shared/data.ts";
 import { bagDiff } from "../../../shared/bagSync.ts";
 import type { Item, Bag } from "../db.ts";
 import { newItem, bagUsed, bumpItemClock, KIND_ORDER, ITEM_ORDER } from "./items.ts";
-import { buybacks, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { buybacks } from "./procState.ts";
 import { CLAIM_BUSY, claimHeld } from "./common.ts";
 
 /** Ảnh chụp túi đồ và Hồn Tệ chưa lưu (bỏ đánh dấu `bagDirty`); undefined nếu không đổi gì từ lần lưu trước. */

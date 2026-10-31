@@ -44,7 +44,7 @@ Mỗi 5–10 phút ghi một dòng: phút, dòng `[perf]` gần nhất (`tick`, 
 1. Sau khi mọi bot rời: phòng trống tự hủy (`onDispose`), RSS / heap phải về gần mức sau khởi động (cho GC chạy vài phút). Không về thì có rò.
 2. Heap snapshot qua `--inspect` (Chrome `chrome://inspect` → Memory): chụp lúc ổn định, sau 30 phút, sau 60 phút; so "Objects allocated between snapshots", lọc theo constructor tăng đều (`Map`, `PData`, `Client`, closure).
 3. Nghi phạm theo kiến trúc repo:
-   - `Map` mức tiến trình sống lâu hơn phòng: `kingSeats`, `kingWarns`, `channelsInUse`, `channelSwitchAt`, `leftRoom`, `buybacks` (`MapRoom.ts`); `live`, `byName`, `parties`, `invites` (`party.ts`); `queue`, `arenaMatches`, `lastFoe` (`arenaQueue.ts`); bộ đếm `ratelimit.ts` (dọn mỗi `SWEEP_MS`). Mục có xóa khi hết hạn / rời không?
+   - `Map` mức tiến trình sống lâu hơn phòng: `kingSeats`, `channelSwitchAt`, `leftRoom`, `buybacks` (`procState.ts`), `kingWarns`, `channelsInUse` (`MapRoom.ts`); `live`, `byName`, `parties`, `invites` (`party.ts`); `queue`, `arenaMatches`, `lastFoe` (`arenaQueue.ts`); bộ đếm `ratelimit.ts` (dọn mỗi `SWEEP_MS`). Mục có xóa khi hết hạn / rời không?
    - Trong phòng: `pdata` / `bdata` / `coreDrops` xóa khi rời / hồn thú chết; hàng đợi `later()` (`timers`) không giữ closure của người đã rời; `StateView` của client rời được bỏ.
    - Bộ đệm mã hóa `Encoder.BUFFER_SIZE` 1 MB **mỗi phòng** (11.4) là có chủ đích: nhiều kênh mở thì RSS tăng theo số phòng, không phải rò.
 4. Tìm thấy rò: tái hiện bằng kịch bản Vào ra ngắn nhất có thể, sửa (skill `server-feature`), chạy lại cùng kịch bản để so trước / sau.
