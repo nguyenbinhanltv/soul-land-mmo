@@ -7,7 +7,8 @@ import { itemDef, formatHonTe, shopOf, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, AUT
 import { store, type SoldRow } from "../db.ts";
 import { presenceBackend } from "../presence.ts";
 import { newItem, bagUsed } from "./items.ts";
-import { buybacks, editBuyback, claimBuyback, type Buyback, type MapRoom, type PData } from "./MapRoom.ts";
+import { editBuyback, claimBuyback, type MapRoom, type PData } from "./MapRoom.ts";
+import { buybacks, type Buyback } from "./procState.ts";
 import { buybackKey, CLAIM_BUSY, claimHeld } from "./common.ts";
 
 /**

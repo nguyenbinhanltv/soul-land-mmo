@@ -7,7 +7,8 @@ import { MAPS, TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, WAYPOINT_COOLDOWN_S, waypo
 import { mapHops, mapLinks, allWaypoints, nearestTown, type Portal } from "../map.ts";
 import { presenceBackend, bg } from "../presence.ts";
 import type { PlayerState } from "./schema.ts";
-import { leftRoom, pickChannel, type MapRoom, type PData, type RecallCast } from "./MapRoom.ts";
+import { pickChannel, type MapRoom, type PData, type RecallCast } from "./MapRoom.ts";
+import { leftRoom } from "./procState.ts";
 import { channelLeftKey, strIn } from "./common.ts";
 
 /** Lý do không được đi cổng `name` lúc này (null = được, "" = bỏ qua im lặng). Server tự kiểm tra, client chỉ gửi tên cổng. */
