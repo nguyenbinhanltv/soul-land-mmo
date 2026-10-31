@@ -1,0 +1,14 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "attempts":  1,
+    "round":  "mới theo ảnh dẫn",
+    "issue":  1424,
+    "rawSha256":  "ea850fc36d3b1d8ff19f5780e231aae817b527e69cfd1802e06285410e8d008b",
+    "promptSha256":  "576fe5e6557a4baf1dd6ba2c2e824f48ef2cd323ddaad271c6d5429659b84507",
+    "reference":  "candidates/884-guide1/guide.png",
+    "referenceSha256":  "967f73e660739271f34b5f0cd60ba125fb3dc52d598d8dde955f18304a5bb9e9",
+    "verdict":  "Đạt kỹ thuật; ne đầu khuất trên-phải, không mắt/họa tiết mặt, tám chân với chân xa co nhỏ ở die."
+}
