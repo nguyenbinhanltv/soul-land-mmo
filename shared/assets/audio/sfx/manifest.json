@@ -217,12 +217,84 @@
       "start": 8.13
     },
     {
+      "duration": 0.23,
+      "group": "swing-cung",
+      "id": "swing-cung-1",
+      "pack": "combat",
+      "sourceId": "oga-vu-khi-trung-co",
+      "start": 8.51
+    },
+    {
+      "duration": 0.39,
+      "group": "swing-day",
+      "id": "swing-day-1",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 8.79
+    },
+    {
+      "duration": 0.07,
+      "group": "swing-quat",
+      "id": "swing-quat-1",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 9.23
+    },
+    {
+      "duration": 0.23,
+      "group": "swing-cung",
+      "id": "swing-cung-2",
+      "pack": "combat",
+      "sourceId": "oga-vu-khi-trung-co",
+      "start": 9.35
+    },
+    {
+      "duration": 0.34,
+      "group": "swing-day",
+      "id": "swing-day-2",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 9.63
+    },
+    {
+      "duration": 0.08,
+      "group": "swing-quat",
+      "id": "swing-quat-2",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 10.02
+    },
+    {
+      "duration": 0.23,
+      "group": "swing-cung",
+      "id": "swing-cung-3",
+      "pack": "combat",
+      "sourceId": "oga-vu-khi-trung-co",
+      "start": 10.15
+    },
+    {
+      "duration": 0.45,
+      "group": "swing-day",
+      "id": "swing-day-3",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 10.43
+    },
+    {
+      "duration": 0.08,
+      "group": "swing-quat",
+      "id": "swing-quat-3",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "start": 10.93
+    },
+    {
       "duration": 0.3,
       "group": "hit-da",
       "id": "hit-da-1",
       "pack": "combat",
       "sourceId": "kenney-impact-sounds",
-      "start": 8.51
+      "start": 11.06
     },
     {
       "duration": 0.35,
@@ -230,7 +302,7 @@
       "id": "hit-linh-the-1",
       "pack": "combat",
       "sourceId": "oga-80-cc0-rpg-sfx",
-      "start": 8.86
+      "start": 11.41
     },
     {
       "duration": 0.3,
@@ -238,7 +310,7 @@
       "id": "hit-da-2",
       "pack": "combat",
       "sourceId": "kenney-impact-sounds",
-      "start": 9.26
+      "start": 11.81
     },
     {
       "duration": 0.35,
@@ -246,7 +318,7 @@
       "id": "hit-linh-the-2",
       "pack": "combat",
       "sourceId": "oga-80-cc0-rpg-sfx",
-      "start": 9.61
+      "start": 12.16
     },
     {
       "duration": 0.3,
@@ -254,7 +326,7 @@
       "id": "hit-da-3",
       "pack": "combat",
       "sourceId": "kenney-impact-sounds",
-      "start": 10.01
+      "start": 12.56
     },
     {
       "duration": 0.35,
@@ -262,7 +334,7 @@
       "id": "hit-linh-the-3",
       "pack": "combat",
       "sourceId": "oga-80-cc0-rpg-sfx",
-      "start": 10.36
+      "start": 12.91
     },
     {
       "duration": 0.67,
@@ -2873,7 +2945,7 @@
       "start": 82.52
     }
   ],
-  "generatedAt": "2026-10-23T00:00:00.000Z",
+  "generatedAt": "2026-10-31T00:00:00.000Z",
   "packs": {
     "amb": {
       "duration": 79.67,
@@ -2902,14 +2974,14 @@
       }
     },
     "combat": {
-      "duration": 10.76,
+      "duration": 13.31,
       "files": {
         "m4a": {
-          "bytes": 108626,
+          "bytes": 138885,
           "path": "sfx/combat.m4a"
         },
         "ogg": {
-          "bytes": 78330,
+          "bytes": 99990,
           "path": "sfx/combat.ogg"
         }
       }
@@ -3162,6 +3234,15 @@
       "retrievedAt": "2026-10-23",
       "title": "Horde War Drums loop",
       "url": "https://opengameart.org/content/horde-war-drums-loop"
+    },
+    {
+      "archiveSha256": "b5e2b2c86d811d983d15dbf8453df6a25275a2a0dc4e88e0dc5e1cb3046fd4ae",
+      "author": "Ben Jaszczak & Brian Nelson",
+      "id": "oga-vu-khi-trung-co",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-10-31",
+      "title": "Medieval sound effects - Weapon Textures (phần 1)",
+      "url": "https://opengameart.org/content/medieval-sound-effects-weapon-textures"
     }
   ]
 }

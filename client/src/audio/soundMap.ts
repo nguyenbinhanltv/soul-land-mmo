@@ -3,14 +3,14 @@ import { BEASTS, BOSSES, TIERS, VOHON, type VoHonDef } from "../../../shared/dat
 // Ánh xạ sự kiện game → nhóm tiếng mẫu (G2, #393). Chỉ là bảng chọn tiếng, không phải số cân bằng; tên nhóm khớp
 // tools/audio/sfx-catalog.json (tools/audio/sfx-lib.mjs: SFX_REQUIRED).
 
-export type Weapon = "kiem" | "chuy" | "thuong" | "trao" | "quyen";
+export type Weapon = "kiem" | "chuy" | "thuong" | "trao" | "quyen" | "cung" | "day" | "quat";
 export type Element = "fire" | "ice" | "lightning" | "poison" | "light" | "dark" | "wood" | "wind";
 export type SkillPhase = "start" | "fly" | "boom";
 export type Material = "thit" | "giap" | "bang" | "go" | "da" | "linh_the";
 export type Surface = "co" | "dat" | "da" | "tuyet" | "go" | "nuoc";
 export type BeastFamily = "lang" | "hung" | "bao" | "xa" | "chim" | "trung" | "thiem" | "thuc" | "bien";
 
-export const WEAPONS: readonly Weapon[] = ["kiem", "chuy", "thuong", "trao", "quyen"];
+export const WEAPONS: readonly Weapon[] = ["kiem", "chuy", "thuong", "trao", "quyen", "cung", "day", "quat"];
 export const ELEMENTS: readonly Element[] = ["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"];
 export const SKILL_PHASES: readonly SkillPhase[] = ["start", "fly", "boom"];
 /** Sáu nhóm chất liệu đều có mẫu; tiếng tổng hợp chỉ dự phòng chưa tải / lỗi tải. */
@@ -20,12 +20,15 @@ export const COMBAT_MATERIALS: readonly Material[] = ["thit", "giap", "bang", "g
 export const SURFACES: readonly Surface[] = ["co", "dat", "da", "tuyet", "go", "nuoc"];
 export const BEAST_FAMILIES: readonly BeastFamily[] = ["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc", "bien"];
 
-/** Võ hồn dùng vũ khí / đòn nào (theo hình võ hồn); mặc định quyền. */
+/** Đủ 25 dạng cầm tay đã nhập (#1495); trượng cúc theo hồ sơ #1385, không theo mô tả quạt nhầm trong issue. */
 const WEAPON_OF: Readonly<Record<string, Weapon>> = {
-  cuu_tinh_that_sat_kiem: "kiem", nguyet_nhan: "kiem", ky_nhung_thong_thien_cuc: "kiem",
+  cuu_tinh_that_sat_kiem: "kiem", nguyet_nhan: "kiem", ta_hoa_phuong_hoang: "kiem",
   hao_thien_chuy: "chuy", thien_can_bach_ngoc_dinh: "chuy", cuu_bao_luu_ly_thap: "chuy", xuc_xich: "chuy",
-  pha_hon_thuong: "thuong", liet_hoa_thuong_lang: "thuong", lam_ngan_thao: "thuong",
-  bach_ho: "trao", u_minh_linh_mieu: "trao", kim_vu_mieu_ung: "trao", yeu_ho: "trao", tu_vong_chu_hoang: "trao", bich_lan_xa_hoang: "trao", hoa_long: "trao",
+  pha_hon_thuong: "thuong", ky_nhung_thong_thien_cuc: "thuong", quy_mi: "thuong",
+  bach_ho: "trao", u_minh_linh_mieu: "trao", kim_vu_mieu_ung: "trao", lam_dien_ba_vuong_long: "trao", liet_hoa_thuong_lang: "trao",
+  nhu_cot_tho: "quyen", hoa_anh: "quyen",
+  lam_ngan_thao: "day", a_ngan: "day", hoa_long: "day", tu_vong_chu_hoang: "day", bich_lan_xa_hoang: "day", can_khon_hon_nguyen_toa: "day",
+  bang_phuong_hoang: "cung", yeu_ho: "quat",
 };
 export function weaponOf(vohonId: string | undefined): Weapon { return (vohonId && WEAPON_OF[vohonId]) || "quyen"; }
 
@@ -152,6 +155,7 @@ export function ringGlowMix(tier: number): { rate: number; wet: number; gain: nu
  * (đo RMS thật của clip, đã chừa đỉnh); chạy lại và dán khi thêm / thay clip. Khóa: nhóm, riêng hồn kỹ theo hệ gộp ba pha (`skill-fire`), T3 theo kiểu + pha. Thiếu khóa = 0 dB. */
 export const GROUP_TRIM_DB: Readonly<Record<string, number>> = {
   "hit-da": 0.5, "hit-linh_the": 2,
+  "swing-cung": 5.5, "swing-day": 0.5, "swing-quat": 0.5,
   "beast-bien": 5.5,
   "swing-kiem": 3.5, "swing-chuy": -4, "swing-thuong": -4.5, "swing-trao": 0.5, "swing-quyen": -4.5, "hit-thit": -4, "hit-giap": 4, "hit-bang": 3, "hit-go": 3,
   "skill-fire": -1, "skill-ice": 1, "skill-lightning": -0.5, "skill-poison": 1.5, "skill-light": 2, "skill-dark": -1, "skill-wood": -2.5, "skill-wind": -6,
