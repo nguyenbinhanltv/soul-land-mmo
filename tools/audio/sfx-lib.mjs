@@ -17,7 +17,7 @@ const t3Groups = (kind, id) => T3_PHASES.map((phase) => `skill-t3-${kind}-${id.r
 const t3RequiredGroups = T3_SKILL_IDS.flatMap((id) => [...t3Groups("ult", id), ...t3Groups("ct", id), `skill-t3-avatar-${id.replaceAll("_", "-")}`]);
 /** Nhóm bắt buộc có trong catalog (tên nhóm = id phát ở client, client/src/audio/soundMap.ts). Mỗi nhóm đủ số biến thể tối thiểu. */
 export const SFX_REQUIRED = {
-  ...Object.fromEntries(["kiem", "chuy", "thuong", "trao", "quyen"].map((k) => [`swing-${k}`, 3])),
+  ...Object.fromEntries(["kiem", "chuy", "thuong", "trao", "quyen", "cung", "day", "quat"].map((k) => [`swing-${k}`, 3])),
   ...Object.fromEntries(["thit", "giap", "bang", "go"].map((k) => [`hit-${k}`, 3])),
   ...Object.fromEntries(["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"].flatMap((e) => ["start", "fly", "boom"].map((p) => [`skill-${e}-${p}`, 1]))),
   "ring-glow": 2, "ring-absorb": 2, "ring-drop": 2,

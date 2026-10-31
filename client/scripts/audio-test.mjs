@@ -150,6 +150,9 @@ noListenerAudio.dispose();
     assert.ok(map.ELEMENTS.includes(map.elementOf(v)), `hệ ${v.id}`);
   }
   assert.equal(map.weaponOf("cuu_tinh_that_sat_kiem"), "kiem");
+  for (const [id, weapon] of Object.entries({ bang_phuong_hoang: "cung", lam_ngan_thao: "day", can_khon_hon_nguyen_toa: "day", yeu_ho: "quat", quy_mi: "thuong", ky_nhung_thong_thien_cuc: "thuong", liet_hoa_thuong_lang: "trao", ta_hoa_phuong_hoang: "kiem", lam_dien_ba_vuong_long: "trao" })) {
+    assert.equal(map.weaponOf(id), weapon, `tiếng khớp dạng cầm tay ${id}`);
+  }
   assert.equal(map.weaponOf("khong_co_that"), "quyen");
   assert.equal(map.elementOf(VOHON.find((v) => v.id === "hoa_long")), "fire");
   assert.equal(map.elementOf(VOHON.find((v) => v.id === "bang_phuong_hoang")), "ice");

@@ -179,6 +179,15 @@
       "license": "CC0-1.0",
       "archiveSha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
       "retrievedAt": "2026-10-23"
+    },
+    {
+      "id": "oga-vu-khi-trung-co",
+      "title": "Medieval sound effects - Weapon Textures (phần 1)",
+      "author": "Ben Jaszczak & Brian Nelson",
+      "url": "https://opengameart.org/content/medieval-sound-effects-weapon-textures",
+      "license": "CC0-1.0",
+      "archiveSha256": "b5e2b2c86d811d983d15dbf8453df6a25275a2a0dc4e88e0dc5e1cb3046fd4ae",
+      "retrievedAt": "2026-10-31"
     }
   ],
   "clips": [
@@ -4771,6 +4780,108 @@
       "sourceId": "kenney-interface-sounds",
       "input": "kenney-interface-sounds/select_002.ogg",
       "inputSha256": "4cc6ac5341b9b2c86fef80c347de028e9ab9f2e037586ac7d9fa59a403a1c012"
+    },
+    {
+      "id": "swing-cung-1",
+      "group": "swing-cung",
+      "pack": "combat",
+      "sourceId": "oga-vu-khi-trung-co",
+      "input": "oga-vu-khi-trung-co/cung-buong.wav",
+      "inputSha256": "c25684ccdab3eb13f17a0ffa637fbd175659d092665f16c0bce8510d46c4fbee",
+      "gainDb": -4,
+      "startSeconds": 0,
+      "maxSeconds": 0.23
+    },
+    {
+      "id": "swing-day-1",
+      "group": "swing-day",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "input": "oga-80-cc0-rpg-sfx/day-xich-1.ogg",
+      "inputSha256": "d376caf0f61384b1d2e0b447f64f06be56d0ee0622ba70dd01cfdd78b3a10687",
+      "gainDb": -4,
+      "maxSeconds": 0.45,
+      "highpass": 160
+    },
+    {
+      "id": "swing-quat-1",
+      "group": "swing-quat",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "input": "oga-swishes-sound-pack/quat-phay-1.wav",
+      "inputSha256": "1ce7752cce3d43f16fc222ad7f7ffb69d9a5fc01e64b93d205765fc37b8e9b0d",
+      "gainDb": -4,
+      "maxSeconds": 0.35,
+      "highpass": 450,
+      "pitch": 1.12
+    },
+    {
+      "id": "swing-cung-2",
+      "group": "swing-cung",
+      "pack": "combat",
+      "sourceId": "oga-vu-khi-trung-co",
+      "input": "oga-vu-khi-trung-co/cung-buong.wav",
+      "inputSha256": "c25684ccdab3eb13f17a0ffa637fbd175659d092665f16c0bce8510d46c4fbee",
+      "gainDb": -4,
+      "startSeconds": 0.44,
+      "maxSeconds": 0.23
+    },
+    {
+      "id": "swing-day-2",
+      "group": "swing-day",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "input": "oga-80-cc0-rpg-sfx/day-xich-2.ogg",
+      "inputSha256": "dd3b753e54fd4e6ed94c36231d1950fafd681ff4a93462cfa3980099a6454ecb",
+      "gainDb": -4,
+      "maxSeconds": 0.45,
+      "highpass": 160
+    },
+    {
+      "id": "swing-quat-2",
+      "group": "swing-quat",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "input": "oga-swishes-sound-pack/quat-phay-2.wav",
+      "inputSha256": "55b100e2c67fa43dad8510e31e85bbd51a68d5ce84a6e0259e21e19030083e24",
+      "gainDb": -9.4,
+      "maxSeconds": 0.35,
+      "highpass": 450,
+      "pitch": 1.12
+    },
+    {
+      "id": "swing-cung-3",
+      "group": "swing-cung",
+      "pack": "combat",
+      "sourceId": "oga-vu-khi-trung-co",
+      "input": "oga-vu-khi-trung-co/cung-buong.wav",
+      "inputSha256": "c25684ccdab3eb13f17a0ffa637fbd175659d092665f16c0bce8510d46c4fbee",
+      "gainDb": -4,
+      "startSeconds": 0.77,
+      "maxSeconds": 0.23
+    },
+    {
+      "id": "swing-day-3",
+      "group": "swing-day",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "input": "oga-80-cc0-rpg-sfx/day-xich-3.ogg",
+      "inputSha256": "ae2247dc68aa85bca15d87355353b5858441644b6a65172e9659f4d0819b42d6",
+      "gainDb": -4,
+      "maxSeconds": 0.45,
+      "highpass": 160
+    },
+    {
+      "id": "swing-quat-3",
+      "group": "swing-quat",
+      "pack": "combat",
+      "sourceId": "oga-swishes-sound-pack",
+      "input": "oga-swishes-sound-pack/quat-phay-3.wav",
+      "inputSha256": "edcaacf008da7ae692566f4fe0d6023ea68d0a014149889e95209be7ee0b746d",
+      "gainDb": -6.7,
+      "maxSeconds": 0.35,
+      "highpass": 450,
+      "pitch": 1.12
     }
   ]
 }
