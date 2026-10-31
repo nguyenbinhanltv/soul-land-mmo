@@ -615,6 +615,7 @@
   },
   "cot_den_do": {
    "key": "prop_cot_den_do",
+   "clip": { "key": "prop_cot_den_do_clip", "frames": 16, "ms": 100 },
    "foot": [24, 94]
   },
   "bon_hoa": {

@@ -1,0 +1,77 @@
+{
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-01",
+  "license": "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có",
+  "rawSHA256": "733f8c1ed119337231026c40c202867b0e3c4b3eca379c049d83327dbff3a885",
+  "originalSHA256": "180ccac16e645820d08956953cfced624c4a00de74ba1243fabfd48120411686",
+  "clipSHA256": "b70146866cc23395127e721119786ef1795b0fbf7294ff82f5705c32ce1f4c12",
+  "region": [
+    6,
+    17,
+    38,
+    43
+  ],
+  "mask": "lantern-seams",
+  "lanterns": [
+    [
+      7,
+      22,
+      9,
+      8
+    ],
+    [
+      7,
+      30,
+      10,
+      10
+    ],
+    [
+      7,
+      40,
+      10,
+      13
+    ],
+    [
+      33,
+      17,
+      10,
+      11
+    ],
+    [
+      33,
+      29,
+      10,
+      8
+    ],
+    [
+      33,
+      37,
+      10,
+      10
+    ],
+    [
+      33,
+      48,
+      10,
+      12
+    ]
+  ],
+  "motion": "Codex tassel centroid; original pixels; horizontal shear <= 1px",
+  "sway": [
+    -10.27027027027027,
+    5.235168359166221,
+    12.398645127670662,
+    13.46351575456053,
+    -11.55192197360872,
+    1.0631895687061184,
+    -20.78445316331535,
+    -13.247703943814155
+  ],
+  "rawFile": "RAW.png",
+  "nativeSize": [
+    1448,
+    1086
+  ],
+  "frames": 16,
+  "ms": 100
+}

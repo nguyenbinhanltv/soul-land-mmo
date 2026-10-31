@@ -45945,6 +45945,14 @@
       "key": "prop_cot_co_do_vang_clip",
       "iso": true
     },
+    {
+      "key": "prop_cot_den_do_clip",
+      "frame": [
+        48,
+        96
+      ],
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
