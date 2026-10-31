@@ -9,13 +9,13 @@
 // - Server build một lần bằng esbuild (cache theo hash nguồn ở server/dist/bot-<hash>.mjs) rồi chạy `node`, không qua npm / tsx.
 // - Trần heap --max-old-space-size (mặc định 768 MB, --heap / BOT_HEAP_MB) cho server và bot.
 // - Tối đa 2 lượt bot cùng lúc trên cả máy (BOT_LOCAL_MAX): file khoá ở %TEMP%/soul-bot-slots, lượt thừa chờ.
-// - --pg dùng một PostgreSQL chung cho cả máy (binary embedded-postgres trong node_modules, cổng BOT_PG_PORT=5433, dữ liệu ở
-//   BOT_PG_DIR, mặc định D:/soul-pg-shared), hoặc PostgreSQL có sẵn qua BOT_PG_URL. Mỗi lượt một database riêng, xoá khi xong.
+// - --pg dùng một PostgreSQL chung cho cả máy (binary embedded-postgres chép sang BOT_PG_DIR/bin-<phiên bản> để sống sót khi worktree
+//   bị dọn (#1499), cổng BOT_PG_PORT=5433, dữ liệu ở BOT_PG_DIR, mặc định D:/soul-pg-shared), hoặc PostgreSQL có sẵn qua BOT_PG_URL. Mỗi lượt một database riêng, xoá khi xong.
 // - Cổng server chọn ngẫu nhiên còn trống; chỉ tắt đúng tiến trình con của mình (kể cả khi Ctrl+C / lỗi). Không đọc server/.env.
 // Mã thoát: của bot (khác 0 khi có dòng ✗), 1 khi server không lên / chết giữa chừng, 2 khi sai tham số.
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { createWriteStream, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync, closeSync } from "node:fs";
+import { cpSync, createWriteStream, existsSync, mkdirSync, openSync, readFileSync, readdirSync, readlinkSync, realpathSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync, closeSync } from "node:fs";
 import { createRequire } from "node:module";
 import net from "node:net";
 import os from "node:os";
@@ -149,9 +149,46 @@ const pgPort = Number(process.env.BOT_PG_PORT ?? 5433);
 const adminUrl = process.env.BOT_PG_URL || `postgres://postgres@localhost:${pgPort}/postgres`;
 const pgLocal = (() => { try { return ["localhost", "127.0.0.1", "[::1]"].includes(new URL(adminUrl).hostname); } catch { return false; } })();
 
-async function pgBins() {
+const exe = (n) => (process.platform === "win32" ? `${n}.exe` : n);
+/** Nhị phân trong node_modules của worktree đang chạy lệnh (tạm thời: worktree bị dọn thì mất). Trả thêm thư mục `native` và phiên bản. */
+async function pkgBins() {
   const pkg = `@embedded-postgres/${process.platform === "win32" ? "windows" : process.platform}-${process.arch}`;
-  try { return await import(pkg); } catch { throw new Error(`thiếu ${pkg}: chạy \`npm install\` ở thư mục gốc repo (devDependency embedded-postgres), hoặc đặt BOT_PG_URL`); }
+  let m;
+  try { m = await import(pkg); } catch { throw new Error(`thiếu ${pkg}: chạy \`npm install\` ở thư mục gốc repo (devDependency embedded-postgres), hoặc đặt BOT_PG_URL`); }
+  const native = path.dirname(path.dirname(m.pg_ctl));
+  let version = "x";
+  try { version = JSON.parse(readFileSync(path.join(path.dirname(native), "package.json"), "utf8")).version; } catch {}
+  return { initdb: m.initdb, pg_ctl: m.pg_ctl, native, version: version.replace(/[^\w.-]/g, "_") };
+}
+/** Nhị phân bền: bản sao `native` của embedded-postgres đặt ở BOT_PG_DIR/bin-<phiên bản>, không phụ thuộc node_modules của worktree
+ *  (worktree bị dọn mà postgres còn chạy thì mất thư viện / share: "could not access file plpgsql", ECONNRESET, #1499).
+ *  Chép sang thư mục tạm rồi đổi tên; có file .ok mới coi là đủ. Chỉ gọi trong khoá pg-start.lock. */
+async function pgBins() {
+  const src = await pkgBins();
+  const dir = path.join(pgDir, `bin-${src.version}`), ok = path.join(dir, ".ok");
+  const bins = { initdb: path.join(dir, "bin", exe("initdb")), pg_ctl: path.join(dir, "bin", exe("pg_ctl")), postgres: path.join(dir, "bin", exe("postgres")), dir };
+  if (existsSync(ok) && existsSync(bins.postgres)) return bins;
+  console.log(`… Chép nhị phân PostgreSQL sang thư mục bền ${dir}`);
+  mkdirSync(pgDir, { recursive: true });
+  const tmp = `${dir}.tmp-${process.pid}`;
+  rmSync(tmp, { recursive: true, force: true });
+  // dereference: Windows / hệ không cho symlink thì vẫn dùng được; nhị phân tìm thư viện / share theo đường dẫn tương đối nên chép nguyên cây.
+  cpSync(src.native, tmp, { recursive: true, dereference: true });
+  writeFileSync(path.join(tmp, ".ok"), `${src.version} từ ${src.native}\n`);
+  // Thư mục cũ dở dang (không có .ok) dời sang một bên rồi mới đổi tên bản mới vào, không xoá trước khi bản mới sẵn sàng.
+  const old = `${dir}.old-${process.pid}`;
+  if (existsSync(dir)) renameSync(dir, old);
+  renameSync(tmp, dir);
+  rmSync(old, { recursive: true, force: true });
+  return bins;
+}
+/** pg_ctl để tắt instance: cạnh nhị phân đang chạy (đúng phiên bản) nếu còn, không thì bản bền đủ (.ok) mới nhất, cuối cùng bản trong node_modules
+ *  (pg_ctl stop chỉ gửi tín hiệu tới PID trong postmaster.pid). */
+async function pgCtlForStop(runningExe = "") {
+  const beside = runningExe && path.join(path.dirname(runningExe), exe("pg_ctl"));
+  if (beside && existsSync(beside)) return beside;
+  const durable = existsSync(pgDir) ? readdirSync(pgDir).filter((f) => /^bin-/.test(f) && !/\.(tmp|old)-/.test(f) && existsSync(path.join(pgDir, f, ".ok"))).sort().reverse().map((f) => path.join(pgDir, f, "bin", exe("pg_ctl"))).find((f) => existsSync(f)) : "";
+  return durable || (await pkgBins()).pg_ctl;
 }
 /** Chạy lệnh, trả mã thoát (stdio ghi vào bot-local.log). `detached`: postgres do pg_ctl bật sống tiếp sau khi lượt này thoát. */
 function run(cmd, args, { detached = false } = {}) {
@@ -165,9 +202,95 @@ function run(cmd, args, { detached = false } = {}) {
 async function pgConnect(url, quiet = true) {
   const pg = requireServer("pg");
   const c = new pg.Client({ connectionString: url, connectionTimeoutMillis: 3000 });
+  c.on("error", () => {}); // ECONNRESET giữa chừng: lỗi đã nằm ở lời hứa của connect / query, không để sự kiện làm sập công cụ
   try { await c.connect(); return c; } catch (e) { if (!quiet) throw e; return { error: e }; }
 }
-/** Nối được thì dùng lại; chưa chạy thì initdb (lần đầu) + pg_ctl start. */
+// ---- Nhận diện instance đang giữ cổng (#1499): tiến trình nào, nhị phân ở đâu, còn nguyên không ----
+const normPath = (p) => { let r = p; try { r = realpathSync(p); } catch {} r = path.resolve(r).replace(/\\/g, "/"); return process.platform === "win32" ? r.toLowerCase() : r; };
+/** Dòng lệnh có `-D <pgData>` (so đường dẫn chuẩn hoá, Windows không phân biệt hoa thường; chấp nhận cả đường dẫn thật qua symlink như /tmp -> /private/tmp). */
+function cmdHasDataDir(cmd) {
+  const f = (x) => { const r = x.replace(/\\/g, "/"); return process.platform === "win32" ? r.toLowerCase() : r; };
+  const c = f(cmd);
+  return [path.resolve(pgData), normPath(pgData)].some((d) => { const v = f(d); return c.includes(`-D ${v}`) || c.includes(`-D "${v}"`); });
+}
+/** postmaster.pid trong thư mục dữ liệu: dòng 1 PID, 2 thư mục dữ liệu, 4 cổng. */
+function readPostmaster() {
+  try {
+    const l = readFileSync(path.join(pgData, "postmaster.pid"), "utf8").split(/\r?\n/);
+    return { pid: Number(l[0]), dir: l[1] ?? "", port: Number(l[3]) };
+  } catch { return null; }
+}
+/** { cmd, exe } của một PID (ps / Get-CimInstance); không đọc được thì null. */
+function procInfo(pid) {
+  if (!(pid > 0)) return null;
+  const sh = (cmd, args) => { const r = spawnSync(cmd, args, { encoding: "utf8", timeout: 10_000, windowsHide: true }); return r.status === 0 ? r.stdout.trim() : ""; };
+  if (process.platform === "win32") {
+    const out = sh("powershell", ["-NoProfile", "-Command", `$p = Get-CimInstance Win32_Process -Filter "ProcessId=${pid}"; $p.ExecutablePath; $p.CommandLine`]).split(/\r?\n/);
+    const pp = Number(sh("powershell", ["-NoProfile", "-Command", `(Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").ParentProcessId`]));
+    return out[0] ? { exe: out[0], cmd: out.slice(1).join(" "), ppid: pp } : null;
+  }
+  const cmd = sh("ps", ["-o", "command=", "-p", String(pid)]);
+  if (!cmd) return null;
+  const ppid = Number(sh("ps", ["-o", "ppid=", "-p", String(pid)]));
+  let exePath = sh("ps", ["-o", "comm=", "-p", String(pid)]) || cmd.split(" ")[0]; // comm: macOS cho đường dẫn đầy đủ (kể cả có khoảng trắng)
+  try { exePath = readlinkSync(`/proc/${pid}/exe`).replace(/ \(deleted\)$/, ""); } catch {} // Linux: đường dẫn thật, kể cả khi file đã xoá
+  return { exe: exePath, cmd, ppid };
+}
+/** PID đang nghe cổng TCP (lsof / netstat); công cụ không có thì null. */
+function portHolder(port) {
+  if (process.platform === "win32") {
+    const r = spawnSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8", timeout: 10_000, windowsHide: true });
+    const m = (r.stdout ?? "").split(/\r?\n/).map((l) => l.trim().split(/\s+/)).find((f) => f[3] === "LISTENING" && f[1]?.endsWith(`:${port}`));
+    return m ? Number(m[4]) : null;
+  }
+  const r = spawnSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"], { encoding: "utf8", timeout: 10_000 });
+  const n = Number((r.stdout ?? "").split(/\s+/)[0]);
+  return n > 0 ? n : null;
+}
+/** Instance giữ cổng pgPort: `mine` = chắc chắn của bot:local (postmaster.pid trong BOT_PG_DIR khớp thư mục dữ liệu + cổng + PID còn sống
+ *  + đúng là tiến trình postgres); `exe` nhị phân đang chạy, `binOk` còn đủ bin / lib / share trên đĩa, `durable` nằm trong BOT_PG_DIR/bin-*. */
+function pgInspect() {
+  const pm = readPostmaster();
+  const pmAlive = !!(pm && pm.pid > 0 && alive(pm.pid) && pm.port === pgPort && normPath(pm.dir) === normPath(pgData));
+  const holder = portHolder(pgPort);
+  const pmListens = pmAlive && !!holder && (holder === pm.pid || procInfo(holder)?.ppid === pm.pid);
+  const pid = pmListens ? pm.pid : (holder ?? (pmAlive ? pm.pid : null)); // báo tiến trình đang giữ cổng; không có thì báo PID trong postmaster.pid
+  const info = pid ? procInfo(pid) : null;
+  // "Chắc là của bot:local" khi ĐỒNG THỜI: PID trong postmaster.pid còn sống (pmAlive: kèm cổng + thư mục dữ liệu trong file khớp), PID đó (hoặc
+  // cha của tiến trình nghe cổng) đang nghe đúng pgPort, và dòng lệnh có -D trỏ đúng pgData. Thiếu một điều kiện thì không tắt (#1507).
+  const mine = pmListens && !!info && cmdHasDataDir(info.cmd);
+  const exePath = info?.exe ?? "";
+    // Chỉ postgres của mình mới có bố cục bin / lib / share để đối chiếu; tiến trình lạ chỉ xét file chạy còn không.
+  const binOk = !!exePath && existsSync(exePath) && (!mine || (existsSync(path.join(path.dirname(exePath), "..", "lib")) && existsSync(path.join(path.dirname(exePath), "..", "share"))));
+  const durable = !!exePath && normPath(exePath).startsWith(`${normPath(pgDir)}/bin-`);
+  return { pid, mine, exe: exePath, binOk, durable };
+}
+/** Nối được thì thử chạy một khối plpgsql (thiếu thư viện / share thì hỏng ngay ở đây, trước khi migration của server hỏng giữa chừng). */
+async function pgProbe() {
+  const c = await pgConnect(adminUrl);
+  if (c.error) return { ok: false, error: c.error };
+  try { await c.query("DO $$ BEGIN PERFORM 1; END $$"); return { ok: true }; } catch (e) { return { ok: false, error: e }; } finally { try { await c.end(); } catch {} }
+}
+const errText = (e) => `${e.code ? `${e.code}: ` : ""}${e.message}`;
+/** Tắt đúng instance của bot:local (đã chắc là của mình): pg_ctl stop nhanh; không được (nhị phân hỏng) thì kết thúc PID postmaster. */
+async function killOurPg(pid, runningExe = "") {
+  const ctl = await pgCtlForStop(runningExe).catch(() => "");
+  // fast trước (có checkpoint, instance khoẻ tắt êm); treo / hỏng thì immediate; vẫn còn thì kết thúc PID.
+  if (ctl && existsSync(ctl) && (await run(ctl, ["stop", "-D", pgData, "-m", "fast", "-w", "-t", "20"]).catch(() => 1)) !== 0)
+    await run(ctl, ["stop", "-D", pgData, "-m", "immediate", "-w", "-t", "15"]).catch(() => 1);
+  for (let i = 0; i < 20 && alive(pid); i++) {
+    if (i === 0 || i === 10) {
+      if (process.platform === "win32") spawnSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true });
+      else if (i === 0) try { process.kill(pid, "SIGQUIT"); } catch {}
+      // pg_ctl cho postmaster setsid() nên nó đứng đầu nhóm tiến trình: SIGKILL cả nhóm để không bỏ rơi backend con giữ shared memory.
+      else try { process.kill(-pid, "SIGKILL"); } catch { try { process.kill(pid, "SIGKILL"); } catch {} }
+    }
+    await sleep(500);
+  }
+  if (alive(pid)) throw new Error(`không tắt được PID ${pid} của PostgreSQL chung`);
+  await sleep(500); // cổng nhả
+}
+/** Nối được và khoẻ thì dùng lại; hỏng hoặc đang chạy bằng nhị phân của worktree tạm thì tắt (chỉ khi chắc là của mình) và bật lại; chưa chạy thì initdb (lần đầu) + pg_ctl start. */
 async function ensurePg() {
   if (process.env.BOT_PG_URL) {
     const c = await pgConnect(adminUrl);
@@ -175,9 +298,24 @@ async function ensurePg() {
     await c.end(); return;
   }
   await withLock("pg-start.lock", async () => {
-    let c = await pgConnect(adminUrl);
-    if (!c.error) { await c.end(); return; }
-    if (c.error.code !== "ECONNREFUSED") throw new Error(`cổng ${pgPort} có dịch vụ khác (${c.error.message}); đặt BOT_PG_PORT khác hoặc BOT_PG_URL`);
+    let probe = await pgProbe();
+    // Hết giờ / đang khởi động (57P03) thường là instance bận hoặc vừa bật, chưa hỏng: thử lại vài lần trước khi kết luận.
+    const transient = (e) => /timeout/i.test(e.message) || e.code === "57P03";
+    for (let i = 0; i < 3 && !probe.ok && transient(probe.error); i++) { await sleep(2000); probe = await pgProbe(); }
+    if (probe.ok || probe.error.code !== "ECONNREFUSED") {
+      const insp = pgInspect();
+      const othersBusy = liveSlots().filter((x) => x.pid !== process.pid);
+      let why = "";
+      if (!probe.ok) why = `không dùng được (${errText(probe.error)})`;
+      else if (insp.mine && !insp.durable) why = `đang chạy bằng nhị phân ngoài thư mục bền (${insp.exe || "?"})`;
+      if (!why) return;
+      const where = `PID ${insp.pid ?? "?"}, nhị phân ${insp.exe || "(không đọc được)"}${insp.exe && !insp.binOk ? " — ĐÃ MẤT trên đĩa (worktree bị dọn?)" : ""}`;
+      if (!insp.mine) throw new Error(`cổng ${pgPort} có dịch vụ ${why}: ${where}; không xác nhận được là PostgreSQL chung của bot:local (cần ĐỒNG THỜI postmaster.pid ở ${pgData} còn sống, PID đó nghe cổng ${pgPort}, và dòng lệnh có -D ${pgData}) nên không tắt hộ. Tắt nó tay, hoặc đặt BOT_PG_PORT / BOT_PG_DIR khác, hoặc BOT_PG_URL`);
+      if (!probe.ok && othersBusy.length && transient(probe.error)) throw new Error(`PostgreSQL chung ở cổng ${pgPort} không đáp (${errText(probe.error)}) nhưng còn lượt bot khác đang chạy (PID ${othersBusy.map((x) => x.pid).join(", ")}); không tắt giữa chừng, thử lại sau`);
+      if (probe.ok && othersBusy.length) { console.log(`⚠ PostgreSQL chung ${why}; còn lượt bot khác (PID ${othersBusy.map((x) => x.pid).join(", ")}) nên chưa bật lại, lượt sau sẽ làm`); return; }
+      console.log(`⚠ PostgreSQL chung ${why}: ${where}. Đây đúng là instance của bot:local (${pgData}), tắt rồi bật lại bằng nhị phân bền`);
+      await killOurPg(insp.pid, insp.exe);
+    }
     const bins = await pgBins();
     mkdirSync(pgDir, { recursive: true });
     if (!existsSync(path.join(pgData, "PG_VERSION"))) {
@@ -186,14 +324,14 @@ async function ensurePg() {
       const code = await run(bins.initdb, ["-D", pgData, "-U", "postgres", "-A", "trust", "-E", "UTF8", "--locale=C"]);
       if (code !== 0) throw new Error(`initdb lỗi (mã ${code}), xem ${toolLog}`);
     }
-    console.log(`… Bật PostgreSQL chung cổng ${pgPort} (${pgData})`);
+    console.log(`… Bật PostgreSQL chung cổng ${pgPort} (${pgData}, nhị phân ${bins.dir})`);
     // Cấu hình truyền lúc bật (không ghi postgresql.conf) để instance đã tạo cũng nhận khi công cụ đổi. Ít RAM, ít tiến trình nền:
     // io_method=sync (không có 3 io_worker của PG 18), không autovacuum (database sống vài phút rồi xoá), không logical replication.
     const flags = [`-p ${pgPort}`, "-c listen_addresses=localhost", "-c shared_buffers=32MB", "-c max_connections=60", "-c work_mem=4MB",
       "-c maintenance_work_mem=32MB", "-c synchronous_commit=off", "-c io_method=sync", "-c autovacuum=off", "-c max_logical_replication_workers=0"];
     const code = await run(bins.pg_ctl, ["start", "-D", pgData, "-l", pgLog, "-w", "-t", "60", "-o", flags.join(" ")], { detached: true });
     if (code !== 0) throw new Error(`pg_ctl start lỗi (mã ${code}), xem ${toolLog} và ${pgLog}`);
-    c = await pgConnect(adminUrl, false); await c.end();
+    const c = await pgConnect(adminUrl, false); await c.end();
   });
 }
 const qid = (s) => `"${s.replace(/"/g, '""')}"`;
@@ -248,19 +386,22 @@ async function dropDb(name) {
 
 if (pgCmd) {
   if (process.env.BOT_PG_URL) { console.log("BOT_PG_URL đang đặt: PostgreSQL đó do bạn tự quản."); process.exit(0); }
-  const c = await pgConnect(adminUrl);
-  const running = !c.error;
+  const probe = await pgProbe();
+  const insp = pgInspect();
+  const holder = insp.pid ? `PID ${insp.pid}, nhị phân ${insp.exe || "(không đọc được)"}${insp.exe && !insp.binOk ? " — ĐÃ MẤT trên đĩa" : insp.durable ? " (bản bền)" : insp.mine ? " (ngoài thư mục bền, sẽ được bật lại ở lượt --pg kế)" : ""}` : "";
+  const running = probe.ok;
   if (running) {
-    console.log(`PostgreSQL chung: đang chạy, cổng ${pgPort}, dữ liệu ${pgData}; database của lượt bot: ${(await ownDbs(c)).join(", ") || "(không)"}`);
+    const c = await pgConnect(adminUrl);
+    console.log(`PostgreSQL chung: đang chạy, cổng ${pgPort}, dữ liệu ${pgData}${holder ? `; ${holder}` : ""}; database của lượt bot: ${(await ownDbs(c)).join(", ") || "(không)"}`);
     await c.end();
-  } else console.log(`PostgreSQL chung: không chạy (cổng ${pgPort}, dữ liệu ${pgData})`);
-  if (pgCmd === "--pg-stop" && running) {
+  } else if (probe.error.code === "ECONNREFUSED") console.log(`PostgreSQL chung: không chạy (cổng ${pgPort}, dữ liệu ${pgData})`);
+  else console.log(`PostgreSQL chung: HỎNG (${errText(probe.error)}), cổng ${pgPort}${holder ? `; ${holder}` : ""}; ${insp.mine ? "là instance của bot:local, lượt --pg kế sẽ tự tắt và bật lại (hoặc --pg-stop)" : "không xác nhận được là instance của bot:local (cần postmaster.pid ở " + pgData + " còn sống + PID nghe cổng + -D khớp), công cụ không tắt hộ; tắt tay hoặc đặt BOT_PG_PORT / BOT_PG_DIR khác"}`);
+  if (pgCmd === "--pg-stop" && insp.mine) {
     const busy = liveSlots();
     if (busy.length && !force) { console.log(`✗ Còn ${busy.length} lượt bot đang chạy (PID ${busy.map((s) => s.pid).join(", ")}); đợi xong hoặc thêm --force`); process.exit(1); }
-    const code = await run((await pgBins()).pg_ctl, ["stop", "-D", pgData, "-m", "fast", "-w"]);
-    console.log(code === 0 ? "✓ Đã tắt PostgreSQL chung" : `✗ pg_ctl stop lỗi (mã ${code}), xem ${toolLog}`);
-    process.exit(code === 0 ? 0 : 1);
+    try { await killOurPg(insp.pid, insp.exe); console.log("✓ Đã tắt PostgreSQL chung"); process.exit(0); } catch (e) { console.log(`✗ ${e.message}, xem ${toolLog}`); process.exit(1); }
   }
+  if (pgCmd === "--pg-stop" && insp.pid) { console.log(`✗ Không tắt hộ PID ${insp.pid}: không xác nhận được là PostgreSQL chung của bot:local; tắt tay nếu chắc chắn`); process.exit(1); }
   process.exit(0);
 }
 

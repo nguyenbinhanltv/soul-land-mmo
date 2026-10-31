@@ -76,6 +76,7 @@
 
 **Nhóm Hồn thú v2** (công cụ + quy trình hoạt ảnh vẽ thật; `docs/art/hon-thu-hoat-anh.md`).
 - [x] H2 ba loài thử (Phong Lang, Kim Linh Ưng, Thái Thản Cự Viên) đã nhập; H4 đã nhập thêm Ám Kim Khủng Trảo Hùng, Hắc Bối Dã Trư, Huyền Băng Thiềm.
+- [x] H4 vẽ thật toàn bộ 64 loài còn lại (#766; mười lăm đợt #767–#781 đã đóng); sổ tự sinh `npm run beast:status`. Phần v2 còn mở (#861, #867) ở `ROADMAP.md`.
 - [x] P0 đặc tả cỡ theo tỉ lệ + cutter chuẩn hóa mặc định; P1 `beast:check` và cutter v2; P2 skill `beast-anim` + sổ trạng thái tự sinh; P3 trang xoay vòng hướng + CI nhẹ.
 
 **Nhóm UI gốc (kit Mực + Giấy)** (`docs/art/ui-kit.md`).
@@ -92,6 +93,9 @@
 
 **Nhóm Giao diện và cảm giác họ asset C1–C16 (Codex)**.
 - [x] C10 hộp thoại NPC + cửa hàng lưới (#596), C11 nhiệm vụ (#597), C13 phản hồi giao diện (#599), C14 khả năng tiếp cận (#600), C15 màn chết / bảng kết quả / Bạn bè (#601) xong; luật hiện hành ở `docs/design/giao-dien.md`.
+
+**Nhóm Bí Cảnh, MVP Luyện Hồn Cảnh solo** (#877, `docs/design/bi-canh.md`).
+- [x] P0 thiết kế; P1 `BICANH` + `bicanhDay` (làm mới 05:00); P2 tin `bicanh` `get` / `buy` + lượt; P3 `BiCanhRoom` (`enter`, ba sóng + tinh anh, thưởng quyển theo sóng, trần quyển ngày, hoàn lượt khi lỗi; `setup("luyen_hon_canh")`); P4 Hồn Kinh Quyển; P5 màn client (`bicanhScreen.ts`); P6 soát chống gian lận + `balance-review` + `soak-perf` (`docs/tech/soat-gian-lan-bi-canh.md`); bản đồ Tiled riêng (#1295) + poster (#1292); bot nhóm `bicanh`.
 
 ## Số issue / PR
 
