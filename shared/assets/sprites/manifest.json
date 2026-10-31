@@ -45901,6 +45901,10 @@
       "key": "pt_nhu_cot_tho_glow",
       "iso": true
     },
+    {
+      "key": "pt_liet_hoa_thuong_lang_glow",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

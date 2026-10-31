@@ -1,0 +1,33 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF magenta background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+SPIRIT: Liet Hoa Thuong Lang, a colossal fire alpha wolf, menacing lean quadruped predator. Low stance, high angular shoulders, long wolf muzzle with visible fangs, pointed ears, spiky mane and large curved tail with ATTACHED flame-shaped tip. COMPLETE SOLID charcoal gray-brown body, actual chest belly hips and four legs, NO human-shaped gap, no mannequin. Body uses dark charcoal-gray and muted brown, fire orange accents matching game palette ["#ff7a3a","#4a3a3a"], yellow eyes, dark red patches on torn fur. Three tones per color region, dark outline #1a1020. Motifs only: orange fire-crack dao runes along ribs, attached ember-red mane tufts, attached flame-shaped tail tip and claws. No detached flame, no smoke, no particles, no formation ring, no halo (code adds these). NO BLUE or CYAN anywhere in the wolf. Reference sheets supply ONLY shape/color/motif, never their composition or human gap.
+
+SHEET: ONE SQUARE1024x1024image,4columns4rows exactly16equal SQUARE cells, no visible grid, text or numbers. Pure flat #FF00FF background. One complete SAME wolf per cell, same body scale, same lowest baseline, floating alone without ground or cast shadow. Each complete pose INCLUDING ENTIRE TAIL AND MOST EXTENDED ATTACK must fit central120x140pixels of its256squarecell, at least58px empty magenta gutters EVERY side. SMALL isolated figures, do not fill cells.
+VIEW: SOUTH-EAST, turned RIGHT AND TOWARD viewer, muzzle points LOWER-RIGHT, both face and left flank visible, tail behind at upper-left. All16poses face SOUTH-EAST.
+Rows1-2:8breathing frames, small1-2pixel bob, silhouette nearly unchanged,8returns to1.
+Rows3-4:8attack frames:9-11crouch and draw back,12AND13 IDENTICAL peak held claw-pounce toward LOWER-RIGHT,14-16recover to neutral.
+Opaque solid body, chunky hard-edged pixel clusters,3tones per region, dark #1a1020outline, upper-left lighting. No human, no mannequin, no blank humanoid gap, no ground, no shadow, no whiteflash, no detached FX.
+GEOMETRY CORRECTION ONLY: Output MUST be perfectly SQUARE width exactly equals height,1024x1024,NOT landscape or portrait.4equal SQUARE columns4equal SQUARE rows. Uniformly SHRINK all16 COMPLETE wolves including whole tail and biggest claw attack to50percent current widthandheight; center each complete figure in its cell, huge magenta gutters minimum64pixels from EVERY cell boundary. Preserve SAME south-facing charcoal fire wolf and16poses.
+CORRECT TIMING ONLY. Exact bottom8cell map: ROW3 COLUMN1=crouch,ROW3 COLUMN2=pull back,ROW3 COLUMN3=DEEPEST WINDUP WITH PAWS CLOSE TO CHEST (NOT strike); ROW3 COLUMN4=FULL CLAW POUNCE PEAK. ROW4 COLUMN1=EXACT SAME FULL CLAW POUNCE PEAK AS ROW3 COLUMN4 (hold it). ROW4 COLUMN2=half recovery,ROW4 COLUMN3=near neutral,ROW4 COLUMN4=neutral. Therefore LAST cell of row3 and FIRST cell of row4 MUST be matching identical PEAK, not cells3and4 of row3. Keep same small southeast graybrown fire wolf design and generous magenta gutters.
