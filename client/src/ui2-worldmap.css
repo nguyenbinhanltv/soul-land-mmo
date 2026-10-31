@@ -45,6 +45,13 @@
 .wm-node:hover .wm-seal{background:var(--paper2)}
 .wm-name,.wm-wname{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;pointer-events:none;color:var(--ink);text-shadow:var(--halo)}
 .wm-name{top:100%;margin-top:calc(var(--sp-3) * -1);font:var(--fs-m)/1.2 var(--f12)}
+/* Chạm: danh sách giữ đủ tên; tranh chỉ giữ nhãn đang chọn / vị trí hiện tại. */
+body.touch #world :is(.wm-name,.wm-wname){display:none}
+body.touch #world:not(:has(.wm-node.sel,.wm-wp.sel)) .wm-node.cur:not(:disabled) .wm-name,
+body.touch #world .wm-node.sel:not(:disabled) .wm-name,
+body.touch #world .wm-wp.sel:not(:disabled) .wm-wname{display:block}
+body.touch #world .wm-layer button:disabled{pointer-events:none}
+body.touch #world .wm-map-select{flex:none;box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:var(--sp-3);font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper);border:var(--bd) solid var(--line)}
 .wm-node.locked .wm-name,.wm-node.room .wm-name{color:var(--muted)}
 .wm-wp .wm-dia,.wm-li .wm-dia{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;box-sizing:border-box;transform:rotate(45deg);border:var(--bd) solid var(--ink);background:var(--accent)}
 .wm-wp.locked .wm-dia,.wm-li.locked .wm-dia{background:var(--paper3);border-color:var(--inkl);border-style:dashed}
@@ -96,3 +103,10 @@ body.touch.ui-h500 .wm-search{flex:1 1 140px;max-width:none;min-width:0}
 body.touch.ui-h500 .wm-tools{flex:1 1 320px;min-width:0;margin-left:0;flex-wrap:wrap;white-space:normal}
 .a11y-fs-1 .wm-card{width:300px}
 .a11y-fs-2 .wm-card{width:340px}
+
+/* Dịch chuyển: phản hồi của server (lý do từ chối), đang chờ, nút phụ Tự đi tới */
+.wm-reply{margin:0;padding:var(--sp-3) var(--sp-4);font:var(--fs-m)/1.4 var(--f12);color:var(--ink);background:var(--paper2);border:var(--bd) solid var(--son);border-left-width:var(--sp-3)}
+.wm-reply::before{content:"Server: ";color:var(--son)}
+.wm-wait{color:var(--xp-t)}
+.wm-walk{min-height:44px;box-sizing:border-box;margin-top:auto;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12)}
+.wm-node{z-index:1}   /* nút bản đồ nằm trên nút trận gần nó: tâm nút bản đồ luôn bấm được */

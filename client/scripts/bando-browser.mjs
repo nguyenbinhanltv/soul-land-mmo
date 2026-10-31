@@ -148,6 +148,17 @@ try {
         }
         await page.mouse.move(1, 1);
         await page.waitForTimeout(300);
+        if (!before) {
+          const crowd = await page.evaluate(() => {
+            const view=document.querySelector(".wm-view").getBoundingClientRect();
+            const boxes=selector=>[...document.querySelectorAll(selector)].filter(e=>!e.disabled && getComputedStyle(e).display!=="none" && getComputedStyle(e).visibility!=="hidden").map(e=>e.getBoundingClientRect()).filter(r=>r.width && r.right>view.left && r.left<view.right && r.bottom>view.top && r.top<view.bottom);
+            const overlaps=list=>list.some((a,i)=>list.slice(i+1).some(b=>Math.max(a.left,b.left,view.left)<Math.min(a.right,b.right,view.right)-0.5 && Math.max(a.top,b.top,view.top)<Math.min(a.bottom,b.bottom,view.bottom)-0.5));
+            const picker=document.querySelector(".wm-map-select"), r=picker?.getBoundingClientRect();
+            return {points:overlaps(boxes(".wm-node,.wm-wp")),labels:overlaps(boxes(".wm-name,.wm-wname,.wm-me span")),picker:r?{w:r.width,h:r.height,count:picker.options.length,hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===picker}:null};
+          });
+          check(!crowd.points && !crowd.labels, tag(`fs${fs}: điểm/nhãn chồng ${JSON.stringify(crowd)}`));
+          check(crowd.picker?.w>=44 && crowd.picker?.h>=44 && crowd.picker?.count===12 && crowd.picker?.hit, tag(`fs${fs}: thiếu danh sách44px đủ11bản đồ hoặc bị che`));
+        }
         await page.screenshot({ path: resolve(out, `${size}-world-fs${fs}.png`) });
       }
       await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2"));
@@ -177,15 +188,16 @@ try {
     // 3. Chọn Thánh Hồn Thôn: thẻ chi tiết hiện cấp đề xuất, các trận; nút chính hợp lý; trận hiện ra.
     await dismiss();
     if (touch) {
-      // #1447: điểm trên tranh vừa khung đang chồng nhau; chọn qua tìm kiếm có sẵn.
-      await page.locator(".wm-search input").fill("nac dinh thanh");
-      await page.locator(".wm-find li").first().click();
+      if (!before) await page.getByLabel("Chọn bản đồ").selectOption("nac_dinh_thanh");
+      else { await page.locator(".wm-search input").fill("nac dinh thanh"); await page.locator(".wm-find li").first().click(); }
     } else await page.locator('#world .wm-node[data-id="nac_dinh_thanh"]').click();
     await page.waitForFunction(() => document.querySelector("#world .wm-card .wm-t")?.textContent === "Nặc Đinh Thành");
     check(await page.locator("#world .wm-card .wm-li").count() === 3, tag("thẻ bản đồ không liệt kê 3 trận"));
     check(await page.locator("#world .wm-wp").count() >= 3, tag("trận của bản đồ đang chọn không hiện trên tranh"));
+    const walk = (await page.locator("#world .wm-walk").innerText().catch(() => "")).trim();
+    check(walk === "Tự đi tới Nặc Đinh Thành", tag(`nút Tự đi tới của thẻ bản đồ: "${walk}"`));
     const primary = await page.evaluate(() => { const b = document.querySelector("#mapview .p2-primary"); return { t: b.textContent, d: b.disabled }; });
-    check(primary.t.includes("Tự đi tới Nặc Đinh Thành") && !primary.d, tag(`nút chính ${JSON.stringify(primary)}`));
+    check(primary.t === "Dịch chuyển" && primary.d, tag(`chọn bản đồ (chưa chọn trận): nút Dịch chuyển phải khoá ${JSON.stringify(primary)}`));
     await page.locator("#world .wm-li").first().click();
     await page.waitForFunction(() => /Đã mở khoá|Chưa mở khoá/.test(document.querySelector("#world .wm-card")?.textContent ?? ""));
     const card = await page.locator("#world .wm-card").innerText();
@@ -209,6 +221,87 @@ try {
     // Bấm radar mở Khu vực.
     await page.locator("#mini").click({ position: touch ? { x: 50, y: 50 } : { x: 20, y: 20 } }); await page.waitForFunction(() => !document.getElementById("mapview").hidden && document.getElementById("mapview").dataset.mode === "area");
     await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    // 6. Dịch chuyển (PR2): đứng trên trận thì chọn trận khác đã mở → nút "Dịch chuyển · phí"; ra ngoài trận → phí từ xa + hỏi xác nhận; hồi hiện đếm lùi; không đủ Hồn Tệ khoá kèm lý do.
+    const test = (op, data = {}) => page.evaluate(([op, data]) => window.__bd.room.send("test", { op, ...data }), [op, data]);
+    const openWorld = async () => { await page.keyboard.press("KeyM"); await page.waitForFunction(() => document.getElementById("mapview").dataset.mode === "world" && !document.getElementById("mapview").hidden); await page.waitForFunction(() => document.querySelector("#world .wm-notice")?.hidden === true); };
+    const pickWp = async (i) => {
+      if (touch) await page.getByLabel("Chọn bản đồ").selectOption("thanh_hon_thon");
+      else await page.locator('#world .wm-node[data-id="thanh_hon_thon"]').click();
+      await page.waitForFunction(() => document.querySelector("#world .wm-card .wm-t")?.textContent === "Thánh Hồn Thôn");
+      const label = await page.evaluate((i) => window.__bd.waypoints[i].label, i);
+      await page.locator("#world .wm-li", { hasText: label }).click();
+      await page.waitForFunction((l) => document.querySelector("#world .wm-card .wm-t")?.textContent === l, label);
+    };
+    const prim = () => page.evaluate(() => { const b = document.querySelector("#mapview .p2-primary"); return { t: b.textContent, d: b.disabled, why: document.querySelector("#mapview .p2-why")?.textContent ?? "" }; });
+    await test("coin", { n: 1000 }); await test("wpcd", { secs: 0 });
+    await dismiss(); await openWorld(); await pickWp(0);
+    const here = await prim(), cardHere = await page.locator("#world .wm-card").innerText();
+    check(/^Dịch chuyển · /.test(here.t) && !here.d, tag(`đứng trên trận: nút Dịch chuyển ${JSON.stringify(here)}`));
+    check(/Phí dịch chuyển/.test(cardHere) && /Thời gian niệm/.test(cardHere) && /Không hồi khi đứng trên trận/.test(cardHere), tag(`thẻ đứng trên trận thiếu phí / niệm / hồi: ${cardHere}`));
+    await pickWp(1);
+    const same = await prim();
+    check(same.d && /đang đứng/.test(same.why), tag(`trận đang đứng phải khoá kèm lý do: ${JSON.stringify(same)}`));
+    await page.screenshot({ path: resolve(out, `${size}-4-dich-chuyen-tren-tran.png`) });
+    // Bản đồ KHÔNG dừng game: mở trên trận rồi bước ra (map vẫn mở) → nút phải chuyển sang phí từ xa + có xác nhận, không giữ phí thường cũ.
+    await pickWp(0);
+    for (const [dx, dy] of [[160, 0], [-160, 0], [0, 160], [0, -160], [260, 0]]) {
+      await page.evaluate(([dx, dy]) => { const w = window.__bd.waypoints[1]; window.__bd.room.send("test", { op: "goto", x: w.x + w.w / 2 + dx, y: w.y + w.h / 2 + dy }); }, [dx, dy]);
+      await sleep(400); if (await page.evaluate(() => !window.__bd.wpHere)) break;
+    }
+    await page.waitForFunction(() => /Phí từ xa/.test(document.querySelector("#world .wm-card")?.textContent ?? "") && !document.querySelector("#mapview .p2-primary").disabled, null, { timeout: 10000 }); // tin world mới về (nút hết khoá "đang cập nhật")
+    const stepped = await prim();
+    check(/^Dịch chuyển · /.test(stepped.t) && !stepped.d, tag(`bước ra khỏi trận khi bản đồ đang mở: nút ${JSON.stringify(stepped)}`));
+    await page.locator("#mapview .p2-primary").click(); await page.waitForSelector(".cfm", { state: "visible" });
+    check(/phụ phí/.test(await page.locator(".cfm").innerText()), tag("bước ra khỏi trận: bấm Dịch chuyển phải hỏi xác nhận phụ phí"));
+    await page.locator(".cfm-no").click();
+    // Lý do server từ chối (vd Lõi Tinh Đấu cấm truyền tống) đến bằng dòng log ngay sau khi bấm: hiện nguyên văn ở thẻ chi tiết. Mô phỏng đường tin log, không tự tính luật.
+    const why = "Lõi Tinh Đấu cấm truyền tống: muốn rời đi hãy tới cổng.";
+    await page.evaluate(async (why) => { const w = (await import("/src/worldmap.ts")).worldMap(); w.pending = performance.now(); (await import("/src/hud.ts")).worldNote(why); }, why);
+    check((await page.locator("#world .wm-reply").innerText().catch(() => "")).includes(why), tag("lý do server (log) không hiện ở thẻ chi tiết"));
+    await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    // Ra khỏi trận (đi ra vài điểm) rồi dịch chuyển từ xa tới trận 0.
+    for (const [dx, dy] of [[160, 0], [-160, 0], [0, 160], [0, -160], [260, 0]]) {
+      await page.evaluate(([dx, dy]) => { const w = window.__bd.waypoints[1]; window.__bd.room.send("test", { op: "goto", x: w.x + w.w / 2 + dx, y: w.y + w.h / 2 + dy }); }, [dx, dy]);
+      await sleep(400); if (await page.evaluate(() => !window.__bd.wpHere)) break;
+    }
+    check(await page.evaluate(() => !window.__bd.wpHere), tag("không ra khỏi trận được để thử dịch chuyển từ xa"));
+    await test("clear"); await test("rest", { s: 10 }); // hồn thú lang thang tới gần làm server từ chối "đang giao chiến": dọn và cho nghỉ để ca này ổn định
+    await openWorld(); await pickWp(0);
+    const far = await prim(), cardFar = await page.locator("#world .wm-card").innerText();
+    check(/^Dịch chuyển · /.test(far.t) && !far.d, tag(`từ xa: nút Dịch chuyển ${JSON.stringify(far)}`));
+    check(/Phí từ xa \(gồm phụ phí\)/.test(cardFar) && /Hồi dịch chuyển từ xa/.test(cardFar) && /Dùng được/.test(cardFar), tag(`thẻ từ xa thiếu phí / hồi: ${cardFar}`));
+    await page.screenshot({ path: resolve(out, `${size}-5-dich-chuyen-tu-xa.png`) });
+    await page.locator("#mapview .p2-primary").click();
+    await page.waitForSelector(".cfm", { state: "visible" });
+    check(/phụ phí/.test(await page.locator(".cfm").innerText()), tag("hộp xác nhận từ xa không nêu phụ phí"));
+    await page.screenshot({ path: resolve(out, `${size}-6-xac-nhan-tu-xa.png`) });
+    await page.locator(".cfm-yes").click();
+    await page.waitForFunction(() => document.getElementById("mapview").hidden, null, { timeout: 25000 }).catch(async (e) => { // server niệm (recall) thì bản đồ đóng
+      console.error("Không đóng sau khi xác nhận:", await page.locator("#world .wm-card").innerText().catch(() => ""), "| cfm:", await page.locator(".cfm").count()); await page.screenshot({ path: resolve(out, `${size}-loi-xac-nhan.png`) }); throw e;
+    });
+    await page.waitForFunction(() => window.__bd.wpHere === window.__bd.waypoints[0].label, null, { timeout: 15000 }); // niệm xong, đứng trên trận 0
+    // Đang hồi: ra khỏi trận, mở bản đồ, chọn trận 1 → nút khoá kèm số giây hồi.
+    await page.evaluate(() => { const w = window.__bd.waypoints[0]; window.__bd.room.send("test", { op: "goto", x: w.x + w.w / 2 + 160, y: w.y + w.h / 2 }); });
+    await sleep(500);
+    await openWorld(); await pickWp(1);
+    const cd = await prim();
+    check(cd.d && /Đang hồi: còn \d+ giây/.test(cd.why), tag(`đang hồi phải khoá kèm giây: ${JSON.stringify(cd)}`));
+    await page.screenshot({ path: resolve(out, `${size}-7-dang-hoi.png`) });
+    // Không đủ Hồn Tệ: hết hồi, còn 0 đồng → khoá kèm lý do.
+    await test("wpcd", { secs: 0 }); await test("coin", { n: 0 }); await page.keyboard.press("Escape"); await sleep(300);
+    await openWorld(); await pickWp(1);
+    const poor = await prim();
+    check(poor.d && /Không đủ Hồn Tệ/.test(poor.why), tag(`thiếu Hồn Tệ phải khoá kèm lý do: ${JSON.stringify(poor)}`));
+    await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    if (touch) {
+      // Hết hồi khi bản đồ đang mở: thẻ chỉ vẽ lại một lần, ô chọn bản đồ (select native) phải giữ nguyên là một phần tử, nếu không danh sách đang mở bị đóng.
+      await test("wpcd", { secs: 2 }); await openWorld(); await pickWp(1);
+      await sleep(3500);
+      await page.evaluate(() => { window.__selKeep = document.querySelector(".wm-map-select"); });
+      await sleep(2500);
+      check(await page.evaluate(() => !!window.__selKeep && window.__selKeep === document.querySelector(".wm-map-select")), tag("ô chọn bản đồ bị thay mới sau khi hết hồi (vẽ lại thẻ mỗi giây)"));
+      await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    }
     const real = errors.filter((e) => !/is not valid JSON/.test(e)); // gói riêng (iso-private) vắng ở máy dev: Phaser nhận trang HTML thay JSON, có từ trước
     check(real.length === 0, tag(`lỗi trang: ${real.join(" | ")}`));
     await context.close();

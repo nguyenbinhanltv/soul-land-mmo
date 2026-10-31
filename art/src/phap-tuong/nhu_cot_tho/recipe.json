@@ -1,0 +1,41 @@
+{
+  "id": "nhu_cot_tho",
+  "raw": "art/src/phap-tuong/nhu_cot_tho",
+  "glow": "#ffc2e2",
+  "despill": false,
+  "selectedAttempts": {
+    "s": 2,
+    "se": 2,
+    "e": 3,
+    "ne": 3,
+    "n": 1
+  },
+  "attempts": {
+    "s": 3,
+    "se": 2,
+    "e": 3,
+    "ne": 3,
+    "n": 1
+  },
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": 0,
+    "bob": 0
+  },
+  "frame": 160,
+  "origin": [
+    80,
+    124
+  ],
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "sheetSha256": "a39c050634ea60b3c8a32e42367eed2300c00d316c66d3f8d586f86205013120",
+  "glowSha256": "ab6e6c3702ecc6eedf6c86b6b07906fcba80d9139db49ebd09fd538c5198e5ca"
+}
