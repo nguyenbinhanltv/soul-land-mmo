@@ -169,6 +169,7 @@ noListenerAudio.dispose();
   assert.equal(map.materialOfBeast("kim_cuong_cu_vien"), "da");
   for (const id of ["thai_than_cu_vien", "thien_thanh_nguu_mang", "u_linh_hai_mau"]) assert.equal(map.materialOfBeast(id), "linh_the");
   assert.deepEqual(map.MATERIALS, map.COMBAT_MATERIALS, "mọi chất liệu visual đều có mẫu âm thanh");
+  assert.equal(map.GROUP_TRIM_DB["hit-da"], 0.5, "trim đá khớp lần đo #1496 sau cân từng clip");
   const surfaces = new Map();
   for (const name of Object.keys(tiles.ground)) {
     const s = map.surfaceOfGround(name);
