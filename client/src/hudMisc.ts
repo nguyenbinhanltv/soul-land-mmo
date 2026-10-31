@@ -100,10 +100,12 @@ let resTopMsg: ResonanceTopMsg | null = null;
 let resTab = 0; // tab trụ cột đang xem (chỉ số theo RESONANCE)
 let resTopRequest: (page: number, pageSize: number) => void = () => {};
 let resTopWait: "idle" | "wait" | "err" = "idle"; // đang chờ bảng xếp hạng / quá hạn (chỉ để hiển thị trạng thái tải / lỗi)
+let resTopWanted = { page: 1, size: RESONANCE_RANK_PAGE_SIZE }; // tách trang yêu cầu khỏi trang đã nhận
 const RESO_TOP_WAIT_MS = 8000;
 let resTopTimer = 0, resTopSentAt = 0; // một hẹn giờ duy nhất; server bỏ im yêu cầu trong RESONANCE_RANK_CD nên không gửi (không chuyển sang "wait") khi chưa qua nhịp
 const askResTop = (page: number, size: number) => {
   const now = performance.now(); if (now - resTopSentAt < RESONANCE_RANK_CD * 1000) return;
+  resTopWanted = { page, size };
   resTopSentAt = now; resTopRequest(page, size);
   clearTimeout(resTopTimer); resTopWait = "wait"; renderReso();
   resTopTimer = window.setTimeout(() => { resTopTimer = 0; if (resTopWait === "wait") { resTopWait = "err"; if (!$("#reso").hidden) renderReso(); } }, RESO_TOP_WAIT_MS);
@@ -140,11 +142,14 @@ function renderReso() {
   const rankBtn = document.createElement("button"); rankBtn.type = "button"; rankBtn.textContent = resTopMsg ? "Làm mới" : "Xem bảng";
   rankBtn.addEventListener("click", () => askResTop(1, resTopMsg?.pageSize ?? RESONANCE_RANK_PAGE_SIZE));
   rankHead.append(rankTitle, rankBtn); rank.appendChild(rankHead);
-  if (resTopWait === "wait") rank.appendChild(stateBox({ kind: "loading", text: "Đang tải bảng xếp hạng…", rows: 3 }));
-  else if (resTopWait === "err" && !resTopMsg) rank.appendChild(stateBox({ kind: "error", text: "Chưa nhận được bảng xếp hạng.", hint: "Kiểm tra kết nối rồi thử lại.", onRetry: () => askResTop(1, RESONANCE_RANK_PAGE_SIZE) }));
-  else if (!resTopMsg) {
+  if (resTopWait === "wait") rank.appendChild(stateBox({ kind: "loading", text: `Đang tải bảng xếp hạng · Trang ${resTopWanted.page}…`, rows: 3 }));
+  else if (resTopWait === "err") rank.appendChild(stateBox({ kind: "error", text: resTopMsg ? `Cập nhật thất bại · Chưa nhận được trang ${resTopWanted.page}.` : "Chưa nhận được bảng xếp hạng.", hint: "Kiểm tra kết nối rồi thử lại.", onRetry: () => askResTop(resTopWanted.page, resTopWanted.size) }));
+  if (resTopMsg && resTopWait !== "idle") {
+    const stale = document.createElement("small"); stale.textContent = `Dữ liệu cũ · Trang ${resTopMsg.page} chưa cập nhật.`; rank.appendChild(stale);
+  }
+  if (!resTopMsg && resTopWait === "idle") {
     const hint = document.createElement("small"); hint.textContent = "Chỉ tài khoản đã đạt ít nhất một mốc được xếp hạng."; rank.appendChild(hint);
-  } else {
+  } else if (resTopMsg) {
     const mine = document.createElement("small");
     mine.textContent = resTopMsg.me ? `Hạng ${resTopMsg.me.rank} · ${resTopMsg.me.score} điểm · ${resTopMsg.me.milestones} mốc · tiến độ ${Math.floor(resTopMsg.me.progressBp / 100)}% · sao thêm ${resTopMsg.me.extraStars}` : "Chưa đạt mốc để xếp hạng.";
     rank.appendChild(mine);
