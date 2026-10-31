@@ -35,6 +35,7 @@ Mã ở `client/src/combatFx.ts`.
   - **Hiệu ứng hình ảnh** Thấp / Vừa (mặc định) / Cao. Thấp: không hạt, rung, dừng hình, zoom.
   - **Rung màn hình** Tắt (không rung, zoom, dừng hình) / Chỉ boss (mặc định, như trên) / Đầy đủ (thêm rung, zoom, dừng hình khi đánh hồn thú thường, trừ lúc tự săn).
   - **Giảm chuyển động**: tắt rung, dừng hình, zoom, nháy trắng; mặc định theo `prefers-reduced-motion`.
+  - Khi Giảm chuyển động bật, chữ chiến đấu (bị đánh, chí mạng, hồi máu, khiên, miễn, DoT) đứng yên ở cỡ nghỉ rồi mờ dần; giữ nguyên giá trị, dấu, màu, viền và thời gian đọc / biến mất của từng loại. Tắt tùy chọn thì giữ hiệu ứng rung, nảy và bay hiện có. Chữ được hủy khi mờ hết.
 
 ### Hiệu ứng hồn kỹ theo hệ
 Mã ở `client/src/skillFx.ts`, `skillCine.ts`.
@@ -175,5 +176,6 @@ Hình ảnh của Võ Hồn Chân Thân (vòng 7, luật ở mục 5.1) **không
 ## Lịch sử / issue liên quan
 - Cảm giác đánh G1 #392; hiệu ứng theo hệ G3 #394; khung hiệu ứng chiêu S1 #542, S2 #548, S3 #566 (lô A) và #567 (lô B).
 - Hoàn thiện hiệu ứng H8 / S5 #491 (bộ điều tốc, trần đồng thời); âm thanh T3 C4 #579; chuyển động phụ của phụ thể H7 #490.
+- Giảm chuyển động cho chữ chiến đấu #1538.
 - Pháp tướng #482 (khung code H2 #486; hai pháp tướng cho dung hợp kỹ H6).
 - Nhật ký từng bước: `docs/lich-su.md`.
