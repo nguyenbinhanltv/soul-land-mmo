@@ -13,8 +13,8 @@ Tham chiếu hình, màu, motif: `shared/assets/sprites/vohonanim/u_minh_linh_mi
 | Hướng | Số lượt đã dùng | File | Kết quả |
 |---|---|---|---|
 | s | 2 | `s-luot1.png`, `s.png` | Lượt 1 trả ảnh ngang 1448×1086, loại. Lượt 2 vuông 1254×1254, qua kiểm mép ô. |
-| se | 2 | `se.png`, `se-luot2.png` | Lượt 1 chạm mép ô. Lượt 2 chỉ sửa khoảng cách, qua kiểm mép ô. |
-| e | 2 | `e.png`, `e-luot2.png` | Lượt 1 chạm mép ô. Lượt 2 chỉ sửa khoảng cách, qua kiểm mép ô. |
+| se | 2 | `se-luot1.png`, `se.png` | Lượt 1 chạm mép ô. Lượt 2 chỉ sửa khoảng cách, qua kiểm mép ô. |
+| e | 2 | `e-luot1.png`, `e.png` | Lượt 1 chạm mép ô. Lượt 2 chỉ sửa khoảng cách, qua kiểm mép ô. |
 | ne | 1 | `ne.png` | Đúng lưng chếch phải; còn chạm mép ô, chưa chọn. |
 | n | 1 | `n.png` | Đúng mặt lưng; còn chạm mép ô, chưa chọn. |
 
