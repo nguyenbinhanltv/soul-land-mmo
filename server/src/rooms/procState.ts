@@ -1,7 +1,7 @@
 // Trạng thái MỨC TIẾN TRÌNH của các phòng bản đồ, chỉ trong bộ nhớ (miền D1, #702): thú vương theo bản đồ (`kingSeats`, `kingClaimCache`), khóa thưởng tinh anh nhiều kênh
 // (`eliteLocks`), hồi chiêu Võ Hồn Dung Hợp Kỹ (`fusionReady`), đổi kênh / kênh vừa rời (`channelSwitchAt`, `leftRoom`, dọn định kỳ `sweepChannelMaps`), hook test (`testNoLeaveLock`,
 // `testOfflineAgo`), danh sách mua lại (`buybacks`). Nguyên văn từ MapRoom; MỘT thể hiện duy nhất mỗi Map / Set (MapRoom, các miền và script kiểm thử đều import từ đây).
-// Module lá: KHÔNG gọi presence / Redis và KHÔNG import MapRoom; phần ghi presence (`persistKingSeat`, `takeKingSeat`, `persistEliteLock`, `editBuyback`...) là miền D2, còn ở MapRoom.
+// Module lá: KHÔNG gọi presence / Redis và KHÔNG import MapRoom (chỉ phụ thuộc shared/data.ts, schedule.ts cho đồng hồ boss và type của db.ts / schema.ts). Hai tác dụng phụ lúc nạp module, giữ nguyên như khi còn ở MapRoom: `CHANNEL_CAP` đọc `GAME_TEST` / `CHANNEL_MAX`, và `setInterval(sweepChannelMaps).unref()` (chạy đúng một lần vì module chỉ nạp một lần). Phần ghi presence (`persistKingSeat`, `takeKingSeat`, `persistEliteLock`, `editBuyback`...) là miền D2, còn ở MapRoom.
 import { KING, WORLD, BOSSES, MAPS, kingActive, worldActive, CHANNEL_MAX, CHANNEL_CD } from "../../../shared/data.ts";
 import { bossOffset } from "../schedule.ts";
 import type { BeastState } from "./schema.ts";
@@ -121,7 +121,7 @@ export function sweepChannelMaps(now: number) {
   for (const [k, l] of leftRoom) if (l.until <= now) { leftRoom.delete(k); n++; }
   return n;
 }
-export const CHANNEL_SWEEP_MS = 5 * 60_000;
+const CHANNEL_SWEEP_MS = 5 * 60_000;
 setInterval(() => sweepChannelMaps(Date.now()), CHANNEL_SWEEP_MS).unref();
 /** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
 export const testNoLeaveLock = new Set<number>(); // map-co-dinh: đường xóa duy nhất là `testNoLeaveLock.delete` ở onLeave (join.ts), như trước khi tách
@@ -136,4 +136,4 @@ export const testOfflineAgo = new Map<number, number>(); // map-co-dinh: đườ
  * `item`: bản sao món đã bán (số lượng đã bán, giữ chỉ số / cấp cường hóa), `price`: giá đã nhận mỗi món.
  */
 export interface Buyback { key: string; item: Item; price: number; }
-export const buybacks = new Map<number, Buyback[]>(); // map-co-dinh: đường xóa duy nhất là `buybacks.delete` ở editBuyback (MapRoom, miền D2) khi danh sách rỗng; mỗi tài khoản tối đa BUYBACK_MAX mục
+export const buybacks = new Map<number, Buyback[]>(); // map-co-dinh: đường xóa là `buybacks.delete` ở editBuyback (MapRoom, miền D2), forgetBuyback (shop.ts) và join.ts (nạp lại / dọn khi vào phòng); mỗi tài khoản tối đa BUYBACK_MAX mục
