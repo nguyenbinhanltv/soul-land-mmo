@@ -101,3 +101,9 @@ Cảnh báo nhẹ e đã duyệt: checker ghi chân lệch 17% ở attack H3 C3�
 LỖI: to-n — chân lệch — H3 (n) C5 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%).
 ```
 
+
+## Phiếu nhập tự động phiên 882
+
+```text
+loi_quang_hai_dieu: chuẩn cỡ = sheet đã nhập (s 57, se 46, e 44, ne 46 → 48.3); khớp n ×0.94 (còn lệch 0.0%)
+```
