@@ -15,6 +15,8 @@ Sau khi chủ repo duyệt thí điểm, `lo_ren_lang` dùng cùng đường cli
 
 `lo_lua_dong` dùng cùng cơ chế; chỉ lửa phía trên bát chuyển động, thân và chân đế giữ nguyên qua từng khung. Lớp thân xóa cả viền lửa cũ và giữ nền than đục ở miệng bát để không có viền đứng yên hoặc lỗ nhìn xuyên nền. Dải 768×64 dùng chung trong atlas; các instance mới không thêm texture hoặc Sprite riêng.
 
+`cot_co_do_vang` (#1523) tái dùng clip 16 khung × 100 ms trên Image hiện có. Chỉ vải đỏ viền vàng đổi; dải nối, cột, mũ, chân `[24,78]` và palette gốc được khóa khi nhập. Hồ sơ RAW/prompt/hash ở `art/src/prop-clip/cot_co_do_vang/`; không đổi runtime, collision, depth, ánh sáng hay bản đồ. Cờ chịu cùng tùy chọn Thấp/Giảm chuyển động và cleanup chunk như các clip thí điểm.
+
 **Dự đoán chuyển động phía client**
 - Va chạm ô và bước đi dùng chung `shared/move.ts` (`solidGrid`, `hits`, `moveEnt`) ở cả `server/src/map.ts` và client. Bước đi của hồn sư có lách góc (`MOVE_NUDGE`, tham số `nudge` của `moveEnt`): vướng góc ô chỉ vài pixel thì tự đẩy sang phía trống, server và dự đoán cùng gọi nên không lệch. Client vẫn chỉ gửi hướng; server tự tính vị trí trong `tick()`.
 - Client đánh số input `input {x, y, s, w}` (`w`: giữ Shift, đi bộ); server ghi `PlayerState.seq` (số cuối đã nhận), `seqT` (số giây hướng đó đã được áp), `spd` (tốc độ thật lúc này, đã nhân `RUN_MULT` khi đang chạy), `calm` (ngoài giao chiến) và `walk` (cờ `w` của input cuối). Server tự dừng hướng đi thì tăng `seq`.
