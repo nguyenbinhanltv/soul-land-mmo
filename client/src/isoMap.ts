@@ -18,6 +18,7 @@ import { GLOW_PROPS, attachNormal, lightingOn } from "./lighting.ts";
 import { IsoAtlas } from "./isoAtlas.ts";
 import { touchTexture } from "./textureLru.ts";
 import { PRIV_OFF } from "./privateAssets.ts";
+import { fxLevel, fxPrefs } from "./combatFx.ts";
 
 /** Độ sâu mặt đất: dưới mọi thứ (vùng cảnh báo, hồn sư, chữ); ô phía trước vẽ sau để che đáy ô phía sau. Lớp phủ mép trên mọi ô. */
 const GROUND_DEPTH = -100000, EDGE_DEPTH = -60000;
@@ -56,7 +57,7 @@ interface GroundDef { img: string[]; big?: string[]; c: [number, number]; cBig?:
 /** Vật đứng: key manifest `prop_{vật}` (ảnh sprites/iso/props/{vật}.png) và điểm chân (chạm tâm ô) trong ảnh. */
 /** `flip`: thiếu thì lật ngang theo băm vị trí, `false` không bao giờ lật, `true` luôn lật (vật có hướng: lật là đổi trục x ↔ y).
  *  `private`: ảnh nằm ở kho riêng (`private/<đường dẫn>`, docs/asset-rieng.md), chỉ tải khi `private/present.json` liệt kê; `key` là khóa texture. */
-interface PropDef { key: string; foot: [number, number]; flip?: boolean; private?: string }
+interface PropDef { key: string; foot: [number, number]; flip?: boolean; private?: string; clip?: { key: string; frames: number; ms: number } }
 /** Bộ của một bản đồ: gid → tên ô / vật (kèm `~#rrggbb` để nhân màu, `~x1.3` để sáng lên), kiểu nhà. Bộ "*" là mặc định. */
 interface MapSet { ground?: Record<string, string>; props?: Record<string, string | string[]>; build?: BuildStyle }
 interface IsoTiles { ground: Record<string, GroundDef>; props: Record<string, PropDef>; maps: Record<string, MapSet> }
@@ -104,7 +105,10 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
       const p = data.props[parseRef(ref).name];
       if (!p) continue;
       if (p.private) { if (!PRIV_OFF) { touchTexture(p.key); if (!scene.textures.exists(p.key)) priv.set(p.key, p.private); } }
-      else img(p.key, propFile(p.key));
+      else {
+        img(p.key, propFile(p.key));
+        if (p.clip) img(p.clip.key, propFile(p.clip.key));
+      }
     }
     // Atlas (#716 bước 6, tools/assets/iso-atlas.mjs): ảnh có trong atlas của bản đồ tải theo trang rồi cắt lại đúng hình chữ nhật (một file
     // thay vì mỗi ảnh một file); ảnh ngoài atlas, hay bản đồ không có atlas, tải từng file như trước.
@@ -212,6 +216,9 @@ export class IsoMap {
   /** Khối đang hiện (chỉ số khối): ảnh, nhóm vật cao (làm mờ khi che chính mình), các ô; ảnh khối rời tầm nhìn cất vào `free`. */
   private live = new Map<number, { ims: Phaser.GameObjects.Image[]; tall: Tall[]; tiles: number[] }>();
   private free: Phaser.GameObjects.Image[] = [];
+  /** Clip dùng chung texture/atlas; mỗi ảnh giữ khung hiện tại, không có timer hoặc Sprite riêng. */
+  private clips = new Map<Phaser.GameObjects.Image, { frames: { key: string; frame: string | number }[]; ms: number; current: number }>();
+  private clipFrames = new Map<string, { key: string; frame: string | number }[]>();
   /** Số khối theo hai trục và khung bao trên màn hình của tâm các ô mỗi khối (x0, y0, x1, y1), tính một lần. */
   private CW = 0; private CH = 0; private cbox = new Float32Array(0);
   /** Nhóm ảnh nhà (cố định) và nhóm vật cao đang mờ / khoét lỗ. */
@@ -637,6 +644,11 @@ export class IsoMap {
     const v = cam.worldView, key = `${Math.floor(v.x / 16)}|${Math.floor(v.y / 16)}|${Math.round(v.width)}|${Math.round(v.height)}`;
     // Lề 2 ô: ô lớn gắn với ô góc trên của khối 2×2 nên phải tải cả khi chỉ ô kề của nó trong tầm nhìn.
     if (key !== this.viewKey) { this.viewKey = key; this.stream(v.x - 2 * TILE_W, v.y - 2 * TILE_H, v.right + 2 * TILE_W, v.bottom + this.rise + 2 * TILE_H); }
+    const moving = !fxPrefs.reduce && fxLevel() !== "low";
+    for (const [im, clip] of this.clips) {
+      const n = moving ? Math.floor(this.scene.time.now / clip.ms) % clip.frames.length : 0;
+      if (n !== clip.current) { const f = clip.frames[n]; im.setTexture(f.key, f.frame); clip.current = n; }
+    }
     this.atlas?.flush();
     if (TOPDOWN) return;
     if (this.hole) { this.hole.clear().fillStyle(0xffffff); for (const f of focus) this.hole.fillEllipse(f.x, f.y - (f.h ?? HOLE_H) / 2 + 6, f.w ?? HOLE_W, f.h ?? HOLE_H); }
@@ -688,7 +700,7 @@ export class IsoMap {
     }
     let changed = false;
     for (const [k, c] of this.live) if (!want.has(k)) {
-      for (const im of c.ims) { im.setVisible(false); this.free.push(im); }
+      for (const im of c.ims) { this.clips.delete(im); im.setVisible(false); this.free.push(im); }
       for (const g of c.tall) this.faded.delete(g);
       for (const i of c.tiles) this.glowAt.delete(i);
       this.live.delete(k); changed = true;
@@ -758,6 +770,29 @@ export class IsoMap {
     return (af ? im.setTexture(af.key, af.frame) : im.setTexture(key)).setPosition(x, y).setVisible(true).setAlpha(1).setScale(1).setFlipX(false);
   }
 
+  /** Khung clip đã ghép thân tĩnh: cùng cỡ/gốc nên giữ nguyên sắp lớp, mặt nạ, lật và pipeline ánh sáng. */
+  private playProp(im: Phaser.GameObjects.Image, p: { key: string; def: PropDef }) {
+    const c = p.def.clip;
+    if (!c || !this.scene.textures.exists(c.key) || c.frames < 2 || c.ms <= 0) return;
+    const tint = p.key.split("~")[1] ?? "", key = this.tinted(c.key, tint);
+    let frames = this.clipFrames.get(key);
+    if (!frames) {
+      const tex = this.scene.textures.get(key), src = tex.getSourceImage(), base = this.scene.textures.get(p.key).getSourceImage();
+      if (src.width !== base.width * c.frames || src.height !== base.height) return;
+      attachNormal(this.scene, c.key);
+      if (tint) attachNormal(this.scene, c.key, key);
+      frames = [];
+      for (let n = 0; n < c.frames; n++) {
+        const frame = `clip-${n}`;
+        if (!tex.has(frame)) tex.add(frame, 0, n * base.width, 0, base.width, base.height);
+        frames.push(this.atlas?.frame(key, frame) ?? { key, frame });
+      }
+      this.clipFrames.set(key, frames);
+    }
+    const f = frames[0]; im.setTexture(f.key, f.frame);
+    this.clips.set(im, { frames, ms: c.ms, current: 0 });
+  }
+
   /**
    * Mặt đất của ô `i` (ô thường / ô lớn / vẽ code, lớp phủ mép) thành lệnh vẽ `out`; ghi điểm mặt nước phát sáng. Ô lớn gắn với ô góc
    * trên của khối 2×2, ô khác trong khối không vẽ gì.
@@ -809,6 +844,7 @@ export class IsoMap {
       let im: Phaser.GameObjects.Image;
       if (cp.obj === "wall") { const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy); }
       else { const tex = this.scene.textures.get(cp.obj.key).getSourceImage(); im = this.img(s.x, s.y, cp.obj.key).setOrigin(cp.obj.def.foot[0] / tex.width, cp.obj.def.foot[1] / tex.height); }
+      if (cp.obj !== "wall") this.playProp(im, cp.obj);
       im.setDepth(depthAt(cx, cy)); out.push(im);
       tall.push({ ims: [im] });
     }
@@ -819,6 +855,7 @@ export class IsoMap {
       if (props) {
         const h = hash(tx, ty, 1), p = props[h % props.length], tex = this.scene.textures.get(p.key).getSourceImage();
         im = this.img(s.x, s.y, p.key).setOrigin(p.def.foot[0] / tex.width, p.def.foot[1] / tex.height).setFlipX(p.def.flip === true || (p.def.flip !== false && !!(h & 0x100)));
+        this.playProp(im, p);
         const name = p.key.replace(/^prop_/, "").split("~")[0];
         if (GLOW_PROPS[name]) this.glowAt.set(i, [...(this.glowAt.get(i) ?? []), { x: s.x, y: s.y, kind: name }]);
       } else if (!TOPDOWN && t === WALL && this.build) {
