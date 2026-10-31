@@ -188,13 +188,23 @@ body.touch #talk kbd{display:none}
 #chatbox:not(.open) #log{max-height:var(--log-max,104px);overflow:hidden;justify-content:flex-end} /* chat đóng: chỉ vài dòng mới nhất, không lấn lên cột trái (#722) */
 #log div{background:var(--ink-panel);color:var(--ink-text);border-left:3px solid var(--son);padding:3px 8px;font-size:12px;font-family:var(--f12);transition:opacity .6s;user-select:text}
 #log div b{margin-right:4px}
+#hud #log div.chat-loot{color:var(--c);text-shadow:var(--stroke)}
+#chat-controls{display:flex;gap:var(--sp-2)}
+#chat-controls button{font:12px var(--f12);color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-2) var(--sp-4);cursor:pointer}
+#chat-system-filter::before{content:"☑ ";color:var(--good)}
+#chat-system-filter[aria-pressed="false"]::before{content:"☐ ";color:var(--muted)}
+body.touch #chat-controls button{min-width:40px;min-height:40px}
+#chatbox:not(.open) #log{min-height:50px}
+#chattabs{overflow-x:auto;flex-shrink:0}
+#chattabs button{white-space:nowrap;min-width:max-content}
+body.touch #chattabs button{flex-shrink:0}
 #log div i{font-style:normal;margin-right:4px;text-shadow:var(--stroke)}
 #log div b[style]{text-shadow:var(--stroke)}
 /* Ô chat mở (đang gõ hoặc vừa chọn tab, #188): lịch sử trong phiên không mờ, cuộn được */
 #chatbox.open #log{max-height:min(320px,42vh);overflow-y:auto;pointer-events:auto;touch-action:pan-y;overscroll-behavior:contain}
 #chatbox.open #log div{background:rgba(26,16,32,.9)} /* mở rộng thì đè lên bảng tổ đội: nền đậm để không lẫn chữ */
 #chattabs{display:flex;gap:2px;margin-top:3px}
-#chattabs button{flex:1 1 auto;position:relative;font:inherit;font-size:12px;font-family:var(--f12);padding:3px 2px;background:rgba(26,16,32,.9);color:var(--ink-text);
+#chattabs button{flex:0 0 auto;position:relative;font:inherit;font-size:12px;font-family:var(--f12);padding:3px 2px;background:rgba(26,16,32,.9);color:var(--ink-text);
   border:0;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis} /* 6 tab (#198): màn hẹp thì co, cắt chữ */
 #chattabs button:not(.on){color:color-mix(in srgb,var(--ink-text) 70%,transparent)}
 #chattabs button.on{border-bottom-color:var(--c,var(--son));color:var(--c,var(--ink-text));text-shadow:var(--stroke)}
@@ -647,7 +657,7 @@ body.touch .minibtn kbd{display:none}
 :where(body.ui-w1000:not(.ui-w640)) .sk{width:52px;height:52px}
 :where(body.ui-w1000:not(.ui-w640)) #chatbox{width:270px}
 :where(body.ui-w1000:not(.ui-w640)) #chattabs{gap:0}
-:where(body.ui-w1000:not(.ui-w640)) #chattabs button{font-size:11px;padding:3px 3px}
+:where(body.ui-w1000:not(.ui-w640)) #chattabs button{font-size:12px;padding:3px 3px}
 :where(body.ui-w1000:not(.ui-w640)) #bottombar{gap:6px}
 
 /* Rương tà hóa thú vương (BĐ5): hộp vuông màu aura, nắp sẫm, khóa sáng */
@@ -1593,6 +1603,9 @@ body.playing #toasts{bottom:130px}
 body.playing.touch #toasts{bottom:200px}
 body.touch.ui-h460:not(.ui-portrait) #bottombar{justify-content:flex-end}
 body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox{position:absolute;left:0;bottom:184px;width:min(380px,46vw);margin:0}
+/* Chat thu nhỏ ở màn cảm ứng thấp: chỉ giữ hai dòng và nút mở; vị trí theo cột HUD trong ui2-hud-side.css. */
+body.touch.ui-h460:not(.ui-portrait) #chatbox:not(.open) :is(#chat,#chattabs){display:none}
+body.touch.ui-h460:not(.ui-portrait) #chatbox:not(.open) #log{max-height:50px}
 /* C16 (#595): bảng Nhân vật = một khung C2 ngoài, nội dung trên tấm mực; không đổi token toàn cục hay bố cục HUD. */
 .thuymac #char{
   --text:#ece2c8;--muted:#d8caa8;--accent:#97e6bd;--good:#97e6bd;--bad:#ff9b8a;--warn:#ffbf8a;--xp-t:#ffe08a;

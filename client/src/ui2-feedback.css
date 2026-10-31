@@ -27,5 +27,5 @@
 
 @media (prefers-reduced-motion:reduce){#hud #banner.f2-muc-nho{transition:none}}
 
-/* Tab chat (7 tab trong ô 270 px): khung ui2 thêm viền 1 px mỗi bên, bỏ đệm ngang để chữ không bị cắt. */
-:where(.ui-w1000:not(.ui-w640)) #hud #chattabs button{padding-inline:0}
+/* Tab chat giữ cỡ chữ nguyên và đệm cho nét font pixel; hàng tab cuộn ngang khi thiếu chỗ. */
+:where(.ui-w1000:not(.ui-w640)) #hud #chattabs button{padding-inline:4px}
