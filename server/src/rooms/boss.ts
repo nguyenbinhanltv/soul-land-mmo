@@ -11,7 +11,8 @@ import { store, type Item } from "../db.ts";
 import { surfaceSpot } from "./worldBoss.ts";
 import { achvCount } from "./achv.ts";
 import { newItem, bagUsed } from "./items.ts";
-import { claimHeld, bossK, kingClaimCache, persistKingSeat, uid, type MapRoom, type PData, type BData, type EliteData, type KingData, type WorldData } from "./MapRoom.ts";
+import { kingClaimCache, persistKingSeat, type MapRoom, type PData, type BData, type EliteData, type KingData, type WorldData } from "./MapRoom.ts";
+import { bossK, claimHeld, uid } from "./common.ts";
 
 /**
  * Mỗi tick của thú vương: hết KING.lifeSecs thì rút đi; máu còn KING.phaseHp thì sang giai đoạn 2; đếm tiếng gầm. Trả true nếu thú

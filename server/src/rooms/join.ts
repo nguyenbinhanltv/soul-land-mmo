@@ -18,8 +18,8 @@ import { sendState as sendBicanh, nowOf as bicanhNow } from "./bicanh.ts";
 import { gearLook, gearStats, itemStacks } from "./items.ts";
 import { MAPS, CHANNEL_CD, TEAM_COMBAT_SECS, encodeLpc, bagSlotsOf, STARTER_ITEMS, SHARD_BUY, BOSS_CLAIM_KING, BOSS_CLAIM_WORLD, AUTO_MSG_RATE, parseAuto, parseSell,
   QUESTS, QUEST_STARTER, questStart, TONG_MON, tongDef, resonanceBonus, bicanhDay } from "../../../shared/data.ts";
-import { HOLD_WAIT_MS, buybackKey, buybacks, channelLeftKey, channelSwitchAt, channelSwitchKey, fusionKey, fusionReady, intIn, leftLock, leftRoom, listChannels, newMsgBuckets,
-  seatUsed, testNoLeaveLock, testOfflineAgo, worldChatKey, type AuthData, type Buyback, type MapRoom, type PData } from "./MapRoom.ts";
+import { buybacks, channelSwitchAt, fusionReady, leftLock, leftRoom, listChannels, seatUsed, testNoLeaveLock, testOfflineAgo, type AuthData, type Buyback, type MapRoom, type PData } from "./MapRoom.ts";
+import { buybackKey, channelLeftKey, channelSwitchKey, fusionKey, newMsgBuckets, worldChatKey, HOLD_WAIT_MS, intIn } from "./common.ts";
 
 /**
  * Đá phiên cũ của tài khoản (ở mọi phòng) và chờ nó nhả tài khoản, tức là lần ghi cuối của nó (onLeave nối vào chuỗi lưu) đã

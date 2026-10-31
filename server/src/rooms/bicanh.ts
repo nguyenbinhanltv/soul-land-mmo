@@ -11,7 +11,8 @@ import { bossNow } from "../schedule.ts";
 import { takeToken } from "../ratelimit.ts";
 import { arenaBusyOne } from "./arena.ts";
 import { arenaQueued } from "./arenaQueue.ts";
-import { CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { CLAIM_BUSY, claimHeld } from "./common.ts";
 
 const DAY_MS = 86400000;
 /** Đồng hồ của Bí Cảnh: đồng hồ lịch boss (bot đẩy bằng `BOSS_CLOCK`) cộng lệch ngày của hook test `day`, như `room.today()`. */
