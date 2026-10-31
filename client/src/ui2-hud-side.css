@@ -103,3 +103,18 @@ body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,
 /* Như hành vi cũ: khi dải xếp hạng boss hoặc đấu trường chiếm chỗ, chỉ phần Nhiệm vụ bị ẩn; tab Tổ đội (sinh lực đồng đội, Rời đội, lời mời) vẫn hiện và được ép chọn. */
 #hud:has(#bossRank:not([hidden])) #sideBox :is(#quest,.sb-empty,#sbTabQuest),body.arena #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest){display:none!important}
 #hud:has(#bossRank:not([hidden])) #sideBox #party,body.arena #hud #sideBox #party{display:block!important}
+
+/* Mobile ngang thấp: cột trái cuộn nguyên khối, không ép mất tab / thân tổ đội.
+   Chat ở khoảng giữa cột trái và radar; tab chat cuộn ngang khi không đủ chỗ. */
+body.touch.ui-h460:not(.ui-portrait) #lcol{width:min(294px,46vw);max-width:46vw;max-height:calc(100% - 170px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;pointer-events:auto}
+body.touch.ui-h460:not(.ui-portrait) #lcol>.stats{flex:none;box-sizing:border-box;width:100%}
+body.touch.ui-h460:not(.ui-portrait) #hud #sideBox{flex:none;min-height:180px}
+body.touch.ui-h460:not(.ui-portrait) #hud #sideBox.collapsed{min-height:0}
+body.touch.ui-h460:not(.ui-portrait) #hud #sideBox .sb-bar{flex-wrap:wrap}
+body.touch.ui-h460:not(.ui-portrait) #hud #sideBox .sb-tabs{flex-basis:100%}
+body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox{position:fixed;left:calc(min(294px,46vw) + 22px);right:160px;top:76px;bottom:auto;width:auto;max-height:calc(100% - 236px);overflow-y:auto;margin:0}
+body.touch.ui-h460:not(.ui-portrait) #chattabs{flex:none;overflow-x:auto;touch-action:pan-x}
+body.touch.ui-h460:not(.ui-portrait) #chattabs button{flex:none}
+body.touch.ui-h460:not(.ui-portrait) #chat{box-sizing:border-box;min-width:0;width:100%}
+/* Hàng kỹ năng phụ mở lên vùng chat: ưu tiên thao tác, đóng hàng thì chat hiện lại. */
+body.touch.ui-h460:not(.ui-portrait) #hud:has(#actrow.more) #chatbox{visibility:hidden}
