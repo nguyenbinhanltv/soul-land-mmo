@@ -140,6 +140,7 @@ try {
         });
         if (!before) for (const t of overflow) check(t.fits && t.w >= 43.5 && t.h >= 43.5, tag(`fs${fs}: công cụ ngoài khung / nhỏ: ${JSON.stringify(t)}`));
         if (!before) {
+          await page.locator(".wm-tools button").filter({ hasText: /^\+$/ }).tap();
           const minus = page.locator(".wm-tools button").filter({ hasText: /^−$/ });
           await minus.tap();
           await page.locator(".wm-tools button").filter({ hasText: /^Vừa khung$/ }).tap();
@@ -205,7 +206,7 @@ try {
     await page.locator("#worldBtn").click(); await page.waitForFunction(() => !document.getElementById("mapview").hidden && document.getElementById("mapview").dataset.mode === "world");
     await page.locator("#mapview .scr-x").click(); await page.waitForFunction(() => document.getElementById("mapview").hidden);
     // Bấm radar mở Khu vực.
-    await page.locator("#mini").click({ position: { x: 20, y: 20 } }); await page.waitForFunction(() => !document.getElementById("mapview").hidden && document.getElementById("mapview").dataset.mode === "area");
+    await page.locator("#mini").click({ position: touch ? { x: 50, y: 50 } : { x: 20, y: 20 } }); await page.waitForFunction(() => !document.getElementById("mapview").hidden && document.getElementById("mapview").dataset.mode === "area");
     await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
     const real = errors.filter((e) => !/is not valid JSON/.test(e)); // gói riêng (iso-private) vắng ở máy dev: Phaser nhận trang HTML thay JSON, có từ trước
     check(real.length === 0, tag(`lỗi trang: ${real.join(" | ")}`));
