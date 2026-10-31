@@ -45941,6 +45941,10 @@
       "key": "prop_lo_lua_dong_clip",
       "iso": true
     },
+    {
+      "key": "prop_cot_co_do_vang_clip",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
@@ -46012,10 +46016,6 @@
     { "key": "ui2_thanh_khung_hon", "iso": true, "nine": {"x2": 16, "x1": 8} },
     { "key": "ui2_thanh_khung_kn", "iso": true, "nine": {"x2": 16, "x1": 8} },
     { "key": "ui2_thanh_khung_sinh", "iso": true, "nine": {"x2": 16, "x1": 8} },
-    { "key": "ui2_vach_chia", "iso": true, "nine": {"x2": 4, "x1": 2} },
-    {
-      "key": "prop_cot_co_do_vang_clip",
-      "iso": true
-    }
+    { "key": "ui2_vach_chia", "iso": true, "nine": {"x2": 4, "x1": 2} }
   ]
 }
