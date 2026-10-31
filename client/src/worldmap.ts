@@ -3,10 +3,11 @@
 // KHÔNG gửi lên server). Chỉ hiển thị: trạng thái mở khoá, phí, đang đứng ở đâu đều đọc từ tin riêng `world` của server; luật dịch chuyển ở server.
 // Khung màn (tab, nút chính, đóng) do mapview.ts dựng; module này lo phần thân (#world) và báo nút chính cho khung qua `primary()`.
 import layout from "../../shared/assets/ui/ban-do-the-gioi/bo-cuc.json";
-import { MAPS, formatHonTe } from "../../shared/data.ts";
+import { MAPS, formatHonTe, WAYPOINT_CAST } from "../../shared/data.ts";
 import type { WorldMsg } from "./net.ts";
 import { assetUrl } from "./assetUrl.ts";
 import { searchField, filterByQuery, stateBox } from "./uiParts.ts";
+import { confirmDialog } from "./confirmDialog.ts";
 import "./ui2-worldmap.css";
 
 interface Pt { x: number; y: number }
@@ -19,6 +20,8 @@ const BG_URL = "/ui/ban-do-the-gioi/nen-the-gioi.png";
 const MAX_ZOOM = 4, FOCUS_ZOOM = 2.2, WHEEL_STEP = 1.2;
 /** Chờ tin `world` quá ngần này thì báo lỗi kèm nút Thử lại (ms). */
 const WAIT_MS = 8000;
+/** Sau khi bấm Dịch chuyển, dòng `log` của server trong ngần này (ms) được coi là phản hồi cho yêu cầu đó (lý do từ chối). */
+const REPLY_MS = 4000;
 const KIND_TEXT: Record<string, string> = { town: "Thành an toàn", hunt: "Bãi săn", boss: "Vùng thú vương", arena: "Phòng riêng" };
 
 type Sel = { t: "map" | "wp"; id: string } | null;
@@ -51,13 +54,17 @@ class WorldMap {
   /** Người dùng đã kéo / phóng: đổi cỡ khung thì chỉ kẹp lại, không ép về vừa khung. */
   private touched = false;
   private waitTimer = 0; private waitErr = false; private imgErr = false;
+  /** Lúc (ms) vừa gửi yêu cầu dịch chuyển (0 = không chờ phản hồi); lý do server vừa trả; lúc nhận tin `world` (đếm lùi hồi); hẹn giờ đếm lùi. */
+  private pending = 0; private reply = ""; private cdAt = 0; private cdTimer = 0;
+  /** Trận đang đứng đã đổi sau tin `world` cuối (bước lên / rời trận): `cur` cũ, nút Dịch chuyển khoá tới khi có tin mới. */
+  private stale = false; private staleTimer = 0;
   private ptrs = new Map<number, Pt>(); private drag: { x: number; y: number; vx: number; vy: number; moved: boolean } | null = null; private pinch = 0;
 
   private readonly viewEl = el("div", "wm-view"); private readonly stage = el("div", "wm-stage");
   private readonly img = el("img", "wm-bg"); private readonly svg = document.createElementNS(svgNs, "svg");
   private readonly layer = el("div", "wm-layer"); private readonly side = el("aside", "wm-card");
   private readonly list = el("ul", "wm-find"); private readonly notice = el("div", "wm-notice");
-  private nodes = new Map<string, HTMLElement>(); private me = el("div", "wm-me");
+  private nodes = new Map<string, HTMLElement>(); private me = el("div", "wm-me"); private cdEl: HTMLElement = el("span", "v");
   private readonly chips: Record<"open" | "all", HTMLButtonElement> = { open: el("button", "wm-chip"), all: el("button", "wm-chip") };
   private zoomBtns: { in: HTMLButtonElement; out: HTMLButtonElement } | null = null;
   private findReset: (() => void) | null = null;
@@ -70,26 +77,81 @@ class WorldMap {
 
   // ---------- API cho mapview.ts / hudMisc.ts ----------
   setMsg(m: WorldMsg) {
-    this.msg = m; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0;
+    this.msg = m; this.stale = false; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0; this.cdAt = performance.now();
     if (this.sel?.t === "wp" && !this.wp(this.sel.id)) this.sel = null;
-    this.render();
+    this.render(); this.onChange?.(); // nút chính của khung theo tin mới (phí, hồi, đang đứng ở đâu)
   }
   /** Chế độ Thế giới vừa hiện: xin tin mới, đặt khung nhìn (lần đầu / bản đồ lạ), chờ tin trong WAIT_MS. */
   show() {
     // Tranh nặng (vài MB): chỉ tải khi chế độ Thế giới hiện lần đầu.
     if (!this.img.getAttribute("src")) this.img.src = assetUrl(BG_URL);
     this.waitErr = false; this.onShow?.(); this.arm(); this.measure(true); this.render();
+    clearInterval(this.cdTimer); this.cdTimer = window.setInterval(() => this.tickCd(), 1000);
   }
-  hide() { clearTimeout(this.waitTimer); this.waitTimer = 0; }
-  /** Nút chính của khung: "Tự đi tới <bản đồ>" cho mục đang chọn (bản đồ khác chỗ đang đứng). */
+  /** Mỗi giây: cập nhật đếm lùi hồi ở thẻ và nút chính (chỉ hiển thị). */
+  private tickCd() {
+    if (!this.msg?.remoteCd) return;
+    this.cdEl.textContent = this.cdText(); this.onChange?.();
+    if (this.cdLeft() <= 0) this.paintCard();
+  }
+  private cdText() { const left = this.cdLeft(); return left > 0 ? `Còn ${left} giây` : "Dùng được"; }
+  hide() { clearTimeout(this.waitTimer); this.waitTimer = 0; clearInterval(this.cdTimer); this.cdTimer = 0; this.pending = 0; this.reply = ""; this.stale = false; clearTimeout(this.staleTimer); }
+  /**
+   * Nút chính của khung: "Dịch chuyển" tới trận đang chọn. Chỉ chặn theo thứ server đã báo trong tin `world` (đã mở, tới được, đủ Hồn Tệ, còn hồi);
+   * mọi điều kiện khác (giao chiến, tự săn, sân đấu…) do server kiểm và trả lý do bằng dòng `log`, hiện ở thẻ chi tiết.
+   * Server cũ chưa có phí từ xa thì khi không đứng trên trận nút khoá kèm lý do "Chỉ dùng khi đứng trên trận".
+   */
   primary(): WorldPrimary {
-    const id = this.selMap();
-    if (!id) return { label: "Tự đi tới", disabled: true, reason: "Chọn một bản đồ hoặc truyền tống trận trên tranh" };
-    if (id === this.msg?.map) return { label: "Tự đi tới", disabled: true, reason: "Bạn đang ở bản đồ này" };
-    if (MAPS[id]?.kind === "arena") return { label: "Tự đi tới", disabled: true, reason: "Phòng riêng: vào qua NPC, không có đường bộ" };
-    return { label: `Tự đi tới ${MAPS[id]?.name ?? id}`, disabled: false, reason: "" };
+    const g = this.goState();
+    return { label: g.fee !== null && !g.reason ? `Dịch chuyển · ${formatHonTe(g.fee)}` : "Dịch chuyển", disabled: !!g.reason, reason: g.reason };
   }
-  runPrimary() { const id = this.selMap(); if (id && !this.primary().disabled) { this.host?.show(false); this.hooks.auto(id); } }
+  /** Phản hồi mới của server cho yêu cầu vừa gửi (dòng `log`): hiện ở thẻ chi tiết. */
+  note(text: string) {
+    if (!this.pending || performance.now() - this.pending > REPLY_MS) return;
+    this.pending = 0; this.reply = text; this.paintCard(); this.onChange?.();
+  }
+  /** Đứng lên / rời một trận (tin `wp {k: "here"}`): bản đồ đang mở thì xin tin `world` mới, nút khoá tới khi tin về (phí và hồi phụ thuộc đang đứng trên trận hay không). */
+  hereChanged() { if (!this.host?.isOpen()) return; this.stale = true; this.refresh(0); this.paintCard(); this.onChange?.(); }
+  /** Xin tin `world`; server giới hạn tốc độ tin `wp` nên chưa có tin mới sau 1,5 giây thì xin lại (tối đa 4 lần). */
+  private refresh(n: number) {
+    this.onShow?.(); clearTimeout(this.staleTimer);
+    if (n < 4) this.staleTimer = window.setTimeout(() => { if (this.stale && this.host?.isOpen()) this.refresh(n + 1); }, 1500);
+  }
+  /** Server đã bắt đầu niệm (tin `recall`): đóng bản đồ để thấy thanh niệm. */
+  recallStarted() { this.pending = 0; this.reply = ""; if (this.host?.isOpen()) this.host.show(false); }
+  /** Server đã gửi phí từ xa (tin `world` mới); server cũ không có: nút từ xa khoá với lý do "Chỉ dùng khi đứng trên trận". */
+  private remoteOk() { const m = this.msg; return !!m && (m.remoteCdMax !== undefined || m.list.some((w) => w.feeRemote !== undefined)); }
+  /** Điều kiện nút Dịch chuyển theo tin `world`: lý do khoá ("" = bấm được), phí áp dụng (null = không tới được / chưa chọn), từ xa hay không. */
+  private goState(): { reason: string; fee: number | null; remote: boolean; key: string } {
+    const m = this.msg, none = (reason: string) => ({ reason, fee: null, remote: false, key: "" });
+    if (!m) return none("Đang tải trạng thái truyền tống trận");
+    if (this.stale) return none("Đang cập nhật vị trí đứng…");
+    if (this.sel?.t !== "wp") return none(this.sel ? "Chọn một truyền tống trận cụ thể" : "Chọn một truyền tống trận đã mở");
+    const w = this.wp(this.sel.id); if (!w) return none("Truyền tống trận không còn trong danh sách");
+    const remote = m.cur === "", fee = remote ? (this.remoteOk() ? w.feeRemote ?? null : null) : w.fee, key = w.key;
+    const no = (reason: string) => ({ reason, fee, remote, key });
+    if (!w.open) return no("Chưa mở khoá: bước lên trận này một lần");
+    if (m.cur === w.key) return no("Bạn đang đứng trên trận này");
+    if (remote && !this.remoteOk()) return no("Chỉ dùng khi đứng trên trận");
+    if (fee === null) return no("Không tới được từ đây");
+    if (fee > m.honTe) return no("Không đủ Hồn Tệ");
+    if (remote && this.cdLeft() > 0) return no(`Đang hồi: còn ${this.cdLeft()} giây`);
+    return { reason: "", fee, remote, key };
+  }
+  /** Giây còn hồi của dịch chuyển từ xa: số server gửi lúc nhận tin trừ thời gian đã trôi (chỉ để hiển thị đếm lùi). */
+  private cdLeft() { const m = this.msg; return m?.remoteCd ? Math.max(0, Math.ceil(m.remoteCd - (performance.now() - this.cdAt) / 1000)) : 0; }
+  /** Bấm Dịch chuyển: từ xa thì hỏi xác nhận một lần (tốn phụ phí và vào thời gian hồi), rồi gửi ý định `wp go`; server quyết định mọi thứ. */
+  runPrimary() {
+    const g = this.goState(); if (g.reason || g.fee === null) return;
+    const w = this.wp(g.key)!, send = () => { this.pending = performance.now(); this.reply = ""; this.hooks.go(g.key); this.paintCard(); this.onChange?.(); };
+    if (!g.remote) return send();
+    const cd = this.msg?.remoteCdMax;
+    confirmDialog({ title: "Dịch chuyển từ xa", confirm: "Dịch chuyển",
+      body: `Tới ${w.label} (${MAPS[w.map]?.name ?? w.map}): phí ${formatHonTe(g.fee)} (đã gồm phụ phí), niệm ${WAYPOINT_CAST} giây${cd ? `, sau đó hồi ${cd} giây trước lần dịch chuyển từ xa kế` : ""}. Di chuyển hoặc bị đánh khi niệm thì hủy.` }, send);
+  }
+  private runWalk() { const id = this.selMap(); if (id && this.walkable(id)) { this.host?.show(false); this.hooks.auto(id); } }
+  /** "Tự đi tới": bản đồ đã chọn khác chỗ đang đứng và có đường bộ (không phải phòng riêng). */
+  private walkable(id: string) { return !!this.msg && id !== this.msg.map && MAPS[id]?.kind !== "arena"; }
 
   // ---------- Dữ liệu ----------
   private selMap() { return !this.sel ? null : this.sel.t === "map" ? this.sel.id : this.wp(this.sel.id)?.map ?? null; }
@@ -305,6 +367,7 @@ class WorldMap {
         b.append(el("i", "wm-dia"), el("span", "t", w.label), el("em", "", w.open ? "Đã mở" : "Chưa mở"));
         b.addEventListener("click", () => this.select({ t: "wp", id: w.key })); c.append(b);
       }
+      this.walkBtn(c, id);
       return;
     }
     const w = this.wp(this.sel.id), isHere = m?.cur === this.sel.id;
@@ -314,10 +377,24 @@ class WorldMap {
     if (!m || !w) return;
     if (isHere) c.append(row("Vị trí", "Bạn đang đứng trên trận này", "here"));
     else if (w.open) {
-      const standing = m.cur !== "", fee = standing ? w.fee : w.feeRemote ?? null;
-      c.append(row(standing ? "Phí dịch chuyển" : "Phí từ xa (gồm phụ phí)", fee === null ? "Không tới được" : formatHonTe(fee), fee !== null && fee > m.honTe ? "poor" : ""));
-      if (fee !== null && fee > m.honTe) c.append(el("p", "wm-hint", "Không đủ Hồn Tệ."));
+      const g = this.goState(), standing = !g.remote;
+      c.append(row(standing ? "Phí dịch chuyển" : "Phí từ xa (gồm phụ phí)", g.fee === null ? (standing || this.remoteOk() ? "Không tới được" : "Chỉ dùng khi đứng trên trận") : formatHonTe(g.fee), g.fee !== null && g.fee > m.honTe ? "poor" : ""));
+      c.append(row("Thời gian niệm", `${WAYPOINT_CAST} giây (di chuyển hoặc bị đánh thì hủy)`));
+      if (standing) c.append(row("Thời gian hồi", "Không hồi khi đứng trên trận"));
+      else if (m.remoteCdMax !== undefined) {
+        const r = row("Hồi dịch chuyển từ xa", this.cdText(), this.cdLeft() > 0 ? "poor" : ""); this.cdEl = r.querySelector(".v") as HTMLElement; c.append(r);
+        c.append(el("p", "wm-hint", `Hai lần dịch chuyển từ xa cách nhau ${m.remoteCdMax} giây.`));
+      }
     }
+    if (this.pending) c.append(el("p", "wm-hint wm-wait", "Đã gửi yêu cầu, đang chờ server…"));
+    if (this.reply) { const r = el("p", "wm-reply", this.reply); r.setAttribute("role", "alert"); c.append(r); }
+    this.walkBtn(c, id);
+  }
+  /** Nút phụ "Tự đi tới <bản đồ>" của mục đang chọn (đi bộ qua các cổng thật, không tốn Hồn Tệ). */
+  private walkBtn(c: HTMLElement, id: string) {
+    if (!this.walkable(id)) return;
+    const b = el("button", "wm-walk f2-nut-phu", `Tự đi tới ${MAPS[id]?.name ?? id}`); b.type = "button"; b.title = `Đi bộ qua các cổng tới ${MAPS[id]?.name ?? id}, không tốn Hồn Tệ`;
+    b.addEventListener("click", () => this.runWalk()); c.append(b);
   }
 }
 
