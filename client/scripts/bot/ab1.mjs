@@ -1414,10 +1414,12 @@ export async function ab1Block3(ctx) {
         const before=new Set(st.drops.keys()); await killFor(years,species,boss); await sleep(150);
         const e=[...st.drops.entries()].find(([k,d])=>!before.has(k)&&d.item===CORE_ITEM); return e&&{id:e[0],dr:e[1]};
       }
-      /** `b` đứng lên hồn hạch rồi nhấn E (có thể chồng lên hồn hoàn: nhấn thêm); true khi hồn hạch đã rời mặt đất. */
+      /** `b` đứng lên hồn hạch rồi nhặt đúng hồn hạch đó theo ID (hook `pickup {did}`, #1490); true khi hồn hạch đã rời mặt đất.
+       * Tin `pickup` thật không có ID và chọn món gần nhất: hồn hạch chồng đúng vị trí hồn hoàn (không ô lệch nào đứng được) thì hòa khoảng cách,
+       * server lấy món đầu tiên là hồn hoàn, nên không dùng tin thật ở đây. */
       async function pickCore(kc,b=A){
         const q=meOf(b); await test(b,"goto",{x:kc.dr.x,y:kc.dr.y}); await waitFor(()=>Math.hypot(q.x-kc.dr.x,q.y-kc.dr.y)<1);
-        for(let k=0;k<3&&st.drops.has(kc.id);k++){ const l=b.logs.length; b.room.send("pickup"); await waitFor(()=>b.logs.length>l,1500); await waitFor(()=>!st.drops.has(kc.id),300); }
+        if(st.drops.has(kc.id)){ const l=b.logs.length; await test(b,"pickup",{did:kc.id}); await waitFor(()=>b.logs.length>l,1500); await waitFor(()=>!st.drops.has(kc.id),300); }
         return !st.drops.has(kc.id);
       }
       const checkIt=(it,stars)=>it&&it.kind==="hon_hach"&&it.qty===1&&it.stars===stars&&it.years===null&&it.enhance===0&&it.vohon===null
@@ -1431,7 +1433,7 @@ export async function ab1Block3(ctx) {
       ok(kc&&A.logs.some(t=>t.startsWith(`${coreName(CORE_SETS[kc.dr.cset].id,kc.dr.stars)} rơi xuống đất`)),"thông báo hồn hạch rơi kèm bộ và sao");
       if(kc){
         await test(B,"goto",{x:kc.dr.x,y:kc.dr.y}); await waitFor(()=>Math.hypot(bp().x-kc.dr.x,bp().y-kc.dr.y)<1);
-        const bb=coresOf(B).length, bl=B.logs.length; B.room.send("pickup"); await waitFor(()=>B.logs.length>bl,1500);
+        const bb=coresOf(B).length, bl=B.logs.length; await test(B,"pickup",{did:kc.id}); await waitFor(()=>B.logs.length>bl,1500);
         ok(/^Hồn hạch .* thuộc về người hạ/.test(B.logs.at(-1)??"")&&st.drops.has(kc.id)&&coresOf(B).length===bb,`B không nhặt được hồn hạch của A trong ${DROP_OWNER_SECS} giây đầu: ${B.logs.at(-1)}`);
         ok(await pickCore(kc)&&await waitFor(()=>coresOf(A).length===c0+1),"A nhặt hồn hạch vào túi");
         const it=coresOf(A).at(-1);

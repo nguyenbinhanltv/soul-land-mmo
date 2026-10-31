@@ -164,6 +164,9 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     const s = int(o.s, 0, 3600, 0);
     room.state.drops.forEach((dr) => { dr.ownerTtl = Math.max(0, dr.ownerTtl - s); dr.ttl = Math.max(0.01, dr.ttl - s); });
   }
+  // #1490: `pickup {did}` nhặt đúng một món theo ID (cùng luật tầm / quyền / túi đầy của `pickup`, như tự săn gọi `only`). Tin `pickup` thật không có ID
+  // và chọn món gần nhất, nên khi đồ rơi chồng vị trí bài kiểm một món cụ thể (hồn hạch chồng hồn hoàn) phải dùng op này.
+  else if (op === "pickup") { if (typeof o.did === "string") room.pickup(id, o.did); }
   else if (op === "rest") {
     const s = int(o.s, 0, 3600, 0); d.fight = Math.max(d.fight + s, TEAM_COMBAT_SECS);
     room.tickDowns(id, s); room.tickEnergy(id, s); room.sendSquad(id);
