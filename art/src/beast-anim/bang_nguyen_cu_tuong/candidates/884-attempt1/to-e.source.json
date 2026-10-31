@@ -1,0 +1,16 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "attempts":  1,
+    "round":  "mới theo ảnh dẫn",
+    "issue":  1423,
+    "rawSha256":  "07363d6b731aaced3bfe014c0cd2d9767db7ebe4a191a4a3d32c9b9741da0e97",
+    "promptSha256":  "92cc3a7db84a06e3669771026e8dddf8737617e30aa7cf5ed24d970bbf5538db",
+    "references":  [
+                       "candidates/884-guide2/guide.png",
+                       "to-ne.png"
+                   ],
+    "verdict":  "Chặn kỹ thuật: hình dính walk/attack, tràn ô và thiếu khung die; mắt đã che."
+}

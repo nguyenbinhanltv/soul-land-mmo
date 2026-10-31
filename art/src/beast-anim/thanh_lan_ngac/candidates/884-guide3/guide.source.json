@@ -1,0 +1,13 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "stage":  "sửa ảnh dẫn cuối",
+    "attempt":  3,
+    "rawSha256":  "a7df30e2a84716fca3dd1ec69d62ff8a993438b9d43ccf6cb401552945ead920",
+    "promptSha256":  "35bc9dc9aadfcf7f79934e4af3356d6842674c014cecce35d5dd8f89e48d3bb6",
+    "editTarget":  "candidates/884-guide2/guide.png",
+    "editTargetSha256":  "fcd2b174958d8f1816ab603656208c4cb227216e2c5476b3d8dcfbff6c8b20a6",
+    "verdict":  "Chặn ảnh dẫn: đỉnh sọ đã thu nhỏ nhưng chấm sáng trong hốc tối cạnh đầu-vai vẫn hiện khi phóng lớn; dừng, không dùng để sinh tờ ne."
+}

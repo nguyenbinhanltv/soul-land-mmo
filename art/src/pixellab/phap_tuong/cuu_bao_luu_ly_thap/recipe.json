@@ -19,7 +19,7 @@
   "display": {
     "scale": 1,
     "dx": 0,
-    "dy": -2,
+    "dy": -20,
     "back": [
       "s",
       "se",
@@ -144,9 +144,9 @@
           0,
           0,
           1,
-          1.0,
+          1,
           1.5,
-          1.0
+          1
         ],
         [
           0,
@@ -197,5 +197,11 @@
         "s": 2
       }
     ]
+  },
+  "dongGoi": {
+    "cong_cu": "tools/assets/phuthe-to-phaptuong.mjs",
+    "nguon": "vhanim_cuu_bao_luu_ly_thap_b/_f (phụ thể mới nhất, clip idle / attack)",
+    "ngay": "2026-10-31",
+    "issue": 1306
   }
 }

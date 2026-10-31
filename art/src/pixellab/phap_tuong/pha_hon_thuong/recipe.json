@@ -12,9 +12,9 @@
     "minComp": 6
   },
   "display": {
-    "scale": 1,
+    "scale": 1.4,
     "dx": 12,
-    "dy": -2,
+    "dy": -16,
     "back": [
       "s",
       "se",
@@ -187,5 +187,11 @@
       }
     ]
   },
-  "nghieng": 10
+  "nghieng": 10,
+  "dongGoi": {
+    "cong_cu": "tools/assets/phuthe-to-phaptuong.mjs",
+    "nguon": "vhanim_pha_hon_thuong_b/_f (phụ thể mới nhất, clip idle / attack)",
+    "ngay": "2026-10-31",
+    "issue": 1306
+  }
 }

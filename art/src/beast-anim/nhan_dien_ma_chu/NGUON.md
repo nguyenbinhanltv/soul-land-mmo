@@ -238,3 +238,32 @@ LỖI: turnaround — sai kích thước — toàn tờ — 1620×971 không đ�
 LỖI: turnaround — giải phẫu/hướng — nhiều hình chỉ đọc rõ ba cặp chân, ne/n còn họa tiết giống mặt; hết hai lượt mẫu, không dùng tham chiếu, giữ ne dự phòng (mắt)
 ```
 
+
+
+## Phiên 884 — ảnh dẫn bố cục riêng, ne lượt mới 1/3 (#1424)
+
+Dựng ảnh dẫn từ hướng n đã nhập, không dùng turnaround lỗi. Lượt ne mới 1 đạt checker, lưng trơn không mắt/mặt và giữ tám chân, kể cả die. Đã nhập bằng beast:import, đủ năm hướng. Chuẩn cỡ = sheet đã nhập (s 51.5, se 45.5, e 46, n 42 → 46.3); khớp ne ×1.00 còn lệch 0.0%. Hàng s/se/e/n và normal giữ nguyên pixel. Nhẹ: attack khung 2 chạm biên ô nhưng cắt đủ, không dính.
+
+Ảnh dẫn candidates/884-guide1/guide.png: SHA256 967f73e660739271f34b5f0cd60ba125fb3dc52d598d8dde955f18304a5bb9e9; prompt guide.prompt.txt SHA256 16f030e605eace3969159de08a540942feaf2a5ce9768c0a0c5563abbc6274b2; đầu vào toE.png SHA256 bbc878cd8c5636155ed539debf55dfca3f6e813268f206a6487d516844da0ecc. Công cụ image_gen.imagegen; model/seed unknown.
+
+### Lượt mới 1/3 — candidates/884-attempt1 (nội dung beast-nguon tự sinh)
+
+#### Nhân Diện Ma Chu — RAW hoạt ảnh (#1424)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species nhan_dien_ma_chu`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `nhan_dien_ma_chu` (Nhân Diện Ma Chu), họ `insect`, khung game 128×128. Mức kiểm chung: **pass**.
+
+##### to-ne
+
+- File: `to-ne.png`, **1536×1024**, 2065662 byte, SHA256 `ea850fc36d3b1d8ff19f5780e231aae817b527e69cfd1802e06285410e8d008b`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-884.
+- Prompt: `to-ne.prompt.txt` (SHA256 `576fe5e6557a4baf1dd6ba2c2e824f48ef2cd323ddaad271c6d5429659b84507`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+##### Lỗi
+
+Không có dòng `LỖI:`.
+

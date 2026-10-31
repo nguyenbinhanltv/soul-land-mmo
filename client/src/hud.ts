@@ -50,7 +50,7 @@ export function showTarget(html: string | null) {
   if (html === lastTarget) return;
   const prev = lastTarget; lastTarget = html;
   const t = $("#target");
-  if (!html) { t.style.display = "none"; return; }
+  if (!html) { t.hidden = true; t.style.display = "none"; return; }
   // Chỉ đổi thanh máu (.thp) thì cập nhật tại chỗ để transition width chạy, không dựng lại cả khung (chân dung, chip).
   const bar = /<div class="ui-bar thp">.*?<\/div>/, cur = t.querySelector<HTMLElement>(".thp"), m = html.match(bar);
   if (cur && m && prev !== null && prev.replace(bar, "") === html.replace(bar, "")) {
@@ -61,7 +61,7 @@ export function showTarget(html: string | null) {
       return;
     }
   }
-  t.style.display = "block"; t.innerHTML = html;
+  t.hidden = false; t.style.display = "block"; t.innerHTML = html;
 }
 /**
  * Nội dung khung mục tiêu hồn thú (UI-3, #353): dòng tên + chip niên hạn (nền mực, chữ sáng theo bậc) + cấp tương đương, thanh máu có số,

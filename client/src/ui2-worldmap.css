@@ -90,6 +90,10 @@
 body.touch :is(.wm-btn,.wm-chip){min-height:44px;min-width:44px}
 body.touch .wm-search input{min-height:44px}
 body.touch .wm-find li{min-height:44px}
+/* Chạm màn thấp: nhóm công cụ xuống hàng theo chữ thay vì đẩy nút − ra ngoài khung. */
+body.touch.ui-h500 .wm-bar{flex-wrap:wrap;overflow-x:visible}
+body.touch.ui-h500 .wm-search{flex:1 1 140px;max-width:none;min-width:0}
+body.touch.ui-h500 .wm-tools{flex:1 1 320px;min-width:0;margin-left:0;flex-wrap:wrap;white-space:normal}
 .a11y-fs-1 .wm-card{width:300px}
 .a11y-fs-2 .wm-card{width:340px}
 

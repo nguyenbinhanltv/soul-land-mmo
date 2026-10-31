@@ -21,6 +21,8 @@ const before = process.env.C8_PHASE === "before", phase = before ? "before" : "a
 const children = [], samples = [], nameSamples = [], nameFailures = [];
 const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
 if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true], [390, 844, true]);   // ngang + dọc (điện thoại)
+const hudOnly = process.env.C8_HUD_ONLY === "1";
+if (hudOnly) viewports.splice(0, viewports.length, [640, 360, true], [844, 390, true], [1280, 720, false], [960, 540, false], [1920, 1080, false]);
 const namesOnly = process.env.C8_NAMES_ONLY === "1";
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -102,6 +104,60 @@ try {
     await page.goto(`${web}/choi/`);
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
+    if (hudOnly) {
+      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      for (const fs of [0, 1, 2]) {
+        await page.evaluate((fs) => {
+          document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
+          if (fs) document.body.classList.add(`a11y-fs-${fs}`);
+          document.querySelectorAll("#toasts .toast").forEach(e => e.remove());
+          const me = { name: "Tiểu Vũ", leader: true, me: true, sid: "a", map: "", ch: 1, level: 20, vh: 0, hp: 80, maxHp: 100, dead: false, off: false };
+          window.__c8Scene.room.onMessageHandlers.emit("party", { id: 7, max: 5, members: [me, ...["Đường Tam", "Đới Mộc Bạch", "Chu Trúc Thanh", "Mã Hồng Tuấn"].map((name, i) => ({ ...me, name, leader: false, me: false, sid: "b" + i }))], invites: [] });
+          document.getElementById("lcol").scrollTop = 0;
+          document.getElementById("sbTabParty").click();
+        }, fs);
+        await page.waitForTimeout(300);
+        await screenshot(page, `hud-fs${fs}`, size);
+        const bounds = await page.evaluate(() => {
+          const rect = (s) => { const r = document.querySelector(s).getBoundingClientRect(); return { x:r.x, y:r.y, right:r.right, bottom:r.bottom, width:r.width, height:r.height }; };
+          return { col:rect("#lcol"), chat:rect("#chatbox"), tabs:rect(".sb-bar"), body:rect(".sb-body"), stats:rect(".stats") };
+        });
+        samples.push({ size, fs, bounds });
+        if (!before) {
+          const { col, chat, body, stats } = bounds;
+          assert.ok(!(col.x < chat.right && col.right > chat.x && col.y < chat.bottom && col.bottom > chat.y), `Chat đè cột trái ${size} fs${fs}: ${JSON.stringify(bounds)}`);
+          if (touch) assert.ok(body.height >= 44, `Thân tổ đội bị ép ${size} fs${fs}`);
+          assert.ok(stats.height > 44, `Thông tin nhân vật bị ép ${size}`);
+          if (touch) {
+            const combat = await page.evaluate(async () => {
+              const hud = await import("/src/hud.ts");
+              const chat = document.getElementById("chatbox"), hidden = () => getComputedStyle(chat).visibility === "hidden";
+              const checks = [!hidden()]; // HUD sạch phải hiện chat trước mọi fixture.
+              hud.showTarget('<div class="tn">Mục tiêu thử</div><div class="ui-bar thp"><i style="width:80%"></i><span>80 / 100</span></div>');
+              checks.push(hidden() && !document.getElementById("target").hidden);
+              hud.showTarget(null); checks.push(!hidden() && document.getElementById("target").hidden);
+              const frames = ["bossbar", "bossCd", "bossRank"].map(id => document.getElementById(id));
+              const saved = frames.map(e => e.hidden), wasBoss = document.body.classList.contains("boss");
+              frames.forEach(e => e.hidden = true); document.body.classList.remove("boss");
+              checks.push(...frames.map(e => { e.hidden = false; const ok = hidden(); e.hidden = true; return ok; }));
+              document.body.classList.add("boss"); checks.push(hidden()); document.body.classList.remove("boss");
+              checks.push(!hidden());
+              frames.forEach((e, i) => e.hidden = saved[i]); document.body.classList.toggle("boss", wasBoss);
+              return checks;
+            });
+            assert.ok(combat.every(Boolean), `Chat nhường mục tiêu / boss rồi hiện lại: ${size} fs${fs}`);
+            await page.locator("#sbTabQuest").click();
+            await page.locator("#sbTabParty").click();
+            const last = page.locator("#party .pmem").last();
+            assert.equal(await page.locator("#party .pmem").count(), 5);
+            await last.scrollIntoViewIfNeeded();
+            assert.ok(await last.isVisible(), "Thành viên cuối truy cập được");
+            await screenshot(page, `to-doi-fs${fs}`, size);
+          }
+        }
+      }
+      await context.close(); console.log(`✓ HUD ${phase} ${size}: ba cỡ chữ`); continue;
+    }
     for (const vohon of ["cuu_tinh_that_sat_kiem", "thien_can_bach_ngoc_dinh"]) await hook(page, "grant", { vohon });
     await page.waitForFunction(() => window.__c8Scene.owned.list.length === 4);
     const list = await page.evaluate(() => window.__c8Scene.owned.list);
@@ -377,7 +433,7 @@ try {
   await writeFile(resolve(out, `${phase}-metrics.json`), JSON.stringify(samples, null, 2));
   await writeFile(resolve(out, `${phase}-names.json`), JSON.stringify(nameSamples, null, 2));
   assert.deepEqual(nameFailures, [], "Tên hồn kỹ phải hiển thị đầy đủ bằng pixel, không clamp/overflow/che chữ");
-  if (!before && !namesOnly) {
+  if (!before && !namesOnly && !hudOnly) {
     const images = new Set(await readdir(out));
     const sections = viewports.map(([w, h, touch]) => {
       const size = `${w}x${h}`, state = touch ? "san-sang" : "ten-day-du";

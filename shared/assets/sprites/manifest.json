@@ -241,12 +241,6 @@
         "origin": [
           64,
           120
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "ne",
-          "n"
         ]
       },
       "map": "cuc_bac_chi_dia"
@@ -2270,12 +2264,6 @@
         "origin": [
           64,
           120
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "tinh_dau_noi_dia"
@@ -3130,12 +3118,6 @@
         "origin": [
           48,
           88
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "e",
-          "n"
         ]
       },
       "map": "tinh_dau_ngoai_vi"
@@ -9470,7 +9452,7 @@
       "pt": {
         "scale": 1,
         "dx": 0,
-        "dy": -2,
+        "dy": -20,
         "back": [
           "s",
           "se",
@@ -9755,9 +9737,9 @@
       "key": "pt_pha_hon_thuong",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.4,
         "dx": 12,
-        "dy": -2,
+        "dy": -16,
         "back": [
           "s",
           "se",
@@ -9828,9 +9810,9 @@
       "key": "pt_thien_can_bach_ngoc_dinh",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.2,
         "dx": 0,
-        "dy": -6,
+        "dy": -22,
         "back": [
           "s",
           "se",

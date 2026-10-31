@@ -1,0 +1,13 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "stage":  "ảnh dẫn bố cục",
+    "attempt":  1,
+    "rawSha256":  "a55e7869b8c451cc55d5e6bc21d4a38570992fbe89f51c4955dd4317def1d767",
+    "promptSha256":  "fa4acf183b3bb2387396bea94156bb62e13a519a4f526a0f6d599de1e81d9dd7",
+    "reference":  "C:\\Users\\PC\\.ao\\data\\worktrees\\soul_land_game\\soul_land_game-884\\art\\src\\beast-anim\\bang_nguyen_cu_tuong\\to-ne.png",
+    "referenceSha256":  "352f50712f20f4a2c3531b3fa4ec52ca3eed484717434695ebf4cf6221aebca6",
+    "verdict":  "Chặn: thừa đuôi rủ cạnh chân sau; không dùng làm tham chiếu tờ hướng."
+}

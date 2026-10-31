@@ -1,0 +1,13 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "stage":  "ảnh dẫn ne từ n đã đạt",
+    "attempt":  1,
+    "rawSha256":  "967f73e660739271f34b5f0cd60ba125fb3dc52d598d8dde955f18304a5bb9e9",
+    "promptSha256":  "16f030e605eace3969159de08a540942feaf2a5ce9768c0a0c5563abbc6274b2",
+    "reference":  "toE.png",
+    "referenceSha256":  "bbc878cd8c5636155ed539debf55dfca3f6e813268f206a6487d516844da0ecc",
+    "verdict":  "Bố cục ne đầu khuất trên-phải, lưng nâu trơn, bốn cặp chân; không dùng turnaround lỗi."
+}
