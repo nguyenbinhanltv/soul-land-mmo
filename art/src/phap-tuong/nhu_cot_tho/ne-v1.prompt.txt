@@ -1,0 +1,34 @@
+SQUARE 1:1 OUTPUT ONLY.
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+SPIRIT: Nhu Cot Tho, a colossal fierce white-and-pink rabbit spirit. Fully drawn complete animal with SOLID chest and belly, no human-shaped empty gap, no dark rectangular pillar. Tall crouching rabbit, two extremely long blade-like ears, powerful hindlegs, sharp claws, narrow blood-red eyes, ivory teeth. Dark muted rose-purple body shadows #70364f, rose base #c86a9a, white-ivory fur highlights and pale pink #ffc2e2 only on ear rims and fur tips. Motifs: thin non-letter dao-rune strokes on hindlegs, two hard-edged attached ribbon-like ear locks. No detached effects.
+
+SHEET: One square image, sixteen equal SQUARE cells in invisible 4x4 grid. Flat #FF00FF magenta. NO text, labels, visible grid, numbers, people, mannequin, shadow, ground, particles.
+NORTH-EAST VIEW: rabbit turned RIGHT AND AWAY, mostly the BACK visible in every cell. Back of head, back of both long ears, broad furred spine, rounded white tail, massive haunches. Only a narrow right cheek visible, never front chest or face looking at viewer. Bold pale rose-ivory tufts on back and ear edges stay readable at 70% opacity. Dark rose shadows, rose base, ivory highlights, narrow red eye only if visible in profile.
+Composition: tiny complete rabbit inside CENTRAL HALF of every cell. Bounding box no wider or taller than HALF cell. Leave a QUARTER CELL empty magenta on each side including attack. All ears and ribbons entirely contained. Same scale and baseline in all 16.
+Rows 1-2: eight near-identical upright crouch idle frames, subtle breathing 1-2 pixels.
+Row 3: crouch windup, rear slightly, gather both hindfeet, then seated reclining double hindleg kick toward UPPER RIGHT (away from viewer).
+Row 4: hold same kick peak, retract, land, neutral original crouch.
+Small forepaws tucked at chest, large hind feet thrust forward away, long ears swept back. Complete solid rabbit body, no dark pillar, no human gap. Hard #1a1020 outline, three tones per region.
