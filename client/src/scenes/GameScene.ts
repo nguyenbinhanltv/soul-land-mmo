@@ -1394,7 +1394,7 @@ export class GameScene extends Phaser.Scene {
 
   // ---------- Tin nhắn từ server ----------
   setupMessages() {
-    this.room.onMessage("log", (m: { text: string; col?: string }) => { hud.log(m.text, m.col); charLog(m.text, m.col); }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
+    this.room.onMessage("log", (m: { text: string; col?: string }) => { hud.log(m.text, m.col); charLog(m.text, m.col); hud.worldNote(m.text); }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
     // Tinh anh xuất hiện / bị hạ trong bản đồ này (BĐ4): báo cả phòng.
     this.room.onMessage("elite", (m: { k: string; name: string; zone?: string; by?: string; col?: string }) => {
       if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.logImp(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }

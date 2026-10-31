@@ -256,6 +256,8 @@ export function toggleWorld(open = !worldOpen()) {
   if (open) { toggleRoster(false); toggleBag(false); toggleReso(false); closeNpc(); toggleFriends(false); toggleChar(false); }
   return worldMap().host?.show(open) ?? false;
 }
+/** Dòng `log` của server: nếu vừa bấm Dịch chuyển thì đó là lý do bị từ chối, bản đồ thế giới hiện ở thẻ chi tiết. */
+export function worldNote(text: string) { worldMap().note(text); }
 /** Tin `world` mới (server gửi khi xin): bản đồ thế giới vẽ lại. */
 export function setWorld(m: WorldMsg) { worldMap().setMsg(m); }
 
@@ -281,7 +283,7 @@ export function setAuto(m: AutoMsg) {
   $("#autoChipTxt").textContent = `Tự động · còn ${autoTimeText(m.left)}`; // quỹ giờ treo còn lại (gồm Ủy Thác Lệnh nếu có)
   b.title = `${m.on ? "Đang tự săn: tự đi / đánh hoặc phím T để tắt" : "Bảng Tự động: cài đặt và bật tự săn quanh chỗ đang đứng (phím T bật / tắt ngay)"}. Còn ${autoTimeText(m.left)} treo${m.bonus > 0 ? ` (gồm ${autoTimeText(m.bonus)} từ Ủy Thác Lệnh)` : ""} (mỗi ngày ${autoTimeText(m.max)} miễn phí).`;
 }
-export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; }
+export function setRecall(r: { label: string; secs: number } | null) { recall = r ? { ...r, t0: performance.now() } : null; if (r) worldMap().recallStarted(); }
 /** Thanh niệm truyền tống (gọi trong updateStats khi không hấp thụ). Trả về true nếu đang hiện. */
 export function drawRecall(ch: HTMLElement) {
   if (!recall) return false;
