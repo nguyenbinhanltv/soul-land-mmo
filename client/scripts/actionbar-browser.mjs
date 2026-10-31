@@ -20,7 +20,7 @@ const out = resolve(process.env.C8_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "c8
 const before = process.env.C8_PHASE === "before", phase = before ? "before" : "after";
 const children = [], samples = [], nameSamples = [], nameFailures = [];
 const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
-if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true]);
+if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true], [390, 844, true]);   // ngang + dọc (điện thoại)
 const namesOnly = process.env.C8_NAMES_ONLY === "1";
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -185,6 +185,7 @@ try {
       if (touch) {
         // Cụm ngón cái: nút Đánh to nhất, 4 hồn kỹ + túi nhanh + ⋯, không đè cần điều khiển; ⋯ mở hàng phụ (R / G / hồn cốt), chọn xong tự đóng.
         const rect = (sel) => page.locator(sel).first().evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, r: r.right, b: r.bottom }; });
+        const hit = (a, c) => a.x < c.r && a.r > c.x && a.y < c.b && a.b > c.y;
         const atk = await rect("#skills .sk:first-child"), joy = await rect("#joy");
         assert.ok(atk.w >= 60 && atk.h >= 60, "Nút Đánh phải to nhất cụm");
         for (const i of [0, 1, 2, 3]) { const k = await rect(`#skills .sk[data-i="${i}"]`); assert.ok(k.w >= 44 && k.h >= 44 && k.x < atk.x + atk.w && k.b <= atk.b, `Hồn kỹ ${i} phải nằm quanh nút Đánh`); }
@@ -193,14 +194,20 @@ try {
         assert.ok(hidden, "Hàng phụ ẩn khi chưa bấm ⋯");
         await page.locator(".more-btn").tap();
         await page.waitForFunction(() => document.querySelector(".more-btn").getAttribute("aria-expanded") === "true");
-        const extras = await page.locator(".sk.bsk, .sk.ava").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height, in: r.x >= 0 && r.right <= innerWidth && r.y >= 0 && r.bottom <= innerHeight }; }));
+        const box = (e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, r: r.right, b: r.bottom }; };
+        const extras = await page.locator(".sk.bsk, .sk.ava").evaluateAll((els, boxSrc) => { const box = eval(boxSrc); return els.map((e) => { const r = box(e); return { ...r, in: r.x >= 0 && r.r <= innerWidth && r.y >= 0 && r.b <= innerHeight }; }); }, box.toString());
         assert.ok(extras.length >= 3 && extras.every((e) => e.w >= 44 && e.h >= 44 && e.in), `Hàng phụ phải hiện đủ, ≥ 44 px, trong màn: ${JSON.stringify(extras)}`);
+        const teamBoxes = await page.locator("#team button").evaluateAll((els, boxSrc) => els.map(eval(boxSrc)), box.toString());
+        assert.ok(!extras.some((e) => teamBoxes.some((t) => hit(e, t))), "Nút hàng phụ không giao chip đội hình");
         await page.waitForFunction(() => [...document.querySelectorAll("#bskills .ico img")].every((img) => img.complete && img.naturalWidth > 0));
         await screenshot(page, "cum-ngon-cai-mo", size);
         await page.locator(".more-btn").tap();
         await page.waitForFunction(() => document.querySelector(".more-btn").getAttribute("aria-expanded") === "false");
         const chips = await page.locator("#team button").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
-        assert.ok(chips.every((c) => c.w >= 44 && c.h >= 44 && c.x === chips[0].x) && chips.every((c, i) => i === 0 || c.y > chips[i - 1].y) && chips[0].x + 44 <= atk.x, "Chip đội hình xếp dọc, bên trái cụm");
+        assert.ok(chips.every((c) => c.w >= 44 && c.h >= 44 && c.x >= 0 && c.x + c.w <= width && c.y >= 0 && c.y + c.h <= height), "Chip đội hình ≥ 44 px, trong màn");
+        if (height > width) assert.ok(chips.every((c) => c.y === chips[0].y) && chips.every((c, i) => i === 0 || c.x > chips[i - 1].x) && chips.every((c) => c.y + c.h <= atk.y), "Màn dọc: chip xếp hàng ngang trên cụm");
+        else assert.ok(chips.every((c) => c.x === chips[0].x) && chips.every((c, i) => i === 0 || c.y > chips[i - 1].y) && chips[0].x + 44 <= atk.x, "Màn ngang: chip xếp dọc, bên trái cụm");
+        assert.ok(!chips.some((c) => hit({ x: c.x, y: c.y, r: c.x + c.w, b: c.y + c.h }, joy)), `Chip đội hình không giao cần điều khiển: ${JSON.stringify({ chips, joy })}`);
       }
       const names = await page.locator("#team button").evaluateAll((els) => els.map((e) => {
         const av = e.querySelector(".av")?.getBoundingClientRect(), lv = e.querySelector(".lv"), hp = e.querySelector(".hpb")?.getBoundingClientRect();
@@ -323,6 +330,9 @@ try {
       await hook(page, "rest", { s: 120 });
       await page.waitForFunction(() => !document.querySelector('.sk[data-i="3"].ct'));
       // Hồi quy #1418: ô P loadout = -1 (ô trống) vẫn phải hiện hồn kỹ Chân Thân (biểu tượng + hồi chiêu) khi biến hình, và trở lại trống khi hết.
+      // Server từ chối xếp ô khi đang giao chiến (boneLock): dọn hồn thú của cảnh thử rồi cho hết giao chiến trước khi xếp.
+      await hook(page, "clear", { all: true });
+      await hook(page, "rest", { s: 120 });
       // Tin `loadout` có giới hạn tần suất (nhóm social): gửi lại tới khi server nhận.
       for (let tries = 0; tries < 6; tries++) {
         await page.evaluate((rowId) => window.__c8Scene.room.send("loadout", { rowId, skills: [0, 1, 2, -1] }), active);

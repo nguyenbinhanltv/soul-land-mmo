@@ -92,7 +92,7 @@ body:is(.touch,.ui-w640) #hud #actbar .qbag{left:150px;top:20px}
 body:is(.touch,.ui-w640) #hud #actbar .more-btn{left:150px;top:74px}
 
 /* Hàng phụ (R, G, Z, X, C): ẩn tới khi bấm ⋯; xếp ngang phía trên cụm, căn phải. */
-body:is(.touch,.ui-w640) #hud #actbar .sk:is(.ava,.fus,.bsk){display:none;top:-52px}
+body:is(.touch,.ui-w640) #hud #actbar .sk:is(.ava,.fus,.bsk){display:none;top:-76px}   /* trên đỉnh cột chip đội hình (cao tới -24 px), không đè chip */
 body:is(.touch,.ui-w640) #hud #actrow.more .sk:is(.ava,.fus,.bsk){display:flex}
 body:is(.touch,.ui-w640) #hud #actbar .sk.bsk[data-b="2"]{left:auto;right:0}
 body:is(.touch,.ui-w640) #hud #actbar .sk.bsk[data-b="1"]{left:auto;right:48px}
@@ -115,3 +115,10 @@ body:is(.touch,.ui-w640).ui-h460:not(.ui-portrait) #hud #radar{width:100px;heigh
 
 /* Mobile dọc: ô gõ chat nằm sát đáy, cụm ngón cái nâng lên trên nó. */
 body:is(.touch,.ui-w640).ui-portrait #hud #actbar{bottom:calc(var(--sp-3) + 44px)}
+
+/* Mobile dọc: cột chip bên trái cụm sẽ đè cần điều khiển (trái dưới, rộng 18–148 px) ở màn 360–390 px, nên chip xếp HÀNG NGANG ngay trên cụm (y -30..14, trên đỉnh nút hồn kỹ),
+   hàng phụ (⋯) nằm trên hàng chip. */
+body:is(.touch,.ui-w640).ui-portrait #hud #actbar #team{right:0;bottom:calc(100% - 14px);margin:0;flex-direction:row}
+body:is(.touch,.ui-w640).ui-portrait #hud #actbar .sk:is(.ava,.fus,.bsk){top:-82px}
+/* Thẻ hướng dẫn lần đầu nằm trên hàng chip đội hình và hàng phụ (màn dọc), không che chúng. */
+body:is(.touch,.ui-w640).ui-portrait #hud>.guide{bottom:276px}
