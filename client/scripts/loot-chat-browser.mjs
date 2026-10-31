@@ -107,29 +107,36 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       const { f, d, base } = window.__lootTest;
       f.lootToasts([], [{ ...base, code:d.RING_ITEM, years:9999 }]);
     });
-    if (tag !== "truoc") assert.equal(await page.locator('.toast[data-k="loot"]').count(), 0, "hồn hoàn dưới ngưỡng chỉ chat");
+    if (tag !== "truoc") assert.equal(await page.locator('.toast[data-k="loot"]').count(), 0, "hồn hoàn thường chỉ chat");
     await page.evaluate(() => {
       const { f, d, base } = window.__lootTest;
       f.lootToasts([], [{ ...base, code:d.RING_ITEM, years:10000 }]);
       f.lootToasts([], [{ ...base, code:d.RING_ITEM, years:10001 }]);
+      f.lootToasts([], [{ ...base, code:d.RING_ITEM, years:100000 }]);
     });
     if (tag !== "truoc") {
-      assert.equal(await page.locator('.toast[data-k="loot"]').count(), 1, "chỉ một thanh đồ hiếm kể cả đang mờ");
+      assert.equal(await page.locator('.toast[data-k="loot"]').count(), 0, "hồn hoàn lớn cũng chỉ vào chat");
       assert.match(await page.locator("#log").innerText(), /Hồn hoàn/);
-      await page.locator('.toast[data-k="loot"]').waitFor({ state:"visible" });
+      const color = await page.locator("#log .chat-loot").last().evaluate((e) => ({ assigned:e.style.getPropertyValue("--c"), text:getComputedStyle(e).color, border:getComputedStyle(e).borderLeftColor }));
+      assert.ok(color.assigned, "dòng đồ hiếm có màu từ dữ liệu");
+      assert.equal(color.text, color.border, "màu độ hiếm vẫn áp dụng cho dòng chat");
+      await page.evaluate(() => {
+        const { d } = window.__lootTest, t = d.TIERS[d.tierOfYears(100000)];
+        window.__lootScene.room.dispatchMessage("log", { text:`Nhặt hồn hoàn ${d.formatYears(100000)} (${t.color}) vào túi đồ. Mở túi (B) để hấp thụ.`, col:t.glow });
+      });
+      assert.equal(await page.locator('.toast[data-title^="Nhặt"]').count(), 0, "biên nhận nhặt thành công màu đỏ không thành toast lỗi");
     }
-    await shot(`${width}x${height}-hiem`);
-    if (tag !== "truoc") assert.equal(await page.locator('.toast[data-k="loot"]').evaluate((e) => getComputedStyle(e).opacity), "1", "toast hiếm hiện rõ sau hiệu ứng vào");
-    if (tag !== "truoc") {
-      for (const code of ["hon_cot", "hon_hach"]) {
+    for (const code of ["hon_cot", "hon_hach"]) {
         await page.evaluate((code) => {
           const { f, d, base } = window.__lootTest;
           const bone = code === d.BONE_ITEM;
           f.lootToasts([], [{ ...base, code, kind:code, years:bone ? 1 : null, stars:bone ? null : 1,
             stats:bone ? {beast:d.BEASTS[0].id,slot:d.BONE_SLOTS[0].id} : {set:d.CORE_SETS[0].id,main:"hp",subs:[]} }]);
         }, code);
-        assert.equal(await page.locator('.toast[data-k="loot"]').count(), 1, `${code} bậc thấp vẫn giữ đúng một toast`);
-      }
+        if (tag !== "truoc") assert.equal(await page.locator('.toast[data-k="loot"]').count(), 0, `${code} cũng chỉ vào chat`);
+    }
+    await shot(`${width}x${height}-hiem`);
+    if (tag !== "truoc") {
       const inventoryChecks = await page.evaluate(() => {
         const { f, d, base } = window.__lootTest;
         const core = { ...base, code:d.CORE_ITEM, stats:{set:d.CORE_SETS[0].id,main:"hp",subs:[]} };
@@ -204,6 +211,11 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
         const r = await control.boundingBox();
         assert.ok(joy && r && (r.x >= joy.x + joy.width || r.y + r.height <= joy.y || r.y >= joy.y + joy.height), "nút chat không chồng vùng joystick");
       }
+    }
+    if (tag !== "truoc") {
+      await page.evaluate(() => { for (const kind of ["level","quest","boss"]) window.__lootTest.f.toast(kind, `Kiểm ${kind}`); });
+      for (const kind of ["level","quest","boss"]) assert.equal(await page.locator(`.toast[data-k="${kind}"]:not(.out)`).count(), 1, `giữ phản hồi ${kind}`);
+      assert.equal(await page.locator('.toast[data-k="loot"]').count(), 0, "không có thanh nhận đồ trong toàn luồng");
     }
   }
   console.log(`Ảnh ${tag}: ${out}`);

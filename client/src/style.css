@@ -188,7 +188,7 @@ body.touch #talk kbd{display:none}
 #chatbox:not(.open) #log{max-height:var(--log-max,104px);overflow:hidden;justify-content:flex-end} /* chat đóng: chỉ vài dòng mới nhất, không lấn lên cột trái (#722) */
 #log div{background:var(--ink-panel);color:var(--ink-text);border-left:3px solid var(--son);padding:3px 8px;font-size:12px;font-family:var(--f12);transition:opacity .6s;user-select:text}
 #log div b{margin-right:4px}
-#log div.chat-loot{color:var(--c);text-shadow:var(--stroke)}
+#hud #log div.chat-loot{color:var(--c);text-shadow:var(--stroke)}
 #chat-controls{display:flex;gap:var(--sp-2)}
 #chat-controls button{font:12px var(--f12);color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2);padding:var(--sp-2) var(--sp-4);cursor:pointer}
 #chat-system-filter::before{content:"☑ ";color:var(--good)}

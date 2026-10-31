@@ -4273,8 +4273,6 @@ export const STARTER_ITEMS = [{ code: "hoi_huyet_dan", qty: 5 }, { code: "hoi_ho
 export const BEAST_COIN: [number, number][] = [[1, 3], [4, 10], [15, 40], [60, 150], [300, 800]];
 /** Mã vật phẩm của hồn hoàn (bước 3.2). */
 export const RING_ITEM = "hon_hoan";
-/** Niên hạn hồn hoàn được giữ một toast nhận đồ hiếm ở client (#1462). Hồn cốt / hồn hạch luôn hiện toast. */
-export const LOOT_RARE_RING_YEARS = 10_000;
 /**
  * Hồn hoàn rơi xuống đất khi hạ hồn thú (mục 4, 5.2): DROP_OWNER_SECS giây đầu chỉ người hạ nhặt được, tồn tại DROP_TTL_SECS giây.
  * Nhặt (phím E) khi đứng cách hồn hoàn dưới PICKUP_RANGE pixel thì hồn hoàn vào túi đồ.
