@@ -84,8 +84,11 @@ function root(): HTMLElement {
   if (card?.isConnected) return card;
   card = document.createElement("section"); card.id = "onboard"; card.className = "ob f2-giay-nho"; card.hidden = true;
   card.setAttribute("role", "dialog"); card.setAttribute("aria-label", "Làm quen"); card.setAttribute("aria-live", "polite");
-  // Phím trên thẻ thuộc về nút đang chọn, không lọt thành mở chat / đánh / đổi mục tiêu của game.
-  card.addEventListener("keydown", (e) => e.stopPropagation());
+  // Chỉ phím điều hướng / kích hoạt nút thuộc về thẻ; phím chơi vẫn tới cảnh.
+  card.addEventListener("keydown", (e) => {
+    if (["Tab", "Enter", "Space"].includes(e.code)) e.stopPropagation();
+    if (e.code === "Escape" && !running) hide();
+  });
   card.addEventListener("mousedown", (e) => e.stopPropagation());
   card.innerHTML = `<div class="ob-main"><div class="ob-head"><b></b><span class="ob-dots" aria-hidden="true"></span></div><h4></h4><p></p></div>
     <div class="ob-foot"><button type="button" class="ob-quest" hidden>Xem nhiệm vụ</button><button type="button" class="ob-next"></button><button type="button" class="ob-skip">Bỏ qua</button></div>`;

@@ -90,6 +90,13 @@ GameScene.prototype.create = function(...a) { window.__obScene = this; window.__
     });
     const saved = await page.evaluate(n => localStorage.getItem(`soul-onboard-v1:${n}`), name);
     assert.equal(JSON.parse(saved).st, "done");
+    await page.keyboard.down('KeyW');
+    await page.waitForFunction(() => window.__obScene.keys.KeyW === true);
+    await page.keyboard.up('KeyW');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#onboard:visible').count(), 0, 'Esc đóng thẻ khi CTA giữ focus');
+    await page.evaluate(async () => { const { setHubOpen } = await import('/src/hubMenu.ts'); setHubOpen(false); });
+    console.log('✓ W tới cảnh và Esc đóng thẻ xong khi nút đang giữ focus');
     // Khung đã mở / đã gọn, ba cỡ chữ và màn ngang thấp: CTA luôn ở trong thẻ cuộn.
     for (const [width, height] of [[960, 540], [640, 360]]) for (const font of [0, 1, 2]) {
       await page.setViewportSize({ width, height });
@@ -112,6 +119,15 @@ GameScene.prototype.create = function(...a) { window.__obScene = this; window.__
       assert.deepEqual(await page.evaluate(() => window.__obWrites), [], 'CTA không gửi lệnh game');
     }
     assert.deepEqual(await page.evaluate(() => window.__obWrites), [], 'CTA không gửi lệnh game');
+    // Gợi ý tình huống được ưu tiên hơn thẻ xong, không bị thẻ tồn tại lâu che mất.
+    await page.evaluate(async () => {
+      const ob = await import('/src/onboard.ts'); ob.onboardAttach('Thu goi y'); ob.onboardBegin();
+    });
+    await finish();
+    await page.evaluate(async () => { const { guideHint } = await import('/src/guide.ts'); guideHint('hit'); });
+    await page.locator('#guide[data-mode="hint"]').waitFor();
+    assert.equal(await page.locator('#onboard:visible').count(), 0, 'thẻ xong nhường gợi ý');
+    await page.locator('#guide .g-next').click();
     // Trở lại hồn sư thật: bản ghi done không hiện lại, kể cả tải lại trang.
     await page.evaluate(async n => { const ob = await import('/src/onboard.ts'); ob.onboardAttach(n); ob.onboardBegin(); }, name);
     assert.equal(await page.locator('#onboard:visible').count(), 0);

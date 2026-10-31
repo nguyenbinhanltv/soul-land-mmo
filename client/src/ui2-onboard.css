@@ -16,7 +16,7 @@
 #onboard button{min-height:44px;min-width:72px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);cursor:pointer;color:var(--ink);background:var(--paper2);border:var(--bd) solid var(--wood)}
 #onboard .ob-quest,#onboard[data-mode="step"] .ob-next{background:var(--son);color:var(--plate-text);border-color:var(--son-d)}
 #onboard button:focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd-fine)}
-#hud:has(#onboard:not([hidden])) .guide[data-mode="hint"],#hud:has(.guide[data-mode="review"]:not([hidden])) #onboard,#hud:has(#npc:not([hidden])) #onboard,body.arena #onboard{display:none}   /* gợi ý theo tình huống nhường; xem lại hướng dẫn điều khiển thì thẻ làm quen tạm ẩn */
+#hud:has(#onboard[data-mode="step"]:not([hidden])) .guide[data-mode="hint"],#hud:has(.guide[data-mode="hint"]:not([hidden])) #onboard[data-mode="done"],#hud:has(.guide[data-mode="review"]:not([hidden])) #onboard,#hud:has(#npc:not([hidden])) #onboard,body.arena #onboard{display:none}   /* đang học thì gợi ý nhường; thẻ xong nhường gợi ý, Cẩm Nang và hộp NPC */
 
 /* (2) Vòng sáng + mũi nhấn bám theo nút cần bấm (onboard.ts đặt left / top / width / height theo nút). Mũi nhấn là ▼ nằm trên nút (hoặc ▲ dưới nút khi sát mép trên). */
 #obSpot{position:absolute;z-index:6;pointer-events:none;box-sizing:border-box}
