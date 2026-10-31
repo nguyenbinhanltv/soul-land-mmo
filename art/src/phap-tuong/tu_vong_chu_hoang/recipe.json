@@ -1,0 +1,52 @@
+{
+  "id": "tu_vong_chu_hoang",
+  "raw": "art/src/phap-tuong/tu_vong_chu_hoang/",
+  "attemptsUsed": {
+    "s": 3,
+    "se": 3,
+    "e": 3,
+    "ne": 1,
+    "n": 1
+  },
+  "selectedAttempts": {
+    "s": 1,
+    "se": 3,
+    "e": 3,
+    "ne": 1,
+    "n": 1
+  },
+  "padding": {
+    "script": "art/src/phap-tuong/tu_vong_chu_hoang/padding-s.mjs",
+    "cell": 384,
+    "pad": 32,
+    "intermediate": "art/src/phap-tuong/tu_vong_chu_hoang/s-padded.png",
+    "sha256": "1a72ae5b5fbfafc552722fc842d566d1ced3dd8750b4d90726e5818430826cc2"
+  },
+  "cut": "node tools/assets/phaptuong-sheet-cut.mjs <padding-output> shared/assets/sprites/phaptuong/tu_vong_chu_hoang.png --no-despill",
+  "glow": {
+    "function": "buildGlow",
+    "module": "tools/assets/phuthe-to-phaptuong-lib.mjs",
+    "color": "#9a4aff"
+  },
+  "sheetSha256": "cefefd23d8e970111ced4da646dbcd3ee5cd313d04e746ec961a93ba892da011",
+  "glowSha256": "13ecdae7e173bf689e8f5fefe1a1762b416fb01670545573713aab5533d8e345",
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": 0
+  },
+  "frame": 160,
+  "origin": [
+    80,
+    124
+  ],
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "colors": 48
+}

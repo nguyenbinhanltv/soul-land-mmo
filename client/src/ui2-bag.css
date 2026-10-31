@@ -81,6 +81,10 @@ body:not(.dual-win) #bag{width:min(520px,96vw)}
 .ui-h560 #bag{max-height:96%}
 .ui-h560 #bag .rhead b{font:var(--fs-m)/1.2 var(--f12)}
 
+/* #1465: dấu tăng điểm do server gửi và thao tác trên ô đang chọn. */
+.bslot .gear-up { position:absolute; top:0; right:0; color:var(--good); text-shadow:var(--stroke); background:var(--plate); z-index:3; }
+.bslot .gear-wear { position:absolute; bottom:0; left:0; right:0; cursor:pointer; z-index:2; }
+
 /* Túi gọn (#1464): công cụ trên tiêu đề, một hàng lọc, đồ mặc chỉ có dấu góc ô. */
 #bag .rhead{flex-wrap:wrap;gap:var(--sp-2)}
 #bag .rhead>span{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-left:auto}

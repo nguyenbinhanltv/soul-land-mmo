@@ -1,10 +1,11 @@
 // Trang bị hồn sư và Thợ rèn (GAME_DESIGN.md mục 5.15), tách khỏi MapRoom.ts (#702, bước 2): mặc / tháo, cường hóa, khắc may mắn, hợp thành,
 // phân giải, tự phân giải cùng hàng đợi `forgeLane` / khóa món `itemLocked`. Hàm nhận phòng (`room: MapRoom`) như split.ts; nguyên văn từ
 // MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`. MapRoom chỉ chuyển tiếp (đăng ký `onMessage` và `tick` giữ nguyên ở đó).
-import { itemDef, formatHonTe, AUTO_SELL_FREE,
+import { itemDef, formatHonTe, AUTO_SELL_FREE, BONE_ITEM, CORE_ITEM,
   EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, parseEquip, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, EQUIP_STONES, EQUIP_CHARM,
   equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome,
   equipSalvage, equipAutoSalvageable, AUTO_SALVAGE_RETRY_MS, type EquipData } from "../../../shared/data.ts";
+import { scoreGear } from "./equipBest.ts";
 import { store, type Item } from "../db.ts";
 import { ItemLockBusy, withItemLocks } from "../itemLock.ts";
 import { presenceBackend } from "../presence.ts";
@@ -12,10 +13,27 @@ import { newItem, gearStats, gearLook, bagUsed } from "./items.ts";
 import { CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
 
 /** Tin riêng "gear": các món đang mặc (`slot` = chỉ số trong EQUIP_SLOTS) và chỉ số tổng `st` (equipStats). Chỉ chính chủ; không vào state công khai (riêng bậc áo / mũ đang mặc được đẩy sang `gearAo` / `gearMu`, `gearLook`). */
-export function sendGear(room: MapRoom, id: string) {
+type GearView = { upgrades: string[]; items: { id: string; code: string; enhance: number; stats: unknown; slot: number | undefined; lock?: boolean }[]; st: PData["gearSt"] };
+const gearSent = new WeakMap<PData, { input: string; signature: string; message: GearView }>();
+export function sendGear(room: MapRoom, id: string, full = false) {
   const d = room.pdata.get(id), c = room.clients.getById(id); if (!d || !c) return;
   const p = room.state.players.get(id); if (p) gearLook(p, d.gear); // mọi đường đổi d.gear (mặc / tháo / phá huỷ khi cường hóa / hook test) đều gửi tin này
-  c.send("gear", { items: d.gear.map((i) => ({ id: i.id, code: i.code, enhance: i.enhance, stats: i.stats, slot: i.equipSlot, ...(i.locked ? { lock: true } : {}) })), st: d.gearSt });
+  // Tiền / đan / đồ tạp đổi không làm tính lại điểm. Chỉ các đầu vào thật của teamPowerOf mới làm mất cache.
+  const input = JSON.stringify([d.gear, d.bag.filter((it) => it.code === EQUIP_ITEM || (it.vohonId !== null && (it.code === BONE_ITEM || it.code === CORE_ITEM))),
+    d.team, d.owned.map((v) => [v.rowId, v.vohon, v.level, v.rings, v.stars, v.herbs]), d.res.bonus]);
+  const prev = gearSent.get(d);
+  if (prev?.input === input) { if (full) c.send("gear", prev.message); return; }
+  const before = room.teamPowerOf(d);
+  const upgrades = d.bag.filter((it) => {
+    const tpl = it.code === EQUIP_ITEM && it.vohonId === null && !it.locked ? equipTemplate(parseEquip(it.stats)?.tpl) : undefined;
+    if (!tpl) return false;
+    const slot = equipSlotIndex(tpl.slot);
+    return scoreGear(room, d, [...d.gear.filter((g) => g.equipSlot !== slot), { ...it, equipSlot: slot }]) > before;
+  }).map((it) => it.id);
+  const message: GearView = { upgrades, items: d.gear.map((i) => ({ id: i.id, code: i.code, enhance: i.enhance, stats: i.stats, slot: i.equipSlot, ...(i.locked ? { lock: true } : {}) })), st: d.gearSt };
+  const signature = JSON.stringify(message);
+  gearSent.set(d, { input, signature, message });
+  if (full || signature !== prev?.signature) c.send("gear", message);
 }
 
 /** Sau khi đổi trang bị: tính lại chỉ số, báo client, ghi ngay qua chuỗi lưu (túi + ô mặc cùng một transaction). */

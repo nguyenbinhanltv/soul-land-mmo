@@ -13,7 +13,7 @@
     "test:itemlock": "tsx scripts/itemlock-test.ts",
     "test:presence-kill": "tsx scripts/presence-kill-test.ts",
     "test:presence-outage": "tsx scripts/presence-outage-test.ts",
-    "test:equip": "tsx scripts/equip-test.ts",
+    "test:equip": "tsx scripts/equip-test.ts && tsx scripts/equip-best-test.ts",
     "test:econ": "tsx scripts/econ-invariants-test.ts",
     "test:static-cache": "tsx scripts/static-cache-test.ts",
     "test:radar": "tsx scripts/radar-test.ts",
