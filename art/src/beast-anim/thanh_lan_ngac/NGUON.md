@@ -262,3 +262,80 @@ LỖI: to-ne — hướng ne — vẫn có mắt ở cạnh đầu qua nhiều k
 LỖI: to-ne — hướng ne — vẫn thấy mắt ở cạnh đầu, kể cả die; đủ ba lượt, giữ dự phòng, không nhập (mắt)
 ```
 
+
+
+## Phiên 884 — dừng ở ảnh dẫn bố cục ne (#1425)
+
+Ba lượt ảnh dẫn riêng từ hướng n đã đạt (lượt 2/3 sửa ảnh dẫn trước) vẫn có chấm sáng trong hốc tối cạnh đầu-vai khi phóng lớn. Dừng, không dùng ảnh dẫn lỗi làm tham chiếu sinh tờ ne. Số tờ ne mới: 0; không nhập sprite, giữ dirsOk và ne dự phòng. Hồ sơ dưới đây do buildNguon của beast-nguon.mjs sinh từ RAW ảnh dẫn và khai báo mắt; đây là ảnh dẫn một tư thế, không phải tờ hoạt ảnh 22 khung, không tuyên bố đã qua kiểm lưới tờ. Không --scale, không đổi checker/ngưỡng.
+
+### Ảnh dẫn 1/3 — candidates/884-guide1
+
+#### Thanh Lân Ngạc — RAW hoạt ảnh (#1425)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thanh_lan_ngac`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mức kiểm chung: **chặn**.
+
+##### guide
+
+- File: `guide.png`, **1536×1024**, 1314369 byte, SHA256 `1df4e9bb1416997836f5aefbfd6e846d3732666c41cfd46a4b2c627eb8ac49ab`.
+- Công cụ: image_gen.imagegen (ảnh dẫn một tư thế, không phải tờ hoạt ảnh); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-884.
+- Prompt: `guide.prompt.txt` (SHA256 `d99be7ea49d09ebbd9a6a1c792cc57a070796732741713628e19f90e8d3fd034`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: ne chặn).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+##### Lỗi
+
+```text
+LỖI: guide — Bố cục và bốn chân/đuôi đúng; còn chấm sáng giống mắt ở cạnh đầu, sửa riêng ảnh dẫn trước khi dùng. (mắt)
+```
+
+
+### Ảnh dẫn 2/3 — candidates/884-guide2
+
+#### Thanh Lân Ngạc — RAW hoạt ảnh (#1425)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thanh_lan_ngac`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mức kiểm chung: **chặn**.
+
+##### guide
+
+- File: `guide.png`, **1536×1024**, 1296693 byte, SHA256 `fcd2b174958d8f1816ab603656208c4cb227216e2c5476b3d8dcfbff6c8b20a6`.
+- Công cụ: image_gen.imagegen (ảnh dẫn một tư thế, không phải tờ hoạt ảnh); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-884.
+- Prompt: `guide.prompt.txt` (SHA256 `13fc755483e4ac7d43b34b699484c9f56204cfb9c4ed5b581e9beb1a7e87ddff`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: ne chặn).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+##### Lỗi
+
+```text
+LỖI: guide — Chặn ảnh dẫn: phóng lớn vẫn thấy chấm sáng trong hốc tối ở cạnh đầu, không dùng cho tờ ne. (mắt)
+```
+
+
+### Ảnh dẫn 3/3 — candidates/884-guide3
+
+#### Thanh Lân Ngạc — RAW hoạt ảnh (#1425)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thanh_lan_ngac`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mức kiểm chung: **chặn**.
+
+##### guide
+
+- File: `guide.png`, **1536×1024**, 1305907 byte, SHA256 `a7df30e2a84716fca3dd1ec69d62ff8a993438b9d43ccf6cb401552945ead920`.
+- Công cụ: image_gen.imagegen (ảnh dẫn một tư thế, không phải tờ hoạt ảnh); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-884.
+- Prompt: `guide.prompt.txt` (SHA256 `35bc9dc9aadfcf7f79934e4af3356d6842674c014cecce35d5dd8f89e48d3bb6`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: ne chặn).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+##### Lỗi
+
+```text
+LỖI: guide — Chặn ảnh dẫn: đỉnh sọ đã thu nhỏ nhưng chấm sáng trong hốc tối cạnh đầu-vai vẫn hiện khi phóng lớn; dừng, không dùng để sinh tờ ne. (mắt)
+```
+
