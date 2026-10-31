@@ -30,7 +30,7 @@ interface Reward { items: Item[]; honTeAfter: number; bag: Bag; honTe: number; c
  * ký làm Colyseus ngắt kết nối client, nên không bỏ hẳn).
  */
 export const BLOCKED = ["auto", "absorb", "pickup", "discard", "team", "travel", "wp", "use", "open", "unlock", "starup", "equip", "unequip", "equipcore",
-  "unequipcore", "equipgear", "unequipgear", "equipenh", "equipenhpreview", "equipluck", "equipluckpreview","equipsynth", "equipsalvage", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "shardbuy", "loadout",
+  "unequipcore", "equipbest", "equipgear", "unequipgear", "equipenh", "equipenhpreview", "equipluck", "equipluckpreview","equipsynth", "equipsalvage", "enhance", "enhancecore", "talk", "buy", "sell", "buyback", "expand", "shardbuy", "loadout",
   "fusion", "calendar", "rank", "welfare", "achv", "mail", "bicanh"]; // Võ Hồn Dung Hợp Kỹ cấm trong sân, kể cả 2v2 (#192, #178)
 /** Cùng một câu báo từ chối chỉ gửi lại cho một người sau chừng này mili giây (J / Space giữ phím, bấm dồn không tràn log). */
 const DENY_GAP_MS = 1000;

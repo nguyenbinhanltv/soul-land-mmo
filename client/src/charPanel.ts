@@ -258,6 +258,15 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     // --- Trang bị (NV4 #458): 10 ô kiểu Mir2, ảnh món + khung viền theo bậc + "+N"; ô trống là hình bóng của ô. Đọc từ tin riêng "gear";
     // mặc / tháo bằng equipgear / unequipgear (NV3: kéo thả, bấm đúp, thẻ thao tác). Bấm ô trống: Túi sáng món hợp ô, bấm món là mặc. ---
     left.appendChild(mk("small", "cshead", `Trang bị hồn sư (${gearBy.size}/${EQUIP_SLOTS.length})`));
+    const best = mk("button", "f2-nut-chinh", "Mặc tốt nhất"); best.type = "button";
+    best.disabled = act.combat();
+    best.addEventListener("click", () => send(() => act.send({ msg: "equipbest", data: {} })));
+    left.appendChild(best);
+    const slotPick = mk("select"); slotPick.setAttribute("aria-label", "Ô mặc tốt nhất");
+    EQUIP_SLOTS.forEach((s, i) => { const o = mk("option", "", s.name); o.value = String(i); slotPick.appendChild(o); });
+    const one = mk("button", "f2-nut-phu", "Mặc tốt nhất ô này"); one.type = "button"; one.disabled = act.combat();
+    one.addEventListener("click", () => send(() => act.send({ msg: "equipbest", data: { slot: Number(slotPick.value) } })));
+    left.append(slotPick, one);
     const fig = mk("div", "edoll");
     const cell = (id: string) => {
       const s = EQUIP_SLOTS.find((x) => x.id === id)!, g = gearBy.get(id), it = g && gearAsBagItem(g), ref: SlotRef = { tab: "equip", slot: id, rowId: null };

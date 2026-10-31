@@ -76,7 +76,7 @@ export interface EquipLuckDone { id: string; from: number; to: number; ok: boole
 export interface EquipSynDone { ok: boolean; from: number; main: string; made: string | null; enhance: number | null; fee: number; essence: number; refund: number; }
 /** Tin "equipsalvd" (E4): kết quả phân giải `n` món: Hồn Tệ và nguyên liệu nhận được (`auto` = tự phân giải). */
 export interface EquipSalvDone { n: number; coin: number; items: { code: string; qty: number }[]; auto: boolean; }
-export interface GearMsg { items: GearItem[]; st: { bonus: Record<string, number>; weapon: { min: number; max: number } | null; red: number; luck: number }; }
+export interface GearMsg { upgrades?: string[]; items: GearItem[]; st: { bonus: Record<string, number>; weapon: { min: number; max: number } | null; red: number; luck: number }; }
 export interface BagMsg { slots: number; honTe: number; cd: number; items: BagItem[]; buyback?: BuybackItem[]; sell?: SellSettings; sold?: SoldItem[]; }
 /**
  * Tin riêng "bagd" (#215): túi đổi so với lần gửi trước (shared/bagSync.ts, áp bằng applyBagDelta lên tin "bag" đang có); số ô, Hồn

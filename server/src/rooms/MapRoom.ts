@@ -67,6 +67,7 @@ import { questBump } from "./questBump.ts";
 import { coreSetNoteOf, beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates, addGearBonus, regenStep } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
+import { equipBest } from "./equipBest.ts";
 import * as bones from "./bones.ts";
 import * as absorb from "./absorb.ts";
 import * as skill from "./skill.ts";
@@ -1069,6 +1070,7 @@ export class MapRoom extends Room<MapState> {
     this.onBagMsg("starup", (c, m: { vohon: unknown }) => this.starUp(c.sessionId, m?.vohon));
     this.onBagMsg("equip", (c, m: { itemId: unknown; vohonId: unknown; slot: unknown }) => this.equipBone(c.sessionId, m?.itemId, m?.vohonId, m?.slot));
     this.onBagMsg("unequip", (c, m: { itemId: unknown }) => this.unequipBone(c.sessionId, m?.itemId));
+    this.onBagMsg("equipbest", (c, m: unknown) => equipBest(this, c.sessionId, m));
     this.onBagMsg("equipgear", (c, m: { id: unknown }) => this.equipGear(c.sessionId, m?.id));
     this.onBagMsg("unequipgear", (c, m: { slot: unknown }) => this.unequipGear(c.sessionId, m?.slot));
     this.onBagMsg("equipenh", (c, m: { id: unknown; charm: unknown }) => this.equipEnhance(c.sessionId, m?.id, m?.charm === true)); // cường hóa trang bị ở Thợ rèn (E3)

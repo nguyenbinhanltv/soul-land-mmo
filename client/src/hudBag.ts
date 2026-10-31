@@ -378,6 +378,19 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : eq?.luck ? `M${eq.luck}` : it.qty > 1 ? String(it.qty) : "";
       const bone = boneOf(it), icon = itemArt(it) || (bone ? boneIcon(bone.slot, itemColor(it)) : core ? coreIcon(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
       b.innerHTML = `${icon}${etpl ? artImg(equipFrameKey(etpl.tier), "efr") : ""}${corner ? `<small>${corner}</small>` : ""}${(bone || core || etpl) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}${isNew(it.id) ? `<i class="nw" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
+      if (etpl && gear?.upgrades?.includes(it.id)) {
+        const up = document.createElement("span"); up.className = "gear-up"; up.textContent = "↑";
+        up.setAttribute("aria-label", "Tăng Sức mạnh đội hình"); b.appendChild(up);
+      }
+      if (etpl && it.id === bagSel) {
+        const wear = document.createElement("span"); wear.className = "gear-wear f2-nut-phu"; wear.textContent = "Mặc";
+        wear.setAttribute("role", "button"); wear.tabIndex = 0; wear.setAttribute("aria-label", `Mặc ${itemName(it)}`);
+        const equip = (e: Event) => { e.preventDefault(); e.stopPropagation(); act.equipGear(it.id); };
+        wear.addEventListener("pointerdown", equip);
+        wear.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
+        wear.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") equip(e); });
+        b.appendChild(wear);
+      }
       b.setAttribute("aria-label", (etpl ? `${itemName(it)} (${EQUIP_TIERS[etpl.tier].name})` : hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
         + (it.lock ? ", đang khoá" : ""));
       // Chú thích dùng chung (UI-0): tiêu đề theo màu niên hạn (glow trên tấm mực), dòng phụ nhóm vật phẩm / số năm, chỉ số hồn cốt / hồn hạch.

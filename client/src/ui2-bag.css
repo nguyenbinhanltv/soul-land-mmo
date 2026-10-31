@@ -80,3 +80,7 @@ body:not(.dual-win) #bag{width:min(520px,96vw)}
 /* Màn thấp (≤ 560 px, nhỏ nhất 960×540): bảng cao hơn, tiêu đề cỡ thường; dài hơn khung thì cuộn trong bảng. */
 .ui-h560 #bag{max-height:96%}
 .ui-h560 #bag .rhead b{font:var(--fs-m)/1.2 var(--f12)}
+
+/* #1465: dấu tăng điểm do server gửi và thao tác trên ô đang chọn. */
+.bslot .gear-up { position:absolute; top:0; right:0; color:var(--good); text-shadow:var(--stroke); }
+.bslot .gear-wear { position:absolute; bottom:0; left:0; right:0; cursor:pointer; z-index:2; }

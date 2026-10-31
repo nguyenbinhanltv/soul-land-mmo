@@ -5,6 +5,7 @@ import { itemDef, formatHonTe, AUTO_SELL_FREE,
   EQUIP_ITEM, EQUIP_SLOTS, EQUIP_LUCK_MAX, EQUIP_MAX_ENHANCE, parseEquip, equipTemplate, equipSlotIndex, equipName, equipSlotDef, rollEquip, EQUIP_STONES, EQUIP_CHARM,
   equipEnhanceStep, equipEnhanceResult, EQUIP_TEMPLATES, EQUIP_TIERS, EQUIP_ESSENCE, EQUIP_SOUL, equipLuckStep, EQUIP_SALVAGE_MAX, equipSynthStep, equipSynthOutcome,
   equipSalvage, equipAutoSalvageable, AUTO_SALVAGE_RETRY_MS, type EquipData } from "../../../shared/data.ts";
+import { scoreGear } from "./equipBest.ts";
 import { store, type Item } from "../db.ts";
 import { ItemLockBusy, withItemLocks } from "../itemLock.ts";
 import { presenceBackend } from "../presence.ts";
@@ -15,7 +16,14 @@ import { CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
 export function sendGear(room: MapRoom, id: string) {
   const d = room.pdata.get(id), c = room.clients.getById(id); if (!d || !c) return;
   const p = room.state.players.get(id); if (p) gearLook(p, d.gear); // mọi đường đổi d.gear (mặc / tháo / phá huỷ khi cường hóa / hook test) đều gửi tin này
-  c.send("gear", { items: d.gear.map((i) => ({ id: i.id, code: i.code, enhance: i.enhance, stats: i.stats, slot: i.equipSlot, ...(i.locked ? { lock: true } : {}) })), st: d.gearSt });
+  const before = room.teamPowerOf(d);
+  const upgrades = d.bag.filter((it) => {
+    const tpl = it.code === EQUIP_ITEM && it.vohonId === null && !it.locked ? equipTemplate(parseEquip(it.stats)?.tpl) : undefined;
+    if (!tpl) return false;
+    const slot = equipSlotIndex(tpl.slot);
+    return scoreGear(room, d, [...d.gear.filter((g) => g.equipSlot !== slot), { ...it, equipSlot: slot }]) > before;
+  }).map((it) => it.id);
+  c.send("gear", { upgrades, items: d.gear.map((i) => ({ id: i.id, code: i.code, enhance: i.enhance, stats: i.stats, slot: i.equipSlot, ...(i.locked ? { lock: true } : {}) })), st: d.gearSt });
 }
 
 /** Sau khi đổi trang bị: tính lại chỉ số, báo client, ghi ngay qua chuỗi lưu (túi + ô mặc cùng một transaction). */

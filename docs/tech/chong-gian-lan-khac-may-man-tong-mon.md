@@ -41,3 +41,15 @@ Nhánh `catch` của `equipLuck`: `undoSoul(); it.stats = was`. Vì món không 
 ## Danh sách đã đọc
 
 Message: `equipluck`, `equipluckpreview`, `equipgear`, `unequipgear`, `discard`, `sell` (chặn `claimBusy`), `equipsalvage`, `equipsynth`, `equipenh` (cùng làn `enhBusy`), `tong` (`join`, `leave`, `accept`, `turnin`, `board`, `claim`, `get`). Không route REST liên quan.
+
+## Mặc tốt nhất (#1465)
+Phạm vi soát bổ sung theo `anti-cheat-audit`: không đổi luật cũ của Thợ rèn / tông môn.
+
+| Bề mặt đã đọc | Kết quả |
+|---|---|
+| `equipbest` → `chooseBest` → `afterGear` / `save` | Đã đọc, ổn: chỉ nhận ô và token; món / điểm giả bị bỏ qua. Chọn trong túi chính chủ, bỏ món khóa / ô khóa, dùng `teamPowerOf` với bản sao chỉ số trang bị. `boneLock`, `travelling`, `claimHeld` chặn; kiểm lại khi xác nhận. Token riêng theo PData, một lần, phương án cũ bị từ chối. Nhóm `bag` và nhịp `ASK_CD` chặn spam tính điểm. Đổi cả bộ đồng bộ, lưu chung ảnh chụp túi + ô mặc qua đường lưu hiện hữu. |
+| `equipgear`, `unequipgear`, `equipluck`, `equipenh`, `equipsynth`, `equipsalvage` | Đã đọc các chốt tương tác, ổn: luồng mới dùng chung `claimHeld` / `boneLock`, không xen đổi đồ trong khi lệnh Thợ rèn đang giữ khóa. |
+| `gear`, `equipbestp`, `bag` / `bagd` | Đã đọc, ổn: chỉ gửi chính chủ; `upgrades` do server tính, không thêm state công khai. |
+| ArenaRoom / BiCanhRoom | Đã đọc, ổn: `equipbest` nằm trong `BLOCKED` dùng chung. |
+
+Kiểm thực tế: unit cho hòa điểm, thiếu món, món khóa, giao chiến khi xác nhận, đang chờ ghi DB, payload sai kiểu, token cũ và nhịp xem trước. Bot `equipbest` RAM và PostgreSQL đều đạt 39 kiểm tra, gồm món / điểm giả, xác nhận lặp, giao chiến, khóa và vào lại giữ đúng trang bị. Không có API REST mới, SQL mới hoặc số cân bằng mới.
