@@ -225,7 +225,8 @@ try {
     const test = (op, data = {}) => page.evaluate(([op, data]) => window.__bd.room.send("test", { op, ...data }), [op, data]);
     const openWorld = async () => { await page.keyboard.press("KeyM"); await page.waitForFunction(() => document.getElementById("mapview").dataset.mode === "world" && !document.getElementById("mapview").hidden); await page.waitForFunction(() => document.querySelector("#world .wm-notice")?.hidden === true); };
     const pickWp = async (i) => {
-      await page.locator('#world .wm-node[data-id="thanh_hon_thon"]').click();
+      if (touch) await page.getByLabel("Chọn bản đồ").selectOption("thanh_hon_thon");
+      else await page.locator('#world .wm-node[data-id="thanh_hon_thon"]').click();
       await page.waitForFunction(() => document.querySelector("#world .wm-card .wm-t")?.textContent === "Thánh Hồn Thôn");
       const label = await page.evaluate((i) => window.__bd.waypoints[i].label, i);
       await page.locator("#world .wm-li", { hasText: label }).click();
