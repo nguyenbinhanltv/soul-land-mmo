@@ -51,12 +51,13 @@ function fixture() {
   for (const raw of [null, [], { slot: [] }, { slot: -1 }, { slot: Infinity }, { token: {} }, { token: "giả" }]) equipBest(f.room, "me", raw);
   assert.equal(f.sent.length, 0); assert.equal(f.d.gear[0].id, "old", "Payload sai không đổi đồ");
   // Không để CI bị ngắt lịch làm trôi qua cửa sổ ASK_CD giữa hai lệnh.
+  const cdMs = ASK_CD * 1000;
   let now = 1_000_000;
   const clock = mock.method(Date, "now", () => now);
   try {
     equipBest(f.room, "me", {}); equipBest(f.room, "me", {});
     assert.equal(f.sent.length, 1, "Giới hạn nhịp xem trước");
-    now += ASK_CD - 1;
+    now += cdMs - 1;
     equipBest(f.room, "me", {});
     assert.equal(f.sent.length, 1, "Chưa đủ ASK_CD vẫn chặn xem trước");
     now += 1;
