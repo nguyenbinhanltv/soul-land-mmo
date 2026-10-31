@@ -10,7 +10,8 @@ import { TIERS, VOHON, tierOfYears, vohonIndex, beastIndex, starSkillMult, starC
 import { store } from "../db.ts";
 import * as party from "../party.ts";
 import { presenceBackend } from "../presence.ts";
-import { fusionCdLeft, fusionKey, fusionReady, type MapRoom, type PData, type Hit, type FusHit } from "./MapRoom.ts";
+import { fusionCdLeft, fusionReady, type MapRoom, type PData, type Hit, type FusHit } from "./MapRoom.ts";
+import { fusionKey } from "./common.ts";
 
 /**
  * Bộ máy hồn kỹ theo dữ liệu (SkillDef trong shared/data.ts) cho hồn kỹ chung, hồn kỹ riêng và chiêu tiên cơ riêng.

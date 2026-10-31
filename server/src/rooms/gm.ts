@@ -20,7 +20,8 @@ import { buildPreset } from "../testPreset.ts";
 import { newItem, gearStats, bagUsed } from "./items.ts";
 import { savePeriodic } from "./persist.ts";
 import * as party from "../party.ts";
-import { CHANNEL_CAP, channelLeftKey, channelSwitchAt, channelSwitchKey, claimHeld, eliteLockLeft, eliteLocks, fusionKey, fusionReady, leftRoom, strIn, testNoLeaveLock, testOfflineAgo, testShift, worldChatKey, type MapRoom, type PData } from "./MapRoom.ts";
+import { CHANNEL_CAP, channelSwitchAt, eliteLockLeft, eliteLocks, fusionReady, leftRoom, testNoLeaveLock, testOfflineAgo, type MapRoom, type PData } from "./MapRoom.ts";
+import { channelLeftKey, channelSwitchKey, fusionKey, worldChatKey, claimHeld, strIn, testShift } from "./common.ts";
 
 /**
  * Hook kiểm thử cho bot (client/scripts/bot-test.mjs), chỉ chạy khi server bật biến môi trường GAME_TEST=1; mặc định chỉ trả

@@ -92,6 +92,7 @@ import * as ava from "./ava.ts";
 import * as tienco from "./tienco.ts";
 import * as stats from "./stats.ts";
 import * as fog from "./fog.ts";
+import { CHAT_TOPIC, accOf, intIn, strIn, saveStats, channelLeftKey, buybackKey } from "./common.ts";
 
 export interface PData {
   /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
@@ -309,14 +310,6 @@ export interface WorldData {
   chargeT: number; armorT: number; miasmaT: number; diveT: number;
   brk: number; brkAt: Map<string, number>; shield: number; shieldT: number; dive: number; surf: { x: number; y: number } | null;
 }
-/** Trạng thái boss thế giới lúc mới sinh / bỏ giao chiến: các cơ chế chờ `every` × WORLD.firstMech giây mới chạy lần đầu. */
-export function newWorld(def: BossDef): WorldData {
-  const m = def.world ?? {}, first = (e?: number) => (e ?? 0) * WORLD.firstMech;
-  return { rage: false, slamT: WORLD.slamEvery, weakNext: 0, weak: null, weakT: 0, chargeT: first(m.charge?.every), armorT: first(m.armor?.every),
-    miasmaT: first(m.miasma?.every), diveT: first(m.dive?.every), brk: 0, brkAt: new Map(), shield: 0, shieldT: 0, dive: 0, surf: null };
-}
-/** Bộ hằng số theo bậc của boss có lịch: thú vương KING, boss thế giới WORLD (người tham gia, thưởng, lượt mỗi ngày). */
-export const bossK = (k: KingData | null | undefined) => (k?.world ? WORLD : KING);
 /** Mũi hồn kỹ đang bay của hồn sư `owner`: chạm hồn thú đầu tiên thì gọi `fire` (sát thương và trạng thái của hồn kỹ). */
 interface Proj { x: number; y: number; vx: number; vy: number; life: number; owner: string; fire: (bid: string) => void; foe?: (pid: string) => void; } // foe: trúng đối thủ (7.2)
 /** Tùy chọn của một lần gây sát thương lên hồn thú. `direct` = false: sát thương theo thời gian (không chí mạng, không đẩy lùi,
@@ -326,51 +319,16 @@ export interface DmgOpt { crit?: number; lifesteal?: number; direct?: boolean; c
 /** Một đòn của Võ Hồn Dung Hợp Kỹ (#192): đồng đội dung hợp và công trung bình của hai người (không ràng buộc). */
 export interface FusHit { pair: string; atk: number; }
 
-let nextId = 1;
-export const uid = (p: string) => p + (nextId++).toString(36);
-
-// ---------- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên") ----------
-/** Phiên giữ tài khoản: lease `account:<acc>` trong presence, từ onJoin tới khi lần ghi DB cuối của phiên đó xong (accountLeaseKey). */
-/**
- * Chat xuyên phòng (#188, mục 6 "Xã hội"): tổ đội, tin riêng, thế giới, tông môn phát lên chủ đề presence này; mọi phòng nghe và gửi
- * tin `chat` cho người chơi của mình có trong `to`, hoặc thuộc tông `tong` (#198); không có cả hai: mọi người (kênh thế giới). Không
- * lưu lịch sử.
- */
-export const CHAT_TOPIC = "chatx";
-/** Màu dòng log của bạn bè / chặn (#195). */
-export const FRIEND_COL = "#9fd8ff";
+// ---------- Chat xuyên phòng (mục 6 "Xã hội") ----------
 export interface ChatRoute { to?: number[]; tong?: string; from?: number; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
-/** Tài khoản của phiên (client.auth; cả người xem trận, #278). */
-export const accOf = (c: Client) => (c.auth as { accountId?: number } | undefined)?.accountId;
-/** Lý do từ chối bán / bỏ / hấp thụ / nộp đồ trong lúc phần thưởng boss đang chờ DB xác nhận lượt (claimBusy, #165). */
-export const CLAIM_BUSY = "Đang lưu phần thưởng boss / mảnh vừa đổi, đợi một chút."; // claimBusy: rương, thưởng boss, đổi mảnh ở Thương hội (#282)
-/** Đang chờ DB ghi phần thưởng boss (grantChest) hoặc hook test `claimhold` giữ: chặn mở rương, bán / bỏ / hấp thụ / nộp / sắp xếp / tự bán. */
-export const claimHeld = (d: { claimBusy: number; testClaimHold: boolean }) => d.claimBusy > 0 || d.testClaimHold;
-/** Phiên mới chờ phiên cũ lưu xong tối đa bấy nhiêu mili giây; quá thì từ chối vào phòng (không nạp dữ liệu cũ). */
-export const HOLD_WAIT_MS = 8000;
 
 // ---------- Giá trị client gửi (mục 6 "Mỗi message: ép kiểu và kẹp giá trị", #164) ----------
 // Chỉ kiểm `typeof`, không Number() / String() / phép so sánh trên giá trị thô: msgpack giải ra object tùy ý, đổi kiểu một object
 // có thể ném lỗi.
 /** Số hữu hạn client gửi; khác (chuỗi, object, NaN, Infinity…) thì 0. */
 const numIn = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
-/** Bộ đếm token đầy cho mọi nhóm tin của một kết nối (#734). */
-export const newMsgBuckets = (): Record<MsgGroup | "hard", TokenBucket> => {
-  const t = Date.now(), b = { hard: { n: MSG_HARD.burst, t } } as Record<MsgGroup | "hard", TokenBucket>;
-  for (const g of Object.keys(MSG_GROUP) as MsgGroup[]) b[g] = { n: MSG_GROUP[g].burst, t };
-  return b;
-};
-/** Số nguyên client gửi; khác thì NaN (hàm nhận tự từ chối). */
-export const intIn = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : NaN);
-/** Chuỗi client gửi; khác thì "". */
-export const strIn = (v: unknown) => (typeof v === "string" ? v : "");
 /** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
 const ERR_LOG_MS = 10_000;
-/**
- * Số lần lưu bị lỗi từ lúc bật server: lần ghi trong chuỗi lưu (chain), và lỗi trong onLeave / onDispose (có thể ném trước khi tới lần
- * ghi cuối). index.ts so trước / sau khi tắt để biết lần lưu cuối có trót lọt (#270).
- */
-export const saveStats = { failed: 0 };
 
 // ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
 /**
@@ -435,8 +393,6 @@ export async function persistEliteLock(key: string, changes: Map<number, number>
  * võ hồn, đổi kênh, đi cổng, thoát vào lại đều không làm mới. Mất khi khởi động lại server; ghi cả vào presence (`fusion:<acc>`, TTL = FUSION.cd), nạp lại lúc vào phòng (#120).
  */
 export const fusionReady = new Map<number, number>();
-export const fusionKey = (accountId: number) => `fusion:${accountId}`;
-export const worldChatKey = (accountId: number) => `world-chat:${accountId}`;
 /** Số giây hồi chiêu dung hợp kỹ còn lại của tài khoản `acc` (0 = dùng được); bỏ mục đã hết hạn. */
 export function fusionCdLeft(acc: number) {
   const t = fusionReady.get(acc); if (t === undefined) return 0;
@@ -576,7 +532,6 @@ async function releaseChannel(mapId: string, roomId: string, ch: number) {
 }
 /** Lần đổi kênh gần nhất của mỗi tài khoản (ms): đổi kênh là đổi phòng (đổi sessionId) nên khóa theo tài khoản (CHANNEL_CD). */
 export const channelSwitchAt = new Map<number, number>(); // dòng hết CHANNEL_CD giây bị sweepChannelMaps dọn (#957); hook test `chan {reset}` ở gm.ts xóa tay
-export const channelSwitchKey = (accountId: number) => `channel-switch:${accountId}`;
 /**
  * Kênh vừa rời không qua đường server duyệt (đóng tab, mất mạng, client tự rời; onLeave không ghi khi đi cổng / đổi kênh đã commit): trong
  * CHANNEL_CD giây tài khoản chỉ được vào lại đúng kênh đó của bản đồ (onAuth từ chối kênh khác khi kênh cũ còn mở và còn chỗ;
@@ -585,7 +540,6 @@ export const channelSwitchKey = (accountId: number) => `channel-switch:${account
  * client vào đúng kênh đó (mục 6: client không chọn kênh đích) chứ không tự joinById kênh khác.
  */
 export const leftRoom = new Map<number, { mapId: string; roomId: string; ch: number; until: number; travel?: boolean }>();
-export const channelLeftKey = (accountId: number) => `channel-left:${accountId}`;
 /**
  * #957: dọn dòng hết hạn của channelSwitchAt (đã qua CHANNEL_CD giây) và leftRoom (until đã qua): hai Map này khóa theo tài khoản nên
  * không dọn thì phình theo số tài khoản từng chơi. Chỉ xóa dòng mà luật đổi kênh đã coi như không có (không đổi luật); trả số dòng đã xóa.
@@ -724,7 +678,6 @@ function mapIdIn(v: unknown) {
 export interface Buyback { key: string; item: Item; price: number; }
 export const buybacks = new Map<number, Buyback[]>();
 const BUYBACK_TTL_MS = 6 * 3600 * 1000;
-export const buybackKey = (accountId: number) => `buyback:${accountId}`;
 /** Đọc-sửa-ghi danh sách mua lại ở presence trong một lần khóa (presence là nguồn đúng); cập nhật bản cục bộ theo kết quả. */
 export async function editBuyback(accountId: number, edit: (list: Buyback[]) => Buyback[]) {
   let next: Buyback[] = [];
@@ -738,13 +691,6 @@ export async function claimBuyback(accountId: number, key: string) {
   await editBuyback(accountId, (list) => { got = list.find((x) => x.key === key) ?? null; return list.filter((x) => x.key !== key); });
   return got as Buyback | null;
 }
-
-
-/**
- * Hook test `daily {shift}` (`daily`): lệch ngày của khảo hạch hằng ngày cho cả tiến trình (MapRoom.dailyDay); `tweek {shift}` #197 (`tong`): lệch số ngày
- * của tuần tông (tongNow, tongWeek) cho cả tiến trình. Chỉ đổi khi GAME_TEST=1 (hook ở gm.ts, nên là đối tượng chung thay cho hai biến `let`).
- */
-export const testShift = { daily: 0, tong: 0 };
 
 export class MapRoom extends Room<MapState> {
   maxClients = CHANNEL_CAP;
