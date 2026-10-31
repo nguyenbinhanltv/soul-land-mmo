@@ -817,11 +817,11 @@ export async function autoTest(){
     // Con mồi lang thang ±BEAST_WANDER mỗi trục quanh chỗ sinh; findTarget chỉ nhận con trong AUTO_RADIUS quanh neo (không lề). Sinh ở dx=200
     // thì con mồi có lúc ra ngoài vùng neo suốt lúc nghỉ → không có mục tiêu hợp lệ dù đã hồi đủ (#1536). Chọn dx sao cho cả ô lang thang
     // nằm trong vùng neo, và vẫn ngoài tầm hung hăng BEAST_AGGRO_R (con mồi không tự đánh mình trong lúc nghỉ).
-    const BDX=150; ok(Math.hypot(BDX+BEAST_WANDER,BEAST_WANDER)<=AUTO_RADIUS&&BDX-BEAST_WANDER>BEAST_AGGRO_R,`AH3 B3: ô lang thang của con mồi (dx ${BDX} ±${BEAST_WANDER}) nằm trong vùng neo ${AUTO_RADIUS}, ngoài tầm hung hăng ${BEAST_AGGRO_R}`);
-    const bait=(await test(A,"spawn",{tier:0,dx:BDX,dy:0,years:10,hpx:50}))?.bid; let rested=false, baited=false, back=false, maxDA=0;
-    for(let t=0;t<40000&&!back;t+=300){ const st=await infoA(), bb=A.room.state.beasts.get(bait); if(bb&&st.anchor) maxDA=Math.max(maxDA,Math.round(Math.hypot(bb.x-st.anchor.x,bb.y-st.anchor.y)));
+    const BDX=150; // cả ô lang thang: hypot(BDX + BEAST_WANDER, BEAST_WANDER) ≈ 218 < AUTO_RADIUS, và BDX - BEAST_WANDER = 90 > BEAST_AGGRO_R; maxDA đo lại bên dưới
+    const bait=(await test(A,"spawn",{tier:0,dx:BDX,dy:0,years:10,hpx:50}))?.bid; let rested=false, baited=false, back=false, maxDA=null;
+    for(let t=0;t<40000&&!back;t+=300){ const st=await infoA(), bb=A.room.state.beasts.get(bait); if(bb&&st.anchor) maxDA=Math.max(maxDA??0,Math.round(Math.hypot(bb.x-st.anchor.x,bb.y-st.anchor.y)));
       if(st.resting) { rested=true; if(st.target===bait) baited=true; } else if(rested&&st.target===bait) back=true; await sleep(300); }
-    ok(m?.on&&rested&&!baited&&back&&me(A).hp>=me(A).maxHp*AUTO_REST.resume-1,`AH3 B3: hết đan, sinh lực dưới ${AUTO_DEFAULTS.hp*100}% → nghỉ (không nhắm con mới), tới ${AUTO_REST.resume*100}% sinh lực săn tiếp (nghỉ ${rested}, nhắm khi nghỉ ${baited}, săn tiếp ${back}, sinh lực ${me(A).hp}/${me(A).maxHp}, con mồi cách neo tối đa ${maxDA})`);
+    ok(m?.on&&rested&&!baited&&back&&maxDA!==null&&maxDA<=AUTO_RADIUS&&me(A).hp>=me(A).maxHp*AUTO_REST.resume-1,`AH3 B3: hết đan, sinh lực dưới ${AUTO_DEFAULTS.hp*100}% → nghỉ (không nhắm con mới), tới ${AUTO_REST.resume*100}% sinh lực săn tiếp (nghỉ ${rested}, nhắm khi nghỉ ${baited}, săn tiếp ${back}, sinh lực ${me(A).hp}/${me(A).maxHp}, con mồi cách neo tối đa ${maxDA??"không đo được"} ≤ ${AUTO_RADIUS})`);
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"goto",home);
     await autoOp(A,"set",{cfg:{...P3,restNoPot:true,stopNoPot:true}}); await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); await test(A,"hurt",{pct:70});
     ok(m?.on&&await stopped(A,/hết đan/,4000),`AH3 B3: chọn "hết đan thì dừng" → dừng, không nghỉ (${A.autoMsg?.why})`);
