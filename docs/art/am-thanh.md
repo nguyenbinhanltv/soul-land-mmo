@@ -17,6 +17,10 @@
 - **Mức hiệu ứng mặc định và Giảm chuyển động:** mặc định Vừa (`FX_DEFAULT_LEVEL`, cả bản lưu hỏng); máy yếu tự hạ về Thấp bằng bộ điều tốc H8. "Giảm chuyển động" (mặc định theo `prefers-reduced-motion` của hệ điều hành) gắn lớp `reduce-motion` lên `<html>` (`combatFx.ts`): ngoài rung / chớp / zoom / hitstop của cảnh, CSS cuối `style.css` tắt các hoạt ảnh nhấp nháy vô hạn của giao diện (nút dung hợp / Chân Thân, ô sẵn sàng, cảnh báo boss, hiệu ứng cường hóa, toast).
 - Trang nghe thử `?thu=am` (không cần đăng nhập, `client/src/audioTest.ts`): mọi nhóm, từng biến thể, thanh trộn từng kênh, hồn hoàn theo niên hạn, gầm boss hạ nhạc, chồng 40 tiếng, bảng nguồn và giấy phép.
 
+### Vũ khí phụ thể (#1495)
+
+Đánh thường dùng đủ 25 ánh xạ tường minh trong `soundMap.ts`: cung Băng Phượng Hoàng → `cung`; sáu dạng roi/dây/tơ/xích → `day`; quạt Yêu Hồ → `quat`; hái Quỷ Mị và trượng Kỳ Nhung Thông Thiên Cúc → `thuong` (quét cán dài). Kỳ Nhung là trượng theo hồ sơ vũ khí đã nhập #1385; mô tả quạt trong issue nhầm với Yêu Hồ. Mỗi nhóm mới có ba biến thể CC0; nguồn/hash/tên gốc ở `art/CREDITS.md` và catalog. Giữ tiếng T3 riêng.
+
 **Nhạc nền** (`client/src/audio/music.ts`; nhạc sáng tác bằng code ở `tools/audio/compose`, danh sách bài trong `shared/assets/audio/music/manifest.json`):
 - **Nhạc cụ và bộ tiếng:** render bằng SpessaSynth với GeneralUser GS (nền, tiêu, chuông) và DSK Asian DreamZ (tỳ bà, cổ tranh, nhị hồ, sáo trúc, bộ gõ; truyền `--extra-soundfont`, bank 1); nguồn và giấy phép ở `art/CREDITS.md` mục "Asset bên ngoài". Khuôn bài ở `tools/audio/compose/lib/ngucung.mjs`, cách chạy ở `tools/audio/compose/README.md`.
 - Mỗi bản đồ một bài lặp (`kind: "map"`, khớp `mapId` trong state của phòng); điểm lặp là cả file, phát bằng `AudioBufferSourceNode` lặp nên liền mạch đúng từng mẫu. `seconds` của manifest chỉ làm tròn tới ms nên không dùng làm điểm cắt; độ dài vòng thật là `musicLoopSeconds` (bội `MUSIC_LOOP_BLOCK` mẫu ở `MUSIC_RENDER_RATE`), chỉ dùng khi bộ giải mã đệm thêm ở cuối file.
@@ -36,7 +40,3 @@
 
 ## Issue liên quan
 #393 (G2, tiếng mẫu CC0), #396 (G5, nhạc động và âm thanh lô 2), #397 (G6, đấu trường), #399 (G8, cân âm lượng), #579 (C4, tiếng tuyệt kỹ), #643 (nhạc tu tiên 10 bản đồ), #599 (tiếng giao diện đợt 1c).
-
-### V? kh? ph? th? (#1495)
-
-??nh th??ng d?ng ?? 25 ?nh x? t??ng minh trong `soundMap.ts`: cung B?ng Ph??ng Ho?ng ? `cung`; s?u d?ng roi/d?y/t?/x?ch ? `day`; qu?t Y?u H? ? `quat`; h?i Qu? M? v? tr??ng K? Nhung Th?ng Thi?n C?c ? `thuong` (qu?t c?n d?i). K? Nhung l? tr??ng theo h? s? v? kh? ?? nh?p #1385; m? t? qu?t trong issue l? nh?m v?i Y?u H?. Ba nh?m m?i c? ba bi?n th? CC0 m?i nh?m, ngu?n/hash/t?n g?c trong `art/CREDITS.md` v? catalog. Ti?ng T3 ri?ng gi? nguy?n.

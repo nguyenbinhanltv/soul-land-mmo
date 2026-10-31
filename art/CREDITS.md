@@ -2402,7 +2402,7 @@ Ghi công hồn thú hoạt ảnh (H2 / H4, ảnh raw chờ preview) **không n�
 
 ### Mẫu vũ khí phụ thể (#1495)
 
-Kiểm CC0 tại trang nguồn ngày 31/10/2026; không AI, không tiếng hô. Đầu vào đặt lại tên trong catalog, tệp nguồn gốc chỉ ở thư mục tạm. Công cụ `process-sfx.mjs` kiểm SHA256 trước xử lý; archive SHA256 nằm trong catalog/manifest và bảng gói bên trên.
+Đã kiểm CC0 trực tiếp trên trang nguồn ngày 31/10/2026. Không AI, không tiếng hô. SHA256 archive trong catalog/manifest; công thức cắt/lọc/cân đỉnh trong catalog, process-sfx.mjs kiểm hash trước khi xử lý. Tên gốc chỉ ghi trong bảng nguồn này.
 
 | Clip game | Tên gốc | Tác giả | Giấy phép | Trang nguồn | SHA256 đầu vào | Xử lý thêm |
 |---|---|---|---|---|---|---|
