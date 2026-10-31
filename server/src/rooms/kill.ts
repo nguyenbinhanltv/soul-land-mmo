@@ -2,7 +2,8 @@
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts; nguyên văn từ MapRoom, không đổi thứ tự xử lý / thứ tự gọi RNG (`roll*` giữ thứ tự cũ). MapRoom chỉ chuyển tiếp `killBeast`.
 import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, partyXpShare } from "../../../shared/data.ts";
 import { achvCount } from "./achv.ts";
-import { type MapRoom, uid, eliteLocks, persistEliteLock, eliteKey, eliteLockLeft } from "./MapRoom.ts";
+import { type MapRoom, eliteLocks, persistEliteLock, eliteKey, eliteLockLeft } from "./MapRoom.ts";
+import { uid } from "./common.ts";
 
 /**
  * Hạ hồn thú: kinh nghiệm, Hồn Tệ, và hồn hoàn rơi xuống đất mang đúng số năm của hồn thú (mục 5.2); người hạ được ưu tiên nhặt.

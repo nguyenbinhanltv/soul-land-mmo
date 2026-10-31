@@ -7,7 +7,8 @@ import * as party from "../party.ts";
 import { arenaLiveOpenList, arenaLiveHold, arenaLiveRelease, arenaWatchMax } from "./arenaQueue.ts";
 import { arenaEnqueue, arenaDequeue, arenaQueued, arenaQueueSlots, arenaReadElo, arenaReadCancel, arenaReadCancelled, type ArenaTeamEntry } from "./arenaQueue.ts";
 import type { PlayerState } from "./schema.ts";
-import { strIn, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { strIn } from "./common.ts";
 
 /**
  * Lý do chưa ghép trận được lúc này ("" = được): đang chuyển bản đồ / đi qua cổng, đã gục, đang hấp thụ, đang giao chiến,

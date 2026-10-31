@@ -2,7 +2,8 @@
 import { randomUUID } from "node:crypto";
 import { ASK_CD, EQUIP_ITEM, EQUIP_SLOTS, equipSlotIndex, equipTemplate, parseEquip } from "../../../shared/data.ts";
 import type { Item } from "../db.ts";
-import { claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { claimHeld } from "./common.ts";
 import { afterGear } from "./equip.ts";
 import { gearStats } from "./items.ts";
 

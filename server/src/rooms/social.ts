@@ -9,7 +9,8 @@ import { rallyPoint, type RallyMsg } from "../../../shared/rally.ts";
 import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { presenceBackend } from "../presence.ts";
 import { arenaQueueLocked, arenaReadActive } from "./arenaQueue.ts";
-import { CHAT_TOPIC, FRIEND_COL, accOf, strIn, worldChatKey, type ChatRoute, type MapRoom } from "./MapRoom.ts";
+import { type ChatRoute, type MapRoom } from "./MapRoom.ts";
+import { worldChatKey, CHAT_TOPIC, FRIEND_COL, accOf, strIn } from "./common.ts";
 
 /**
  * Tin chat `chat {text, ch?, to?}`: `ch` thiếu = "map" (mọi người trong phòng, như cũ); "party" = mọi thành viên tổ đội; "whisper" =

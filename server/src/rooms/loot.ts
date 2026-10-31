@@ -7,7 +7,8 @@ import { TIERS, VOHON, xpNeed, xpBlocked, tierOfYears, vohonIndex, XP_SHARE_ACTI
 import type { Character } from "../db.ts";
 import * as party from "../party.ts";
 import { DropState } from "./schema.ts";
-import { uid, type MapRoom } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import { uid } from "./common.ts";
 
 /**
  * Trang bị khi hạ hồn thú thường / tinh anh (E2, mục 5.15): `rollEquipDrop(rank, bản đồ, rng, rate)`. Đá cường hóa vào thẳng túi người
