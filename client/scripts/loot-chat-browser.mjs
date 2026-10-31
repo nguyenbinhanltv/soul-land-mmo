@@ -121,6 +121,18 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
         }, code);
         assert.equal(await page.locator('.toast[data-k="loot"]').count(), 1, `${code} bậc thấp vẫn giữ đúng một toast`);
       }
+      const inventoryChecks = await page.evaluate(() => {
+        const { f, d, base } = window.__lootTest;
+        const core = { ...base, code:d.CORE_ITEM, stats:{set:d.CORE_SETS[0].id,main:"hp",subs:[]} };
+        const a = { ...base, code:d.EQUIP_ITEM, stats:{tpl:d.EQUIP_TEMPLATES[0].id,ilvl:1,roll:0,affixes:[],luck:0} };
+        const b = { ...a,id:"đổi-chỗ",stats:{...a.stats,tpl:d.EQUIP_TEMPLATES[1].id} };
+        return {
+          setChange:f.lootGained([core],[{...core,stats:{...core.stats,set:d.CORE_SETS[1].id}}]).length,
+          swap:f.lootGained([a],[b]).length,
+          distinct:f.lootGained([],[a,b]).length,
+        };
+      });
+      assert.deepEqual(inventoryChecks, {setChange:0,swap:0,distinct:2}, "đổi tại chỗ / đổi trang bị không nhận giả; hai loại nhận thật vẫn tách dòng");
       await page.evaluate(async () => {
         const c = await import("/src/chat.ts");
         const realNow = Date.now, at = realNow();

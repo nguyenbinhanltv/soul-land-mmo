@@ -76,8 +76,19 @@ const stackKey = (it: BagItem) => {
 /** Đồ nhận thêm giữa hai lần túi (cộng theo mã, năm, sao; cả đồ đang mang lẫn trong túi): `n` là số lượng tăng. Dùng chung cho toast và chữ bay. */
 export function lootGained(prev: BagItem[], next: BagItem[]): { it: BagItem; n: number }[] {
   const sum = (a: BagItem[]) => { const m = new Map<string, { it: BagItem; n: number }>(); for (const it of a) { const k = stackKey(it), e = m.get(k); if (e) e.n += it.qty; else m.set(k, { it, n: it.qty }); } return m; };
-  const before = sum(prev), after = sum(next), gained: { it: BagItem; n: number }[] = [];
-  for (const [k, e] of after) { const d = e.n - (before.get(k)?.n ?? 0); if (d > 0) gained.push({ it: e.it, n: d }); }
+  // Cùng id chỉ đổi thuộc tính (đổi bộ, nâng cấp…) không phải món mới. Giữ lượng cũ khi so theo loại mới.
+  const byId = new Map(next.map((it) => [it.id, it]));
+  const normalized = prev.map((it) => ({ ...(byId.get(it.id) ?? it), qty: it.qty }));
+  const before = sum(normalized), after = sum(next), gained: { it: BagItem; n: number }[] = [];
+  // Đổi chỗ trang bị có thể trả một mẫu khác về túi: giữ điều kiện tăng ròng theo mã / năm / sao như luồng cũ.
+  const groupKey = (it: BagItem) => JSON.stringify([it.code, it.years, it.stars]);
+  const budget = new Map<string, number>();
+  for (const it of next) { const k = groupKey(it); budget.set(k, (budget.get(k) ?? 0) + it.qty); }
+  for (const it of normalized) { const k = groupKey(it); budget.set(k, (budget.get(k) ?? 0) - it.qty); }
+  for (const [k, e] of after) {
+    const group = groupKey(e.it), n = Math.min(e.n - (before.get(k)?.n ?? 0), budget.get(group) ?? 0);
+    if (n > 0) { gained.push({ it: e.it, n }); budget.set(group, budget.get(group)! - n); }
+  }
   return gained;
 }
 /**
