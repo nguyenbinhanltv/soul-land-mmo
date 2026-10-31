@@ -10,7 +10,7 @@ import { AMBIENT_PROFILES } from "./audio/ambientLayers.ts";
 import { MAPS } from "../../shared/data.ts";
 
 const NAME: Record<string, string> = {
-  kiem: "Kiếm", chuy: "Chùy", thuong: "Thương", trao: "Trảo", quyen: "Quyền",
+  kiem: "Kiếm", chuy: "Chùy", thuong: "Thương / trượng / hái", trao: "Trảo", quyen: "Quyền", cung: "Cung", day: "Dây / xích", quat: "Quạt",
   thit: "Thịt", giap: "Giáp / vỏ cứng", bang: "Băng", go: "Gỗ / cây",
   fire: "Lửa", ice: "Băng", lightning: "Sét", poison: "Độc", light: "Quang", dark: "Ám", wood: "Mộc", wind: "Phong",
   start: "bắt đầu", fly: "bay", boom: "nổ",
@@ -27,7 +27,7 @@ interface Row { title: string; group: string; channel: AudioChannel; note?: stri
 function sections(): { title: string; hint: string; rows: Row[] }[] {
   const skill = ELEMENTS.flatMap((e) => SKILL_PHASES.map((p) => ({ title: `${label(e)} · ${label(p)}`, group: `skill-${e}-${p}`, channel: "sfx" as AudioChannel })));
   return [
-    { title: "Vung vũ khí", hint: "5 loại × 3 biến thể, kênh Hiệu ứng", rows: WEAPONS.map((w) => ({ title: label(w), group: `swing-${w}`, channel: "sfx" })) },
+    { title: "Vung vũ khí", hint: "8 loại × 3 biến thể, kênh Hiệu ứng", rows: WEAPONS.map((w) => ({ title: label(w), group: `swing-${w}`, channel: "sfx" })) },
     { title: "Va chạm theo chất liệu", hint: "đánh trúng thịt, giáp / vỏ, băng, gỗ / cây", rows: MATERIALS.map((m) => ({ title: label(m), group: `hit-${m}`, channel: "sfx" })) },
     { title: "Kỹ năng theo hệ", hint: "8 hệ × bắt đầu / bay / nổ (tiếng thật gắn theo lưu phái của võ hồn)", rows: skill },
     { title: "Hồn hoàn", hint: "sáng (đổi cao độ, vang theo niên hạn ở nút bên dưới), hấp thụ, rơi", rows: [
