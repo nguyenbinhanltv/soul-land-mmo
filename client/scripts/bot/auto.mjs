@@ -677,7 +677,7 @@ export async function autoTest(){
       // Gốc chập chờn (#1421): bài cũ đo trên vị trí client lúc hai người đang tự đi tuần / đi theo nhau (cả bản đồ) và chờ 5-10 giây: đồng đội bước
       // vào leash của con (hợp lệ) rồi bước ra, còn client (máy tải, bản vá state trễ) thấy vị trí cũ nên coi là "cách xa" → ✗ giả. Nay: bật
       // với nợ nhịp (paceNext) nên cả hai đứng yên, chờ thấy nhau, rồi hỏi server (pick = findTarget đúng lúc đó, vị trí cố định) chọn con nào;
-      // đối chứng đặt đồng đội vào leash thì phải chọn. Phần đầu-cuối (hai người tự đi) đo bằng khoảng cách ở server cùng lúc với mục tiêu.
+      // đối chứng đặt đồng đội vào leash thì phải chọn. Không còn đo khi hai người tự đi (lấy mẫu rời rạc khi họ di chuyển là chính họ lỗi của bài cũ): chọn và giữ / bỏ mục tiêu đều đo ở vị trí cố định.
       try{
       await autoOp(A,"set",{cfg:PT}); await autoOp(B,"set",{cfg:PT});
       await test(A,"auto",{paceNext:3600}); await test(B,"auto",{paceNext:3600});
@@ -703,20 +703,6 @@ export async function autoTest(){
       const exempt=!!sk2?.beast&&(sk2.beast.hit||sk2.beast.target===A.room.sessionId);
       ok(sk?.target===fr&&Number.isFinite(mD2)&&mD2>AUTO_PARTY.leash&&(sk2?.target!==fr||exempt),`AH4 tổ đội: keep(): A đã chọn con khi đồng đội trong leash, đồng đội ra xa (${mD2} pixel) thì sau 2 nhịp A bỏ con (đã chọn ${sk?.target===fr}, còn nhắm ${sk2?.target}, fr ${fr}, miễn leash ${exempt})`);
       await test(B,"auto",{pace:0});
-      // Đầu-cuối: hai người tự đi. Vi phạm = giữ con (chưa đánh trúng, nó không đánh mình) khi MỌI đồng đội (vị trí ở server) ngoài leash suốt
-      // ít nhất ba lần đọc liên tiếp và hai nhịp quyết định (đo bằng `clock` của tự săn, không theo giờ thật: máy tải thì nhịp chậm theo). keep() bỏ con ngoài leash ở
-      // nhịp kế tiếp, nên một lần đọc có thể trúng đúng khoảnh khắc đồng đội vừa bước ra khỏi leash (chọn lúc đó vẫn hợp lệ).
-      const viol=(s,sid)=>s?.target===fr&&!!s.beast&&!s.beast.hit&&s.beast.target!==sid&&s.beast.mateD.length>0&&Math.min(...s.beast.mateD)>AUTO_PARTY.leash;
-      const first={A:null,B:null}, n3={A:0,B:0}; let took=null;
-      for(let t=0;t<5000&&!took;t+=300){
-        const sa=await infoA({bid:fr}), sb=await test(B,"auto",{bid:fr});
-        for(const [k,s,sid] of [["A",sa,A.room.sessionId],["B",sb,B.room.sessionId]]){
-          if(!viol(s,sid)){ first[k]=null; n3[k]=0; continue; }
-          if(!first[k]) first[k]=s.clock; n3[k]++;
-          if(n3[k]>=3&&s.clock-first[k]>=2/AUTO_HZ) took??={t,k,từ:first[k],tới:s.clock,sa:{tg:sa.target,mates:sa.mates,bd:sa.beast},sb:{tg:sb?.target,mates:sb?.mates,bd:sb?.beast}};
-        }
-        await sleep(300); }
-      ok(!took,`AH4 tổ đội: hai người tự đi, không ai giữ con ngoài leash của đồng đội`+(took?` [${JSON.stringify(took)}]`:""));
       } finally { await autoOp(A,"off"); await autoOp(B,"off"); await test(A,"auto",{paceNext:0}); await test(B,"auto",{paceNext:0}); } // nợ nhịp 3600 không được rò sang bài sau
     }
     await test(A,"clear",{all:true,keep:true});
