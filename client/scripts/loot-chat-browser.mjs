@@ -179,6 +179,7 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
     }
     await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-loi.png`) });
     if (tag !== "truoc" && touch) {
+      assert.equal(await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).evaluate((e) => getComputedStyle(e).opacity), "1", "thanh lỗi không còn ở khung hình trong suốt");
       const uncovered = await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).evaluate((e) => {
         const r = e.getBoundingClientRect();
         return e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
