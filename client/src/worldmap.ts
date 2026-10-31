@@ -184,6 +184,18 @@ class WorldMap {
     for (const [id, n] of this.nodes) {
       const p = id.startsWith("m:") ? this.lmap(id.slice(2))?.position : this.wpPos(id.slice(2));
       if (p) n.style.transform = at(p);
+      n.removeAttribute("disabled");
+    }
+    // Điểm sát nhau trên tranh thu nhỏ: chọn qua danh sách, không nhận nhầm chạm.
+    // Phóng / kéo gọi lại place; điểm đủ tách tự nhận chạm trở lại.
+    if (document.body.classList.contains("touch")) {
+      const boxes = [...this.nodes.values()].map(n => ({ n, r: n.getBoundingClientRect() }));
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        if (a.r.left < b.r.right && a.r.right > b.r.left && a.r.top < b.r.bottom && a.r.bottom > b.r.top) {
+          a.n.setAttribute("disabled", ""); b.n.setAttribute("disabled", "");
+        }
+      }
     }
     const h = this.here(); if (h && this.me.isConnected) this.me.style.transform = at(h);
     if (this.zoomBtns) { this.zoomBtns.in.disabled = v.s >= Math.max(this.fitS * MAX_ZOOM, 1.2) - 1e-3; this.zoomBtns.out.disabled = v.s <= this.fitS + 1e-3; }
@@ -285,10 +297,18 @@ class WorldMap {
   /** Thẻ chi tiết: gợi ý khi chưa chọn; bản đồ (cấp, các trận); trận (trạng thái, phí). Phí và hồi do server tính, ở đây chỉ hiện. */
   private paintCard() {
     const c = this.side, m = this.msg; c.replaceChildren();
+    const touch = document.body.classList.contains("touch");
+    if (touch) {
+      const picker = el("select", "wm-map-select"); picker.setAttribute("aria-label", "Chọn bản đồ");
+      const empty = el("option", "", "Chọn bản đồ"); empty.value = ""; empty.disabled = true; picker.append(empty);
+      for (const lm of L.maps) { const option = el("option", "", lm.name); option.value = lm.id; picker.append(option); }
+      picker.value = this.selMap() ?? "";
+      picker.addEventListener("change", () => this.select({ t: "map", id: picker.value })); c.append(picker);
+    }
     const row = (k: string, v: string, cls = "") => { const r = el("div", `wm-row${cls ? ` ${cls}` : ""}`); r.append(el("span", "k", k), el("span", "v", v)); return r; };
     if (m) c.append(row("Hồn Tệ", formatHonTe(m.honTe), "coin"));
     if (!this.sel) {
-      c.append(el("h3", "wm-t", "Bản đồ thế giới"), el("p", "wm-hint", "Chọn một bản đồ hoặc truyền tống trận trên tranh để xem cấp đề xuất, trạng thái mở khoá và phí."),
+      c.append(el("h3", "wm-t", "Bản đồ thế giới"), el("p", "wm-hint", touch ? "Chọn bản đồ từ danh sách. Phóng tranh để chạm trực tiếp các điểm đang sát nhau." : "Chọn một bản đồ hoặc truyền tống trận trên tranh để xem cấp đề xuất, trạng thái mở khoá và phí."),
         el("p", "wm-hint", "Nét đứt: đường cổng nối hai bản đồ. Nét chấm: đi thuyền. Nút sáng: đã mở truyền tống trận; xám: chưa mở."));
       return;
     }

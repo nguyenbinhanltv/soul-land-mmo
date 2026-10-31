@@ -148,6 +148,17 @@ try {
         }
         await page.mouse.move(1, 1);
         await page.waitForTimeout(300);
+        if (!before) {
+          const crowd = await page.evaluate(() => {
+            const view=document.querySelector(".wm-view").getBoundingClientRect();
+            const boxes=selector=>[...document.querySelectorAll(selector)].filter(e=>!e.disabled && getComputedStyle(e).display!=="none" && getComputedStyle(e).visibility!=="hidden").map(e=>e.getBoundingClientRect()).filter(r=>r.width && r.right>view.left && r.left<view.right && r.bottom>view.top && r.top<view.bottom);
+            const overlaps=list=>list.some((a,i)=>list.slice(i+1).some(b=>Math.max(a.left,b.left,view.left)<Math.min(a.right,b.right,view.right)-0.5 && Math.max(a.top,b.top,view.top)<Math.min(a.bottom,b.bottom,view.bottom)-0.5));
+            const picker=document.querySelector(".wm-map-select"), r=picker?.getBoundingClientRect();
+            return {points:overlaps(boxes(".wm-node,.wm-wp")),labels:overlaps(boxes(".wm-name,.wm-wname,.wm-me span")),picker:r?{w:r.width,h:r.height,count:picker.options.length,hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===picker}:null};
+          });
+          check(!crowd.points && !crowd.labels, tag(`fs${fs}: điểm/nhãn chồng ${JSON.stringify(crowd)}`));
+          check(crowd.picker?.w>=44 && crowd.picker?.h>=44 && crowd.picker?.count===12 && crowd.picker?.hit, tag(`fs${fs}: thiếu danh sách44px đủ11bản đồ hoặc bị che`));
+        }
         await page.screenshot({ path: resolve(out, `${size}-world-fs${fs}.png`) });
       }
       await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2"));
@@ -177,9 +188,8 @@ try {
     // 3. Chọn Thánh Hồn Thôn: thẻ chi tiết hiện cấp đề xuất, các trận; nút chính hợp lý; trận hiện ra.
     await dismiss();
     if (touch) {
-      // #1447: điểm trên tranh vừa khung đang chồng nhau; chọn qua tìm kiếm có sẵn.
-      await page.locator(".wm-search input").fill("nac dinh thanh");
-      await page.locator(".wm-find li").first().click();
+      if (!before) await page.getByLabel("Chọn bản đồ").selectOption("nac_dinh_thanh");
+      else { await page.locator(".wm-search input").fill("nac dinh thanh"); await page.locator(".wm-find li").first().click(); }
     } else await page.locator('#world .wm-node[data-id="nac_dinh_thanh"]').click();
     await page.waitForFunction(() => document.querySelector("#world .wm-card .wm-t")?.textContent === "Nặc Đinh Thành");
     check(await page.locator("#world .wm-card .wm-li").count() === 3, tag("thẻ bản đồ không liệt kê 3 trận"));

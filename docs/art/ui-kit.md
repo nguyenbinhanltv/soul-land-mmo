@@ -80,6 +80,7 @@ Phông Galmuri, chỉ ba cỡ (bội của lưới font): **10 / 12 / 24** (`--f
 
 - Đơn vị cơ sở 4 px (`--sp-1…6`), viền `--bd` 2 px / `--bd-fine` 1 px, ô vật phẩm / kỹ năng `--cell` 44 px.
 - Vùng bấm: **44 px cho nút hành động chính** (Vào game, Bật tự động, Tiếp, Mua…); **32 px** cho phần tử dày đặc (chip lọc, tab, nút nhỏ trong bảng); ô túi 44 px giữ.
+- Bản đồ cảm ứng: danh sách chọn luôn có đủ tên; điểm 44 px đang giao nhau nhường thao tác cho danh sách, phóng đủ tách thì nhận chạm lại; nhãn tranh ưu tiên mục đang chọn / vị trí hiện tại.
 - Giao diện phóng bằng `--u` (zoom CSS, `uiArt.ts`). Tự động theo bậc (#887): 1366 → 1×; 1600–1919 → 1,25×; 1920–2559 → 1,5×; 2560+ → 2× (`AUTO_TIERS`, theo min(rộng / 1280, cao / 600)); Cài đặt cho chọn tay 75–200%.
 
 ## Trạng thái bắt buộc cho mọi điều khiển
