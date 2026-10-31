@@ -52,9 +52,10 @@ Object `waypoint`, mỗi bản đồ trừ sân đấu có 1–3 trận (thành,
   - **Đứng trên một trận:** phí `waypointFee` theo số lần đi cổng ít nhất giữa hai bản đồ (cùng bản đồ: mức `WAYPOINT_FEE.base`), trừ lúc dịch chuyển; **không bị hồi**.
   - **Không đứng trên trận (từ xa):** phí như trên **cộng phụ phí** `WAYPOINT_FEE.remote` (`waypointFee(hops, true)`), và **hồi** `WAYPOINT_COOLDOWN_S` giây giữa hai lần từ xa (tính từ lúc dịch chuyển xong; hủy niệm không tính hồi; giữ theo tài khoản, không mất khi đổi bản đồ hay thoát vào lại). Đứng lên trận thì dùng ngay, không bị hồi. Phụ phí đặt cao hơn Hồi Thành Phù (30 đồng, chỉ về thành) để không làm phù vô dụng, nhưng chỉ ngang vài lần hạ hồn thú bậc giữa (`BEAST_COIN`) nên không chặn người chơi cần di chuyển nhanh.
   - Không dùng khi đang giao chiến, gục, đang hấp thụ, đang đi cổng, bị khống chế; trong Đại Đấu Hồn Trường, Bí Cảnh / Luyện Hồn Cảnh và phòng riêng bị chặn. Riêng từ xa còn bị chặn khi **đang tự săn / ủy thác treo** (tắt tự săn trước).
+  - **Lõi Tinh Đấu (bản đồ `kind: "boss"`) cấm dịch chuyển** (chủ repo 2026-10-31): đứng trên trận hay từ xa đều bị chặn, cả lúc bắt đầu niệm lẫn lúc niệm xong, báo "cấm truyền tống: muốn rời đi hãy tới cổng"; rời Lõi chỉ bằng cổng. Chỉ cấm **ở trong**: trận Trại cổng Lõi Tinh Đấu vẫn là đích hợp lệ khi đã mở khóa (mở bằng cách bước lên trận, như mọi trận).
   - Trận đích chưa mở khóa thì từ chối (phải tới bước lên trận một lần). Server kiểm mọi điều kiện, client chỉ gửi trận muốn tới.
   - Cùng bản đồ thì đặt thẳng vị trí; bản đồ khác thì đi đúng transaction đi cổng (mục 6), nên an toàn khi trong tổ đội và lưu đúng thứ tự. Lưu lỗi thì trả lại phí và xóa thời gian hồi. Giao thức: `docs/tech/giao-thuc-server.md`.
-- **Hồi Thành Phù** (vật phẩm, thương nhân bán): dùng trong túi thì niệm như truyền tống (cùng luật cấm / hủy; hủy thì giữ phù) rồi về **thành gần nhất** (thành ít lần đi cổng nhất, xuất hiện ở truyền tống trận của thành), mất một phù.
+- **Hồi Thành Phù** (vật phẩm, thương nhân bán): dùng trong túi thì niệm như truyền tống (cùng luật cấm / hủy, kể cả cấm ở Lõi Tinh Đấu vì chung cơ chế niệm `recallDeny`; hủy thì giữ phù) rồi về **thành gần nhất** (thành ít lần đi cổng nhất, xuất hiện ở truyền tống trận của thành), mất một phù.
 - Quanh trận không sinh hồn thú (`SPAWN_CLEAR`, như quanh cổng).
 
 ### Vị trí khi đăng xuất và vào lại
