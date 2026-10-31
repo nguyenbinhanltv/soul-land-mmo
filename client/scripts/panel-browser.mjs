@@ -198,18 +198,20 @@ GameScene.prototype.create = function(...a) {
   await shot("960x540");
   check(res.small.walk === 0, `960×540 bấm trên Túi không đi: ${JSON.stringify(res.small)}`);
 
-  // Hộp xác nhận (confirmDialog, #1270) chặn phím của game: Enter trên Huỷ bấm nút (trả false), không nhảy vào ô chat; phím khác không tới window.
+  // Hộp xác nhận (confirmDialog, #1270) chặn phím của game: Enter trên Hủy đóng hộp, không gọi onYes / nhảy vào ô chat; phím khác không tới window.
   res.askKeys = await (async () => {
     const r = await page.evaluate(async () => {
       const { confirmDialog } = await import("/src/confirmDialog.ts");
       window.__askLeak = 0; window.addEventListener("keydown", () => { window.__askLeak++; });
-      window.__askRes = undefined; confirmDialog({ title: "Thử", body: "Thử hộp xác nhận.", confirm: "Xóa", danger: true }, () => { window.__askRes = true; }); setTimeout(() => { window.__askRes ??= false; }, 120);
+      window.__askYesCalls = 0; confirmDialog({ title: "Thử", body: "Thử hộp xác nhận.", confirm: "Xóa", danger: true }, () => { window.__askYesCalls++; });
       return document.activeElement?.className ?? "";
     });
-    await page.keyboard.press("KeyW"); await page.keyboard.press("Enter"); await sleep(150);
-    return page.evaluate((cls) => ({ cls, leak: window.__askLeak, res: window.__askRes, chat: document.activeElement?.id === "chat", open: !!document.querySelector(".cfm") }), r);
+    await page.keyboard.press("KeyW"); await page.keyboard.press("Enter");
+    // Hủy đóng hộp đồng bộ và không gọi onYes; chờ DOM thay vì đua timer browser với sleep Node (#1488).
+    await page.locator(".cfm").waitFor({ state: "detached" });
+    return page.evaluate((cls) => ({ cls, leak: window.__askLeak, yesCalls: window.__askYesCalls, chat: document.activeElement?.id === "chat", open: !!document.querySelector(".cfm") }), r);
   })();
-  check(res.askKeys.cls.includes("cfm-no") && res.askKeys.res === false && !res.askKeys.chat && !res.askKeys.open && res.askKeys.leak === 0, `hộp xác nhận chặn phím: ${JSON.stringify(res.askKeys)}`);
+  check(res.askKeys.cls.includes("cfm-no") && res.askKeys.yesCalls === 0 && !res.askKeys.chat && !res.askKeys.open && res.askKeys.leak === 0, `hộp xác nhận chặn phím: ${JSON.stringify(res.askKeys)}`);
   await writeFile(resolve(out, `${tag}-do.json`), JSON.stringify(res, null, 2));
   console.log(JSON.stringify({ output: out, ...res }, null, 2));
 } finally {
