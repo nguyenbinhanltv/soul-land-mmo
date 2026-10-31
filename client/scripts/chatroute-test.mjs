@@ -1,6 +1,6 @@
 // Thử phân luồng dòng hệ thống của ô chat (chatRoute.ts, #755): mức quan trọng theo màu / nút (không đọc chữ), gộp lặp, thu lịch sử.
 import assert from "node:assert/strict";
-import { sysImportant, canMerge, mergedText, trimHist, SYS_MERGE_MS } from "../src/chatRoute.ts";
+import { sysImportant, canMerge, mergedText, trimHist, SYS_MERGE_MS, legacyLootReceipt } from "../src/chatRoute.ts";
 
 assert.equal(sysImportant("#ffb35c"), true, "màu cảnh báo = quan trọng");
 assert.equal(sysImportant("#FF8A8A"), true, "không phân biệt hoa thường");
@@ -32,3 +32,7 @@ assert.equal(h.find((l) => l.id === "s9") !== undefined && h.find((l) => l.id ==
 trimHist(h, 15, 4);
 assert.equal(h.length, 15);
 console.log("chatroute-test: đạt");
+for (const text of ["Nhặt hồn hoàn 10.000 năm (Đen) vào túi đồ. Mở túi (B) để hấp thụ.", "Nhặt Hồn hạch 1★ vào túi đồ (B để xem chỉ số).", "Nhận 1 Mảnh Phá Hồn Thương.", "Nhận 2 Đá Cường Hóa I."])
+  assert.equal(legacyLootReceipt(text), true, text);
+for (const text of ["Túi đồ đã đầy: bỏ bớt vật phẩm rồi mới nhặt được hồn hoàn.", "Nhận nhiệm vụ mới.", "Hồn hoàn rơi xuống đất!", "Nhận 1 rương vào túi đồ (lượt 1/3 hôm nay)."])
+  assert.equal(legacyLootReceipt(text), false, text);

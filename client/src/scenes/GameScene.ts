@@ -24,7 +24,9 @@ import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts, lootGained, onToastNew } from "../feedback.ts";
-import { planPickup, xpDelta, XpBatch, xpText, coinText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
+import { planPickup, xpDelta, XpBatch, xpText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
+import { chatLoot } from "../chat.ts";
+import { legacyLootReceipt, sysImportant } from "../chatRoute.ts";
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { onboardEvent } from "../onboard.ts";
 import { pingSent, pingAck, pingTick, pingReset } from "../pingMeter.ts";
@@ -1394,7 +1396,14 @@ export class GameScene extends Phaser.Scene {
 
   // ---------- Tin nhắn từ server ----------
   setupMessages() {
-    this.room.onMessage("log", (m: { text: string; col?: string }) => { hud.log(m.text, m.col); charLog(m.text, m.col); hud.worldNote(m.text); }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
+    this.room.onMessage("log", (m: { text: string; col?: string }) => {
+      // Tên / số lượng / độ hiếm lấy từ tin túi; biên nhận cũ không tạo dòng trùng.
+      if (!legacyLootReceipt(m.text)) {
+        hud.log(m.text, m.col);
+        if (sysImportant(m.col)) toast("info", m.text, "", m.col);
+      }
+      charLog(m.text, m.col); hud.worldNote(m.text);
+    }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
     // Tinh anh xuất hiện / bị hạ trong bản đồ này (BĐ4): báo cả phòng.
     this.room.onMessage("elite", (m: { k: string; name: string; zone?: string; by?: string; col?: string }) => {
       if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.logImp(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
@@ -2556,12 +2565,10 @@ export class GameScene extends Phaser.Scene {
     } else this.tweens.add({ targets: t, y: y - (plus ? 14 : 16) * SPR, alpha: 0, delay: plus ? 600 : 350, duration: plus ? 700 : 550, onComplete: () => t.destroy() });
   }
 
-  /** Túi mới so với túi cũ: đồ nhận thêm và Hồn Tệ tăng thì chữ bay trên đầu mình (#599). Chỉ hiển thị, số liệu từ tin `bag` / `bagd` của server. */
+  /** Hồn Tệ nhận thêm vào chat riêng; đồ đã ghi qua lootToasts, không còn chữ nhận đồ che nhân vật (#1462). */
   pickupBag(prev: BagMsg | null, next: BagMsg) {
     if (!prev) return;
-    const lines: PickupLine[] = lootGained(prev.items, next.items).map(({ it, n }) => { const i = hud.bagItemInfo(it); return { kind: "item" as const, text: n > 1 ? `${i.name} ×${n}` : i.name, col: i.color }; });
-    if (next.honTe > prev.honTe) lines.push({ kind: "coin", text: coinText(formatHonTe(next.honTe - prev.honTe)), col: COIN_COL });
-    this.pickupFloat(lines);
+    if (next.honTe > prev.honTe) chatLoot("coin", "Hồn Tệ", next.honTe - prev.honTe, COIN_COL);
   }
   /** Vẽ các dòng nhận được (pickupFx.planPickup) trên đầu mình: số dòng theo mức hiệu ứng, Giảm chuyển động thì đứng yên rồi mờ. */
   pickupFloat(lines: PickupLine[]) {

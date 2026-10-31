@@ -24,6 +24,11 @@ export function canMerge(prev: SysLike | undefined, l: SysLike): boolean {
 /** Chữ hiển thị của dòng có đếm gộp: "Nhặt Hồn Tệ ×3". */
 export const mergedText = (text: string, n = 1): string => (n > 1 ? `${text} ×${n}` : text);
 
+/** Biên nhận văn bản cũ đã có dòng nhận từ túi; chỉ bỏ các mẫu nhận thành công, không bỏ lỗi, nhiệm vụ hay thông báo đồ rơi. */
+export function legacyLootReceipt(text: string): boolean {
+  return /^Nhặt .+ vào túi đồ(?:[. (]|$)/u.test(text) || /^Nhận \d+ (?:Mảnh |Đá Cường Hóa )/u.test(text);
+}
+
 /**
  * Thu lịch sử: tối đa `keep` dòng; dòng thường (nhặt đồ…) chỉ được chiếm `keepSys` chỗ để không đẩy mất lịch sử chat và dòng quan trọng.
  * Sửa tại chỗ `hist`; trả về hist.

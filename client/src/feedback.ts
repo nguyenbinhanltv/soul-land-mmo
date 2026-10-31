@@ -4,8 +4,8 @@ import "./feedback.css";
 import type { BagItem } from "./net.ts";
 import { bagItemInfo } from "./hud.ts";
 import { rarityOf } from "./bag.ts";
-import { RING_ITEM } from "../../shared/data.ts";
-import { RARE_LOOT_MIN } from "./audio/soundMap.ts";
+import { RING_ITEM, BONE_ITEM, CORE_ITEM, EQUIP_ITEM, parseBone, parseCore, parseEquip, LOOT_RARE_RING_YEARS } from "../../shared/data.ts";
+import { chatLoot } from "./chat.ts";
 import "./ui2-feedback.css";
 import { logNotice, NOTICE_LABEL, type ToastKind } from "./noticeLog.ts";
 export { notices, onNotices, clearNotices, LOG_MAX, type Notice, type ToastKind } from "./noticeLog.ts";
@@ -34,6 +34,10 @@ function root() {
 /** Hiện một toast; cùng loại và cùng tiêu đề đang hiện thì gộp ("×2") thay vì xếp thêm. `color` = màu vạch trái / nhãn (mặc định theo loại). */
 export function toast(kind: ToastKind, title: string, sub = "", color?: string, frame?: ToastFrame) {
   const el0 = root();
+  // Đồ hiếm chỉ giữ một thanh, kể cả thanh cũ đang mờ; loại khác dùng chung toast như trước.
+  if (kind === "loot") for (const old of el0.querySelectorAll<HTMLElement>('[data-k="loot"]')) {
+    if (old.dataset.title !== title || old.classList.contains("out")) { clearTimeout(Number(old.dataset.to)); old.remove(); }
+  }
   for (const t of Array.from(el0.children) as HTMLElement[]) {
     if (t.dataset.k !== kind || t.dataset.title !== title || t.classList.contains("out")) continue;
     if (kind === "loot" && frame) t.dataset.frame = frame;
@@ -56,14 +60,19 @@ export function toast(kind: ToastKind, title: string, sub = "", color?: string, 
   arm(t); onNew(kind);
 }
 function arm(t: HTMLElement) {
-  clearTimeout(Number(t.dataset.to)); t.dataset.to = String(window.setTimeout(() => dismiss(t), LIFE_MS));
+  clearTimeout(Number(t.dataset.to)); t.dataset.to = String(window.setTimeout(() => dismiss(t), t.dataset.k === "loot" ? 2200 : LIFE_MS));
 }
 function dismiss(t: HTMLElement) {
   if (t.classList.contains("out")) return;
   clearTimeout(Number(t.dataset.to)); t.classList.add("out"); window.setTimeout(() => t.remove(), FADE_MS);
 }
 
-const stackKey = (it: BagItem) => `${it.code}|${it.years ?? ""}|${it.stars ?? ""}`;
+const stackKey = (it: BagItem) => {
+  const bone = it.code === BONE_ITEM ? parseBone(it.stats) : null;
+  const core = it.code === CORE_ITEM ? parseCore(it.stats) : null;
+  const equip = it.code === EQUIP_ITEM ? parseEquip(it.stats) : null;
+  return JSON.stringify([it.code, it.years, it.stars, bone?.beast, bone?.slot, core?.set, core?.main, equip?.tpl, equip?.ilvl]);
+};
 /** Đồ nhận thêm giữa hai lần túi (cộng theo mã, năm, sao; cả đồ đang mang lẫn trong túi): `n` là số lượng tăng. Dùng chung cho toast và chữ bay. */
 export function lootGained(prev: BagItem[], next: BagItem[]): { it: BagItem; n: number }[] {
   const sum = (a: BagItem[]) => { const m = new Map<string, { it: BagItem; n: number }>(); for (const it of a) { const k = stackKey(it), e = m.get(k); if (e) e.n += it.qty; else m.set(k, { it, n: it.qty }); } return m; };
@@ -72,16 +81,19 @@ export function lootGained(prev: BagItem[], next: BagItem[]): { it: BagItem; n: 
   return gained;
 }
 /**
- * So túi mới với túi cũ và báo đồ nhận thêm (tối đa 3 dòng, còn lại gộp "+N món khác"). Cộng theo (mã, năm, sao; không tính cường hóa, vì cường hóa / nâng cấp đổi cấp tại chỗ) cả đồ đang
+ * So túi mới với túi cũ và ghi đồ nhận thêm vào chat, chỉ đồ hiếm có một toast. Cộng theo (mã, năm, sao; không tính cường hóa, vì cường hóa / nâng cấp đổi cấp tại chỗ) cả đồ đang
  * mang lẫn trong túi, nên xếp lại túi, gắn / tháo, gộp ô không báo nhầm; mua, nhặt, nhận thưởng thì báo.
  */
 export function lootToasts(prev: BagItem[] | null, next: BagItem[]): number {
   if (!prev) return -1;
   const gained = lootGained(prev, next);
-  gained.slice(0, 3).forEach(({ it, n }) => {
-    const info = bagItemInfo(it), frame = it.code === RING_ITEM && rarityOf(it) >= RARE_LOOT_MIN ? "rare-ring" : undefined;
-    toast("loot", n > 1 ? `${info.name} ×${n}` : info.name, "", info.color, frame);
+  gained.forEach(({ it, n }) => {
+    const info = bagItemInfo(it);
+    if (it.code === CORE_ITEM) info.color = `var(--rare-${rarityOf(it)})`;
+    chatLoot(stackKey(it), info.name, n, info.color);
+    const rareRing = it.code === RING_ITEM && (it.years ?? 0) >= LOOT_RARE_RING_YEARS;
+    if (rareRing || it.code === BONE_ITEM || it.code === CORE_ITEM)
+      toast("loot", n > 1 ? `${info.name} ×${n}` : info.name, "", info.color, rareRing ? "rare-ring" : undefined);
   });
-  if (gained.length > 3) toast("loot", `+${gained.length - 3} món khác`, "Xem trong túi đồ (phím B)");
   return gained.reduce((best, g) => Math.max(best, rarityOf(g.it)), -1); // độ hiếm cao nhất vừa nhận, cho tiếng đồ hiếm
 }

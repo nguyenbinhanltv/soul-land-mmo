@@ -21,21 +21,23 @@ export const CHAT_COL: Record<Exclude<ChatCh, "sys">, string> = { map: "#9db3a2"
 const CHAT_TAG: Partial<Record<ChatCh, string>> = { party: "[Đội]", whisper: "[Riêng]", world: "[Thế giới]", tong: "[Tông]" };
 const CHAT_TABS: { id: ChatTab; name: string }[] = [
   { id: "all", name: "Tất cả" }, { id: "map", name: "Bản đồ" }, { id: "party", name: "Tổ đội" }, { id: "whisper", name: "Riêng" }, { id: "tong", name: "Tông" },
-  { id: "world", name: "Thế giới" }, { id: "sys", name: "Tin" }];   // "Tin" (3 chữ) để 7 tab còn vừa ô chat 270 px ở màn 960; tooltip ghi rõ "Hệ thống"
+  { id: "world", name: "Thế giới" }, { id: "sys", name: "Hệ thống" }];
 /** Màu vạch của tab Hệ thống (không phải kênh chat nên không nằm trong CHAT_COL). */
 const SYS_TAB_COL = "#8fa89a";
 /** Số dòng hiện lúc ô chat đóng (mờ dần sau CHAT_FADE_MS như trước) và lúc mở (không mờ, cuộn được); số dòng giữ trong phiên. */
 const CHAT_SHOW = 6, CHAT_SHOW_OPEN = 40, CHAT_FADE_MS = 9000, CHAT_KEEP = 200;
 /** Số dòng hệ thống thường giữ trong phiên (tab Hệ thống): không đẩy mất lịch sử chat. */
 const SYS_KEEP = 120;
-interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; act?: { label: string; fn: () => void }; imp?: boolean; n?: number; }
+const LOOT_MERGE_MS = 2000;
+interface ChatLine { ch: ChatCh; text: string; col?: string; who?: string; at: number; act?: { label: string; fn: () => void }; imp?: boolean; n?: number; lootKey?: string; }
 const chatHist: ChatLine[] = [];
 let chatTab: ChatTab = "all", chatPinned = false, chatTyping = false;
+let systemOn = true;
 /** Người gần nhất nhắn riêng cho mình (`/r`) và người gần nhất mình trò chuyện riêng (tin thường ở tab Riêng gửi cho người này). */
 let replyTo = "", whisperTo = "";
 
 /** Dòng `l` hiện ở tab nào: tab Hệ thống thấy mọi dòng hệ thống; các tab khác thấy dòng quan trọng; tab Tất cả thấy cả chat lẫn dòng quan trọng. */
-const tabShows = (tab: ChatTab, l: ChatLine) => (l.ch === "sys" ? tab === "sys" || !!l.imp : tab === "all" || l.ch === tab);
+const tabShows = (tab: ChatTab, l: ChatLine) => (l.ch === "sys" ? !!l.imp || systemOn && (tab === "sys" || tab === "all") : tab === "all" || l.ch === tab);
 const chatOpen = () => chatPinned || chatTyping;
 
 function chatEl(l: ChatLine, fade: boolean) {
@@ -46,6 +48,7 @@ function chatEl(l: ChatLine, fade: boolean) {
   d.appendChild(document.createTextNode(mergedText(l.text, l.n)));
   if (l.act) { const { label, fn } = l.act; d.appendChild(pbtn(label, "ok chatact", fn, label)); } // nút trong dòng (Thêm lại, #195)
   if (l.col) d.style.borderLeftColor = l.col;
+  if (l.lootKey) { d.classList.add("chat-loot"); d.style.setProperty("--c", l.col ?? "var(--plate-text)"); }
   if (fade) setTimeout(() => { d.style.opacity = "0"; setTimeout(() => d.remove(), 700); }, Math.max(0, CHAT_FADE_MS - (Date.now() - l.at)));
   return d;
 }
@@ -57,6 +60,8 @@ function renderChat() {
   const lines = chatHist.filter((l) => tabShows(chatTab, l) && (open || now - l.at < CHAT_FADE_MS)).slice(-(open ? CHAT_SHOW_OPEN : CHAT_SHOW));
   el.replaceChildren(...lines.map((l) => chatEl(l, !open)));
   $("#chatbox")?.classList.toggle("open", open);
+  const expand = $("#chat-expand");
+  if (expand) { expand.textContent = open ? "Thu nhỏ" : "Mở chat"; expand.setAttribute("aria-expanded", String(open)); }
   if (open) el.scrollTop = el.scrollHeight;
   for (const b of document.querySelectorAll<HTMLElement>("#chattabs button")) {
     const on = b.dataset.tab === chatTab;
@@ -71,7 +76,7 @@ export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, a
   const l: ChatLine = { ch, text, col, who, at: Date.now(), act, imp: ch === "sys" ? imp || sysImportant(col, !!act) : undefined };
   if (ch === "sys") { // gộp dòng hệ thống lặp ("×n") thay vì xếp thêm
     let last: ChatLine | undefined; for (let i = chatHist.length - 1; i >= 0 && !last; i--) if (chatHist[i].ch === "sys") last = chatHist[i];
-    if (last && !last.act && !act && !!last.imp === !!l.imp && canMerge(last, l)) { last.n = (last.n ?? 1) + 1; last.at = l.at; renderChat(); return; }
+    if (last && !last.lootKey && !last.act && !act && !!last.imp === !!l.imp && canMerge(last, l)) { last.n = (last.n ?? 1) + 1; last.at = l.at; renderChat(); return; }
   }
   chatHist.push(l); trimHist(chatHist, CHAT_KEEP, SYS_KEEP);
   const el = $("#log"); if (!el) return;
@@ -81,6 +86,20 @@ export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, a
   el.appendChild(chatEl(l, !open));
   while (el.children.length > (open ? CHAT_SHOW_OPEN : CHAT_SHOW)) el.firstElementChild!.remove();
   if (open) el.scrollTop = el.scrollHeight;
+}
+
+/** Nhận từ chênh lệch túi của chính mình; cộng lượng thật, gộp cả khi có món khác xen giữa trong cửa sổ hai giây. */
+export function chatLoot(key: string, name: string, n: number, col?: string) {
+  const at = Date.now();
+  const prev = [...chatHist].reverse().find((l) => l.lootKey === key && at - l.at <= LOOT_MERGE_MS);
+  if (prev) {
+    prev.n = (prev.n ?? 1) + n;
+    // Đưa dòng vừa nhận xuống cuối để chat thu nhỏ luôn thấy món mới nhất; không kéo dài cửa sổ gộp.
+    chatHist.splice(chatHist.indexOf(prev), 1); chatHist.push(prev);
+  } else {
+    chatHist.push({ ch: "sys", text: `Nhận ${name}`, n, col, at, lootKey: key });
+  }
+  trimHist(chatHist, CHAT_KEEP, SYS_KEEP); renderChat();
 }
 
 /** Tin riêng đến / đi: nhớ người để `/r` và tab Riêng gửi tiếp. `mine`: mình gửi, `other` là người nhận; không thì `other` là người gửi. */
@@ -137,6 +156,18 @@ export function buildChatTabs() {
     if (t.id === "sys") setTip(b, { title: "Tin hệ thống", foot: "Lịch sử nhặt đồ, kinh nghiệm, thông báo" });
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); chatSetTab(t.id, true); });
     bar.appendChild(b);
+  }
+  if (!document.getElementById("chat-system-filter")) {
+    const controls = document.createElement("div"); controls.id = "chat-controls";
+    const b = document.createElement("button"); b.id = "chat-system-filter"; b.type = "button";
+    b.textContent = "Hệ thống"; b.setAttribute("aria-label", "Lọc thông báo Hệ thống");
+    b.setAttribute("aria-pressed", String(systemOn));
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); systemOn = !systemOn; b.setAttribute("aria-pressed", String(systemOn)); renderChat(); });
+    controls.appendChild(b);
+    const expand = document.createElement("button"); expand.id = "chat-expand"; expand.type = "button";
+    expand.addEventListener("pointerdown", (e) => { e.preventDefault(); chatPinned = !chatOpen(); renderChat(); });
+    controls.appendChild(expand);
+    bar.parentElement?.insertBefore(controls, bar);
   }
   renderChat();
 }
