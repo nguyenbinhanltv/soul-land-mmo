@@ -293,6 +293,15 @@ try {
     const poor = await prim();
     check(poor.d && /Không đủ Hồn Tệ/.test(poor.why), tag(`thiếu Hồn Tệ phải khoá kèm lý do: ${JSON.stringify(poor)}`));
     await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    if (touch) {
+      // Hết hồi khi bản đồ đang mở: thẻ chỉ vẽ lại một lần, ô chọn bản đồ (select native) phải giữ nguyên là một phần tử, nếu không danh sách đang mở bị đóng.
+      await test("wpcd", { secs: 2 }); await openWorld(); await pickWp(1);
+      await sleep(3500);
+      await page.evaluate(() => { window.__selKeep = document.querySelector(".wm-map-select"); });
+      await sleep(2500);
+      check(await page.evaluate(() => !!window.__selKeep && window.__selKeep === document.querySelector(".wm-map-select")), tag("ô chọn bản đồ bị thay mới sau khi hết hồi (vẽ lại thẻ mỗi giây)"));
+      await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    }
     const real = errors.filter((e) => !/is not valid JSON/.test(e)); // gói riêng (iso-private) vắng ở máy dev: Phaser nhận trang HTML thay JSON, có từ trước
     check(real.length === 0, tag(`lỗi trang: ${real.join(" | ")}`));
     await context.close();

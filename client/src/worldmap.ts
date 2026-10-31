@@ -56,6 +56,8 @@ class WorldMap {
   private waitTimer = 0; private waitErr = false; private imgErr = false;
   /** Lúc (ms) vừa gửi yêu cầu dịch chuyển (0 = không chờ phản hồi); lý do server vừa trả; lúc nhận tin `world` (đếm lùi hồi); hẹn giờ đếm lùi. */
   private pending = 0; private reply = ""; private cdAt = 0; private cdTimer = 0;
+  /** Đếm lùi hồi đã về 0 và thẻ đã vẽ lại đúng một lần cho việc đó (tin `world` mới đặt lại): không vẽ lại mỗi giây, nếu không ô chọn native bị thay giữa lúc đang mở. */
+  private cdDone = false;
   /** Trận đang đứng đã đổi sau tin `world` cuối (bước lên / rời trận): `cur` cũ, nút Dịch chuyển khoá tới khi có tin mới. */
   private stale = false; private staleTimer = 0;
   private ptrs = new Map<number, Pt>(); private drag: { x: number; y: number; vx: number; vy: number; moved: boolean } | null = null; private pinch = 0;
@@ -77,7 +79,7 @@ class WorldMap {
 
   // ---------- API cho mapview.ts / hudMisc.ts ----------
   setMsg(m: WorldMsg) {
-    this.msg = m; this.stale = false; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0; this.cdAt = performance.now();
+    this.msg = m; this.stale = false; this.cdDone = false; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0; this.cdAt = performance.now();
     if (this.sel?.t === "wp" && !this.wp(this.sel.id)) this.sel = null;
     this.render(); this.onChange?.(); // nút chính của khung theo tin mới (phí, hồi, đang đứng ở đâu)
   }
@@ -90,9 +92,9 @@ class WorldMap {
   }
   /** Mỗi giây: cập nhật đếm lùi hồi ở thẻ và nút chính (chỉ hiển thị). */
   private tickCd() {
-    if (!this.msg?.remoteCd) return;
+    if (!this.msg?.remoteCd || this.cdDone) return;
     this.cdEl.textContent = this.cdText(); this.onChange?.();
-    if (this.cdLeft() <= 0) this.paintCard();
+    if (this.cdLeft() <= 0) { this.cdDone = true; this.paintCard(); } // chạm 0: vẽ lại thẻ đúng một lần
   }
   private cdText() { const left = this.cdLeft(); return left > 0 ? `Còn ${left} giây` : "Dùng được"; }
   hide() { clearTimeout(this.waitTimer); this.waitTimer = 0; clearInterval(this.cdTimer); this.cdTimer = 0; this.pending = 0; this.reply = ""; this.stale = false; clearTimeout(this.staleTimer); }
