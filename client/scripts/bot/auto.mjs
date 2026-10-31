@@ -671,13 +671,20 @@ export async function autoTest(){
     await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0});
     if(!farOk) console.log("  ⚠ bỏ qua leash: không đứng được đủ xa con");
     else{
-      await Promise.all([autoOp(A,"on"),autoOp(B,"on")]); let took=false; // bật cùng lúc: bật lệch thì người bật trước kịp đi tới con, đồng đội đi theo, con lọt vào leash một cách hợp lệ
+      // Gốc chập chờn (#1421): bật hai người là hai tin riêng, nhịp quyết định của server có thể chen giữa. Người bật trước chưa thấy đồng đội
+      // (mates() rỗng) nên chọn con xa này, đi tới và đánh trúng (hit) thì được miễn leash ("chưa đánh trúng" mới bị bỏ) → ✗. Bật với khoảng niên hạn
+      // không chứa con (20 năm), chờ tới khi cả hai thấy nhau (mates ≥ 1) rồi mới mở khoảng niên hạn: lúc chọn con, đồng đội đã chắc chắn có.
+      const PTX={...PT,years:[0,0]};
+      await autoOp(A,"set",{cfg:PTX}); await autoOp(B,"set",{cfg:PTX});
+      await Promise.all([autoOp(A,"on"),autoOp(B,"on")]); let took=false;
+      let seen=false; for(let t=0;t<4000&&!seen;t+=100){ seen=(await infoA()).mates>=1&&((await test(B,"auto"))?.mates??0)>=1; if(!seen) await sleep(100); }
+      await autoOp(A,"set",{cfg:PT}); await autoOp(B,"set",{cfg:PT});
       await sleep(1200);
       // Không có mục tiêu thì hai người đi tuần / đi theo nhau nên có thể tự bước vào leash: chỉ tính vi phạm khi đang nhắm con mà lúc đó nó cách cả hai xa hơn leash (+ biên một nhịp đi).
       const out=()=>{ const f=A.room.state.beasts.get(fr); return !!f&&Math.hypot(me(A).x-f.x,me(A).y-f.y)>AUTO_PARTY.leash+2*TILE&&Math.hypot(me(B).x-f.x,me(B).y-f.y)>AUTO_PARTY.leash+2*TILE; };
       for(let t=0;t<5000&&!took;t+=250){ took=((await infoA()).target===fr||(await test(B,"auto"))?.target===fr)&&out(); if(!took) await sleep(250); }
       { const fe=A.room.state.beasts.get(fr), sa=await infoA(), sb=await test(B,"auto");
-        ok(!took,`AH4 tổ đội: con ở cách đồng đội xa hơn AUTO_PARTY.leash (${AUTO_PARTY.leash/TILE} ô) không ai nhắm`+(took?` [con ${fe?.x.toFixed(0)},${fe?.y.toFixed(0)} (đầu ${fb0.x.toFixed(0)},${fb0.y.toFixed(0)}); A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} nhắm ${sa.target} ${sa.mates} đồng đội; B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)} nhắm ${sb?.target}; fr ${fr}]`:"")); }
+        ok(seen&&!took,`AH4 tổ đội: con ở cách đồng đội xa hơn AUTO_PARTY.leash (${AUTO_PARTY.leash/TILE} ô) không ai nhắm`+(!seen?" [hai người chưa thấy nhau]":"")+(took?` [con ${fe?.x.toFixed(0)},${fe?.y.toFixed(0)} (đầu ${fb0.x.toFixed(0)},${fb0.y.toFixed(0)}); A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)} nhắm ${sa.target} ${sa.mates} đồng đội; B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)} nhắm ${sb?.target}; fr ${fr}]`:"")); }
       await autoOp(A,"off"); await autoOp(B,"off");
     }
     await test(A,"clear",{all:true,keep:true});
