@@ -32,6 +32,8 @@ Chạy từng võ hồn từ phụ thể mới nhất (`vohonanim/<id>_{b,f}`), 
 | Vừa | Băng Phượng Hoàng (`bang_phuong_hoang`) | Cột sọc tối giữa hai cánh băng; cánh tốt |
 | Nhẹ | Tử Vong Chu Hoàng (`tu_vong_chu_hoang`) | Thân nhện thật, tám chân tốt, chỉ còn cột sọc dưới bụng; ưu tiên cuối |
 
+**Chạy lại lô 3 (2026-10-31, trên main sau #1432 / #1434):** nguồn `vohonanim` và công cụ không đổi nên Nhu Cốt Thố, Kim Vũ Miêu Ưng, Tử Vong Chu Hoàng, Bích Lân Xà Hoàng, Yêu Hồ, Xúc Xích, Bạch Hổ, Băng Phượng Hoàng cho sheet giống từng byte lần trước; thử thêm `--fill 24` cho cả tám vẫn còn cột tối. **Không nhập võ hồn nào trong tám**, cả tám giao Codex vẽ lại (cùng Lam Điện, U Minh, Liệt Hỏa Thương Lang ở bảng trên; Lam Điện và Liệt Hỏa do phiên 885 đang vẽ).
+
 Hạo Thiên Chùy: sheet đang có sinh lại từ `vohonanim` hiện tại cho kết quả giống từng byte (vũ khí cầm tay v2 ở atlas riêng, không đổi nguồn pháp tướng), và đã xem lại trong game nên giữ nguyên.
 
 ## 2. Quy cách ảnh giao
