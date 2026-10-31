@@ -1,3 +1,4 @@
+LAYOUT PRIORITY: exactly FOUR columns and FOUR rows, exactly sixteen sprites, on a square canvas. Each sprite takes only HALF the cell width and HALF the cell height, including the most extended attack. Very wide uniform magenta gutters, never touching. Do not enlarge figures to fill the sheet.
 STYLE (apply to every image):
 Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
 The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
@@ -23,9 +24,9 @@ readable text, letters, logo, watermark, signature, UI frame, card border, human
 anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
 
 
-SPIRIT: Death Spider Emperor, a colossal violet-black spider. Complete solid rounded armored abdomen and cephalothorax, eight long angular spear-point jointed legs, front pair thrusting forward. Body #2a1240, mandatory bright violet rim #9a4aff, tiny pale joints and a small dark-red skull-like death dao-rune pattern on abdomen. Multiple violet eyes, lethal expression. Motifs only death runes, web-like engraved armor, talisman-marked silk (no loose effects).
-SHEET: One square 1024x1024 image, invisible 4x4 grid of 16 equal 256x256 cells. No grid lines, text, cell numbers, frames. EVERY cell one same complete spider, no human, mannequin, human face or human-shaped hollow. Solid body fully drawn at center. Same scale and baseline. Each figure must be SMALL, occupying only the central 65% of each cell, with wide empty magenta margins on all four sides, including every attack pose. All 16 spiders have the SAME overall scale. Front legs curl inward enough that even the attack peak remains in the central 65% of the cell.
-View: isometric from above, NORTH, seen directly from behind, head points away at top, large armored abdomen faces viewer, no frontal eyes visible. Eight legs attached naturally to solid thorax.
+SPIRIT: Death Spider Emperor, a colossal violet-black spider. Complete solid rounded armored abdomen and cephalothorax, eight long angular spear-point jointed legs, front pair thrusting forward. Body #2a1240, mandatory bright violet rim #9a4aff, tiny pale joints and a small dark-red skull-like death dao-rune pattern on abdomen. Eyes hidden on far side, large pale joint accents and violet armor rim. Motifs only death runes, web-like engraved armor, talisman-marked silk (no loose effects).
+SHEET: One square 1024x1024 image, invisible 4x4 grid of 16 equal 256x256 cells. No grid lines, text, cell numbers, frames. EVERY cell one same complete spider, no human, mannequin, human face or human-shaped hollow. Solid body fully drawn at center. Same scale and baseline. Each figure must be SMALL, occupying only the central 50% of each cell, with wide empty magenta margins on all four sides, including every attack pose. All 16 spiders have the SAME overall scale. Front legs curl inward enough that even the attack peak remains in the central 50% of the cell.
+View: isometric from above, NORTH, directly from behind, symmetrical rear view from above, head points straight toward top of image, broad armored abdomen in foreground at bottom, face and eyes completely hidden. Eight legs attached naturally to solid thorax.
 Rows 1-2: eight-frame idle breathing, tiny 1-2 pixel sway, same silhouette, last returns to first.
 Rows 3-4: eight-frame attack in the direction the spider faces: first three wind up pulling front spear legs back, fourth and fifth thrust front legs forward maximally and hold, last three recover, final neutral.
 Solid opaque body, hard pixel edges, outline #1a1020, three tones per region. No glow blur, particles, smoke, sparks, ground, shadows, aura or separate formation. Reference sheets only for shape/color/motifs; do not copy their human-shaped empty gaps or layout.
@@ -33,3 +34,9 @@ Solid opaque body, hard pixel edges, outline #1a1020, three tones per region. No
 
 Strict animation timing: attack peak is row3 column4 and row4 column1, these two poses match with maximally extended front legs. Row3 columns1-3 wind up, row4 columns2-4 recover. No image elements near cell edges.
 For back views, large readable armor planes and mandatory violet rim must remain legible at 70% opacity. Keep a complete anatomical spider with eight attached legs.
+
+
+COMPACT ATTACK CORRECTION: front spear legs remain sharply bent at their joints and held close to the thorax, even at maximum attack extension. Attack thrust is SHORT, never a straight long spear extending out of the cell. No figure can exceed 60% cell width, including all eight legs. A large magenta gap must remain to the right of each attack leg.
+
+
+BACK VIEW IS ESSENTIAL. Do not draw a front-facing spider. Large complete armored rear abdomen in foreground, head centered on far upper side. This is a direct rear view, no sideways profile.
