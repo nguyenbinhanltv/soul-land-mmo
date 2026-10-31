@@ -4,7 +4,7 @@
 
 ## Luật cốt lõi
 - Giao diện, chú thích, commit, PR bằng tiếng Việt; dùng đúng tên gốc Đấu La.
-- **Server-authoritative:** logic game chỉ ở `server/src/rooms/` (`MapRoom`, `ArenaRoom`); client (`client/src`) chỉ hiển thị và gửi ý định.
+- **Server-authoritative:** logic game chỉ ở `server/src/rooms/` (`MapRoom`; hai lớp con `ArenaRoom`, `BiCanhRoom`); client (`client/src`) chỉ hiển thị và gửi ý định.
 - **Số cân bằng** chỉ ở `shared/data.ts`; tài liệu trỏ tên hằng, không chép số.
 - **Trường đồng bộ mới:** khai ở `rooms/schema.ts`, đọc ở `GameScene.ts`; dữ liệu riêng gửi tin riêng; thực thể ở xa không có trong state (`interest.ts`, `beastsNear`).
 - **SQL mới:** `server/sql/00N_<tên>.sql` (N kế tiếp trên `origin/main`), chạy lại an toàn, bật RLS; sửa cả `PgStore` lẫn `MemoryStore`; ghi DB một người chơi qua `this.chain(d, fn)`.
