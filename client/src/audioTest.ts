@@ -14,7 +14,7 @@ const NAME: Record<string, string> = {
   thit: "Thịt", giap: "Giáp / vỏ cứng", bang: "Băng", go: "Gỗ / cây",
   fire: "Lửa", ice: "Băng", lightning: "Sét", poison: "Độc", light: "Quang", dark: "Ám", wood: "Mộc", wind: "Phong",
   start: "bắt đầu", fly: "bay", boom: "nổ",
-  lang: "Sói", hung: "Gấu / tê / giáp", bao: "Báo / hổ / thỏ", xa: "Rắn / mãng", chim: "Chim", trung: "Côn trùng", thiem: "Cóc / nhớt", thuc: "Thực vật",
+  lang: "Sói", hung: "Gấu / tê / giáp", bao: "Báo / hổ / thỏ", xa: "Rắn / mãng", chim: "Chim", trung: "Côn trùng", thiem: "Cóc / nhớt", thuc: "Thực vật", bien: "Hồn thú biển",
   co: "Cỏ", dat: "Đất", da: "Đá", tuyet: "Tuyết", nuoc: "Nước nông",
   open: "Mở panel", close: "Đóng panel", drag: "Nhấc đồ (kéo)", drop: "Thả đồ", equip: "Trang bị", enhanceOk: "Cường hóa thành công", enhanceFail: "Cường hóa chưa thành", rare: "Nhận đồ hiếm", click: "Bấm nút trong bảng", error: "Lỗi / bị từ chối", reward: "Nhận thưởng", notify: "Thông báo (toast)",
   wave: "Sóng", bird: "Chim (ngày)", cricket: "Côn trùng (đêm)", bell: "Chuông chùa",
@@ -32,7 +32,7 @@ function sections(): { title: string; hint: string; rows: Row[] }[] {
     { title: "Kỹ năng theo hệ", hint: "8 hệ × bắt đầu / bay / nổ (tiếng thật gắn theo lưu phái của võ hồn)", rows: skill },
     { title: "Hồn hoàn", hint: "sáng (đổi cao độ, vang theo niên hạn ở nút bên dưới), hấp thụ, rơi", rows: [
       { title: "Sáng", group: "ring-glow", channel: "sfx" }, { title: "Hấp thụ", group: "ring-absorb", channel: "sfx" }, { title: "Rơi", group: "ring-drop", channel: "sfx" }] },
-    { title: "Tiếng thú theo họ", hint: "8 họ × 2–3, cộng gầm boss và thú chết", rows: [
+    { title: "Tiếng thú theo họ", hint: "9 họ × 2–3, cộng gầm boss và thú chết", rows: [
       ...BEAST_FAMILIES.map((f) => ({ title: label(f), group: `beast-${f}`, channel: "sfx" as AudioChannel })),
       { title: "Boss gầm", group: "beast-boss", channel: "sfx", note: "hạ nhạc nền" }, { title: "Thú chết", group: "beast-die", channel: "sfx" }] },
     { title: "Bước chân theo địa hình", hint: "kênh Môi trường", rows: SURFACES.map((s) => ({ title: label(s), group: `step-${s}`, channel: "ambient" as AudioChannel })) },
