@@ -18,7 +18,7 @@ const t3RequiredGroups = T3_SKILL_IDS.flatMap((id) => [...t3Groups("ult", id), .
 /** Nhóm bắt buộc có trong catalog (tên nhóm = id phát ở client, client/src/audio/soundMap.ts). Mỗi nhóm đủ số biến thể tối thiểu. */
 export const SFX_REQUIRED = {
   ...Object.fromEntries(["kiem", "chuy", "thuong", "trao", "quyen"].map((k) => [`swing-${k}`, 3])),
-  ...Object.fromEntries(["thit", "giap", "bang", "go"].map((k) => [`hit-${k}`, 3])),
+  ...Object.fromEntries(["thit", "giap", "bang", "go", "da", "linh_the"].map((k) => [`hit-${k}`, 3])),
   ...Object.fromEntries(["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"].flatMap((e) => ["start", "fly", "boom"].map((p) => [`skill-${e}-${p}`, 1]))),
   "ring-glow": 2, "ring-absorb": 2, "ring-drop": 2,
   ...Object.fromEntries(["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc"].map((f) => [`beast-${f}`, 2])),
@@ -33,6 +33,8 @@ export const SFX_REQUIRED = {
 };
 
 const SAFE_ID = /^[a-z0-9][a-z0-9-]*$/;
+// Nhóm chất liệu lấy trực tiếp từ Material của client (ví dụ hit-linh_the).
+const SAFE_GROUP = /^[a-z0-9][a-z0-9_-]*$/;
 const fail = (message) => { throw new Error(message); };
 
 export function validateSfxCatalog(catalog) {
@@ -49,7 +51,7 @@ export function validateSfxCatalog(catalog) {
   }
   const ids = new Set(), perGroup = new Map();
   for (const c of catalog.clips) {
-    if (!SAFE_ID.test(c.id ?? "") || !SAFE_ID.test(c.group ?? "")) fail(`clip ${c.id} có id / nhóm không hợp lệ`);
+    if (!SAFE_ID.test(c.id ?? "") || !SAFE_GROUP.test(c.group ?? "")) fail(`clip ${c.id} có id / nhóm không hợp lệ`);
     if (ids.has(c.id)) fail(`clip trùng ${c.id}`);
     ids.add(c.id);
     if (!SFX_PACKS.includes(c.pack)) fail(`clip ${c.id}: gói ${c.pack} lạ`);

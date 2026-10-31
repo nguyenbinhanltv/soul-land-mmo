@@ -166,6 +166,9 @@ noListenerAudio.dispose();
   assert.equal(map.materialOfBeast("quy_dang"), "go");
   assert.equal(map.materialOfBeast("thiet_giap_te_nguu"), "giap");
   assert.equal(map.materialOfBeast("phong_lang"), "thit");
+  assert.equal(map.materialOfBeast("kim_cuong_cu_vien"), "da");
+  for (const id of ["thai_than_cu_vien", "thien_thanh_nguu_mang", "u_linh_hai_mau"]) assert.equal(map.materialOfBeast(id), "linh_the");
+  assert.deepEqual(map.MATERIALS, map.COMBAT_MATERIALS, "mọi chất liệu visual đều có mẫu âm thanh");
   const surfaces = new Map();
   for (const name of Object.keys(tiles.ground)) {
     const s = map.surfaceOfGround(name);
@@ -592,6 +595,24 @@ noListenerAudio.dispose();
   ac.abort();
   assert.equal(observed.length, 0, "hủy signal thì gỡ quan sát");
   delete globalThis.MutationObserver; delete globalThis.document;
+}
+
+// Đá / linh thể: cùng nhóm cho đánh thường và chí mạng; fallback chỉ khi mẫu chưa sẵn sàng.
+{
+  const a = new AudioManager({ sound: { context, setMute() {}, setVolume() {} } }, () => ({ x: 100, y: 100 }), () => null);
+  const groups = [], synth = [];
+  let ready = true;
+  a.playGroup = (group) => { groups.push(group); return ready; };
+  a.play = (id) => { synth.push(id); };
+  for (const material of ["da", "linh_the"]) {
+    a.handleDamage({ x: 100, y: 100 }, material);
+    a.handleDamage({ x: 100, y: 100, crit: true }, material);
+  }
+  assert.deepEqual(groups, ["hit-da", "hit-da", "hit-linh_the", "hit-linh_the"]);
+  assert.deepEqual(synth, ["combat_crit", "combat_crit"], "mẫu sẵn sàng không gọi combat_hit");
+  ready = false;
+  a.handleDamage({ x: 100, y: 100 }, "linh_the");
+  assert.equal(synth.at(-1), "combat_hit", "mẫu lỗi/chưa tải vẫn có dự phòng");
 }
 
 console.log(`audio-test: ${SFX_IDS.length} SFX tổng hợp, tiếng mẫu CC0, kênh trộn, settings và spatial đều đạt`);

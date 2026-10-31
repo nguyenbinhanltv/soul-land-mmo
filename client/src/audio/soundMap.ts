@@ -13,9 +13,9 @@ export type BeastFamily = "lang" | "hung" | "bao" | "xa" | "chim" | "trung" | "t
 export const WEAPONS: readonly Weapon[] = ["kiem", "chuy", "thuong", "trao", "quyen"];
 export const ELEMENTS: readonly Element[] = ["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"];
 export const SKILL_PHASES: readonly SkillPhase[] = ["start", "fly", "boom"];
-/** Nhóm âm thanh G2 đã có mẫu; không mở rộng trong C1 để không đổi catalog audio. */
-export const MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go"];
-/** Sáu chất liệu visual C1; `da` / `linh_the` dùng fallback tiếng va chạm chung nếu chưa có mẫu riêng. */
+/** Sáu nhóm chất liệu đều có mẫu; tiếng tổng hợp chỉ dự phòng chưa tải / lỗi tải. */
+export const MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go", "da", "linh_the"];
+/** Chất liệu visual C1 khớp nhóm tiếng va chạm. */
 export const COMBAT_MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go", "da", "linh_the"];
 export const SURFACES: readonly Surface[] = ["co", "dat", "da", "tuyet", "go", "nuoc"];
 export const BEAST_FAMILIES: readonly BeastFamily[] = ["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc"];
@@ -91,7 +91,7 @@ export function beastSpeciesId(species: number, rank: number): string {
   return (rank > 0 ? BOSSES[species]?.species : BEASTS[species]?.id) ?? "";
 }
 
-/** Chất liệu khi đánh trúng hồn thú: băng (loài băng / tuyết), gỗ-cây (họ thực vật), giáp-vỏ (loài giáp), linh thể (ba boss đặc biệt), còn lại thịt. `da` là nhánh visual dự phòng; hiện BEAST/BOSS đang dùng không có loài đá riêng nên chưa được chọn trong trận. */
+/** Chất liệu khi đánh trúng hồn thú: linh thể đặc biệt, đá (cự viên / thạch / ngọc), băng, gỗ-cây, giáp-vỏ, còn lại thịt. */
 export function materialOfBeast(speciesId: string): Material {
   if (/thai_than_cu_vien|thien_thanh_nguu_mang|u_linh_hai_mau/.test(speciesId)) return "linh_the";
   if (/cu_vien|thach|ngoc/.test(speciesId)) return "da";
@@ -145,6 +145,7 @@ export function ringGlowMix(tier: number): { rate: number; wet: number; gain: nu
 /** Chỉnh độ to (dB) từng nhóm tiếng mẫu về cùng mức mục tiêu của loại (vung / va chạm / hồn kỹ / T3 / thú / bước chân…). Bảng SINH bằng `node tools/audio/measure-sfx.mjs`
  * (đo RMS thật của clip, đã chừa đỉnh); chạy lại và dán khi thêm / thay clip. Khóa: nhóm, riêng hồn kỹ theo hệ gộp ba pha (`skill-fire`), T3 theo kiểu + pha. Thiếu khóa = 0 dB. */
 export const GROUP_TRIM_DB: Readonly<Record<string, number>> = {
+  "hit-da": -1, "hit-linh_the": 2,
   "swing-kiem": 3.5, "swing-chuy": -4, "swing-thuong": -4.5, "swing-trao": 0.5, "swing-quyen": -4.5, "hit-thit": -4, "hit-giap": 4, "hit-bang": 3, "hit-go": 3,
   "skill-fire": -1, "skill-ice": 1, "skill-lightning": -0.5, "skill-poison": 1.5, "skill-light": 2, "skill-dark": -1, "skill-wood": -2.5, "skill-wind": -6,
   "beast-lang": -3, "beast-hung": -2.5, "beast-bao": -4.5, "beast-xa": 3.5, "beast-chim": 3.5, "beast-trung": 3, "beast-thiem": 5.5, "beast-thuc": -1, "beast-boss": -3, "beast-die": -3.5,

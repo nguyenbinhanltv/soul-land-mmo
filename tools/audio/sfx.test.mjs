@@ -34,6 +34,8 @@ test("catalog từ chối giấy phép lạ, thiếu SHA, nhóm thiếu biến t
   assert.throws(() => validateSfxCatalog(few), /swing-kiem cần ít nhất/);
   const escape = clone(catalog); escape.clips[0].input = "../x.ogg";
   assert.throws(() => validateSfxCatalog(escape), /không an toàn/);
+  const badGroup = clone(catalog); badGroup.clips[0].group = "hit/linh_the";
+  assert.throws(() => validateSfxCatalog(badGroup), /nhóm không hợp lệ/);
 });
 
 test("manifest khớp catalog, tổng dưới 8 MB, ghi công khớp", () => {
