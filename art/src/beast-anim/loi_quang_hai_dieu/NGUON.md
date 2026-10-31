@@ -1,4 +1,4 @@
-# Lôi Quang Hải Diêu — RAW hoạt ảnh (#1401)
+# Lôi Quang Hải Diêu — RAW hoạt ảnh (#1426)
 
 File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species loi_quang_hai_dieu`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
 
@@ -55,7 +55,7 @@ Loài `loi_quang_hai_dieu` (Lôi Quang Hải Diêu), họ `swim`, khung game 96�
 - Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
 - Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
 - Ghi chú kỹ thuật (cỡ thân, không phải lỗi): H1–4 (n): cỡ thân idle 188% so với ảnh tĩnh (lệch 88%, quá 25%); cutter neo lại, không chặn.
-- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
 
 ## Lỗi
 
@@ -63,7 +63,6 @@ Loài `loi_quang_hai_dieu` (Lôi Quang Hải Diêu), họ `swim`, khung game 96�
 LỖI: toA — chân lệch — H10 (e) C3–6 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 20%).
 LỖI: to-e — chân lệch — H3 (e) C3–5, H4 (e) C1–4 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 17%); chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%).
 LỖI: to-n — chân lệch — H3 (n) C5 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%).
-LỖI: to-n — Giữ dự phòng; đủ ba lượt phiên 860, residual -19,2% tại thời điểm đó, không thử lại phiên 862 (mắt)
 ```
 
 ## Ghi công
@@ -74,36 +73,12 @@ Bảng này `tools/assets/credits.mjs` gom vào màn Ghi công (cùng cột vớ
 |---|---|---|---|---|---|
 | `art/src/beast-anim/loi_quang_hai_dieu/` | - | image_gen.imagegen | RAW hoạt ảnh Lôi Quang Hải Diêu: to-e 1536×1024; model, seed, prompt thật và hash ở các mục trên | - | Soát bằng mắt trước khi duyệt |
 
-## Phiếu nhập phiên 862
+## Phiếu nhập phiên 882
 
-Phiếu nhập cuối: e lượt 1/3 đạt mắt, đủ đuôi; hurt lùi và die giữ hướng. Không cần lượt 2/3 hay vẽ lại se. Giữ RAW legacy và mọi lượt cũ. Cutter tự động 0,5764 ≤ fit 0,7023, 0 block. Dùng cutter v2 thay riêng hàng e (44 px), giữ s/se nguyên byte; normal cũng giữ hàng ngoài e. Sau đó beast:import --dirs-ok s,se,e,ne --force giữ s/se/e nguyên byte và nhập ne phiên 860 lượt 2. Chuẩn cỡ = sheet đã nhập s=57,se=46,e=44 → 49 px; ne ×1,00, residual 7,0% (≤10%). Không --scale, không nới ngưỡng, không đổi công cụ. n vẫn dự phòng, không sinh thêm vì đã đủ ba lượt phiên 860 (residual -19,2%).
+Tái sử dụng RAW `to-n.png` phiên 860 lượt 3, không sinh lượt mới, không sửa RAW hoặc prompt. Residual -19,2% ở phiên 860 là kết quả của bộ nguồn/chuẩn nhập thời điểm cũ, không còn tái hiện với nguồn hiện tại đã có tờ e mới và ne đạt. Dry-run staging LF và lần nhập thật cùng kết quả: chuẩn sheet đang nhập s=57, se=46, e=44, ne=46 → 48,3 px; cutter tự động 0,5764, khớp n ×0,94, residual 0,0%, 0 block.
 
-Cảnh báo nhẹ e đã duyệt: checker ghi chân lệch 17% ở attack H3 C3–5, 15% ở die H4 C1–4. Họ swim không chân; đáy hộp bao đổi vì cánh co/duỗi và tư thế chìm. Cutter neo lại đáy, không cắt mép. Đã xem đủ pha trong GameScene Chrome --mute-audio, không thấy trôi dọc hay giật neo bất thường; chấp nhận nhẹ, giữ nguyên dòng LỖI tự động ở trên.
+Lệnh nhập: `node tools/assets/beast-import.mjs --species loi_quang_hai_dieu --dirs-ok loi_quang_hai_dieu=s,se,e,ne,n --force`. Không `--scale`, không nới ngưỡng, không đổi công cụ. Đủ năm hướng nên manifest bỏ `dirsOk`. Bốn hướng cũ s/se/e/ne giữ nguyên byte RGBA ở cả ảnh màu và normal, kiểm riêng 0 byte đổi.
 
-## Hồ sơ mọi lượt trước
+Đã xem GIF và trong GameScene bằng Chrome `--mute-audio`: idle/walk/attack/hurt/die hướng n nhìn lưng, không lộ mặt, đủ đuôi, hurt nhỏ và die giữ trục. Bảng kiểm tạm dùng `syncBeastSprite` và `dieFrame` thật của client; server RAM riêng, fixture thư viện private rỗng; 0 lỗi runtime. Ảnh `hai-dieu-n-trong-game.png` đính trong phiên AO soul_land_game-882. Chấp nhận nhẹ cảnh báo “chân lệch” 15% ở attack của họ swim không chân: biên dưới đổi khi cánh vẫy, không thấy trôi neo hoặc cắt mép trong game.
 
-[Hồ sơ lịch sử đến phiên 862](candidates/NGUON-lich-su-den-862.md) giữ đầy đủ prompt/hash/phiếu các vòng 778, 797, 809, 860 và e lượt 1 phiên 862; mọi RAW vẫn giữ nguyên byte. Các kết luận chặn ở bản lịch sử không phải trạng thái nhập hiện tại.
-
-## Kiểm lại nguồn hiện tại phiên 882 (#1426)
-
-### to-n — kiểm lại RAW cũ, không sinh lượt mới
-
-- File: `to-n.png`, **1536×1024**, 1603641 byte, SHA256 `b5711cf4192832024856431aaeae6b7929a674446f69e4721fc97d35c6414857`.
-- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-882.
-- Prompt: `to-n.prompt.txt` (SHA256 `60d33fe81dd5113684fe9e2f5797ec7529035933e36fd1fa7bfff446c0632479`).
-- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
-- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
-- Duyệt bằng mắt: đã xem, không thấy lỗi.
-
-#### Cảnh báo tự động
-
-```text
-LỖI: to-n — chân lệch — H3 (n) C5 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%).
-```
-
-
-## Phiếu nhập tự động phiên 882
-
-```text
-loi_quang_hai_dieu: chuẩn cỡ = sheet đã nhập (s 57, se 46, e 44, ne 46 → 48.3); khớp n ×0.94 (còn lệch 0.0%)
-```
+[Lịch sử trước lần nhập phiên 882](candidates/NGUON-lich-su-truoc-nhap-882.md) giữ nguyên hồ sơ và kết luận dự phòng cũ; các dòng chặn cỡ ở đó là lịch sử, không phải trạng thái hiện hành. [Hồ sơ đến phiên 862](candidates/NGUON-lich-su-den-862.md) giữ các lượt RAW/prompt/hash trước đó.
