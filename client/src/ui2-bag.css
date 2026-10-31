@@ -80,3 +80,26 @@ body:not(.dual-win) #bag{width:min(520px,96vw)}
 /* Màn thấp (≤ 560 px, nhỏ nhất 960×540): bảng cao hơn, tiêu đề cỡ thường; dài hơn khung thì cuộn trong bảng. */
 .ui-h560 #bag{max-height:96%}
 .ui-h560 #bag .rhead b{font:var(--fs-m)/1.2 var(--f12)}
+
+/* Túi gọn (#1464): công cụ trên tiêu đề, một hàng lọc, đồ mặc chỉ có dấu góc ô. */
+#bag .rhead{flex-wrap:wrap;gap:var(--sp-2)}
+#bag .rhead>span{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-left:auto}
+#bag .rhead :is(.bsort,.bsellbtn){padding:0 var(--sp-2)}
+#bag .bfilter{flex-wrap:nowrap;overflow-x:auto;flex-shrink:0}
+#bag .bfilter>*{flex:none;white-space:nowrap}
+#bag .bworn{position:absolute;bottom:var(--sp-2);left:var(--sp-2);z-index:2;width:8px;height:8px;transform:rotate(45deg);background:var(--accent);border:var(--bd-fine) solid var(--track);pointer-events:none}
+#bag .bequip{display:none;flex-wrap:nowrap;gap:var(--sp-1);overflow-x:auto;flex-shrink:0}
+body.dual-win #bag .bequip{display:flex}
+#bag .bequip>small{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+#bag .bq{flex:none;position:relative;width:32px;height:32px;min-width:32px;min-height:32px}
+body.dual-win #bag .bfilter{display:none}
+body.dual-win #bag .bgrid{grid-template-columns:repeat(5,minmax(0,1fr))}
+body.dual-win:not(.ui-w640):not(.touch) #char{left:max(2%,calc(50% - 498px));width:min(55%,680px)}
+body.dual-win:not(.ui-w640):not(.touch) #bag{left:calc(max(2%,calc(50% - 498px)) + min(55%,680px) + 16px);width:min(34%,300px)}
+body.dual-win #bag .rhead b{font:var(--fs-m)/1.2 var(--f12)}
+/* Tab cho màn hẹp và thiết bị cảm ứng: giữ hai trạng thái mở, chỉ vẽ một bảng. */
+body.dual-win:is(.ui-w640,.touch) :is(#char,#bag){left:2%;width:96%;top:46px;max-height:calc(98% - 46px)}
+body.dual-win:is(.ui-w640,.touch)[data-pick=char] #bag,body.dual-win:is(.ui-w640,.touch)[data-pick=bag] #char{display:none}
+body.dual-win:is(.ui-w640,.touch) #dualTabs:not([hidden]){display:flex;position:absolute;left:2%;right:2%;top:4px;height:40px;z-index:6;pointer-events:auto;gap:var(--sp-2)}
+body.touch #bag :is(.rhead button,.bq){min-width:40px;min-height:40px}
+body.touch #bag .bgrid{grid-template-columns:repeat(5,minmax(40px,52px))}

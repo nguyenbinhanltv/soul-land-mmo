@@ -31,7 +31,9 @@ function setSwapLabel(b: HTMLElement, p: PanelId) {
 /** Cập nhật lớp trên <body> và lớp `front` trên hai bảng sau mỗi lần mở / đóng / bấm nổi. */
 function sync() {
   const st = windowState(), cl = document.body.classList;
+  const wasDual = cl.contains("dual-win");
   cl.toggle("dual-win", st === "dual");
+  if (wasDual !== (st === "dual")) document.dispatchEvent(new Event("dual-layout"));
   document.body.dataset.pick = front;
   for (const p of ["char", "bag"] as const) el(p).classList.toggle("front", p === front);
   // Đầu bảng không vẽ lại khi bảng kia mở / đóng, nên nhãn nút ⇆ phải cập nhật ở đây.
