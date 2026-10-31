@@ -11,7 +11,8 @@ import { store, type Item } from "../db.ts";
 import { surfaceSpot } from "./worldBoss.ts";
 import { achvCount } from "./achv.ts";
 import { newItem, bagUsed } from "./items.ts";
-import { persistKingSeat, type MapRoom, type PData, type BData, type EliteData, type KingData, type WorldData } from "./MapRoom.ts";
+import { type MapRoom, type PData, type BData, type EliteData, type KingData, type WorldData } from "./MapRoom.ts";
+import { persistKingSeat } from "./presenceState.ts";
 import { kingClaimCache } from "./procState.ts";
 import { bossK, claimHeld, uid } from "./common.ts";
 

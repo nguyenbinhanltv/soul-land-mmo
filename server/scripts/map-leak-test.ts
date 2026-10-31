@@ -2,7 +2,8 @@
 // khi cả hai bên rời hàng quá hạn (trận + ARENA.rematchSecs).
 import assert from "node:assert/strict";
 import { ARENA, CHANNEL_CD } from "../../shared/data.ts";
-import { channelSwitchAt, kingClaimTest, leftRoom, sweepChannelMaps } from "../src/rooms/procState.ts";
+import { channelSwitchAt, leftRoom, sweepChannelMaps } from "../src/rooms/procState.ts";
+import { kingClaimTest } from "../src/rooms/testState.ts";
 import { LAST_FOE_TTL_MS, arenaLastFoeTest, sweepLastFoe } from "../src/rooms/arenaQueue.ts";
 
 const now = Date.now(), seat = { id: "s", owner: null, state: "alive" as const, leaveAt: 0 };

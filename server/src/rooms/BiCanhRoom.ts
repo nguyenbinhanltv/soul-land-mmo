@@ -3,7 +3,8 @@
 // theo kịch bản dữ liệu `BICANH.scenes[].waves`, chốt kết quả MỘT lần, thưởng Hồn Kinh Quyển theo số sóng đã hạ do server đếm, hoàn lượt khi lỗi hệ thống. Mọi thứ do server quyết; client chỉ gửi ý định.
 // Lượt đã trừ ở bicanh.ts (`enterRun`) bằng vé `Ticket`; phòng chỉ mở bằng vé đó, một người, một lần.
 import { Client, ServerError } from "colyseus";
-import { MapRoom, seatAccount, type AuthData, type PData, type SeatPass } from "./MapRoom.ts";
+import { MapRoom, type AuthData, type PData } from "./MapRoom.ts";
+import { seatAccount, type SeatPass } from "./seat.ts";
 import { BLOCKED, ARENA_END_CODE } from "./ArenaRoom.ts";
 import { achvCount } from "./achv.ts";
 import { BICANH, BOSSES, MAX_RINGS, SPAWN_PLAYER_GAP, TIERS, TILE, beastIndex, bicanhTomeKind, ringLimit, dir4 } from "../../../shared/data.ts";

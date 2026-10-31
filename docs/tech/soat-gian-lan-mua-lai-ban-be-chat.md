@@ -22,7 +22,7 @@ Lỗi thật đã tách issue sửa riêng, không sửa `MapRoom.ts` trong PR n
 
 ## 3. Mua lại nhiều tiến trình
 
-**Cơ chế đọc từ mã** (`MapRoom.ts`, `editBuyback`, `claimBuyback`, `sellItem`, `buybackItem`): danh sách mua lại đúng ở presence Redis (`buyback:<acc>`, TTL `BUYBACK_TTL_MS`), bản trong RAM (`buybacks`) nạp lúc vào phòng. `sellItem` ghi `editBuyback` không chờ rồi trừ đồ và `saveTrade`. `buybackItem` lấy món ra khỏi presence bằng `claimBuyback` (khóa `withLock`, đọc-sửa-ghi một lần nên chỉ một lệnh nhận được món, kể cả hai tiến trình), rồi kiểm lại sau `await` (còn phiên, không đang đi cổng, đủ tiền, đủ chỗ), không thì trả món về presence.
+**Cơ chế đọc từ mã** (`presenceState.ts`, `editBuyback`, `claimBuyback`, `sellItem`, `buybackItem`): danh sách mua lại đúng ở presence Redis (`buyback:<acc>`, TTL `BUYBACK_TTL_MS`), bản trong RAM (`buybacks`) nạp lúc vào phòng. `sellItem` ghi `editBuyback` không chờ rồi trừ đồ và `saveTrade`. `buybackItem` lấy món ra khỏi presence bằng `claimBuyback` (khóa `withLock`, đọc-sửa-ghi một lần nên chỉ một lệnh nhận được món, kể cả hai tiến trình), rồi kiểm lại sau `await` (còn phiên, không đang đi cổng, đủ tiền, đủ chỗ), không thì trả món về presence.
 
 Vì sao không nhân được: mọi đường dẫn tới món đều qua `claimBuyback` (nguyên tử); tiền trừ (`honTe -= cost`) và đồ cộng cùng một nhịp đồng bộ sau lần kiểm cuối; món mua lại sinh id mới nên chỉ nhân nếu `claim` nhận hai lần, mà không. Mất cơ hội thì có (danh sách chưa sang kịp tiến trình mới: báo "không còn giữ"), chỉ thiệt cho người chơi.
 
