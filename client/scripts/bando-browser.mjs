@@ -185,6 +185,10 @@ try {
     await page.locator("#mapview .p2-primary").click(); await page.waitForSelector(".cfm", { state: "visible" });
     check(/phụ phí/.test(await page.locator(".cfm").innerText()), tag("bước ra khỏi trận: bấm Dịch chuyển phải hỏi xác nhận phụ phí"));
     await page.locator(".cfm-no").click();
+    // Lý do server từ chối (vd Lõi Tinh Đấu cấm truyền tống) đến bằng dòng log ngay sau khi bấm: hiện nguyên văn ở thẻ chi tiết. Mô phỏng đường tin log, không tự tính luật.
+    const why = "Lõi Tinh Đấu cấm truyền tống: muốn rời đi hãy tới cổng.";
+    await page.evaluate(async (why) => { const w = (await import("/src/worldmap.ts")).worldMap(); w.pending = performance.now(); (await import("/src/hud.ts")).worldNote(why); }, why);
+    check((await page.locator("#world .wm-reply").innerText().catch(() => "")).includes(why), tag("lý do server (log) không hiện ở thẻ chi tiết"));
     await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
     // Ra khỏi trận (đi ra vài điểm) rồi dịch chuyển từ xa tới trận 0.
     for (const [dx, dy] of [[160, 0], [-160, 0], [0, 160], [0, -160], [260, 0]]) {

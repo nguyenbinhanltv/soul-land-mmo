@@ -14,9 +14,9 @@
     "xa": 0
   },
   "display": {
-    "scale": 1,
+    "scale": 1.3,
     "dx": 0,
-    "dy": -4,
+    "dy": -26,
     "back": [
       "s",
       "se",
@@ -190,5 +190,11 @@
       "n": 3,
       "mat": 8
     }
+  },
+  "dongGoi": {
+    "cong_cu": "tools/assets/phuthe-to-phaptuong.mjs",
+    "nguon": "vhanim_can_khon_hon_nguyen_toa_b/_f (phụ thể mới nhất, clip idle / attack)",
+    "ngay": "2026-10-31",
+    "issue": 1306
   }
 }
