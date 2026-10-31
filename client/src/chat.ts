@@ -40,8 +40,43 @@ let replyTo = "", whisperTo = "";
 const tabShows = (tab: ChatTab, l: ChatLine) => (l.ch === "sys" ? !!l.imp || systemOn && (tab === "sys" || tab === "all") : tab === "all" || l.ch === tab);
 const chatOpen = () => chatPinned || chatTyping;
 
+interface ReadPosition { bottom: boolean; anchors: { line: ChatLine; offset: number }[]; unread: boolean; }
+const readPositions = new Map<ChatTab, ReadPosition>();
+const lineElements = new WeakMap<Element, ChatLine>();
+let renderedTab: ChatTab = "all", renderedOpen = false;
+const nearBottom = (el: HTMLElement) => el.scrollHeight - el.clientHeight - el.scrollTop <= 8;
+
+function markOtherTabsUnread(line: ChatLine) {
+  for (const [tab, position] of readPositions) {
+    if (tab !== chatTab && !position.bottom && tabShows(tab, line)) position.unread = true;
+  }
+}
+
+/** Giữ mốc dòng và offset; nếu dòng bị bỏ do giới hạn lịch sử thì dùng dòng còn lại kế tiếp. */
+function saveReadPosition() {
+  const el = $("#log"); if (!el || !renderedOpen) return;
+  const top = el.getBoundingClientRect().top;
+  const bottom = nearBottom(el);
+  const anchors = [...el.children].filter((row) => row.getBoundingClientRect().bottom > top).map((row) => ({ line: lineElements.get(row)!, offset: row.getBoundingClientRect().top - top }));
+  readPositions.set(renderedTab, { bottom, anchors, unread: !bottom && !!readPositions.get(renderedTab)?.unread });
+}
+
+function updateNewButton() {
+  const b = $("#chat-new");
+  if (b) b.hidden = !chatOpen() || !readPositions.get(chatTab)?.unread;
+}
+
+function readToEnd() {
+  const el = $("#log"); if (!el) return;
+  el.scrollTop = el.scrollHeight;
+  readPositions.set(chatTab, { bottom: true, anchors: [], unread: false });
+  document.querySelector(`#chattabs button[data-tab="${chatTab}"]`)?.classList.remove("new");
+  updateNewButton();
+}
+
 function chatEl(l: ChatLine, fade: boolean) {
   const d = document.createElement("div");
+  lineElements.set(d, l);
   const tag = chatTab === "all" ? CHAT_TAG[l.ch] : undefined;
   if (tag) { const t = document.createElement("i"); t.textContent = tag; t.style.color = l.col ?? ""; d.appendChild(t); }
   if (l.who) { const b = document.createElement("b"); b.textContent = l.who + ":"; if (tag) b.style.color = l.col ?? ""; d.appendChild(b); }
@@ -54,19 +89,32 @@ function chatEl(l: ChatLine, fade: boolean) {
 }
 
 /** Vẽ lại khung log theo tab và trạng thái mở / đóng. */
-function renderChat() {
+function renderChat(updated?: ChatLine) {
   const el = $("#log"); if (!el) return;
+  saveReadPosition();
+  const position = readPositions.get(chatTab);
+  if (updated && tabShows(chatTab, updated) && position && !position.bottom) position.unread = true;
   const open = chatOpen(), now = Date.now();
   const lines = chatHist.filter((l) => tabShows(chatTab, l) && (open || now - l.at < CHAT_FADE_MS)).slice(-(open ? CHAT_SHOW_OPEN : CHAT_SHOW));
   el.replaceChildren(...lines.map((l) => chatEl(l, !open)));
   $("#chatbox")?.classList.toggle("open", open);
   const expand = $("#chat-expand");
   if (expand) { expand.textContent = open ? "Thu nhỏ" : "Mở chat"; expand.setAttribute("aria-expanded", String(open)); }
-  if (open) el.scrollTop = el.scrollHeight;
+  renderedTab = chatTab; renderedOpen = open;
+  if (open) {
+    if (!position || position.bottom) readToEnd();
+    else {
+      const anchor = position.anchors.find((a) => [...el.children].some((row) => lineElements.get(row) === a.line));
+      const row = anchor && [...el.children].find((row) => lineElements.get(row) === anchor.line);
+      if (row) el.scrollTop += row.getBoundingClientRect().top - el.getBoundingClientRect().top - anchor!.offset;
+      else el.scrollTop = 0;
+    }
+  }
+  updateNewButton();
   for (const b of document.querySelectorAll<HTMLElement>("#chattabs button")) {
     const on = b.dataset.tab === chatTab;
     b.classList.toggle("on", on); b.setAttribute("aria-selected", String(on));
-    if (on) b.classList.remove("new");
+    if (on && open && nearBottom(el)) b.classList.remove("new");
   }
   chatPlaceholder();
 }
@@ -74,32 +122,36 @@ function renderChat() {
 /** Thêm dòng trong phiên. `imp` tường minh thắng màu; bỏ trống thì suy từ màu / nút. Tab khác có tin mới thì hiện chấm. */
 export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, act?: ChatLine["act"], imp?: boolean) {
   const l: ChatLine = { ch, text, col, who, at: Date.now(), act, imp: ch === "sys" ? (imp ?? sysImportant(col, !!act)) : undefined };
+  markOtherTabsUnread(l);
   if (ch === "sys") { // gộp dòng hệ thống lặp ("×n") thay vì xếp thêm
     let last: ChatLine | undefined; for (let i = chatHist.length - 1; i >= 0 && !last; i--) if (chatHist[i].ch === "sys") last = chatHist[i];
-    if (last && !last.lootKey && !last.act && !act && !!last.imp === !!l.imp && canMerge(last, l)) { last.n = (last.n ?? 1) + 1; last.at = l.at; renderChat(); return; }
+    if (last && !last.lootKey && !last.act && !act && !!last.imp === !!l.imp && canMerge(last, l)) { last.n = (last.n ?? 1) + 1; last.at = l.at; if (tabShows(chatTab, last)) renderChat(last); return; }
   }
   chatHist.push(l); trimHist(chatHist, CHAT_KEEP, SYS_KEEP);
   const el = $("#log"); if (!el) return;
   if (ch !== "sys" && ch !== chatTab) document.querySelector(`#chattabs button[data-tab="${ch}"]`)?.classList.add("new");
   if (!tabShows(chatTab, l)) return;
-  const open = chatOpen();
-  el.appendChild(chatEl(l, !open));
-  while (el.children.length > (open ? CHAT_SHOW_OPEN : CHAT_SHOW)) el.firstElementChild!.remove();
-  if (open) el.scrollTop = el.scrollHeight;
+  renderChat(l);
 }
 
 /** Nhận từ chênh lệch túi của chính mình; cộng lượng thật, gộp cả khi có món khác xen giữa trong cửa sổ hai giây. */
 export function chatLoot(key: string, name: string, n: number, col?: string) {
+  saveReadPosition();
+  const readingHistory = chatOpen() && readPositions.get(chatTab)?.bottom === false;
   const at = Date.now();
   const prev = [...chatHist].reverse().find((l) => l.lootKey === key && at - l.at <= LOOT_MERGE_MS);
+  let updated = prev;
   if (prev) {
     prev.n = (prev.n ?? 1) + n;
-    // Đưa dòng vừa nhận xuống cuối để chat thu nhỏ luôn thấy món mới nhất; không kéo dài cửa sổ gộp.
-    chatHist.splice(chatHist.indexOf(prev), 1); chatHist.push(prev);
+    // Chỉ giữ thứ tự khi đang đọc lịch sử; còn lại đưa món vừa nhận xuống cuối. Không kéo dài cửa sổ gộp.
+    if (!readingHistory) { chatHist.splice(chatHist.indexOf(prev), 1); chatHist.push(prev); }
   } else {
-    chatHist.push({ ch: "sys", text: `Nhận ${name}`, n, col, at, lootKey: key });
+    updated = { ch: "sys", text: `Nhận ${name}`, n, col, at, lootKey: key };
+    chatHist.push(updated);
   }
-  trimHist(chatHist, CHAT_KEEP, SYS_KEEP); renderChat();
+  trimHist(chatHist, CHAT_KEEP, SYS_KEEP);
+  if (updated) markOtherTabsUnread(updated);
+  if (updated && tabShows(chatTab, updated)) renderChat(updated);
 }
 
 /** Tin riêng đến / đi: nhớ người để `/r` và tab Riêng gửi tiếp. `mine`: mình gửi, `other` là người nhận; không thì `other` là người gửi. */
@@ -158,6 +210,11 @@ export function buildChatTabs() {
     bar.appendChild(b);
   }
   if (!document.getElementById("chat-system-filter")) {
+    $("#log")?.addEventListener("scroll", () => {
+      saveReadPosition();
+      if (renderedOpen && nearBottom($("#log"))) readToEnd();
+      updateNewButton();
+    });
     const controls = document.createElement("div"); controls.id = "chat-controls";
     const b = document.createElement("button"); b.id = "chat-system-filter"; b.type = "button";
     b.textContent = "Hệ thống"; b.setAttribute("aria-label", "Lọc thông báo Hệ thống");
@@ -167,6 +224,9 @@ export function buildChatTabs() {
     const expand = document.createElement("button"); expand.id = "chat-expand"; expand.type = "button";
     expand.addEventListener("pointerdown", (e) => { e.preventDefault(); chatPinned = !chatOpen(); renderChat(); });
     controls.appendChild(expand);
+    const latest = pbtn("Tin mới", "", readToEnd, "Về cuối lịch sử chat"); latest.id = "chat-new"; latest.hidden = true;
+    latest.addEventListener("click", (e) => { if (e.detail === 0) readToEnd(); });
+    controls.appendChild(latest);
     bar.parentElement?.insertBefore(controls, bar);
   }
   renderChat();
