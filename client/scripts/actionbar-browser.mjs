@@ -297,6 +297,9 @@ try {
       await hook(page, "rest", { s: 120 });
       await page.waitForFunction(() => !document.querySelector('.sk[data-i="3"].ct'));
       // Hồi quy #1418: ô P loadout = -1 (ô trống) vẫn phải hiện hồn kỹ Chân Thân (biểu tượng + hồi chiêu) khi biến hình, và trở lại trống khi hết.
+      // Server từ chối xếp ô khi đang giao chiến (boneLock): dọn hồn thú của cảnh thử rồi cho hết giao chiến trước khi xếp.
+      await hook(page, "clear", { all: true });
+      await hook(page, "rest", { s: 120 });
       // Tin `loadout` có giới hạn tần suất (nhóm social): gửi lại tới khi server nhận.
       for (let tries = 0; tries < 6; tries++) {
         await page.evaluate((rowId) => window.__c8Scene.room.send("loadout", { rowId, skills: [0, 1, 2, -1] }), active);
