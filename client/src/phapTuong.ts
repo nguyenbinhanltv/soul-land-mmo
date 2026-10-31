@@ -15,8 +15,6 @@ import { wantPhapTuong } from "./vohonLazy.ts";
 import { DIRV, ptRow, ptIsBack, ptStrikeFrame, ptStrikeCurve, clamp01 } from "./phapTuongMath.ts";
 
 const hexN = (c: string) => parseInt(c.replace("#", ""), 16);
-// Sheet Codex Liệt Hỏa cần lớn và cao hơn để thân sói đọc được sau vai hồn sư (#1435).
-const LIET_HOA_DISPLAY = { scale: 1.6, dx: 0, dy: -24 };
 
 // ---------- ảnh tạm bằng code ----------
 
@@ -151,8 +149,7 @@ export class PhapTuongSystem {
   get active() { return this.rigs.size; }
 
   private makeSlot(id: string): Slot | null {
-    const base = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
-    const def = base?.sheet === "pt_liet_hoa_thuong_lang" ? { ...base, ...LIET_HOA_DISPLAY } : base;
+    const def = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
     if (!def || !vh || !ensurePtSheet(this.scene, id)) return null;
     // Có sheet lớp sáng riêng `pt_<mã>_glow` (cùng bố cục, màu đã nướng sẵn) thì lớp cộng sáng dùng nó, không tô màu; chưa có thì dùng lại sheet thân.
     const gk = `${def.sheet}_glow`, own = this.scene.textures.exists(gk);
