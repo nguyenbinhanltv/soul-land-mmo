@@ -196,6 +196,7 @@ try {
       await sleep(400); if (await page.evaluate(() => !window.__bd.wpHere)) break;
     }
     check(await page.evaluate(() => !window.__bd.wpHere), tag("không ra khỏi trận được để thử dịch chuyển từ xa"));
+    await test("clear"); await test("rest", { s: 10 }); // hồn thú lang thang tới gần làm server từ chối "đang giao chiến": dọn và cho nghỉ để ca này ổn định
     await openWorld(); await pickWp(0);
     const far = await prim(), cardFar = await page.locator("#world .wm-card").innerText();
     check(/^Dịch chuyển · /.test(far.t) && !far.d, tag(`từ xa: nút Dịch chuyển ${JSON.stringify(far)}`));
