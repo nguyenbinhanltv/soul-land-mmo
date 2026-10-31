@@ -121,4 +121,4 @@ body:is(.touch,.ui-w640).ui-portrait #hud #actbar{bottom:calc(var(--sp-3) + 44px
 body:is(.touch,.ui-w640).ui-portrait #hud #actbar #team{right:0;bottom:calc(100% - 14px);margin:0;flex-direction:row}
 body:is(.touch,.ui-w640).ui-portrait #hud #actbar .sk:is(.ava,.fus,.bsk){top:-82px}
 /* Thẻ hướng dẫn lần đầu nằm trên hàng chip đội hình và hàng phụ (màn dọc), không che chúng. */
-body:is(.touch,.ui-w640).ui-portrait #hud>.guide{bottom:276px}
+body:is(.touch,.ui-w640).ui-portrait #hud>.guide{bottom:316px}

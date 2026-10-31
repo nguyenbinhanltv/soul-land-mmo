@@ -147,8 +147,12 @@ try {
       if (namesOnly) { await context.close(); console.log(`Tên hồn kỹ ${phase} ${size}: ${JSON.stringify(labels)}`); continue; }
       if (await page.locator("#guide").isVisible()) await page.getByRole("button", { name: "Bỏ qua", exact: true }).click();
       await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
-      await page.locator('#team button[data-slot="0"]').click();
-      await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0]);
+      // Server tính hồi chiêu theo tick của nó: bấm lại tới khi đổi được.
+      for (let tries = 0; tries < 6; tries++) {
+        await page.locator('#team button[data-slot="0"]').click();
+        if (await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0], { timeout: 2500 }).then(() => true, () => false)) break;
+      }
+      await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0], { timeout: 1000 });
       await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
     } else if (namesOnly) { await context.close(); continue; }
     if (!before) {
@@ -246,17 +250,19 @@ try {
       await escClose(page);
       // Mobile: túi nhanh (gộp E / B) thay nút B; khi không có đồ rơi gần thì mở túi tiêu hao.
       const bag = page.getByRole("button", { name: touch ? /Túi nhanh/ : "Mở túi dùng vật phẩm tiêu hao (B)" });
-      if (touch) await bag.tap(); else await bag.click();
+      // Màn dọc: bảng Túi / Cài đặt phủ kín màn hình và che nút (đúng thiết kế), nên bấm bằng click lập trình (bàn phím detail 0 chạy cùng `run`).
+      const tapBag = () => (touch && height > width ? bag.evaluate((e) => e.click()) : touch ? bag.tap() : bag.click());
+      await tapBag();
       await page.waitForFunction(() => !document.querySelector("#bag").hidden);
       assert.match(await page.locator("#bag .bfilter .on").innerText(), /Tiêu hao/);
-      if (touch) await bag.tap(); else await bag.click();
+      await tapBag();
       assert.ok(await page.locator("#bag").isVisible(), "Bấm Tiêu hao lần nữa giữ Túi mở");
       await escClose(page);
       for (const [item, panel] of [["settings", "audio"], ["auto", "autoPanel"]]) {
         // Nút menu cũ đã bỏ: mở bằng hub (huy hiệu giữa trên rồi thẻ / mục rail).
         await page.evaluate((id) => { if (document.getElementById("hub").hidden) document.getElementById("hubBtn").click(); document.querySelector(`[data-hub="${id}"]`).click(); }, item);
         await page.waitForFunction((id) => !document.getElementById(id).hidden, panel);
-        if (touch) await bag.tap(); else await bag.click();
+        await tapBag();
         await page.waitForFunction(() => !document.querySelector("#bag").hidden);
         assert.ok(await page.locator(`#${panel}`).evaluate((e) => e.hidden), `Tiêu hao phải đóng ${panel}`);
         const filter = page.locator("#bag .bfilter .on");
