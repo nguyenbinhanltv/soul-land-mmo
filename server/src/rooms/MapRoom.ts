@@ -532,8 +532,6 @@ export async function takeKingSeat(mapId: string, slot: number, until: number, r
  * hook test) vẫn có đếm ngược. Xóa khi thú vương của bản đồ đó xuất hiện.
  */
 const kingWarns = new Map<string, BossEvent & { at: number }>();
-/** Nửa cỡ hồn thú lớn nhất (TIERS.size): cộng vào bán kính khi lấy ứng viên từ lưới không gian (beastsNear, 11.4). */
-export const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 
 // ---------- Kênh (mục 6 "Nhiều kênh") ----------
 /** Số người tối đa mỗi kênh: CHANNEL_MAX; chỉ khi bật GAME_TEST=1 mới hạ được bằng biến môi trường CHANNEL_MAX (bot thử kênh 2). */
