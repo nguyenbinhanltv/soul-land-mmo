@@ -155,14 +155,13 @@ Lớp mỏng `client/src/panelStack.ts` (không khung mới, không đọc state
 - Tích hợp khung C2 C16 #595; mapping được chủ repo chốt trong issue.
 - Nhật ký từng bước: `docs/lich-su.md`.
 
-## Thanh kỹ năng và đội hình trong trận (C8; gọn từ tối ưu HUD PR1)
-Chủ repo duyệt 2026-10-31. Chỉ client (`hudBar.ts`, `ui2-hud-act.css`, `client/choi/index.html`); không đổi server, phím tắt, luật điều khiển, chip trạng thái.
-- **Ba nhóm không nhãn** (vẫn có `aria-label`, cách nhau khoảng trống + vạch dọc): Hồn cốt (Z / X / C), Hồn kỹ (J, U / I / O / P, R, G nếu có), Vật phẩm (E nhặt; B mở túi, nút Tiêu hao mở nhóm tiêu hao).
-- **Ô vuông 44 px chỉ biểu tượng:** phím ở góc trên trái, hồi chiêu quét tròn `.ui-cd` + số giây `.cdn`, **chấm niên hạn** ở chân ô (bậc N = N chấm + vạch màu, không chỉ bằng màu). Ô **khóa** vẽ ổ khóa bằng CSS; ô **trống** chỉ viền nét đứt mờ; thiếu hồn lực = huy hiệu "!" (lý do ở dòng cuối chú thích).
-- **Tên kỹ năng** ở chú thích (`tooltip.ts`) và `aria-label`; `.sk-name` còn trong DOM nhưng `display:none`.
-- **Hàng đội hình (4 ô 44 × 52):** avatar tròn (`portrait_<mã>`, thiếu thì màu võ hồn), số cấp, thanh sinh lực mỏng + vạch tiên cơ 2 px, không tên. Ô ra trận viền sáng; gục kẻ chéo + xám; đủ tiên cơ có ★; hồi chiêu đổi võ hồn phủ tròn + số giây. Tooltip có tên đầy đủ, cấp, trạng thái, phím đổi.
-- Guide và thông báo nổi nằm phía trên thanh hành động; chat ở 960 px giữ đủ bảy tab.
-- Kiểm tra: `npm run test:actionbar-browser --prefix client` (vùng chạm, phím, tooltip, avatar + cấp, tương phản, hồi chiêu); ảnh ngoài repo qua `C8_OUTPUT`. CI `actionbar-preview` chạy ở 960×540, 1280×720, 1920×1080; `C8_TOUCH=1` thêm lượt cảm ứng 844×390.
+## Thanh kỹ năng và đội hình trong trận (C8; gọn từ tối ưu HUD PR1 / PR2)
+Chủ repo duyệt 2026-10-31. Chỉ client (`hudBar.ts`, `ui2-hud-act.css`); phím tắt, luật điều khiển, chip trạng thái giữ nguyên.
+- **Ba nhóm không nhãn:** Hồn cốt (Z / X / C), Hồn kỹ (J, U / I / O / P, R, G nếu có), Vật phẩm (E nhặt; B túi tiêu hao). Nhóm cách nhau bằng khoảng trống + vạch dọc.
+- **Ô vuông 44 px chỉ biểu tượng** (không tên trên ô): phím nhỏ ở góc, vòng hồi chiêu `.ui-cd` + số giây, **chấm niên hạn** ở chân ô (bậc N = N chấm + vạch màu, không chỉ màu). Ô **khóa** vẽ ổ khóa bằng CSS thay chữ "Khóa" + kẻ chéo; ô **trống** chỉ còn viền nét đứt mờ; thiếu hồn lực = huy hiệu "!". Tên kỹ năng ở chú thích (`tooltip.ts`: rê chuột, chạm giữ) và `aria-label`.
+- **Hàng đội hình (4 ô 44 × 52):** avatar tròn (`portrait_<mã>`, thiếu ảnh thì màu võ hồn), số cấp, thanh sinh lực mỏng (+ vạch tiên cơ), không tên. Ô ra trận viền sáng; gục kẻ chéo + avatar xám; đủ tiên cơ có sao ★; hồi chiêu đổi võ hồn phủ tròn + số giây.
+- **Mobile — cụm ngón cái** (cảm ứng hoặc ≤ 640 px logic; `buildThumbExtras` / `setLootNear`): góc phải dưới, hộp 200 × 164. Nút **Đánh** to (64 px); **4 hồn kỹ** quanh cung 90°–180°; **túi nhanh** gộp E + B (có đồ rơi trong tầm: đổi icon + viền vàng và nhặt; không thì mở túi tiêu hao); nút **⋯** mở hàng phụ phía trên cụm: R Chân Thân, G Dung hợp, Z / X / C (chọn một nút hoặc chạm ngoài thì tự đóng). Đội hình = 4 chip dọc bên trái cụm (màn dọc: hàng ngang trên cụm). Mọi nút ≥ 44 px, không đè cần điều khiển, giữa màn hình hay ô chat (màn dọc: cụm nằm trên ô gõ chat); màn ngang thấp (`ui-h460`) thu radar (100 px).
+- Kiểm tra: `npm run test:actionbar-browser --prefix client` (vùng chạm ≥ 44 px, không tên trên ô, tooltip, tương phản, thiếu hồn lực, hồi chiêu; `C8_TOUCH=1` thêm lượt cảm ứng 844×390 cho cụm ngón cái);
 
 ## Menu hub và màn hệ thống (UI gốc; #877)
 

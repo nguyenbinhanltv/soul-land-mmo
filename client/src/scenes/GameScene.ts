@@ -3834,11 +3834,11 @@ export class GameScene extends Phaser.Scene {
         beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
-    let dr: any = null, dd = PICKUP_RANGE;
+    let dr: any = null, dd = PICKUP_RANGE, mine = false;
     st.drops.forEach((d: any) => { const k = Math.hypot(d.x - me.x, d.y - me.y); if (k < dd) { dd = k; dr = d; } });
+    if (dr) mine = !dr.owner || dr.owner === this.me || dr.ownerTtl <= 0 || (!!dr.party && dr.party === this.party?.id);
     if (dr && me.absorb <= 0) {
       // Từ 7.1 đồ rơi của tổ đội mình (DropState.party) cũng nhặt được ngay.
-      const mine = !dr.owner || dr.owner === this.me || dr.ownerTtl <= 0 || (!!dr.party && dr.party === this.party?.id);
       const msg = mine ? "nhấn E để nhặt vào túi" : `<em>của ${dr.party ? "tổ đội " : ""}người hạ hồn thú, còn ${Math.ceil(dr.ownerTtl)} giây</em>`;
       const it = dr.item ? itemDef(dr.item) : undefined;
       if (dr.item === EQUIP_ITEM) hud.showPrompt(`<span class="dot" style="color:${EQUIP_TIERS[EQUIP_TEMPLATES[dr.cset]?.tier ?? 0].col}"></span>${equipName(EQUIP_TEMPLATES[dr.cset]?.id)}: ${msg}`);
@@ -3847,6 +3847,7 @@ export class GameScene extends Phaser.Scene {
       else hud.showPrompt(dr.item ? `<span class="dot" style="color:${it?.col ?? "#9db3a2"}"></span>${dr.qty} ${it?.name ?? "vật phẩm lạ"}: ${msg}`
         : `<span class="dot" style="color:${hud.ringColor(dr.tier)}"></span>Hồn hoàn ${formatYears(dr.years)} (${TIERS[dr.tier].color}): ${msg}`);
     } else hud.showPrompt(null);
+    hud.setLootNear(!!dr && me.absorb <= 0 && mine); // chỉ báo nhặt được khi đồ rơi là của mình / tổ đội
     this.drawCmdChip();
     this.drawMinimap();
   }

@@ -20,7 +20,7 @@ const out = resolve(process.env.C8_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "c8
 const before = process.env.C8_PHASE === "before", phase = before ? "before" : "after";
 const children = [], samples = [], nameSamples = [], nameFailures = [];
 const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
-if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true]);
+if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true], [390, 844, true]);   // ngang + dọc (điện thoại)
 const namesOnly = process.env.C8_NAMES_ONLY === "1";
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -147,26 +147,34 @@ try {
       if (namesOnly) { await context.close(); console.log(`Tên hồn kỹ ${phase} ${size}: ${JSON.stringify(labels)}`); continue; }
       if (await page.locator("#guide").isVisible()) await page.getByRole("button", { name: "Bỏ qua", exact: true }).click();
       await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
-      await page.locator('#team button[data-slot="0"]').click();
-      await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0]);
+      // Server tính hồi chiêu theo tick của nó: bấm lại tới khi đổi được.
+      for (let tries = 0; tries < 6; tries++) {
+        await page.locator('#team button[data-slot="0"]').click();
+        if (await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0], { timeout: 2500 }).then(() => true, () => false)) break;
+      }
+      await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[0], { timeout: 1000 });
       await page.waitForFunction(() => window.__c8Scene.vit.swCd - (performance.now() - window.__c8Scene.vitAt) / 1000 <= 0);
     } else if (namesOnly) { await context.close(); continue; }
     if (!before) {
       assert.equal(await page.locator("#actrow .action-group").count(), 3);
       await page.waitForFunction(() => [...document.querySelectorAll("#bskills .ico img")].every((img) => img.complete && img.naturalWidth > 0));
-      const boneIcons = await page.locator("#bskills .ico img").evaluateAll((imgs) => imgs.map((img) => {
-        const r = img.getBoundingClientRect(), cell = img.closest("button").getBoundingClientRect();
-        return { loaded: img.complete && img.naturalWidth > 0, inside: r.width > 0 && r.height > 0 && r.x >= cell.x && r.y >= cell.y && r.right <= cell.right && r.bottom <= cell.bottom };
-      }));
-      assert.equal(boneIcons.length, 3, "Giữ đủ ba ảnh hồn cốt từ main");
-      assert.ok(boneIcons.every((icon) => icon.loaded && icon.inside), "Ảnh hồn cốt phải tải được và nằm trong ô");
+      // Mobile: ảnh hồn cốt nằm ở hàng phụ (chỉ hiện khi bấm ⋯), kiểm lại ở khối cụm ngón cái.
+      if (!touch) {
+        const boneIcons = await page.locator("#bskills .ico img").evaluateAll((imgs) => imgs.map((img) => {
+          const r = img.getBoundingClientRect(), cell = img.closest("button").getBoundingClientRect();
+          return { loaded: img.complete && img.naturalWidth > 0, inside: r.width > 0 && r.height > 0 && r.x >= cell.x && r.y >= cell.y && r.right <= cell.right && r.bottom <= cell.bottom };
+        }));
+        assert.equal(boneIcons.length, 3, "Giữ đủ ba ảnh hồn cốt từ main");
+        assert.ok(boneIcons.every((icon) => icon.loaded && icon.inside), "Ảnh hồn cốt phải tải được và nằm trong ô");
+      }
       const geometry = await page.evaluate(() => {
-        const buttons = [...document.querySelectorAll("#actbar button")];
+        // Nút ẩn theo bố cục (túi nhanh / ⋯ chỉ có trên mobile; R, G, hồn cốt chỉ hiện khi mở ⋯ trên mobile) không tính vùng chạm.
+        const buttons = [...document.querySelectorAll("#actbar button")].filter((b) => b.getBoundingClientRect().width > 0);
         return buttons.map((b) => {
-          const r = b.getBoundingClientRect(), key = b.querySelector(".key").getBoundingClientRect();
+          const r = b.getBoundingClientRect(), key = b.querySelector(".key")?.getBoundingClientRect();
           const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
           return { label: b.getAttribute("aria-label"), x: r.x, y: r.y, w: r.width, h: r.height,
-            keyInside: key.x >= r.x && key.y >= r.y && key.right <= r.right && key.bottom <= r.bottom,
+            keyInside: !key || key.width === 0 || key.x >= r.x && key.y >= r.y && key.right <= r.right && key.bottom <= r.bottom,
             reachable: b.contains(hit), covering: hit?.closest("[id]")?.id, centered: r.x < innerWidth / 2 + 36 && r.right > innerWidth / 2 - 36 && r.y < innerHeight / 2 + 36 && r.bottom > innerHeight / 2 - 36 };
         });
       });
@@ -178,6 +186,33 @@ try {
         assert.ok(!b.centered, `Nút che vùng cảnh báo giữa màn: ${b.label}`);
       }
       // Ô đội hình: avatar tròn + số cấp + thanh sinh lực, không tên.
+      if (touch) {
+        // Cụm ngón cái: nút Đánh to nhất, 4 hồn kỹ + túi nhanh + ⋯, không đè cần điều khiển; ⋯ mở hàng phụ (R / G / hồn cốt), chọn xong tự đóng.
+        const rect = (sel) => page.locator(sel).first().evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, r: r.right, b: r.bottom }; });
+        const hit = (a, c) => a.x < c.r && a.r > c.x && a.y < c.b && a.b > c.y;
+        const atk = await rect("#skills .sk:first-child"), joy = await rect("#joy");
+        assert.ok(atk.w >= 60 && atk.h >= 60, "Nút Đánh phải to nhất cụm");
+        for (const i of [0, 1, 2, 3]) { const k = await rect(`#skills .sk[data-i="${i}"]`); assert.ok(k.w >= 44 && k.h >= 44 && k.x < atk.x + atk.w && k.b <= atk.b, `Hồn kỹ ${i} phải nằm quanh nút Đánh`); }
+        assert.ok(atk.x > joy.r && (await rect(".qbag")).x > joy.r && (await rect(".more-btn")).x > joy.r, "Cụm ngón cái không đè cần điều khiển");
+        const hidden = await page.locator(".sk.bsk, .sk.ava").evaluateAll((els) => els.every((e) => e.getBoundingClientRect().width === 0));
+        assert.ok(hidden, "Hàng phụ ẩn khi chưa bấm ⋯");
+        await page.locator(".more-btn").tap();
+        await page.waitForFunction(() => document.querySelector(".more-btn").getAttribute("aria-expanded") === "true");
+        const box = (e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, r: r.right, b: r.bottom }; };
+        const extras = await page.locator(".sk.bsk, .sk.ava").evaluateAll((els, boxSrc) => { const box = eval(boxSrc); return els.map((e) => { const r = box(e); return { ...r, in: r.x >= 0 && r.r <= innerWidth && r.y >= 0 && r.b <= innerHeight }; }); }, box.toString());
+        assert.ok(extras.length >= 3 && extras.every((e) => e.w >= 44 && e.h >= 44 && e.in), `Hàng phụ phải hiện đủ, ≥ 44 px, trong màn: ${JSON.stringify(extras)}`);
+        const teamBoxes = await page.locator("#team button").evaluateAll((els, boxSrc) => els.map(eval(boxSrc)), box.toString());
+        assert.ok(!extras.some((e) => teamBoxes.some((t) => hit(e, t))), "Nút hàng phụ không giao chip đội hình");
+        await page.waitForFunction(() => [...document.querySelectorAll("#bskills .ico img")].every((img) => img.complete && img.naturalWidth > 0));
+        await screenshot(page, "cum-ngon-cai-mo", size);
+        await page.locator(".more-btn").tap();
+        await page.waitForFunction(() => document.querySelector(".more-btn").getAttribute("aria-expanded") === "false");
+        const chips = await page.locator("#team button").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
+        assert.ok(chips.every((c) => c.w >= 44 && c.h >= 44 && c.x >= 0 && c.x + c.w <= width && c.y >= 0 && c.y + c.h <= height), "Chip đội hình ≥ 44 px, trong màn");
+        if (height > width) assert.ok(chips.every((c) => c.y === chips[0].y) && chips.every((c, i) => i === 0 || c.x > chips[i - 1].x) && chips.every((c) => c.y + c.h <= atk.y), "Màn dọc: chip xếp hàng ngang trên cụm");
+        else assert.ok(chips.every((c) => c.x === chips[0].x) && chips.every((c, i) => i === 0 || c.y > chips[i - 1].y) && chips[0].x + 44 <= atk.x, "Màn ngang: chip xếp dọc, bên trái cụm");
+        assert.ok(!chips.some((c) => hit({ x: c.x, y: c.y, r: c.x + c.w, b: c.y + c.h }, joy)), `Chip đội hình không giao cần điều khiển: ${JSON.stringify({ chips, joy })}`);
+      }
       const names = await page.locator("#team button").evaluateAll((els) => els.map((e) => {
         const av = e.querySelector(".av")?.getBoundingClientRect(), lv = e.querySelector(".lv"), hp = e.querySelector(".hpb")?.getBoundingClientRect();
         return { avatar: !!av && av.width > 0 && Math.abs(av.width - av.height) < 1, level: lv?.textContent ?? "", hp: !!hp && hp.height > 0, hasName: [...e.children].some((c) => c.matches("span:not(.av)") && c.textContent) };
@@ -213,18 +248,34 @@ try {
         await screenshot(page, "tooltip", size);
       }
       await escClose(page);
-      const bag = page.getByRole("button", { name: "Mở túi dùng vật phẩm tiêu hao (B)" });
-      if (touch) await bag.tap(); else await bag.click();
+      // Mobile: túi nhanh (gộp E / B) thay nút B; khi không có đồ rơi gần thì mở túi tiêu hao.
+      const bag = page.getByRole("button", { name: touch ? /Túi nhanh/ : "Mở túi dùng vật phẩm tiêu hao (B)" });
+      // Màn dọc: bảng Túi / Cài đặt phủ kín màn hình và che nút (đúng thiết kế), nên bấm bằng click lập trình (bàn phím detail 0 chạy cùng `run`).
+      const tapBag = () => (touch && height > width ? bag.evaluate((e) => e.click()) : touch ? bag.tap() : bag.click());
+      await tapBag();
       await page.waitForFunction(() => !document.querySelector("#bag").hidden);
       assert.match(await page.locator("#bag .bfilter .on").innerText(), /Tiêu hao/);
-      if (touch) await bag.tap(); else await bag.click();
+      await tapBag();
       assert.ok(await page.locator("#bag").isVisible(), "Bấm Tiêu hao lần nữa giữ Túi mở");
+      if (touch) {
+        // Đồ rơi của người khác (ownerTtl > 0) không báo "có đồ nhặt": túi nhanh vẫn mở túi tiêu hao (giả drop ở client, không đổi server).
+        await page.evaluate(() => {
+          const sc = window.__c8Scene, drops = sc.room.state.drops, me = sc.room.state.players.get(sc.room.sessionId);
+          drops.__forEach = drops.forEach; drops.forEach = (fn) => fn({ x: me.x, y: me.y, owner: "nguoi-khac", ownerTtl: 30, item: "", tier: 0, years: 100 }, "fake");
+        });
+        await sleep(400);
+        assert.ok(await page.locator(".qbag").evaluate((e) => !e.classList.contains("loot")), "Đồ rơi của người khác không bật chỉ báo nhặt");
+        await tapBag();
+        await page.waitForFunction(() => !document.querySelector("#bag").hidden);
+        await escClose(page);
+        await page.evaluate(() => { const d = window.__c8Scene.room.state.drops; d.forEach = d.__forEach; delete d.__forEach; });
+      }
       await escClose(page);
       for (const [item, panel] of [["settings", "audio"], ["auto", "autoPanel"]]) {
         // Nút menu cũ đã bỏ: mở bằng hub (huy hiệu giữa trên rồi thẻ / mục rail).
         await page.evaluate((id) => { if (document.getElementById("hub").hidden) document.getElementById("hubBtn").click(); document.querySelector(`[data-hub="${id}"]`).click(); }, item);
         await page.waitForFunction((id) => !document.getElementById(id).hidden, panel);
-        if (touch) await bag.tap(); else await bag.click();
+        await tapBag();
         await page.waitForFunction(() => !document.querySelector("#bag").hidden);
         assert.ok(await page.locator(`#${panel}`).evaluate((e) => e.hidden), `Tiêu hao phải đóng ${panel}`);
         const filter = page.locator("#bag .bfilter .on");
@@ -288,8 +339,9 @@ try {
       await hook(page, "ready");
       await page.waitForFunction(() => document.querySelector(".sk.ava:not(.locked)"));
       const avatar = page.locator(".sk.ava");
-      if (touch) await avatar.tap(); else await avatar.click();
+      if (touch) { await page.locator(".more-btn").tap(); await avatar.tap(); } else await avatar.click();   // mobile: Chân Thân ở hàng phụ (⋯)
       await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
+      if (touch) assert.equal(await page.locator("#actrow.more").count(), 0, "Chọn kỹ năng phụ thì hàng phụ tự đóng");
       // Hồn kỹ Chân Thân phải thấy biểu tượng, không mang lớp `empty` (ô P trống trước khi biến hình thì lớp này được gỡ).
       assert.ok(await page.locator('.sk[data-i="3"].ct').evaluate((e) => !e.classList.contains("empty") && e.querySelector(".ico").getBoundingClientRect().width > 0), "Ô Chân Thân phải hiện biểu tượng");
       await screenshot(page, "chan-than", size);
@@ -308,7 +360,7 @@ try {
       await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty'), null, { timeout: 1000 });
       await hook(page, "ready");
       await page.waitForFunction(() => document.querySelector(".sk.ava:not(.locked)"));
-      if (touch) await avatar.tap(); else await avatar.click();
+      if (touch) { await page.locator(".more-btn").tap(); await avatar.tap(); } else await avatar.click();
       await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
       const ctCell = await page.locator('.sk[data-i="3"]').evaluate((e) => ({ empty: e.classList.contains("empty"), ico: e.querySelector(".ico").getBoundingClientRect().width,
         opacity: getComputedStyle(e).opacity, cd: getComputedStyle(e.querySelector(".ui-cd")).display, border: getComputedStyle(e).borderStyle }));
