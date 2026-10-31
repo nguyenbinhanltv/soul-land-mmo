@@ -148,6 +148,17 @@ try {
         }
         await page.mouse.move(1, 1);
         await page.waitForTimeout(300);
+        if (!before) {
+          const crowd = await page.evaluate(() => {
+            const view=document.querySelector(".wm-view").getBoundingClientRect();
+            const boxes=selector=>[...document.querySelectorAll(selector)].filter(e=>!e.disabled && getComputedStyle(e).display!=="none" && getComputedStyle(e).visibility!=="hidden").map(e=>e.getBoundingClientRect()).filter(r=>r.width && r.right>view.left && r.left<view.right && r.bottom>view.top && r.top<view.bottom);
+            const overlaps=list=>list.some((a,i)=>list.slice(i+1).some(b=>Math.max(a.left,b.left,view.left)<Math.min(a.right,b.right,view.right)-0.5 && Math.max(a.top,b.top,view.top)<Math.min(a.bottom,b.bottom,view.bottom)-0.5));
+            const picker=document.querySelector(".wm-map-select"), r=picker?.getBoundingClientRect();
+            return {points:overlaps(boxes(".wm-node,.wm-wp")),labels:overlaps(boxes(".wm-name,.wm-wname,.wm-me span")),picker:r?{w:r.width,h:r.height,count:picker.options.length,hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===picker}:null};
+          });
+          check(!crowd.points && !crowd.labels, tag(`fs${fs}: điểm/nhãn chồng ${JSON.stringify(crowd)}`));
+          check(crowd.picker?.w>=44 && crowd.picker?.h>=44 && crowd.picker?.count===12 && crowd.picker?.hit, tag(`fs${fs}: thiếu danh sách44px đủ11bản đồ hoặc bị che`));
+        }
         await page.screenshot({ path: resolve(out, `${size}-world-fs${fs}.png`) });
       }
       await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2"));
@@ -177,9 +188,8 @@ try {
     // 3. Chọn Thánh Hồn Thôn: thẻ chi tiết hiện cấp đề xuất, các trận; nút chính hợp lý; trận hiện ra.
     await dismiss();
     if (touch) {
-      // #1447: điểm trên tranh vừa khung đang chồng nhau; chọn qua tìm kiếm có sẵn.
-      await page.locator(".wm-search input").fill("nac dinh thanh");
-      await page.locator(".wm-find li").first().click();
+      if (!before) await page.getByLabel("Chọn bản đồ").selectOption("nac_dinh_thanh");
+      else { await page.locator(".wm-search input").fill("nac dinh thanh"); await page.locator(".wm-find li").first().click(); }
     } else await page.locator('#world .wm-node[data-id="nac_dinh_thanh"]').click();
     await page.waitForFunction(() => document.querySelector("#world .wm-card .wm-t")?.textContent === "Nặc Đinh Thành");
     check(await page.locator("#world .wm-card .wm-li").count() === 3, tag("thẻ bản đồ không liệt kê 3 trận"));
@@ -215,8 +225,8 @@ try {
     const test = (op, data = {}) => page.evaluate(([op, data]) => window.__bd.room.send("test", { op, ...data }), [op, data]);
     const openWorld = async () => { await page.keyboard.press("KeyM"); await page.waitForFunction(() => document.getElementById("mapview").dataset.mode === "world" && !document.getElementById("mapview").hidden); await page.waitForFunction(() => document.querySelector("#world .wm-notice")?.hidden === true); };
     const pickWp = async (i) => {
-      // dispatchEvent: ở 640×360 mức Vừa khung nút Luyện Hồn Cảnh đè lên tâm nút này (lỗi chồng nút riêng, sửa ở #1447); ca này chỉ cần chọn bản đồ.
-      await page.locator('#world .wm-node[data-id="thanh_hon_thon"]').dispatchEvent("click");
+      if (touch) await page.getByLabel("Chọn bản đồ").selectOption("thanh_hon_thon");
+      else await page.locator('#world .wm-node[data-id="thanh_hon_thon"]').click();
       await page.waitForFunction(() => document.querySelector("#world .wm-card .wm-t")?.textContent === "Thánh Hồn Thôn");
       const label = await page.evaluate((i) => window.__bd.waypoints[i].label, i);
       await page.locator("#world .wm-li", { hasText: label }).click();
@@ -283,6 +293,15 @@ try {
     const poor = await prim();
     check(poor.d && /Không đủ Hồn Tệ/.test(poor.why), tag(`thiếu Hồn Tệ phải khoá kèm lý do: ${JSON.stringify(poor)}`));
     await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    if (touch) {
+      // Hết hồi khi bản đồ đang mở: thẻ chỉ vẽ lại một lần, ô chọn bản đồ (select native) phải giữ nguyên là một phần tử, nếu không danh sách đang mở bị đóng.
+      await test("wpcd", { secs: 2 }); await openWorld(); await pickWp(1);
+      await sleep(3500);
+      await page.evaluate(() => { window.__selKeep = document.querySelector(".wm-map-select"); });
+      await sleep(2500);
+      check(await page.evaluate(() => !!window.__selKeep && window.__selKeep === document.querySelector(".wm-map-select")), tag("ô chọn bản đồ bị thay mới sau khi hết hồi (vẽ lại thẻ mỗi giây)"));
+      await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
+    }
     const real = errors.filter((e) => !/is not valid JSON/.test(e)); // gói riêng (iso-private) vắng ở máy dev: Phaser nhận trang HTML thay JSON, có từ trước
     check(real.length === 0, tag(`lỗi trang: ${real.join(" | ")}`));
     await context.close();

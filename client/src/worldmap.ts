@@ -56,6 +56,8 @@ class WorldMap {
   private waitTimer = 0; private waitErr = false; private imgErr = false;
   /** Lúc (ms) vừa gửi yêu cầu dịch chuyển (0 = không chờ phản hồi); lý do server vừa trả; lúc nhận tin `world` (đếm lùi hồi); hẹn giờ đếm lùi. */
   private pending = 0; private reply = ""; private cdAt = 0; private cdTimer = 0;
+  /** Đếm lùi hồi đã về 0 và thẻ đã vẽ lại đúng một lần cho việc đó (tin `world` mới đặt lại): không vẽ lại mỗi giây, nếu không ô chọn native bị thay giữa lúc đang mở. */
+  private cdDone = false;
   /** Trận đang đứng đã đổi sau tin `world` cuối (bước lên / rời trận): `cur` cũ, nút Dịch chuyển khoá tới khi có tin mới. */
   private stale = false; private staleTimer = 0;
   private ptrs = new Map<number, Pt>(); private drag: { x: number; y: number; vx: number; vy: number; moved: boolean } | null = null; private pinch = 0;
@@ -77,7 +79,7 @@ class WorldMap {
 
   // ---------- API cho mapview.ts / hudMisc.ts ----------
   setMsg(m: WorldMsg) {
-    this.msg = m; this.stale = false; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0; this.cdAt = performance.now();
+    this.msg = m; this.stale = false; this.cdDone = false; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0; this.cdAt = performance.now();
     if (this.sel?.t === "wp" && !this.wp(this.sel.id)) this.sel = null;
     this.render(); this.onChange?.(); // nút chính của khung theo tin mới (phí, hồi, đang đứng ở đâu)
   }
@@ -90,9 +92,9 @@ class WorldMap {
   }
   /** Mỗi giây: cập nhật đếm lùi hồi ở thẻ và nút chính (chỉ hiển thị). */
   private tickCd() {
-    if (!this.msg?.remoteCd) return;
+    if (!this.msg?.remoteCd || this.cdDone) return;
     this.cdEl.textContent = this.cdText(); this.onChange?.();
-    if (this.cdLeft() <= 0) this.paintCard();
+    if (this.cdLeft() <= 0) { this.cdDone = true; this.paintCard(); } // chạm 0: vẽ lại thẻ đúng một lần
   }
   private cdText() { const left = this.cdLeft(); return left > 0 ? `Còn ${left} giây` : "Dùng được"; }
   hide() { clearTimeout(this.waitTimer); this.waitTimer = 0; clearInterval(this.cdTimer); this.cdTimer = 0; this.pending = 0; this.reply = ""; this.stale = false; clearTimeout(this.staleTimer); }
@@ -246,6 +248,18 @@ class WorldMap {
     for (const [id, n] of this.nodes) {
       const p = id.startsWith("m:") ? this.lmap(id.slice(2))?.position : this.wpPos(id.slice(2));
       if (p) n.style.transform = at(p);
+      n.removeAttribute("disabled");
+    }
+    // Điểm sát nhau trên tranh thu nhỏ: chọn qua danh sách, không nhận nhầm chạm.
+    // Phóng / kéo gọi lại place; điểm đủ tách tự nhận chạm trở lại.
+    if (document.body.classList.contains("touch")) {
+      const boxes = [...this.nodes.values()].map(n => ({ n, r: n.getBoundingClientRect() }));
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        if (a.r.left < b.r.right && a.r.right > b.r.left && a.r.top < b.r.bottom && a.r.bottom > b.r.top) {
+          a.n.setAttribute("disabled", ""); b.n.setAttribute("disabled", "");
+        }
+      }
     }
     const h = this.here(); if (h && this.me.isConnected) this.me.style.transform = at(h);
     if (this.zoomBtns) { this.zoomBtns.in.disabled = v.s >= Math.max(this.fitS * MAX_ZOOM, 1.2) - 1e-3; this.zoomBtns.out.disabled = v.s <= this.fitS + 1e-3; }
@@ -347,10 +361,18 @@ class WorldMap {
   /** Thẻ chi tiết: gợi ý khi chưa chọn; bản đồ (cấp, các trận); trận (trạng thái, phí). Phí và hồi do server tính, ở đây chỉ hiện. */
   private paintCard() {
     const c = this.side, m = this.msg; c.replaceChildren();
+    const touch = document.body.classList.contains("touch");
+    if (touch) {
+      const picker = el("select", "wm-map-select"); picker.setAttribute("aria-label", "Chọn bản đồ");
+      const empty = el("option", "", "Chọn bản đồ"); empty.value = ""; empty.disabled = true; picker.append(empty);
+      for (const lm of L.maps) { const option = el("option", "", lm.name); option.value = lm.id; picker.append(option); }
+      picker.value = this.selMap() ?? "";
+      picker.addEventListener("change", () => this.select({ t: "map", id: picker.value })); c.append(picker);
+    }
     const row = (k: string, v: string, cls = "") => { const r = el("div", `wm-row${cls ? ` ${cls}` : ""}`); r.append(el("span", "k", k), el("span", "v", v)); return r; };
     if (m) c.append(row("Hồn Tệ", formatHonTe(m.honTe), "coin"));
     if (!this.sel) {
-      c.append(el("h3", "wm-t", "Bản đồ thế giới"), el("p", "wm-hint", "Chọn một bản đồ hoặc truyền tống trận trên tranh để xem cấp đề xuất, trạng thái mở khoá và phí."),
+      c.append(el("h3", "wm-t", "Bản đồ thế giới"), el("p", "wm-hint", touch ? "Chọn bản đồ từ danh sách. Phóng tranh để chạm trực tiếp các điểm đang sát nhau." : "Chọn một bản đồ hoặc truyền tống trận trên tranh để xem cấp đề xuất, trạng thái mở khoá và phí."),
         el("p", "wm-hint", "Nét đứt: đường cổng nối hai bản đồ. Nét chấm: đi thuyền. Nút sáng: đã mở truyền tống trận; xám: chưa mở."));
       return;
     }

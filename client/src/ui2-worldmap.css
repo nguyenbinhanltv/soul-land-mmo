@@ -45,6 +45,13 @@
 .wm-node:hover .wm-seal{background:var(--paper2)}
 .wm-name,.wm-wname{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;pointer-events:none;color:var(--ink);text-shadow:var(--halo)}
 .wm-name{top:100%;margin-top:calc(var(--sp-3) * -1);font:var(--fs-m)/1.2 var(--f12)}
+/* Chạm: danh sách giữ đủ tên; tranh chỉ giữ nhãn đang chọn / vị trí hiện tại. */
+body.touch #world :is(.wm-name,.wm-wname){display:none}
+body.touch #world:not(:has(.wm-node.sel,.wm-wp.sel)) .wm-node.cur:not(:disabled) .wm-name,
+body.touch #world .wm-node.sel:not(:disabled) .wm-name,
+body.touch #world .wm-wp.sel:not(:disabled) .wm-wname{display:block}
+body.touch #world .wm-layer button:disabled{pointer-events:none}
+body.touch #world .wm-map-select{flex:none;box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:var(--sp-3);font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper);border:var(--bd) solid var(--line)}
 .wm-node.locked .wm-name,.wm-node.room .wm-name{color:var(--muted)}
 .wm-wp .wm-dia,.wm-li .wm-dia{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;box-sizing:border-box;transform:rotate(45deg);border:var(--bd) solid var(--ink);background:var(--accent)}
 .wm-wp.locked .wm-dia,.wm-li.locked .wm-dia{background:var(--paper3);border-color:var(--inkl);border-style:dashed}
