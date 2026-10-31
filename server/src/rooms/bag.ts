@@ -1,6 +1,6 @@
 // Túi đồ, vật phẩm và Hồn Tệ (GAME_DESIGN.md mục 5.7, bước 3.1): gửi túi (bag / bagd), thêm / bớt món, cộng đồng, sắp xếp, khoá / bỏ món, ảnh chụp túi để lưu, tách khỏi MapRoom.ts (#702, bước 11).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / travel.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`, `room.saveTrade`.
-// MapRoom chỉ chuyển tiếp (onMessage, tick, các miền khác gọi `room.sendBag` / `room.addItem` như cũ). `useItem`, `pickup`, `addRing` / `addBone` / `addEquip`, `rewardFits`, `giveItems` còn ở MapRoom.
+// MapRoom chỉ chuyển tiếp (onMessage, tick, các miền khác gọi `room.sendBag` / `room.addItem` như cũ). `useItem` / `pickup` ở `item.ts`, `rewardFits` / `giveItems` ở `quest.ts`; `addRing` / `addBone` / `addEquip` còn ở MapRoom.
 import { itemDef, BEAST_COIN, STARTER_ITEMS } from "../../../shared/data.ts";
 import { bagDiff } from "../../../shared/bagSync.ts";
 import type { Item, Bag } from "../db.ts";
