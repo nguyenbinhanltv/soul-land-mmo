@@ -621,7 +621,7 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     if (a && typeof o.pace === "number" && Number.isFinite(o.pace)) a.pace = Math.max(-3600, Math.min(3600, o.pace));
     // #1421: `paceNext` đặt nợ nhịp cho lượt bật KẾ TIẾP (lúc chưa bật): hồn sư bật xong đứng yên (không chọn mục tiêu, không đi dạo) cho tới khi
     // `pace` về 0, không có khe giữa `on` và `pace` mà nhịp quyết định chen vào. Nhớ trả về 0 sau khi tắt (nợ còn lại giữ sang lượt sau).
-    if (!a && typeof o.paceNext === "number" && Number.isFinite(o.paceNext)) d.autoPace = [Math.max(0, Math.min(3600, o.paceNext)), Date.now()];
+    if (typeof o.paceNext === "number" && Number.isFinite(o.paceNext)) { const pn = Math.max(0, Math.min(3600, o.paceNext)); if (a) a.pace = pn; else d.autoPace = [pn, Date.now()]; }
     // AH4 (#611): `loop` điền sẵn các điểm đứng quanh chỗ này (giả lập đi vòng lặp AUTO_STUCK.window giây): mẫu kế tiếp kích hoạt chống kẹt.
     if (a && o.loop) { a.trail = Array.from({ length: Math.ceil(AUTO_STUCK.window / AUTO_STUCK.sample) - 1 }, () => ({ x: p.x, y: p.y })); a.trailT = 0; }
     // #218: `kn` / `wn` đặt số lượt nhận thưởng thú vương / boss thế giới hôm nay trong bộ nhớ (thử tự săn bỏ boss khi hết lượt; DB vẫn
@@ -631,7 +631,7 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     // `bid`: hồn thú đó đang nhắm ai, ai đánh gần nhất, đang về chỗ sinh; #266: số giây tự săn của mình còn bỏ qua nó (kẹt / không tới
     // được; null khi không bị bỏ qua hoặc đã hết hạn mà chưa tới nhịp dọn), những người treo ngoài tổ đội đang nhắm nó (như
     // AutoHunter.claimed: tự săn của mình không nhắm theo).
-    const bid = typeof o.bid === "string" ? o.bid : "", bd = bid ? room.bdata.get(bid) : undefined, skipTo = a?.skip.get(bid);
+    const bid = typeof o.bid === "string" ? o.bid : "", bd = bid ? room.bdata.get(bid) : undefined, bb = bid ? room.state.beasts.get(bid) : undefined, skipTo = a?.skip.get(bid);
     const claim: string[] = []; if (bd) for (const [sid, x] of room.pdata) if (x.auto && x.auto !== a && x.auto.target === bid && !a?.ally(sid)) claim.push(sid);
     // `secs`: giây đã treo lượt này theo nhịp server (cùng đồng hồ với nợ nhịp; bot đo cửa sổ trần tốc độ bằng nó, #328).
     out = { on: !!a, clock: a?.clock ?? null, used: d.autoUsed, bonus: d.autoBonus, day: d.autoDay, secs: a?.secs ?? null, target: a?.target ?? null, pace: a?.pace ?? null, est: a?.est ?? null, why: a?.why?.w ?? null, mates: a?.mates().length ?? 0, goal: a?.goal ?? null, path: a?.path.length ?? null,
@@ -646,7 +646,7 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
       aoe: a ? a.cfg.skills.filter((i) => { const sk = a.skillAt(p, d, i)?.sk; return !!sk && (sk.area === "around" || sk.area === "front") && sk.dmg > 0; }) : [],
       // #1421: `pick` chạy findTarget của mình đúng lúc này (chỉ đọc, không đặt mục tiêu): chọn con nào khi hai bên đứng yên.
       ...(o.pick === true ? { pick: a?.findTarget(p) ?? null } : {}),
-      ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm, ret: bd.ret, mateD: a ? a.mates().map((m) => { const bb = room.state.beasts.get(bid); return bb ? Math.round(Math.hypot(bb.x - m.p.x, bb.y - m.p.y)) : null; }) : [], hit: a?.hit ?? false, skip: a && skipTo !== undefined && skipTo > a.clock ? skipTo - a.clock : null, claim } } : {}) };
+      ...(bd ? { beast: { target: bd.target, hitBy: bd.hitBy, calm: bd.calm, ret: bd.ret, mateD: a && bb ? a.mates().map((m) => Math.round(Math.hypot(bb.x - m.p.x, bb.y - m.p.y))) : [], hit: a?.hit ?? false, skip: a && skipTo !== undefined && skipTo > a.clock ? skipTo - a.clock : null, claim } } : {}) };
   }
   else if (op === "tong") {
     // #196: `back` (số ngày) lùi lúc gia nhập tông về trước (giả lập thời gian trôi, ghi DB); trả tông, lúc gia nhập, số giây còn chờ.

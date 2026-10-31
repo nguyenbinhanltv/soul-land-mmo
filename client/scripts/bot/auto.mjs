@@ -678,35 +678,37 @@ export async function autoTest(){
       // vào leash của con (hợp lệ) rồi bước ra, còn client (máy tải, bản vá state trễ) thấy vị trí cũ nên coi là "cách xa" → ✗ giả. Nay: bật
       // với nợ nhịp (paceNext) nên cả hai đứng yên, chờ thấy nhau, rồi hỏi server (pick = findTarget đúng lúc đó, vị trí cố định) chọn con nào;
       // đối chứng đặt đồng đội vào leash thì phải chọn. Phần đầu-cuối (hai người tự đi) đo bằng khoảng cách ở server cùng lúc với mục tiêu.
+      try{
       await autoOp(A,"set",{cfg:PT}); await autoOp(B,"set",{cfg:PT});
       await test(A,"auto",{paceNext:3600}); await test(B,"auto",{paceNext:3600});
       await Promise.all([autoOp(A,"on"),autoOp(B,"on")]);
       let seen=false; for(let t=0;t<4000&&!seen;t+=100){ seen=(await infoA()).mates>=1&&((await test(B,"auto"))?.mates??0)>=1; if(!seen) await sleep(100); }
       await test(A,"clear",{all:true,keep:true,but:fr}); // hồn thú tự nhiên hồi sinh: chỉ giữ con thử
       const fe0=A.room.state.beasts.get(fr), dd=s=>Math.round(Math.hypot(me(s).x-fe0.x,me(s).y-fe0.y)), pk=async s=>(await test(s,"auto",{pick:true}))?.pick;
-      const pa=await pk(A), pb=await pk(B);
-      ok(seen&&pa!==fr&&pb!==fr,`AH4 tổ đội: con ở cách đồng đội xa hơn AUTO_PARTY.leash (${AUTO_PARTY.leash/TILE} ô), hai người đứng yên: không ai chọn`+(seen?"":" [hai người chưa thấy nhau]")+(pa===fr||pb===fr?` [A chọn ${pa}, B chọn ${pb}, fr ${fr}; cách con A ${dd(A)}, B ${dd(B)}]`:""));
+      const pa=await pk(A), pb=await pk(B), frOk=!!(await infoA({bid:fr})).beast; // con thử còn thì "không chọn" mới có nghĩa
+      ok(seen&&frOk&&pa!==fr&&pb!==fr,`AH4 tổ đội: con ở cách đồng đội xa hơn AUTO_PARTY.leash (${AUTO_PARTY.leash/TILE} ô), hai người đứng yên: không ai chọn`+(seen?"":" [hai người chưa thấy nhau]")+(frOk?"":" [con thử không còn]")+(pa===fr||pb===fr?` [A chọn ${pa}, B chọn ${pb}, fr ${fr}; cách con A ${dd(A)}, B ${dd(B)}]`:""));
       // Đối chứng: đồng đội đứng trong leash của con thì người kia chọn con đó (luật không "chặn hết" nên bài trên mới có nghĩa).
       const B0={x:me(B).x,y:me(B).y};
       // Chỗ không đứng được (tường) thì `goto` không dời: thử hướng khác; đọc khoảng cách ở server (vị trí client trễ khi máy tải).
-      let mD=null; for(let k=0;k<16;k++){ const an=k*Math.PI/8; await test(B,"goto",{x:Math.round(fe0.x+AUTO_PARTY.leash/2*Math.cos(an)),y:Math.round(fe0.y+AUTO_PARTY.leash/2*Math.sin(an))}); mD=(await infoA({bid:fr})).beast?.mateD?.[0]; if(mD<=AUTO_PARTY.leash-16) break; }
+      let mD=null; for(let k=0;k<16;k++){ const an=k*Math.PI/8; await test(B,"goto",{x:Math.round(fe0.x+AUTO_PARTY.leash/2*Math.cos(an)),y:Math.round(fe0.y+AUTO_PARTY.leash/2*Math.sin(an))}); mD=(await infoA({bid:fr})).beast?.mateD?.[0]; if(Number.isFinite(mD)&&mD<=AUTO_PARTY.leash-16) break; }
       let pc=null; for(let t=0;t<3000&&pc!==fr;t+=100){ await test(A,"clear",{all:true,keep:true,but:fr}); pc=await pk(A); if(pc!==fr) await sleep(100); }
       ok(pc===fr,`AH4 tổ đội: đối chứng, đồng đội đứng trong leash (cách con ${mD} pixel) thì người kia chọn con đó (chọn ${pc}, fr ${fr})`);
       await test(B,"goto",B0); await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0});
       // Đầu-cuối: hai người tự đi. Vi phạm = giữ con (chưa đánh trúng, nó không đánh mình) khi MỌI đồng đội (vị trí ở server) ngoài leash suốt
-      // ít nhất hai nhịp quyết định (đo bằng `clock` của tự săn, không theo giờ thật: máy tải thì nhịp chậm theo). keep() bỏ con ngoài leash ở
+      // ít nhất ba lần đọc liên tiếp và hai nhịp quyết định (đo bằng `clock` của tự săn, không theo giờ thật: máy tải thì nhịp chậm theo). keep() bỏ con ngoài leash ở
       // nhịp kế tiếp, nên một lần đọc có thể trúng đúng khoảnh khắc đồng đội vừa bước ra khỏi leash (chọn lúc đó vẫn hợp lệ).
       const viol=(s,sid)=>s?.target===fr&&!!s.beast&&!s.beast.hit&&s.beast.target!==sid&&s.beast.mateD.length>0&&Math.min(...s.beast.mateD)>AUTO_PARTY.leash;
-      const first={A:null,B:null}; let took=null;
+      const first={A:null,B:null}, n3={A:0,B:0}; let took=null;
       for(let t=0;t<5000&&!took;t+=300){
         const sa=await infoA({bid:fr}), sb=await test(B,"auto",{bid:fr});
         for(const [k,s,sid] of [["A",sa,A.room.sessionId],["B",sb,B.room.sessionId]]){
-          if(!viol(s,sid)){ first[k]=null; continue; }
-          if(!first[k]) first[k]=s.clock; else if(s.clock-first[k]>=2/AUTO_HZ) took??={t,k,từ:first[k],tới:s.clock,sa:{tg:sa.target,mates:sa.mates,bd:sa.beast},sb:{tg:sb?.target,mates:sb?.mates,bd:sb?.beast}};
+          if(!viol(s,sid)){ first[k]=null; n3[k]=0; continue; }
+          if(!first[k]) first[k]=s.clock; n3[k]++;
+          if(n3[k]>=3&&s.clock-first[k]>=2/AUTO_HZ) took??={t,k,từ:first[k],tới:s.clock,sa:{tg:sa.target,mates:sa.mates,bd:sa.beast},sb:{tg:sb?.target,mates:sb?.mates,bd:sb?.beast}};
         }
         await sleep(300); }
       ok(!took,`AH4 tổ đội: hai người tự đi, không ai giữ con ngoài leash của đồng đội`+(took?` [${JSON.stringify(took)}]`:""));
-      await autoOp(A,"off"); await autoOp(B,"off"); await test(A,"auto",{paceNext:0}); await test(B,"auto",{paceNext:0});
+      } finally { await autoOp(A,"off"); await autoOp(B,"off"); await test(A,"auto",{paceNext:0}); await test(B,"auto",{paceNext:0}); } // nợ nhịp 3600 không được rò sang bài sau
     }
     await test(A,"clear",{all:true,keep:true});
     // "Chỉ quanh chỗ đứng", hai neo cách nhau xa hơn R + leash: không kéo nhau, mỗi người săn con ở vùng mình.
