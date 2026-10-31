@@ -79,6 +79,7 @@ try {
         await page.evaluate((fs) => {
           document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
           if (fs) document.body.classList.add(`a11y-fs-${fs}`);
+          document.querySelectorAll("#toasts .toast").forEach(e => e.remove());
         }, fs);
         const targets = await page.locator("#radarMode,#radarIn,#radarOut,#chanBtn,#worldBtn,#chattabs button,#chat,#sbTabQuest,#sbTabParty").evaluateAll((els) => els.map((e) => {
           const r = e.getBoundingClientRect(); return { id:e.id || e.textContent, w:r.width, h:r.height };
