@@ -31,7 +31,7 @@ export const OB_STEPS: readonly ObStep[] = [
   { id: "ring", title: "Gắn hồn hoàn", body: "Chọn hồn hoàn trong Túi, bấm Hấp thụ rồi đứng yên chờ thanh tiến độ. Chưa có thì hạ hồn thú, nhặt bằng E, rồi bấm Làm sau.",
     target: ["#bag .buse.absorb", "#bag"], event: "absorb", dock: "low" },
   { id: "map", title: "Xem bản đồ", body: "Bản đồ khu vực (phím N) hoặc thế giới (phím M): bấm vào một chỗ để đặt cờ, nhân vật tự đi tới.",
-    target: ["#areaBtn", "#worldBtn", "#hubBtn"], open: ["#mapview", "#world"] },
+    target: ["#worldBtn", "#hubBtn"], open: ["#mapview", "#world"] },
   { id: "hub", title: "Mở menu", body: "Nút 魂 (hoặc Esc) mở menu: Nhiệm Vụ, Tông Môn, Cửa Hàng, Cẩm Nang đều ở đây.",
     target: ["#hubBtn"], open: ["#hub"] },
 ];

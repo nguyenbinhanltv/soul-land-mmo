@@ -21,7 +21,6 @@
 
 /* Nút tắt trái (menu nhanh) và nút nhỏ quanh radar: nút phụ của kit; vùng bấm tối thiểu 32 px. */
 #hud .minibtn.f2-nut-phu{min-height:32px;margin-top:0;padding:0 var(--sp-3);font:var(--fs-s)/1.1 var(--f10)}
-#hud .radarbtns .minibtn.f2-nut-phu{font:var(--fs-s)/1.1 var(--f10)}
 
 /* Viền minimap: vòng mực quanh radar, nút +/-/xoay cùng tông. */
 #hud #mini{box-shadow:0 0 0 var(--bd) var(--ink2),0 0 0 calc(var(--bd) * 2) var(--plate)}

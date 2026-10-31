@@ -31,7 +31,7 @@ export { dailyMsg, questOf, questTracked, revealQuestTracker, setQuest, renderQu
 // Đại Đấu Hồn Trường đã tách sang hudArena.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
 export { type ArenaTopMsg, type ArenaEndMsg, arenaQ, arenaTopMsg, setArenaQueue, updateArenaQueue, type ArenaLiveMsg, arenaLiveAt, arenaLiveAsk, setArenaLive, arenaLiveEl, updateArenaLive, arenaRankEl, setArenaTop, showArena, arenaEnd, updateArenaEnd } from "./hudArena.ts";
 // Bạn bè, cộng minh, kênh, bản đồ thế giới / truyền tống, điểm đánh dấu, tự động và về thành của HUD đã tách sang hudMisc.ts (Part of #885 bước 0a); giữ tên cũ ở đây để nơi gọi vẫn dùng hud.*.
-export { bindFriends, setFriends, toggleFriends, resMsg, setResonance, setResonanceTop, onResonanceTop, toggleReso, setChannel, onChannelPick, toggleChannels, resetChannels, setChannels, onWorldGo, onWorldAuto, worldOpen, toggleWorld, setWorld, showWaypoint, setAuto, setRecall, drawRecall } from "./hudMisc.ts";
+export { bindFriends, setFriends, toggleFriends, resMsg, setResonance, setResonanceTop, onResonanceTop, toggleReso, setChannel, onChannelPick, toggleChannels, resetChannels, setChannels, onWorldGo, onWorldAuto, onWorldShow, worldOpen, toggleWorld, setWorld, showWaypoint, setAuto, setRecall, drawRecall } from "./hudMisc.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 

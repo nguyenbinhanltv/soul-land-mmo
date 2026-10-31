@@ -1,8 +1,6 @@
 .c12-ui-icon{display:block;width:24px;height:24px;object-fit:contain;image-rendering:pixelated}
 .c12-with-icon::before{content:"";display:inline-block;width:24px;height:24px;vertical-align:middle;margin-right:4px;background:var(--c12-icon) center/contain no-repeat;image-rendering:pixelated}
-.radarbtns>.c12-with-icon{padding-block:0;line-height:12px}
-.radarbtns>.c12-with-icon::before{display:block;width:12px;height:12px;margin:0 auto 1px}
-.c12-radar-info{display:flex;align-items:center;max-width:168px;margin:1px auto 0}
+.c12-radar-info{display:flex;align-items:center;max-width:132px;margin:1px auto 0}
 .c12-radar-info>#radarInfo{flex:1;min-width:0;margin:0}
 #c12Connection{position:relative;flex:none;width:12px;height:16px;margin-left:2px;color:var(--text);font:12px/16px var(--f12);text-align:center;pointer-events:auto}
 #c12Connection.c12-with-icon::before{width:12px;height:12px;margin:0;vertical-align:middle}

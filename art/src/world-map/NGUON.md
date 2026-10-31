@@ -6,7 +6,7 @@ Nguồn: Codex, công cụ tích hợp OpenAI `image_gen.imagegen`, ngày 31/10/
 
 Chọn lượt **1/1 đã sinh, tối đa 3**. Tự xem ảnh: đủ thành, thôn, núi tuyết, rừng với suối đôi, biển và đảo, rừng sâu với hồ; không thấy chữ, logo, nhãn hay tuyến cổng vẽ sẵn. Các nét địa hình / sông là minh họa, không phải dữ liệu đi đường. Ảnh 1672×941, tỷ lệ lệch 16:9 khoảng 0,05%; chấp nhận theo quy tắc tỷ lệ của skill ui-kit. Chủ repo yêu cầu tranh vẽ tay liền mạch nên không áp dụng bộ cắt tờ F/N/O, giới hạn màu sprite hay 9-slice cho tranh này.
 
-Đây là asset đề xuất trong PR art, chưa đăng ký manifest hay tải vào client. Ảnh vào game sau khi duyệt PR. Trang `xem-truoc.html` chỉ minh họa tọa độ phủ code; không thực hiện truyền tống.
+Ảnh đã duyệt và được nhập vào client (bản chép nguyên byte ở `shared/assets/ui/ban-do-the-gioi/`, tải thẳng bằng URL, không qua manifest). Trang `xem-truoc.html` chỉ minh họa tọa độ phủ code; không thực hiện truyền tống.
 
 ## Ghi công
 

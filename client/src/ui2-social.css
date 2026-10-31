@@ -27,10 +27,10 @@
 #hud #friends .fsub b{color:var(--son-l)}
 #hud #friends .p2-state{min-height:72px}
 
-/* ===== Đợt 2d: Cộng minh (#reso, Mực), menu người chơi (#pmenu, Mực nhỏ), Kênh (#chans, Mực nhỏ), Thế giới (#world, Giấy), bảng tông (trong hộp thoại NPC) =====
+/* ===== Đợt 2d: Cộng minh (#reso, Mực), menu người chơi (#pmenu, Mực nhỏ), Kênh (#chans, Mực nhỏ), bảng tông (trong hộp thoại NPC) =====
    Khung kit lặp lại đúng bộ viền (vẫn qua --frame-*) vì `.thuymac #id` có độ ưu tiên cao hơn helper. Chữ 10 / 12 (--fs-*), vùng bấm ≥ 32 px (nút chính ≥ 44 px),
    trạng thái là hình + chữ (vạch trái dày, dấu √ / "Khoá" / "Đầy"), không chỉ màu. */
-.ui2-k-khung-muc-lon #reso.f2-muc-lon,.ui2-k-khung-muc-nho :is(#pmenu,#chans).f2-muc-nho,.ui2-k-khung-giay-lon #world.f2-giay-lon{
+.ui2-k-khung-muc-lon #reso.f2-muc-lon,.ui2-k-khung-muc-nho :is(#pmenu,#chans).f2-muc-nho{
   box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
   background:none;box-shadow:none;image-rendering:pixelated}
 
@@ -97,25 +97,6 @@
 #chans .p2-state{min-height:56px}
 .a11y-fs-1 #chans.f2-muc-nho{width:224px}
 .a11y-fs-2 #chans.f2-muc-nho{width:256px}
-
-/* Thế giới: cuộn giấy (Giấy); sơ đồ nét mực, nút "Tự đi tới" theo token thay màu cứng, hàng trận cao ≥ 32 px, hàng đang chọn có vòng + vạch. */
-#world{width:min(480px,96vw);gap:var(--sp-4);padding:var(--sp-4);font:var(--fs-m)/1.3 var(--f12);color:var(--text);scrollbar-width:thin}
-#world :is(.x,.rhead button){min-height:32px;min-width:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper2);border:var(--bd-fine) solid var(--line)}
-#world :is(button,[tabindex]):focus-visible,#world .wnode:focus-visible{outline:var(--bd) solid var(--son);outline-offset:var(--bd)}
-#world .wwalk{min-height:32px;padding:0 var(--sp-4);font:var(--fs-m)/1.2 var(--f12);color:var(--ink);background:var(--paper2);border:var(--bd) solid var(--son);border-radius:0;box-shadow:inset 0 calc(var(--bd) * -1) 0 var(--son)}
-#world .wwalk:hover{background:var(--paper)}
-#world .wrow{min-height:32px;padding:var(--sp-2) var(--sp-4);font:var(--fs-m)/1.2 var(--f12)}
-#world .wrow.sel{outline:var(--bd) solid var(--son);box-shadow:inset var(--sp-3) 0 0 var(--son)}
-#world .wrow.locked em::before{content:"Khoá · "}
-#world .wsec{border-left-width:var(--sp-3)}
-#world :is(.rnote,.danger){font:var(--fs-s)/1.4 var(--f10)}
-#world .restotal{font:var(--fs-m)/1.3 var(--f12);color:var(--xp-t)}
-#world .restop :is(b,span){font:var(--fs-m)/1.3 var(--f12)}
-#world .wgo .buse{min-height:44px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);cursor:pointer}
-#world .wgo .buse:disabled{cursor:not-allowed}
-#world .p2-state{min-height:72px}
-.a11y-fs-1 #world{width:min(560px,96vw)}
-.a11y-fs-2 #world{width:min(640px,96vw)}
 
 /* Bảng tông (trang "Bảng tông tuần" trong hộp thoại sứ giả): mỗi tông một dòng + thanh so với tông đứng đầu; tông của mình có vạch trái dày. */
 .qbox.tong-bang{gap:var(--sp-2)}

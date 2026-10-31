@@ -85,7 +85,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #target .xpcut{font-style:normal;color:var(--warn);font-size:12px;font-family:var(--f12)}
 .mapbox{position:relative;padding:6px}
 /* Radar tròn (R2 #429): đường kính RADAR.size (168 máy tính, 120 điện thoại ngang); khung gỗ tạm vẽ trong canvas, có ảnh ui_radar_frame thì phủ lên */
-#radar{position:relative;width:168px;height:168px;margin:0 auto;pointer-events:auto}
+#radar{position:relative;width:132px;height:132px;margin:0 auto;pointer-events:auto}
 #mini{display:block;width:100%;height:100%;border-radius:50%;touch-action:none}
 #radarFrame{position:absolute;left:50%;top:50%;height:auto;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated}
 #radar .rbtn{position:absolute;width:20px;height:20px;padding:0;font:bold 13px/18px var(--f12);text-align:center;color:var(--paper);background:var(--ink-panel);border:1px solid var(--ink2);border-radius:50%;cursor:pointer}
@@ -95,7 +95,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text)
 #radar #radarOut{right:-2px;bottom:-2px}
 #radarTip{position:absolute;transform:translateX(-50%);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;padding:1px 5px;font:12px/16px var(--f12);color:var(--ink-text);background:var(--ink-panel);border:1px solid var(--ink2);pointer-events:none;z-index:3}
 #radarTip[hidden]{display:none}
-#radarInfo{font-size:11px;font-family:var(--f10);color:var(--muted);text-align:center;max-width:168px;margin:1px auto 0}
+#radarInfo{font-size:11px;font-family:var(--f10);color:var(--muted);text-align:center;max-width:132px;margin:1px auto 0}
 /* Bản đồ khu vực toàn màn hình (phím N, R3): che màn hình, không chặn phím di chuyển; canvas nhận kéo / lăn / chụm. */
 #mapview{position:fixed;inset:0;z-index:5;pointer-events:auto;background:rgba(8,12,10,.96);touch-action:none;user-select:none}
 #mapview[hidden]{display:none}
@@ -124,13 +124,7 @@ body.touch #mapviewHelp{display:none}
 #flagBar #flagClear{flex:0 0 32px}
 #mapview .mvfit{background:#7a2a20;border-color:#d8584a}
 #mapview .mvgo{background:#6a4a1c;border-color:#ff9a3c}
-.radarbtns{display:flex;gap:3px;margin-top:4px}
-.radarbtns .minibtn{margin:0;flex:1 1 0;min-width:0;padding:3px 2px;white-space:nowrap;font-size:10px;font-family:var(--f10)}
-.radarbtns .minibtn kbd{display:none} /* phím tắt đã có ở chú thích nút; bỏ để chữ «Thế giới» không bị cắt (#722) */
-.radarbtns .minibtn:disabled{opacity:.45;cursor:default}
-.radarbtns .minibtn[hidden]{display:none}
 #zoneName{font-size:12px;font-family:var(--f12);text-align:center;margin-top:4px}
-#online{font-size:12px;font-family:var(--f12);color:var(--muted);text-align:center}
 /* Kênh (mục 6 "Nhiều kênh"): nhãn "Kênh N" nổi ở góc bản đồ nhỏ (khung không cao thêm), danh sách kênh nổi ngay dưới khung,
    trên khung nhiệm vụ */
 #chans{position:absolute;right:-2px;top:calc(100% + 4px);z-index:5;display:flex;flex-direction:column;gap:3px;width:170px;padding:6px;
@@ -641,8 +635,8 @@ body.touch .minibtn kbd{display:none}
 @media (prefers-reduced-motion: reduce){.tm.full{animation:none;box-shadow:0 0 8px color-mix(in srgb,var(--xp) 60%,transparent)}}
 /* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */
   :where(body.ui-w640) .stats{width:190px;padding:8px 9px 9px}
-  :where(body.ui-w640) #radar{width:120px;height:120px}
-  :where(body.ui-w640) #radarInfo{max-width:120px}
+  :where(body.ui-w640) #radar{width:104px;height:104px}
+  :where(body.ui-w640) #radarInfo{max-width:104px}
   :where(body.ui-w640) .sk{width:52px;height:52px;font-size:10px;font-family:var(--f10)}
   body:where(.ui-w640).touch #skills{width:176px}
   :where(body.ui-w640) .tm{width:52px;height:50px}
@@ -780,7 +774,7 @@ body.touch .pbtn{min-height:34px;font-size:12px;font-family:var(--f12);padding:4
    đặt sát bên trái bản đồ nhỏ (vùng trên giữa màn hình còn trống), cao tối đa tới trên thanh đội hình. */
 /* @media (max-height:500px) → lớp ui-h500 (kích thước logic, uiArt.ts) */body:where(.ui-h500).touch #rcol{display:contents}
 body:where(.ui-h500).touch .mapbox{position:absolute;right:10px;top:10px}
-body:where(.ui-h500).touch #radar{width:120px;height:120px}
+body:where(.ui-h500).touch #radar{width:104px;height:104px}
 body.arena:where(.ui-h500).touch .mapbox{top:84px}
 /* Đại Đấu Hồn Trường (7.2): đang tìm trận, thanh trận đấu, kết quả, bảng xếp hạng */
 #arenaQ{position:absolute;left:50%;transform:translateX(-50%);top:46px;display:flex;align-items:center;gap:10px;padding:6px 10px;border-color:#ff6b6b;pointer-events:auto}
@@ -887,7 +881,7 @@ body.touch .alive .buse{min-height:38px}
 .thuymac .panel{border:6px solid transparent;background:none;box-shadow:none;
   border-image:var(--frame-panel) var(--nine-hop-thoai) fill / calc(var(--nine-hop-thoai) * 1px) round}
 /* Bảng lớn giữa màn hình và thẻ màn đăng nhập: cuộn giấy hai trục gỗ. */
-.thuymac :is(#roster,#bag,#reso,#friends,#world,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
+.thuymac :is(#roster,#bag,#reso,#friends,#autoPanel,#arenaEnd,#overlay .card){border-width:16px 10px;
   border-image:var(--frame-scroll) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
 /* Hộp thoại NPC: làm tối cảnh nhẹ (mục 5.11 C), hoa văn mực ở hai góc. */
@@ -1021,10 +1015,10 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 .vcardx.cempty .csl{position:absolute}
 .vcardx.cempty small{font-size:10px;font-family:var(--f10)}
 /* Bảng đội hình: 4 ô là 4 thẻ, nút Bỏ dưới thẻ; bộ sưu tập là lưới thẻ; mảnh võ hồn là thẻ + thanh mảnh + nút. */
-#roster,#bag,#reso,#audio,#world,#npc,#autoPanel{width:min(452px,94vw)}
+#roster,#bag,#reso,#audio,#npc,#autoPanel{width:min(452px,94vw)}
 #friends{width:min(380px,94vw)}
 /* Bảng giữa màn hình nằm trên log chat, thanh đội hình, ấn hồn kỹ (màn thấp của điện thoại). */
-#roster,#bag,#reso,#friends,#audio,#world,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
+#roster,#bag,#reso,#friends,#audio,#npc,#autoPanel,#autoSum,#arenaEnd{z-index:4}
 #roster .tslots{display:grid;grid-template-columns:repeat(auto-fill,96px);gap:8px;justify-content:center}
 #roster .tslot{flex-direction:column;align-items:center;gap:3px;border:0;background:none}
 #roster .tslot:not(.empty){border:0}
@@ -1059,13 +1053,12 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 /* Chữ tô màu tại chỗ (style="color:…": tên võ hồn, trạng thái hồn thú, quà thức tỉnh…) cũng có viền mực. */
 :is(#hud,#overlay) [style*="color:"]{text-shadow:var(--stroke)}
 /* Đang mở bảng giữa màn hình thì ẩn gợi ý nói chuyện (cùng chỗ). */
-:is(#roster,#bag,#reso,#friends,#world):not([hidden]) ~ #talk{display:none}
+:is(#roster,#bag,#reso,#friends):not([hidden]) ~ #talk{display:none}
 /* Nút nhỏ trong khung chỉ số: một dòng, font 10. */
 .menu-icon{font:16px "Segoe UI Symbol","Noto Sans Symbols 2",system-ui,sans-serif;line-height:1}
 .menu-label{flex:1 1 auto;min-width:0;overflow:visible;text-overflow:clip;white-space:normal;text-align:center}
-#zoneName,#online{max-width:150px;margin-left:auto;margin-right:auto}
-#online{font-size:10px;font-family:var(--f10);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */:where(body.ui-w640) #zoneName,:where(body.ui-w640) #online{max-width:105px}
+#zoneName{max-width:150px;margin-left:auto;margin-right:auto}
+/* @media (max-width:640px) → lớp ui-w640 (kích thước logic, uiArt.ts) */:where(body.ui-w640) #zoneName{max-width:105px}
 /* Màn thấp (điện thoại nằm ngang): khung chỉ số gọn hơn. */
 /* @media (max-height:460px) → lớp ui-h460 (kích thước logic, uiArt.ts) */
   :where(body.ui-h460) .stats{padding:4px 8px 6px;width:194px}
@@ -1088,34 +1081,6 @@ button.vcardx:focus-visible{outline:2px solid var(--son);outline-offset:2px}
 #audio .audio-mute{min-height:40px;padding:8px 12px;border:2px solid var(--son-d);background:var(--wash);color:var(--text);font:inherit;font-size:12px;font-family:var(--f12);cursor:pointer}
 #audio .audio-mute[aria-pressed="true"]{background:var(--son);color:var(--paper)}
 #audio p{margin:0;padding-top:2px}
-#world{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:84%;overflow-y:auto;padding:10px;pointer-events:auto;
-  touch-action:pan-y;display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(6px)}
-#world[hidden]{display:none}
-#world>*{flex-shrink:0}
-#world .wmap{display:block;width:100%;height:auto;aspect-ratio:300/170;background:color-mix(in srgb,var(--paper2) 45%,transparent);border:1px solid var(--line)}
-#world .wlink{stroke:var(--inkl);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:5 3;opacity:.8}
-#world .wnode{cursor:pointer}
-#world .wnode .wdot{fill:var(--paper);stroke:var(--inkl);stroke-width:1.5}
-#world .wnode.open .wdot{fill:var(--ink);stroke:#5aa8c0;stroke-width:2}
-#world .wnode .wseal{fill:none;stroke:var(--son);stroke-width:2}
-#world .wnode .wname{font-family:var(--f10);font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:3px}
-#world .wnode.cur .wname{fill:var(--son-d)}
-#world .wsec{border:1px solid var(--line);border-left:4px solid var(--inkl);padding:6px 8px;display:flex;flex-direction:column;gap:4px}
-#world .wwalk{margin-left:auto;font:11px var(--f12);min-height:24px;padding:1px 8px;color:var(--ink-text);background:#6a4a1c;border:1px solid #ff9a3c;border-radius:3px;cursor:pointer}
-#world .wsec.cur{border-left-color:var(--son)}
-#world .wrow{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:6px;align-items:center;font:inherit;font-size:12px;font-family:var(--f12);
-  min-height:30px;padding:3px 6px;border:1px solid var(--line);background:var(--wash);color:var(--text);cursor:pointer;text-align:left}
-#world .wrow i{width:10px;height:10px;transform:rotate(45deg);background:var(--paper3);box-shadow:0 0 0 1px var(--inkl)}
-#world .wrow.open i{background:#8fe0ff;box-shadow:0 0 0 1px var(--ink),0 0 5px #8fe0ff}
-#world .wrow em{font-style:normal;color:var(--muted)}
-#world .wrow.locked{opacity:.6;cursor:default}
-#world .wrow.here{border-color:#5aa8c0;cursor:default}
-#world .wrow.poor em{color:var(--son)}
-#world .wrow.sel{outline:2px solid var(--son);outline-offset:1px}
-#world .wrow:disabled{cursor:default}
-#world .wrow.open:disabled:not(.here){opacity:1}
-#world .wgo{flex-wrap:wrap;align-items:center;position:sticky;bottom:-10px;padding:6px 0;background:var(--paper)}
-#world .danger{color:var(--son)}
 /* Hồi Thành Phù khi chưa có ảnh item_hoi_thanh_phu: lá bùa giấy vàng, ấn son tròn (vẽ bằng CSS; cần vẽ Gemini sau). */
 .ico.phu{width:40%;height:66%;position:relative;background:linear-gradient(180deg,#f3dc8a,#d9b24a);box-shadow:0 0 0 1px #1a1020,0 0 6px color-mix(in srgb,var(--c) 70%,transparent)}
 .ico.phu::before{content:"";position:absolute;left:22%;top:14%;width:56%;height:36%;border:2px solid #b0302a;border-radius:50%;box-sizing:border-box}
@@ -1288,7 +1253,7 @@ body.touch #autoPanel .aorder .rlink{min-height:36px}
   padding:10px;pointer-events:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:6px}
 .thuymac #char{border-width:16px 10px;border-image:var(--frame-scroll) var(--nine-cuon-giay) fill / calc(var(--nine-cuon-giay) * 1px) round;
   scrollbar-width:thin;scrollbar-color:var(--inkl) transparent}
-:is(#roster,#bag,#reso,#friends,#world):not([hidden]) ~ #talk,#char:not([hidden]) ~ #talk{display:none}
+:is(#roster,#bag,#reso,#friends):not([hidden]) ~ #talk,#char:not([hidden]) ~ #talk{display:none}
 #char .ctabs{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
 #char .cbody{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(0,1.15fr);gap:var(--sp-4);align-items:start}
 #char .ccolL,#char .ccolM,#char .ccolR{display:flex;flex-direction:column;gap:var(--sp-3);min-width:0}
