@@ -23,6 +23,7 @@ Cộng minh: mốc theo trụ cột cộng % chỉ số gốc cho mọi võ hồ
 ### Bảng Cộng minh và xếp hạng
 - Bảng **Cộng minh** (phím K, nút "Cộng minh" trong khung chỉ số và ở đầu bảng đội hình): tổng hiệu ứng đang cộng, mỗi trụ cột tiến độ x / mốc kế tiếp kèm thanh, các mốc đã đạt sáng màu. Nút xếp hạng gửi `resonance {op:"top", page, pageSize}`; kích thước mặc định dùng `RESONANCE_RANK_PAGE_SIZE`, giới hạn dùng `RESONANCE_RANK_PAGE_MAX`, và giới hạn gọi lại dùng `RESONANCE_RANK_CD`. Chỉ tài khoản đạt ít nhất một mốc được xếp. Bảng đã sắp xếp được giữ chung cho mọi phòng trong `RESONANCE_RANK_CACHE` giây (yêu cầu đến lúc đang tính dùng chung một lần tính), nên bảng có thể trễ ngần ấy so với dữ liệu đã lưu và tiến độ đang chơi.
 - Điểm xếp hạng và tie-break do `resonanceRankValue` / `resonanceRankCompare` định nghĩa. Kết quả có trang 1-based, `total`, `hasNext` và hạng riêng của mình. Dòng công khai chỉ có tên hiển thị, hạng, điểm, số mốc; chi tiết tiến độ / hiệu ứng chỉ trả cho chính chủ.
+- Khi tải lại hoặc đổi trang, giữ bảng đã nhận kèm nhãn dữ liệu cũ và số trang đang hiển thị. Quá hạn nhận tin thì báo cập nhật thất bại, ghi trang yêu cầu và có **Thử lại** đúng trang đó; vẫn giữ giới hạn nhịp gửi. Tin thành công đến sau xoá lỗi và nhãn cũ.
 - Không thêm bảng SQL: `Store.resonanceTop` đọc canonical `accounts`, `vohons`, `items`; `MemoryStore` và `PgStore` cùng tính kết quả. Không có bảng riêng cho cộng minh; PostgreSQL chỉ cần kiểm thử đọc dữ liệu hiện có.
 
 ## Lịch sử / issue liên quan
