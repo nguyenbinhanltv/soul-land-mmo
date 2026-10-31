@@ -1,0 +1,23 @@
+{
+  "raw": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "7981c28b5b93792a03c8422b697109dd86e8a3c736604c479f6d0b55ea28b552"
+  },
+  "intermediate": {
+    "size": [
+      1536,
+      1536
+    ],
+    "sha256": "891263e090498304361c8b4aea5f3a118b8d711bcc4b6cb6fa309c42361763dc"
+  },
+  "cell": 384,
+  "pad": 32,
+  "components": 16,
+  "foregroundPixels": 342332,
+  "preservedPixels": 342332,
+  "scaling": false,
+  "drawing": false
+}

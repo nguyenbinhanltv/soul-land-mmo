@@ -1,0 +1,33 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF magenta background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+
+SPIRIT: White Tiger, colossal ancient guardian of the West, seated majestically like a lethal sacred mountain beast. Complete anatomically feline body, massive broad chest, raised muscular shoulders, thick forelegs with exposed claws, powerful hindquarters and long curled striped tail. Real tiger muzzle, small ears, calm cold golden eyes, thick angular BLACK tiger stripes that suggest ancient metal dao runes. Main fur is cold dark gray #3a3a4c with pale silver-white #f2f2f6 highlight clusters only on muzzle, chest and shoulder planes. Stripes #1a1020. No flat white body. No smoke, no aura, no formation circles, no floating claws. Solid complete body, no human shape or hollow.
+CANVAS: perfect SQUARE PNG, equal width and height. Exactly FOUR columns by FOUR rows, sixteen equal square cells. No visible grid or lettering. Flat #FF00FF background. ONE same complete seated tiger per cell, no humans/mannequins. Tiger INCLUDING tail/claws occupies central 55% of each cell, generous empty magenta margins on ALL sides. Same body scale, center and baseline in every cell.
+DIRECTION: SOUTH-EAST, turned45degrees toward lower RIGHT, clear three-quarter view, nose points lower right, asymmetric cheeks.
+ROW ONE: FOUR subtle neutral breathing poses.
+ROW TWO: FOUR subtle neutral breathing poses, final neutral. Only1-2pixel breathing, stable silhouette.
+ROW THREE: FOUR poses: column1 leans back slightly; column2 gathers shoulders; column3 lifts forepaw close to chest; column4 short powerful claw swipe with open snarl.
+ROW FOUR: FOUR poses: column1 holds same peak swipe; column2 withdraws paw; column3 relaxes shoulders; column4 neutral.
+Attack remains COMPACT, paw bent close to body, no long outstretched limbs. Keep whole tiger within central55% of every cell. Opaque solid form, dark #1a1020 outline, hard pixel edges, three flat tones per color region. No ground, cast shadow, text, grid lines, detached effects, glow, particles or white flash. Old sheets only reference shape/colors/motifs, never reproduce their human-shaped holes or composition.
