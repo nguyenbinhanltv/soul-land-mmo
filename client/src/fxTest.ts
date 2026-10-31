@@ -4,6 +4,7 @@
 // giật lùi), `stress=P&sheets=0` tắt phần mới để so FPS trước / sau. Tham số thêm: mat, nang (0..3), crit=1.
 // Chỉ để chủ repo duyệt phong cách; không đổi luật chơi.
 import Phaser from "phaser";
+import { drawDamageText, type DamageMessage } from "./damageText.ts";
 import { TIERS, VOHON, PHAP_TUONG, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } from "../../shared/data.ts";
 import { ELEMENTS, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, fxGov, fxLevel, type FxLevel } from "./combatFx.ts";
@@ -21,15 +22,18 @@ import { SkillCine } from "./skillCine.ts";
 import { ELEMENT_NAME, FX_KINDS, FX_KIND_NAME, FX_TEX_ELEMENTS, SkillFx, skillFxOf, fxTexKey, isCinematic, type FxKind } from "./skillFx.ts";
 
 const q = new URLSearchParams(location.search);
+// Gieo cố định chỉ ở trang thử để hai lượt đối chứng có cùng tải nền.
+let seed = Number(q.get("seed")) >>> 0;
+const testRandom = () => { if (!q.has("seed")) return Math.random(); seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
 const pick = <T extends string>(v: string | null, all: readonly T[], d: T): T => ((all as readonly string[]).includes(v ?? "") ? (v as T) : d);
 
 /** `ct=N`: N hồn sư Chân Thân (pháp tướng) cùng màn; `pt=1`: hồn sư thử cũng có pháp tướng (kiểm tung mọi chiêu). */
 const CT = Math.max(0, Number(q.get("ct") ?? 0) | 0), PT_ON = CT > 0 || q.get("pt") === "1";
 /** Mẫu chiêu cho `stress`: `mix=t3` thiên về T2 / T3 / Chân Thân / dung hợp (H8 #491). */
 function pickStressKey(): string {
-  const keys = Object.keys(SKILL_VISUAL), r = Math.random();
-  const of = (f: (r: string) => boolean) => { const a = keys.filter((k) => f(k.split(":")[1])); return a[(Math.random() * a.length) | 0]; };
-  if (r < 0.15) { const n = Object.keys(FUSION_VISUAL); return "fusion:" + n[(Math.random() * n.length) | 0]; }
+  const keys = Object.keys(SKILL_VISUAL), r = testRandom();
+  const of = (f: (r: string) => boolean) => { const a = keys.filter((k) => f(k.split(":")[1])); return a[(testRandom() * a.length) | 0]; };
+  if (r < 0.15) { const n = Object.keys(FUSION_VISUAL); return "fusion:" + n[(testRandom() * n.length) | 0]; }
   if (r < 0.5) return of((v) => v === "9" || v === "ct");
   if (r < 0.9) return of((v) => v === "4" || v === "5" || v === "7" || v === "8" || v === "tc");
   return of((v) => +v < 4);
@@ -75,32 +79,47 @@ class FxTestScene extends Phaser.Scene {
     if (q.get("legacy") === "1") SHEET_TUNE.othersK = 1; // bản trước H8: người khác dùng cả trần sheet (và không tự hạ mức, xem fxTestScreen)
     this.pt = new PhapTuongSystem(this, this.fxp);
     for (let i = 0; i < CT; i++) {
-      const ids = Object.keys(PHAP_TUONG), c = this.person((Math.random() - 0.5) * 420, (Math.random() - 0.5) * 220 + 10, 0x9fb4e8 + ((Math.random() * 0x404040) | 0));
-      this.crowd.push({ c, vh: ids[(Math.random() * ids.length) | 0], face: (["s", "se", "e", "ne"] as const)[i & 3] });
+      const ids = Object.keys(PHAP_TUONG), c = this.person((testRandom() - 0.5) * 420, (testRandom() - 0.5) * 220 + 10, 0x9fb4e8 + ((testRandom() * 0x404040) | 0));
+      this.crowd.push({ c, vh: ids[(testRandom() * ids.length) | 0], face: (["s", "se", "e", "ne"] as const)[i & 3] });
     }
-    if (CT > 0) this.time.addEvent({ delay: 2200 / CT, loop: true, callback: () => { const w = this.crowd[(Math.random() * this.crowd.length) | 0]; this.pt.strike(w.vh + w.c.x, this.time.now); } });
+    if (CT > 0) this.time.addEvent({ delay: 2200 / CT, loop: true, callback: () => { const w = this.crowd[(testRandom() * this.crowd.length) | 0]; this.pt.strike(w.vh + w.c.x, this.time.now); } });
     if (P > 0 && q.get("mix") === "t3") this.time.addEvent({ delay: 2500 / P, loop: true, callback: () => {
-      const [a, b] = pickStressKey().split(":"), x = (Math.random() - 0.5) * 360, y = (Math.random() - 0.5) * 150;
-      if (a === "fusion") { const fv = FUSION_VISUAL[b]; if (fv) this.svp.cast({ tier: 3, heavy: 2, ...fv }, { x, y: y - 8 * SPR, ang: 0, tx: x, ty: y - 8 * SPR, mine: Math.random() < 0.3, r: 100 * RX }); return; }
+      const [a, b] = pickStressKey().split(":"), x = (testRandom() - 0.5) * 360, y = (testRandom() - 0.5) * 150;
+      if (a === "fusion") { const fv = FUSION_VISUAL[b]; if (fv) this.svp.cast({ tier: 3, heavy: 2, ...fv }, { x, y: y - 8 * SPR, ang: 0, tx: x, ty: y - 8 * SPR, mine: testRandom() < 0.3, r: 100 * RX }); return; }
       const ct = b === "ct", tc = b === "tc", ring = ct || tc ? 6 : +b, vis = skillVisualOf(a, tc ? "tc" : ring, ct), sk = tc ? undefined : ct ? chanThanOf(a)?.skill : ringSkill(a, ring), d = skillFxOf(a, tc ? 0 : ring, ct);
-      this.svp.cast(vis, { x, y: y - 8 * SPR, ang: Math.random() * 6.28, tx: x + 60, ty: y - 8 * SPR, mine: Math.random() < 0.3, r: (sk?.r ?? 56) * RX, n: sk?.n, everyMs: (sk?.every ?? 0) * 1000, spread: ((sk?.spread ?? 0) * Math.PI) / 180 });
+      this.svp.cast(vis, { x, y: y - 8 * SPR, ang: testRandom() * 6.28, tx: x + 60, ty: y - 8 * SPR, mine: testRandom() < 0.3, r: (sk?.r ?? 56) * RX, n: sk?.n, everyMs: (sk?.every ?? 0) * 1000, spread: ((sk?.spread ?? 0) * Math.PI) / 180 });
       this.skfx.play(d.kind, d.element, { x, y, ang: 0, r: 50, dist: 100, partsOnly: !!vis.replace && !!vis.sheet });
       materialSparks(this.fxp, "thit", undefined, x + 60, y - 8 * SPR, vis.heavy, SPR);
     } });
     else if (P > 0) this.time.addEvent({ delay: 2500 / P, loop: true, callback: () => {
-      const el = ELEMENTS[(Math.random() * ELEMENTS.length) | 0], kind = FX_KINDS[(Math.random() * FX_KINDS.length) | 0];
-      const x = (Math.random() - 0.5) * 360, y = (Math.random() - 0.5) * 150, tc = parseInt(TIERS[(Math.random() * 5) | 0].glow.slice(1), 16);
-      this.skfx.play(kind, el, { x, y, ang: Math.random() * 6.28, r: 40 + Math.random() * 40, tierCol: tc, dist: 120 });
+      const el = ELEMENTS[(testRandom() * ELEMENTS.length) | 0], kind = FX_KINDS[(testRandom() * FX_KINDS.length) | 0];
+      const x = (testRandom() - 0.5) * 360, y = (testRandom() - 0.5) * 150, tc = parseInt(TIERS[(testRandom() * 5) | 0].glow.slice(1), 16);
+      this.skfx.play(kind, el, { x, y, ang: testRandom() * 6.28, r: 40 + testRandom() * 40, tierCol: tc, dist: 120 });
       if (this.sheets) { // phần mới của S1/C1: sheet theo bảng (nửa số lần là người khác: bản nhẹ) + tia lửa theo chất liệu
-        const keys = Object.keys(SKILL_VISUAL), [vid, vr] = keys[(Math.random() * keys.length) | 0].split(":"); // S2: cả 22 chiêu đã có sheet
+        const keys = Object.keys(SKILL_VISUAL), [vid, vr] = keys[(testRandom() * keys.length) | 0].split(":"); // S2: cả 22 chiêu đã có sheet
         const vis = skillVisualOf(vid, vr === "ct" ? 6 : vr === "tc" ? "tc" : +vr, vr === "ct"), vsk = vr === "tc" ? undefined : vr === "ct" ? chanThanOf(vid)?.skill : ringSkill(vid, +vr);
-        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: Math.random() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000, spread: ((vsk?.spread ?? 0) * Math.PI) / 180 });
-        const mat = COMBAT_MATERIALS[(Math.random() * COMBAT_MATERIALS.length) | 0];
-        materialSparks(this.fxp, mat, el, x + 40, y - 8 * SPR, (Math.random() * 3) | 0, SPR);
-        playHitFeelSheets(this.svp.sheets, mat, HIT_HES[(Math.random() * HIT_HES.length) | 0], x + 40, y - 8 * SPR, Math.random() < 0.5, 1);
+        this.svp.cast(vis, { x, y: y - 8 * SPR, ang: 0, tx: x + 40, ty: y - 8 * SPR, mine: testRandom() < 0.5, r: (vsk?.r ?? 56) * RX, n: vsk?.n, everyMs: (vsk?.every ?? 0) * 1000, spread: ((vsk?.spread ?? 0) * Math.PI) / 180 });
+        const mat = COMBAT_MATERIALS[(testRandom() * COMBAT_MATERIALS.length) | 0];
+        materialSparks(this.fxp, mat, el, x + 40, y - 8 * SPR, (testRandom() * 3) | 0, SPR);
+        playHitFeelSheets(this.svp.sheets, mat, HIT_HES[(testRandom() * HIT_HES.length) | 0], x + 40, y - 8 * SPR, testRandom() < 0.5, 1);
       }
     } });
     (window as unknown as { __fx: object }).__fx = { level: () => fxLevel(), cap: () => fxGov.cap, avg: () => fxGov.avg, tex: () => this.textures.getTextureKeys().length, ptPooled: () => this.pt.pooled, ptActive: () => this.pt.active, fps: () => this.game.loop.actualFps, sprites: () => this.skfx.active, parts: () => this.fxp.count, sheets: () => this.svp.sheets.active, pooled: () => this.svp.sheets.pooled };
+    // 40 vị trí, 2 tin/người/giây; chu kỳ damage / crit / DoT / heal / shield.
+    // Không dùng RNG để việc bật số không làm đổi chuỗi chiêu nền.
+    let event: Phaser.Time.TimerEvent | undefined, made = 0, offered = 0;
+    (window as unknown as { __damage: object }).__damage = {
+      start: (visible: boolean) => {
+        made = offered = 0;
+        event = this.time.addEvent({ delay: 12.5, loop: true, callback: () => {
+          const n = offered++, who = n % 40, kind = Math.floor(n / 40) % 5;
+          const m: DamageMessage = { v: -100 - n % 900, c: "#86e0b0", id: who === 0 ? "me" : "other", crit: kind === 1, dot: kind === 2, heal: kind === 3, shield: kind === 4 };
+          if (visible) { drawDamageText(this, "me", 1, (who % 8 - 3.5) * 48, (Math.floor(who / 8) - 2) * 36, m, kind < 2 ? "fire" : undefined); made++; }
+        } });
+      },
+      stop: () => { event?.remove(); this.time.removeAllEvents(); },
+      stats: () => ({ made, offered, texts: this.children.list.filter(o => o instanceof Phaser.GameObjects.Text).length, textures: this.textures.getTextureKeys().length }),
+    };
     if (q.get("hit") === "1") this.time.delayedCall(500, () => this.hit(pick(q.get("mat"), COMBAT_MATERIALS, "thit"), Number(q.get("nang") ?? 0), q.get("crit") === "1"));
     if (q.get("auto") === "1") this.time.delayedCall(500, () => this.fire());
   }

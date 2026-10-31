@@ -76,9 +76,9 @@ import { loadPrivateAssets, playPriv } from "../privateAssets.ts"; // #623: hi�
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } from "../skillVisual.ts";
 /** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
 const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
-import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
+import { hitWeight, KNOCK_PX, materialSparks, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
 import { footDustCount, rootSnareDiameter, shouldForceShake, flashAllowed } from "../combatFeelRules.ts";
-import { fadeDamageText } from "../damageTextMotion.ts";
+import { drawDamageText } from "../damageText.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { phuFaceOf, phuDirRow, weaponHidden } from "../phutheAnim.ts";
 import { PHU_NO_ANCHOR, phuAnchorAt, phuAnchorsOf, phuLayerPlacement } from "../phutheAnchor.ts";
@@ -2570,28 +2570,7 @@ export class GameScene extends Phaser.Scene {
    * Màu `m.c` do server chọn theo loại (chí mạng vàng, độc xanh lá, khiên đỡ lam).
    */
   damageText(x: number, y: number, m: { v: number; crit?: boolean; c: string; id?: string; by?: string; dot?: boolean; immune?: boolean; heal?: boolean; shield?: boolean }, el?: Element) {
-    const plus = !!(m.heal || m.shield), self = !m.immune && !plus && m.v < 0 && m.id === this.me, k = this.txtK;
-    const label = m.immune ? "Miễn" : `${plus ? "+" : self ? "−" : ""}${Math.abs(m.v).toLocaleString("vi-VN")}${m.crit ? "!" : ""}`;
-    const kind = m.heal ? "heal" : m.shield ? "shield" : m.immune ? "immune" : m.crit ? "crit" : "damage" as const;
-    const ds = damageStyle(el, !!m.crit, self, kind, m.dot ? m.c : undefined); // C1: self là nạn nhân; DoT giữ màu server gửi
-    const t = this.add.text(x, y, label, {
-      fontFamily: '"Galmuri 11", "Be Vietnam Pro", system-ui, sans-serif', fontSize: `${ds.font}px`,
-      color: ds.color,
-      stroke: "#" + ds.stroke.toString(16).padStart(6, "0"), strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
-    }).setOrigin(0.5).setDepth(self ? 100000 : 99999).setScale(k * (m.crit ? 0.6 : 0.8));
-    if (fxPrefs.reduce) {
-      fadeDamageText(this.tweens, t, self, !!m.crit, plus);
-      return;
-    }
-    const base = t.scaleX;
-    if (self) {
-      t.setScale(base * 1.5); this.tweens.add({ targets: t, scale: base, duration: 140, ease: "Quad.easeOut" });
-      this.tweens.add({ targets: t, x: { from: x - 3 * k, to: x + 3 * k }, duration: 55, yoyo: true, repeat: 2 });
-      this.tweens.add({ targets: t, y: y + 8 * SPR, alpha: 0, delay: 450, duration: 550, ease: "Quad.easeIn", onComplete: () => t.destroy() });
-    } else if (m.crit) {
-      t.setScale(base * 1.7); this.tweens.add({ targets: t, scale: base, duration: 180, ease: "Back.easeOut" });
-      this.tweens.add({ targets: t, y: y - 20 * SPR, alpha: 0, delay: 500, duration: 650, onComplete: () => t.destroy() });
-    } else this.tweens.add({ targets: t, y: y - (plus ? 14 : 16) * SPR, alpha: 0, delay: plus ? 600 : 350, duration: plus ? 700 : 550, onComplete: () => t.destroy() });
+    drawDamageText(this, this.me, this.txtK, x, y, m, el);
   }
 
   /** Hồn Tệ nhận thêm vào chat riêng; đồ đã ghi qua lootToasts, không còn chữ nhận đồ che nhân vật (#1462). */
