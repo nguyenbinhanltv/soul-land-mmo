@@ -13,6 +13,7 @@ body.touch #toasts{bottom:230px}
 .toast[data-k="loot"] b{color:var(--c);text-shadow:var(--stroke)}
 .toast small{display:block;font:var(--fs-s)/1.4 var(--f10);color:var(--paper3);overflow-wrap:anywhere}
 .toast .tn{font:normal var(--fs-s)/1.4 var(--f10);color:var(--paper2)}
+#hud #toasts .toast.f2-toast{background-color:var(--plate)} /* nền đặc giữ chữ đọc được cả khi khung kit có phần trong suốt */
 .toast.out{opacity:0;transform:translateX(18px);pointer-events:none}
 @keyframes toastIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.toast{animation:none;transition:opacity .4s}}
