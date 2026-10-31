@@ -1,18 +1,28 @@
 {
-  "e.png": {
+  "e-v1.png": {
     "width": 1254,
     "height": 1254,
     "sha256": "c3bcdf9d8cef2744d8982b82b1c8dc8df6d1cc639a2c681449785bacf3ab844f"
+  },
+  "e.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "ba666ffad6a69a60bde9bb13b0dcfcba966336142469ff73d1835afdff6531a1"
   },
   "n.png": {
     "width": 1254,
     "height": 1254,
     "sha256": "8d5a56aa61995707753bb3ba715570cf198c233f28678e2e8731666e4857f179"
   },
-  "ne.png": {
+  "ne-v1.png": {
     "width": 1254,
     "height": 1254,
     "sha256": "386df27f93bac446e07da657da82142d9f169663fded7694bed72841210f3a3d"
+  },
+  "ne.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "ac4fd8b5b1c6071d101a74a735e6792975c0d4ddbc8d337e7192cba347d60646"
   },
   "s-v1.png": {
     "width": 1254,
@@ -29,9 +39,19 @@
     "height": 1254,
     "sha256": "0e0748873dcac309b3767abb904cfb5b936d8bc8065584e818fb0c66d5d70428"
   },
-  "se.png": {
+  "se-v1.png": {
     "width": 1254,
     "height": 1254,
     "sha256": "ca5ed7977a60b8bc4a37d46b2ab4cc031338e66a57188396b79b9c56f07d58ac"
+  },
+  "se-v2.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "29175b87feaf25f72603db5f8bc55777d2291c0c63e3bc82e592b349daf38a84"
+  },
+  "se.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "d4f1a2990b2dadb1788b1eff0a599ed4482140ad8c4896bb845ffc872cb09815"
   }
 }

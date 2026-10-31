@@ -9922,6 +9922,10 @@
       }
     },
     {
+      "key": "pt_yeu_ho_glow",
+      "iso": true
+    },
+    {
       "key": "skill_a_ngan_0",
       "iso": true
     },
@@ -45883,10 +45887,6 @@
     {"key":"ui_bicanh_luyen_hon","iso":true},
     {
       "key": "pt_nhu_cot_tho_glow",
-      "iso": true
-    },
-    {
-      "key": "pt_yeu_ho_glow",
       "iso": true
     },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
