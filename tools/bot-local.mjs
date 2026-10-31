@@ -162,7 +162,7 @@ async function pkgBins() {
 }
 /** Nhị phân bền: bản sao `native` của embedded-postgres đặt ở BOT_PG_DIR/bin-<phiên bản>, không phụ thuộc node_modules của worktree
  *  (worktree bị dọn mà postgres còn chạy thì mất thư viện / share: "could not access file plpgsql", ECONNRESET, #1499).
- *  Chép sang thư mục tạm rồi đổi tên (nguyên tử); có file .ok mới coi là đủ. Gọi trong khoá pg-start.lock. */
+ *  Chép sang thư mục tạm rồi đổi tên; có file .ok mới coi là đủ. Chỉ gọi trong khoá pg-start.lock. */
 async function pgBins() {
   const src = await pkgBins();
   const dir = path.join(pgDir, `bin-${src.version}`), ok = path.join(dir, ".ok");
@@ -175,13 +175,19 @@ async function pgBins() {
   // dereference: Windows / hệ không cho symlink thì vẫn dùng được; nhị phân tìm thư viện / share theo đường dẫn tương đối nên chép nguyên cây.
   cpSync(src.native, tmp, { recursive: true, dereference: true });
   writeFileSync(path.join(tmp, ".ok"), `${src.version} từ ${src.native}\n`);
-  rmSync(dir, { recursive: true, force: true });
+  // Thư mục cũ dở dang (không có .ok) dời sang một bên rồi mới đổi tên bản mới vào, không xoá trước khi bản mới sẵn sàng.
+  const old = `${dir}.old-${process.pid}`;
+  if (existsSync(dir)) renameSync(dir, old);
   renameSync(tmp, dir);
+  rmSync(old, { recursive: true, force: true });
   return bins;
 }
-/** Đường dẫn pg_ctl để tắt: ưu tiên bản bền, chưa có thì bản trong node_modules (pg_ctl stop chỉ gửi tín hiệu tới PID trong postmaster.pid). */
-async function pgCtlForStop() {
-  const durable = existsSync(pgDir) ? readdirSync(pgDir).filter((f) => /^bin-.+/.test(f) && !f.includes(".tmp-")).map((f) => path.join(pgDir, f, "bin", exe("pg_ctl"))).find((f) => existsSync(f)) : "";
+/** pg_ctl để tắt instance: cạnh nhị phân đang chạy (đúng phiên bản) nếu còn, không thì bản bền đủ (.ok) mới nhất, cuối cùng bản trong node_modules
+ *  (pg_ctl stop chỉ gửi tín hiệu tới PID trong postmaster.pid). */
+async function pgCtlForStop(runningExe = "") {
+  const beside = runningExe && path.join(path.dirname(runningExe), exe("pg_ctl"));
+  if (beside && existsSync(beside)) return beside;
+  const durable = existsSync(pgDir) ? readdirSync(pgDir).filter((f) => /^bin-/.test(f) && !/\.(tmp|old)-/.test(f) && existsSync(path.join(pgDir, f, ".ok"))).sort().reverse().map((f) => path.join(pgDir, f, "bin", exe("pg_ctl"))).find((f) => existsSync(f)) : "";
   return durable || (await pkgBins()).pg_ctl;
 }
 /** Chạy lệnh, trả mã thoát (stdio ghi vào bot-local.log). `detached`: postgres do pg_ctl bật sống tiếp sau khi lượt này thoát. */
@@ -218,7 +224,7 @@ function procInfo(pid) {
   }
   const cmd = sh("ps", ["-o", "command=", "-p", String(pid)]);
   if (!cmd) return null;
-  let exePath = cmd.match(/^(.*?postgres)(?=\s|$)/)?.[1] ?? cmd.split(" ")[0];
+  let exePath = sh("ps", ["-o", "comm=", "-p", String(pid)]) || cmd.split(" ")[0]; // comm: macOS cho đường dẫn đầy đủ (kể cả có khoảng trắng)
   try { exePath = readlinkSync(`/proc/${pid}/exe`).replace(/ \(deleted\)$/, ""); } catch {} // Linux: đường dẫn thật, kể cả khi file đã xoá
   return { exe: exePath, cmd };
 }
@@ -255,9 +261,11 @@ async function pgProbe() {
 }
 const errText = (e) => `${e.code ? `${e.code}: ` : ""}${e.message}`;
 /** Tắt đúng instance của bot:local (đã chắc là của mình): pg_ctl stop nhanh; không được (nhị phân hỏng) thì kết thúc PID postmaster. */
-async function killOurPg(pid) {
-  const ctl = await pgCtlForStop().catch(() => "");
-  if (ctl && existsSync(ctl)) await run(ctl, ["stop", "-D", pgData, "-m", "immediate", "-w", "-t", "15"]).catch(() => 1);
+async function killOurPg(pid, runningExe = "") {
+  const ctl = await pgCtlForStop(runningExe).catch(() => "");
+  // fast trước (có checkpoint, instance khoẻ tắt êm); treo / hỏng thì immediate; vẫn còn thì kết thúc PID.
+  if (ctl && existsSync(ctl) && (await run(ctl, ["stop", "-D", pgData, "-m", "fast", "-w", "-t", "20"]).catch(() => 1)) !== 0)
+    await run(ctl, ["stop", "-D", pgData, "-m", "immediate", "-w", "-t", "15"]).catch(() => 1);
   for (let i = 0; i < 20 && alive(pid); i++) {
     if (i === 0 || i === 10) {
       if (process.platform === "win32") spawnSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true });
@@ -276,7 +284,10 @@ async function ensurePg() {
     await c.end(); return;
   }
   await withLock("pg-start.lock", async () => {
-    const probe = await pgProbe();
+    let probe = await pgProbe();
+    // Hết giờ / đang khởi động (57P03) thường là instance bận hoặc vừa bật, chưa hỏng: thử lại vài lần trước khi kết luận.
+    const transient = (e) => /timeout/i.test(e.message) || e.code === "57P03";
+    for (let i = 0; i < 3 && !probe.ok && transient(probe.error); i++) { await sleep(2000); probe = await pgProbe(); }
     if (probe.ok || probe.error.code !== "ECONNREFUSED") {
       const insp = pgInspect();
       const othersBusy = liveSlots().filter((x) => x.pid !== process.pid);
@@ -286,9 +297,10 @@ async function ensurePg() {
       if (!why) return;
       const where = `PID ${insp.pid ?? "?"}, nhị phân ${insp.exe || "(không đọc được)"}${insp.exe && !insp.binOk ? " — ĐÃ MẤT trên đĩa (worktree bị dọn?)" : ""}`;
       if (!insp.mine) throw new Error(`cổng ${pgPort} có dịch vụ ${why}: ${where}; không phải PostgreSQL chung của bot:local (postmaster.pid ở ${pgData} không khớp) nên không tắt hộ. Tắt nó tay, hoặc đặt BOT_PG_PORT / BOT_PG_DIR khác, hoặc BOT_PG_URL`);
+      if (!probe.ok && othersBusy.length && transient(probe.error)) throw new Error(`PostgreSQL chung ở cổng ${pgPort} không đáp (${errText(probe.error)}) nhưng còn lượt bot khác đang chạy (PID ${othersBusy.map((x) => x.pid).join(", ")}); không tắt giữa chừng, thử lại sau`);
       if (probe.ok && othersBusy.length) { console.log(`⚠ PostgreSQL chung ${why}; còn lượt bot khác (PID ${othersBusy.map((x) => x.pid).join(", ")}) nên chưa bật lại, lượt sau sẽ làm`); return; }
       console.log(`⚠ PostgreSQL chung ${why}: ${where}. Đây đúng là instance của bot:local (${pgData}), tắt rồi bật lại bằng nhị phân bền`);
-      await killOurPg(insp.pid);
+      await killOurPg(insp.pid, insp.exe);
     }
     const bins = await pgBins();
     mkdirSync(pgDir, { recursive: true });
@@ -373,7 +385,7 @@ if (pgCmd) {
   if (pgCmd === "--pg-stop" && insp.mine) {
     const busy = liveSlots();
     if (busy.length && !force) { console.log(`✗ Còn ${busy.length} lượt bot đang chạy (PID ${busy.map((s) => s.pid).join(", ")}); đợi xong hoặc thêm --force`); process.exit(1); }
-    try { await killOurPg(insp.pid); console.log("✓ Đã tắt PostgreSQL chung"); process.exit(0); } catch (e) { console.log(`✗ ${e.message}, xem ${toolLog}`); process.exit(1); }
+    try { await killOurPg(insp.pid, insp.exe); console.log("✓ Đã tắt PostgreSQL chung"); process.exit(0); } catch (e) { console.log(`✗ ${e.message}, xem ${toolLog}`); process.exit(1); }
   }
   if (pgCmd === "--pg-stop" && insp.pid) { console.log(`✗ Không tắt hộ PID ${insp.pid}: không phải PostgreSQL chung của bot:local`); process.exit(1); }
   process.exit(0);
