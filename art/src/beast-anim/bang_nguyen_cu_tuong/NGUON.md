@@ -294,3 +294,56 @@ Không có dòng `LỖI:`.
 - Hướng cũ ở ảnh màu và normal giữ nguyên byte; không dùng --scale.
 
 - RAW chính `to-e.png` = `candidates/to-e-809-attempt3.png`, chỉ làm nguồn cắt đủ cấu hình. Hướng e chặn mắt và vẫn dự phòng; manifest chỉ khai s, se, ne, n đạt.
+
+## Các lượt bổ sung phiên 882 (#1423)
+
+### to-e — phiên 882 lượt 1
+
+- File: `candidates/882-attempt1/to-e.png`, **1536×1024**, 2322857 byte, SHA256 `061547e761ce095c476cd9c285579675a35396949e0d07e9e8d85e1f3e2d822a`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-882.
+- Prompt: `candidates/882-attempt1/to-e.prompt.txt` (SHA256 `68baef55d721119719397f5210fbbcfdb8d6931f205f40ad26c81790bfc27a5a`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: e chặn).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-e — hình dính / hình ở ô trống — H3 (e), H4 (e) C5 — dải có 1 hình, cần 6: hình dính nhau; ô trống có hình (0.53% diện tích ô): hình tràn từ ô bên.
+LỖI: to-e — hướng e — đầu và ngực chếch trước như se; hurt H1 C6 nhấc chân; chặn, không nhập (mắt)
+```
+
+
+### to-e — phiên 882 lượt 2
+
+- File: `candidates/882-attempt2/to-e.png`, **1536×1024**, 2090196 byte, SHA256 `524734c8192225185eac08ff9a4bff0dc99b025bf6d262a9ae80ada318e4439e`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-882.
+- Prompt: `candidates/882-attempt2/to-e.prompt.txt` (SHA256 `9dc5f7882d42bdd01f68223ac738aa7ac0c84b840f93c2d788dde208974a8b95`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: e nhẹ).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-e — hình ở ô trống — H4 (e) C5 — ô trống có hình (0.66% diện tích ô): hình tràn từ ô bên.
+LỖI: to-e — hướng e — trán và ngực còn chếch trước ở idle và die, chưa rõ góc ngang; chặn, không nhập (mắt)
+```
+
+
+### to-e — phiên 882 lượt 3
+
+- File: `candidates/882-attempt3/to-e.png`, **1536×1024**, 2168493 byte, SHA256 `02a58a4ca4b5ca6b2b7c227f628e4596bea2c53d225e689ebe05b2f232c97b26`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-882.
+- Prompt: `candidates/882-attempt3/to-e.prompt.txt` (SHA256 `9dc5f7882d42bdd01f68223ac738aa7ac0c84b840f93c2d788dde208974a8b95`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: e chặn).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: to-e — hình dính / hình ở ô trống — H3 (e), H4 (e) C5 — dải có 4 hình, cần 6: hình dính nhau; ô trống có hình (0.5% diện tích ô): hình tràn từ ô bên.
+LỖI: to-e — hướng e — đầu và ngực còn chếch trước ở idle và die; đủ ba lượt, giữ dự phòng, không nhập (mắt)
+```
+
