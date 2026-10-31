@@ -121,7 +121,7 @@ body.touch.ui-h460:not(.ui-portrait) #hud #sideBox .sb-bar{flex-wrap:wrap}
 body.touch.ui-h460:not(.ui-portrait) #hud #sideBox .sb-tabs{flex-basis:100%}
 body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox{position:fixed;left:calc(min(294px,46vw) + 22px);right:160px;top:76px;bottom:auto;width:auto;max-height:calc(100% - 236px);overflow-y:auto;margin:0}
 body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox:not(.open){left:10px;right:auto;top:auto;bottom:60px;width:min(294px,46vw);max-height:none;overflow:visible;visibility:visible}
-body.touch.ui-h460:not(.ui-portrait) #chatbox:not(.open) #chat-controls{justify-content:flex-end}
+body.touch.ui-h460:not(.ui-portrait) #chatbox:not(.open) #chat-controls{justify-content:flex-end;margin-left:148px}
 body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox.open{left:10px;top:10px;max-height:calc(100% - 170px)}
 body.touch.ui-h460:not(.ui-portrait) #chattabs{flex:none;overflow-x:auto;touch-action:pan-x}
 body.touch.ui-h460:not(.ui-portrait) #chattabs button{flex:none}

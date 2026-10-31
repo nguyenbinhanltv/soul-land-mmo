@@ -1,6 +1,6 @@
 // Thử phân luồng dòng hệ thống của ô chat (chatRoute.ts, #755): mức quan trọng theo màu / nút (không đọc chữ), gộp lặp, thu lịch sử.
 import assert from "node:assert/strict";
-import { sysImportant, canMerge, mergedText, trimHist, SYS_MERGE_MS, legacyLootReceipt } from "../src/chatRoute.ts";
+import { sysImportant, canMerge, mergedText, trimHist, SYS_MERGE_MS, legacyLootReceipt, lootLogText } from "../src/chatRoute.ts";
 
 assert.equal(sysImportant("#ffb35c"), true, "màu cảnh báo = quan trọng");
 assert.equal(sysImportant("#FF8A8A"), true, "không phân biệt hoa thường");
@@ -36,3 +36,8 @@ for (const text of ["Nhặt hồn hoàn 10.000 năm (Đen) vào túi đồ. Mở
   assert.equal(legacyLootReceipt(text), true, text);
 for (const text of ["Túi đồ đã đầy: bỏ bớt vật phẩm rồi mới nhặt được hồn hoàn.", "Nhận nhiệm vụ mới.", "Hồn hoàn rơi xuống đất!", "Nhận 1 rương vào túi đồ (lượt 1/3 hôm nay)."])
   assert.equal(legacyLootReceipt(text), false, text);
+assert.equal(lootLogText("Hạ U Minh Lang (10 năm), nhận 1 kim 25 ngân Hồn Tệ. Hồn hoàn rơi xuống đất."), "Hạ U Minh Lang (10 năm). Hồn hoàn rơi xuống đất.");
+assert.equal(lootLogText("Hạ Thú vương, nhận 1.000 kim 2 ngân 5 đồng Hồn Tệ."), "Hạ Thú vương.");
+assert.equal(lootLogText("Hạ Boss! Đóng góp 90%. Nhận 1 ngân Hồn Tệ. Hồn hoàn ưu tiên bạn."), "Hạ Boss! Đóng góp 90%. Hồn hoàn ưu tiên bạn.");
+for (const text of ["Không đủ Hồn Tệ.", "Nhận nhiệm vụ: hạ quái.", "Hạ quái chưa nhận được thưởng."])
+  assert.equal(lootLogText(text), text);

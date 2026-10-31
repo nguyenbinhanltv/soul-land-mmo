@@ -100,7 +100,8 @@ export function lootToasts(prev: BagItem[] | null, next: BagItem[]): number {
   const gained = lootGained(prev, next);
   gained.forEach(({ it, n }) => {
     const info = bagItemInfo(it);
-    if (it.code === CORE_ITEM) info.color = `var(--rare-${rarityOf(it)})`;
+    const rare = rarityOf(it);
+    if (it.code === CORE_ITEM && rare >= 0) info.color = `var(--rare-${rare})`;
     chatLoot(stackKey(it), info.name, n, info.color);
     const rareRing = it.code === RING_ITEM && (it.years ?? 0) >= LOOT_RARE_RING_YEARS;
     if (rareRing || it.code === BONE_ITEM || it.code === CORE_ITEM)

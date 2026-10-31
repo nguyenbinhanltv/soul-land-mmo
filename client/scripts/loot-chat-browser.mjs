@@ -148,6 +148,17 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       });
       const text = await page.locator("#log").innerText();
       assert.match(text, /Nhận kiểm gộp ×5\nNhận kiểm gộp(?:\n|$)/, "cộng lượng qua dòng xen kẽ, hết hai giây tách dòng");
+      await page.evaluate(() => {
+        const scene = window.__lootScene;
+        scene.room.dispatchMessage("log", { text:"Hạ U Minh Lang (10 năm), nhận 1 kim 25 ngân Hồn Tệ. Hồn hoàn rơi xuống đất.", col:"#86e0b0" });
+        scene.pickupBag({honTe:0}, {honTe:6250});
+        scene.pickupBag({honTe:6250}, {honTe:12500});
+      });
+      const coins = await page.locator("#log").innerText();
+      assert.match(coins, /Hạ U Minh Lang \(10 năm\)\. Hồn hoàn rơi xuống đất\./);
+      assert.match(coins, /Nhận 1 kim 25 ngân Hồn Tệ/);
+      assert.equal((coins.match(/Hồn Tệ/g) ?? []).length, 1, "tiền chỉ xuất hiện một lần, qua tổng đã định dạng");
+      assert.doesNotMatch(coins, /Hồn Tệ ×/);
       await page.locator("#chat-expand").dispatchEvent("pointerdown");
       assert.equal(await page.locator("#chat-expand").getAttribute("aria-expanded"), "true");
       await page.locator("#chat-expand").dispatchEvent("pointerdown");
@@ -171,6 +182,11 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       const box = await page.locator("#log").boundingBox();
       assert.ok(box && box.y >= 0 && box.y + box.height <= height, "hai dòng chat nằm trong màn cảm ứng");
       assert.ok(await page.locator("#chat-expand").isVisible(), "chạm mở chat từ trạng thái thu nhỏ");
+      const joy = await page.locator("#joy").boundingBox();
+      for (const control of await page.locator("#chat-controls button").all()) {
+        const r = await control.boundingBox();
+        assert.ok(joy && r && (r.x >= joy.x + joy.width || r.y + r.height <= joy.y || r.y >= joy.y + joy.height), "nút chat không chồng vùng joystick");
+      }
     }
   }
   console.log(`Ảnh ${tag}: ${out}`);

@@ -1,5 +1,5 @@
 // Ô chat của HUD (tách nguyên văn từ hud.ts, Part of #885): lịch sử, tab kênh, dòng log; kèm nút menu nhanh dựng cùng buildChatTabs.
-import { WORLD_CHAT } from "../../shared/data.ts";
+import { WORLD_CHAT, formatHonTe } from "../../shared/data.ts";
 import { initUiIcons } from "./uiIcons.ts";
 import { setTip } from "./tooltip.ts";
 import { pbtn } from "./domBtn.ts";
@@ -7,13 +7,13 @@ import { sysImportant, canMerge, mergedText, trimHist } from "./chatRoute.ts";
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
-/** Dòng thông báo riêng cho mình. Lỗi / cảnh báo (màu cảnh báo, hoặc có nút) hiện ở mọi tab; dòng thường (nhặt đồ, kinh nghiệm…) chỉ vào tab "Hệ thống" (chatRoute.ts). */
+/** Dòng riêng cho mình: lỗi / cảnh báo hiện mọi tab; dòng thường vào Hệ thống / Tất cả khi bộ lọc bật. */
 export function log(text: string, col?: string, who?: string) { chatLine("sys", text, col, who); }
 /** Như `log` nhưng đánh dấu QUAN TRỌNG tường minh (tin boss: màu do dữ liệu boss quyết định nên không đoán theo màu được) → hiện ở mọi tab. */
 export function logImp(text: string, col?: string, who?: string) { chatLine("sys", text, col, who, undefined, true); }
 
 // ---------- Ô chat (mục 4 "Lệnh chat", #188): tab Tất cả / Bản đồ / Tổ đội / Riêng / Tông / Thế giới, lịch sử chỉ trong phiên ----------
-/** Kênh của một dòng: `sys` = thông báo riêng cho mình (quan trọng thì tab nào cũng hiện, còn lại chỉ ở tab Hệ thống). */
+/** Kênh của một dòng: `sys` là thông báo riêng cho mình, không gửi tới người chơi khác. */
 export type ChatCh = "sys" | "map" | "party" | "whisper" | "world" | "tong";
 export type ChatTab = "all" | "map" | "party" | "whisper" | "world" | "tong" | "sys";
 /** Màu kênh (thủy mặc, #188): tổ đội xanh lá như chấm đồng đội, tin riêng tím, thế giới vàng, tông môn (#198) lam ngọc. */
@@ -36,7 +36,7 @@ let systemOn = true;
 /** Người gần nhất nhắn riêng cho mình (`/r`) và người gần nhất mình trò chuyện riêng (tin thường ở tab Riêng gửi cho người này). */
 let replyTo = "", whisperTo = "";
 
-/** Dòng `l` hiện ở tab nào: tab Hệ thống thấy mọi dòng hệ thống; các tab khác thấy dòng quan trọng; tab Tất cả thấy cả chat lẫn dòng quan trọng. */
+/** Bộ lọc bật: dòng hệ thống thường hiện ở Hệ thống / Tất cả; dòng quan trọng luôn hiện ở mọi tab. */
 const tabShows = (tab: ChatTab, l: ChatLine) => (l.ch === "sys" ? !!l.imp || systemOn && (tab === "sys" || tab === "all") : tab === "all" || l.ch === tab);
 const chatOpen = () => chatPinned || chatTyping;
 
@@ -45,7 +45,7 @@ function chatEl(l: ChatLine, fade: boolean) {
   const tag = chatTab === "all" ? CHAT_TAG[l.ch] : undefined;
   if (tag) { const t = document.createElement("i"); t.textContent = tag; t.style.color = l.col ?? ""; d.appendChild(t); }
   if (l.who) { const b = document.createElement("b"); b.textContent = l.who + ":"; if (tag) b.style.color = l.col ?? ""; d.appendChild(b); }
-  d.appendChild(document.createTextNode(mergedText(l.text, l.n)));
+  d.appendChild(document.createTextNode(l.lootKey === "coin" ? `Nhận ${formatHonTe(l.n ?? 1)} Hồn Tệ` : mergedText(l.text, l.n)));
   if (l.act) { const { label, fn } = l.act; d.appendChild(pbtn(label, "ok chatact", fn, label)); } // nút trong dòng (Thêm lại, #195)
   if (l.col) d.style.borderLeftColor = l.col;
   if (l.lootKey) { d.classList.add("chat-loot"); d.style.setProperty("--c", l.col ?? "var(--plate-text)"); }
