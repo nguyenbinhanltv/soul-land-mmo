@@ -432,4 +432,4 @@ export function boneSkill(room: MapRoom, c: Client, i: number) {
   // Mốc cường hóa +5 / +10 / +15 / +20 nâng kỹ năng (4.4): sức mạnh và hiệu ứng lên bản thân nhân boneSkillMult.
   const em = boneSkillMult(bone.enhance);
   runSkill(room, id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false }, sk.self ? d.ch.vohon : undefined);
-}
+}

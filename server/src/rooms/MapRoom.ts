@@ -319,9 +319,7 @@ export interface DmgOpt { crit?: number; lifesteal?: number; direct?: boolean; c
 /** Một đòn của Võ Hồn Dung Hợp Kỹ (#192): đồng đội dung hợp và công trung bình của hai người (không ràng buộc). */
 export interface FusHit { pair: string; atk: number; }
 
-
-// ---------- Phiên giữ tài khoản (mục 6 "Mỗi tài khoản một phiên") ----------
-/** Phiên giữ tài khoản: lease `account:<acc>` trong presence, từ onJoin tới khi lần ghi DB cuối của phiên đó xong (accountLeaseKey). */
+// ---------- Chat xuyên phòng (mục 6 "Xã hội") ----------
 export interface ChatRoute { to?: number[]; tong?: string; from?: number; msg: { ch: ChatChannel; name: string; text: string; to?: string } }
 
 // ---------- Giá trị client gửi (mục 6 "Mỗi message: ép kiểu và kẹp giá trị", #164) ----------
@@ -693,8 +691,6 @@ export async function claimBuyback(accountId: number, key: string) {
   await editBuyback(accountId, (list) => { got = list.find((x) => x.key === key) ?? null; return list.filter((x) => x.key !== key); });
   return got as Buyback | null;
 }
-
-
 
 export class MapRoom extends Room<MapState> {
   maxClients = CHANNEL_CAP;
