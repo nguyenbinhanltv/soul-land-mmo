@@ -19,5 +19,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 ### Luật NPC
 - **Luật NPC:** NPC là object `npc` trong Tiled, thuộc tính `npc` là mã trong `NPCS` (tên, chức danh, vai trò `talk` / `shop` / `forge` / `arena` / `tong` / `looks`, ngoại hình, lời thoại; mã lạ hoặc trùng thì server cảnh báo và bỏ). Vẽ bằng sheet NPC LPC `lpc_<mã>` (mục 5.11 "NPC phụ và dân thường"), chưa có sheet thì dựng thân LPC từ `looks`; đứng yên nhìn xuống, tên và chức danh trên đầu. Đứng trong `NPC_RANGE` thì hiện "Nói chuyện [F]"; bấm F, bấm / chạm NPC hoặc nút để mở hộp thoại (lời thoại từng câu "Tiếp ›", đi xa thì tự đóng, Esc đóng). Server kiểm tra khoảng cách mỗi lần (`talk`, `buy`, `sell`, `quest`, `arena`…).
 
+Khi mở hội thoại, client chốt hướng thân LPC về phía hồn sư theo phép chiếu isometric, dùng idle và hướng sẵn có. Hướng giữ suốt cuộc nói chuyện để tránh giật khi đi qua ranh giới hướng hoặc giữa nhiều NPC; đóng hội thoại thì trở về hướng xuống. Gần trùng chân giữ hướng xuống; NPC dạng biển hiệu không đổi. Chỉ thay hiển thị cục bộ, không đổi điểm đứng hay vùng tương tác.
+
 ## Lịch sử / issue liên quan
 - Nhật ký từng bước: `docs/lich-su.md`.
