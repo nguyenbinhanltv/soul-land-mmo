@@ -6,13 +6,13 @@
 body.touch #toasts{bottom:230px}
 .toast{--c:var(--paper3);pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:0 8px;
   padding:4px 8px 5px 6px;background:var(--plate);color:var(--plate-text);border:1px solid var(--ink2);border-left:4px solid var(--c);
-  font:var(--fs-m)/12px var(--f12);animation:toastIn .22s steps(4) both;transition:opacity .4s,transform .4s}
+  font:var(--fs-m)/1.4 var(--f12);animation:toastIn .22s steps(4) both;transition:opacity .4s,transform .4s}
 .toast[data-k="level"]{--c:#ffe08a} .toast[data-k="quest"]{--c:#6fd3e8} .toast[data-k="boss"]{--c:var(--son-l)}
-.toast .tk{font:normal var(--fs-s)/12px var(--f10);color:var(--c);text-shadow:var(--stroke);white-space:nowrap;align-self:start;padding-top:1px}
+.toast .tk{font:normal var(--fs-s)/1.4 var(--f10);color:var(--c);text-shadow:var(--stroke);white-space:nowrap;align-self:start;padding-top:1px}
 .toast b{display:block;font-weight:normal;color:var(--paper);overflow-wrap:anywhere}
 .toast[data-k="loot"] b{color:var(--c);text-shadow:var(--stroke)}
-.toast small{display:block;font:var(--fs-s)/12px var(--f10);color:var(--paper3);overflow-wrap:anywhere}
-.toast .tn{font:normal var(--fs-s)/12px var(--f10);color:var(--paper2)}
+.toast small{display:block;font:var(--fs-s)/1.4 var(--f10);color:var(--paper3);overflow-wrap:anywhere}
+.toast .tn{font:normal var(--fs-s)/1.4 var(--f10);color:var(--paper2)}
 .toast.out{opacity:0;transform:translateX(18px);pointer-events:none}
 @keyframes toastIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.toast{animation:none;transition:opacity .4s}}

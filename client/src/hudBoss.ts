@@ -47,7 +47,7 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
   if (!b) { el.hidden = true; $("#bossRank").hidden = true; return; }
   el.hidden = false; el.style.setProperty("--c", b.col);
   const now = performance.now(), life = (bossLifeEnd - now) / 1000, w = b.world, rageIn = (bossRageEnd - now) / 1000, weakT = (bossWeakEnd - now) / 1000;
-  const key = `${b.name}|${b.hp}|${b.maxHp}|${b.parts}|${b.phase}|${b.title}|${Math.ceil(life)}|${w ? `${JSON.stringify(w)}|${Math.ceil(rageIn)}|${Math.ceil(weakT)}` : ""}`;
+  const key = `${document.body.className}|${b.name}|${b.hp}|${b.maxHp}|${b.parts}|${b.phase}|${b.title}|${Math.ceil(life)}|${w ? `${JSON.stringify(w)}|${Math.ceil(rageIn)}|${Math.ceil(weakT)}` : ""}`;
   if (el.dataset.key === key) return;
   el.dataset.key = key;
   if (!el.firstChild) el.innerHTML = `<div class="bhead"><b></b><span class="ph"></span><span class="bn"></span></div><div class="bar"><i></i><em></em><span></span></div><div class="wl"></div>`;
@@ -71,6 +71,9 @@ export function showBoss(b: { name: string; hp: number; maxHp: number; parts: nu
     if (!wl.childElementCount) wl.hidden = true;
   }
   // Khung mục tiêu / đếm ngược nằm ngay dưới thanh máu boss (thanh boss thế giới cao hơn khi có dòng cơ chế).
+  const left = $("#lcol"), right = $("#rcol"), hud = $("#hud");
+  el.style.setProperty("--boss-left-edge", `${left.offsetLeft + left.offsetWidth}px`);
+  el.style.setProperty("--boss-right-inset", `${hud.clientWidth - right.offsetLeft}px`);
   document.body.style.setProperty("--bossh", `${el.offsetTop + el.offsetHeight}px`);
 }
 /**

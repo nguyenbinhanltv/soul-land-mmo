@@ -1,0 +1,67 @@
+{
+  "e-v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "274d39958ae41d614355e5ed95c1742c1958e67a8fd2edf90c5905fcbb831d6a"
+  },
+  "e-v2.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "e5cd250451640e67daba23623606c289b3ab410049cd7ba1b37e118d991396a9"
+  },
+  "e.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "5f7c538556bdb671c6523b08cbc1f8926836de7928f5ef957b5cc18d17407505"
+  },
+  "n.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "479ed6e27ebb5a5fb5388303a36ffc6ab220a5d491935a23671e5f7a6f8566dc"
+  },
+  "ne-v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "81686c400d18e90e23e99aafb5a6b2d7b3d4930c1347d2b7f853c351a47a8e57"
+  },
+  "ne-v2.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "2c3f2a3fab367775686642a08ac5306518e5b9afe3142b58bafaaa8b5df9b4ef"
+  },
+  "ne.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "316236391d2f535d0b32ed7221633d7ee4bcaf18368a51f4f06a7485638a5665"
+  },
+  "s-v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "8acae169b016fb888307b4591205797220d097ccc007b330adc5e1c1b62f3f81"
+  },
+  "s-v2.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "3cfc19864dfe88931ee5c6d697bfe8a7620ae943843f917be2bb6b84809c05d1"
+  },
+  "s-v3.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "f82baf8f5c85e3cef5833c1f2a50c95f53d29f7efefe4cde96b94347b77e89de"
+  },
+  "s.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "3cfc19864dfe88931ee5c6d697bfe8a7620ae943843f917be2bb6b84809c05d1"
+  },
+  "se-v1.png": {
+    "width": 1402,
+    "height": 1122,
+    "sha256": "b7d74491c9ebc07a1111c0681ee14a2a7066c9e9d0b87bf018e4f285477a8554"
+  },
+  "se.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "179e49a7da2135fd740c77593a40462085c3892d0d88d0b3bcf94033c48c40bf"
+  }
+}
