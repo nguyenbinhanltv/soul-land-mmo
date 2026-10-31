@@ -36,6 +36,22 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 - `lpc-compose.mjs`, `lpc-item.mjs` và `tools/audio` nhận mọi giấy phép đã biết, tự ghi giấy phép kèm cờ SA / GPL / NC vào `CREDITS.md`, và dừng nếu không đọc được giấy phép.
 - Gigapack và Forest (kho riêng) **cấm đưa vào AI**: không dùng làm ảnh tham chiếu, không đưa vào PixelLab / model.
 
+## Đồng bộ ghi công khi gộp nhánh
+
+`art/CREDITS.md` là hồ sơ nguồn (không phải file sinh); ghi công hồn thú hoạt ảnh nằm riêng trong bảng `## Ghi công` của `art/src/beast-anim/<loài>/NGUON.md`. `shared/assets/credits/credits.json` là dữ liệu gộp do công cụ sinh từ các hồ sơ này và `tools/assets/private-packs.json`; **không sửa tay**, không chọn nguyên bản của một nhánh để giải quyết xung đột JSON.
+
+Trước khi xin gộp PR có đổi hồ sơ ghi công, và sau khi giải quyết xung đột:
+
+```bash
+git fetch origin main
+git merge origin/main
+node tools/assets/credits.mjs
+node --test tools/assets/credits.test.mjs
+npm run check
+```
+
+Giữ đủ dòng nguồn của cả hai nhánh trong CREDITS.md / NGUON.md, rồi sinh lại JSON và commit cùng hồ sơ nguồn. Merge sạch không bảo đảm dữ liệu sinh còn đúng: hai PR có thể thêm dòng riêng mà JSON một dòng vẫn giữ số đếm từ nhánh cũ. Nếu main đổi tiếp trước khi squash, cập nhật nhánh và chạy lại quy trình trên. Người gộp lô cũng chạy sinh lại và kiểm tra trên kết quả gộp cuối trước khi đẩy main.
+
 ## Issue liên quan
 Pilot menu 16 icon (29/10/2026, Part of #877, #884): Codex / OpenAI `image_gen` tích hợp, BOARD đã duyệt + swatch `art/palette.gpl`, không dùng ảnh thương mại. RAW nguyên byte và prompt: `art/src/ui-kit/toI-2.*`; nguồn/hash/ánh xạ từng cặp ở `menu-pilot.source.json`; sử dụng theo điều khoản đầu ra OpenAI, không gán CC0. Trang duyệt `art/src/ui-kit/pilot-menu/index.html` so với ảnh game-icons đang có (giữ nguyên byte, CC BY 3.0, tác giả từng file ở `art/CREDITS.md`); chủ repo đã chọn bộ AI (30/10/2026, #884): nhập vào game thay 16 `gi_menu_*` game-icons bằng `tools/assets/menu-icon-import.mjs` (cắt lại từ `toI-2.png`; `gi_menu_<key>` 32 × 32 + `gi_menu_<key>_1x` 24 × 24); 16 mục game-icons tương ứng đã gỡ khỏi `art/src/game-icons/icons.json` và `art/CREDITS.md`, ảnh tham chiếu giữ ở `pilot-menu/reference/` (CC BY 3.0).
 Kit Giấy N/O/T (29/10/2026, Part of #877): sinh bằng Codex / OpenAI `image_gen` tích hợp, dùng BOARD đã duyệt và swatch `art/palette.gpl`, không dùng ảnh thương mại. RAW nguyên byte và prompt ở `art/src/ui-kit/to{N,O,T}-giay.*`; hash, lượt và nguồn gốc ở `giay.source.json`. Sử dụng theo điều khoản đầu ra OpenAI, không gán CC0; model ID/seed không được công cụ trả về. Cắt mềm, lượng tử 32 màu, nhập khóa `ui2_giay_*`; giữ bộ Mực và không đổi màn sử dụng.
