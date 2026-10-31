@@ -24,7 +24,9 @@ import { radar, type DotSink } from "../radar.ts";
 import { mapview, type MapLabel } from "../mapview.ts";
 import { fog } from "../fog.ts";
 import { toast, lootToasts, lootGained, onToastNew } from "../feedback.ts";
-import { planPickup, xpDelta, XpBatch, xpText, coinText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
+import { planPickup, xpDelta, XpBatch, xpText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
+import { chatLoot } from "../chat.ts";
+import { legacyLootReceipt, lootLogText, logToastEligible } from "../chatRoute.ts";
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { onboardEvent } from "../onboard.ts";
 import { pingSent, pingAck, pingTick, pingReset } from "../pingMeter.ts";
@@ -88,6 +90,7 @@ import { autoJob, autoJobText, bindAutoPanel, closeAutoPanel, closeAutoSum, setA
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
+import { confirmDialog } from "../confirmDialog.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
@@ -1394,7 +1397,16 @@ export class GameScene extends Phaser.Scene {
 
   // ---------- Tin nhắn từ server ----------
   setupMessages() {
-    this.room.onMessage("log", (m: { text: string; col?: string }) => { hud.log(m.text, m.col); charLog(m.text, m.col); hud.worldNote(m.text); }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
+    this.room.onMessage("log", (m: { text: string; col?: string }) => {
+      // Tên / số lượng / độ hiếm lấy từ tin túi; biên nhận cũ không tạo dòng trùng.
+      if (!legacyLootReceipt(m.text)) {
+        const text = lootLogText(m.text);
+        const warning = logToastEligible(m.text, m.col);
+        hud.chatLine("sys", text, m.col, undefined, undefined, warning);
+        if (warning) toast("info", text, "", m.col);
+      }
+      charLog(m.text, m.col); hud.worldNote(m.text);
+    }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật
     // Tinh anh xuất hiện / bị hạ trong bản đồ này (BĐ4): báo cả phòng.
     this.room.onMessage("elite", (m: { k: string; name: string; zone?: string; by?: string; col?: string }) => {
       if (m.k === "spawn") { hud.banner(`${m.name} xuất hiện`, m.zone ?? ""); hud.logImp(`${m.name} đã xuất hiện ở ${m.zone}!`, m.col); }
@@ -1676,6 +1688,10 @@ export class GameScene extends Phaser.Scene {
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
     const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); const rare = lootToasts(this.bag?.items ?? null, m.items); if (this.bag && document.getElementById("bag")?.hidden) { const g = lootGained(this.bag.items, m.items).length; if (g) setBadge("bag", "new", (badgeOf("bag")?.n ?? 0) + g); } if (rare >= RARE_LOOT_MIN) this.audio.playUi("rare"); else if (rare >= 1) this.audio.playUi("reward"); this.pickupBag(this.bag, m); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
+    this.room.onMessage("equipbestp", (m: { token: string; slot?: number; count: number; gain: number }) => {
+      confirmDialog({ title: "Mặc tốt nhất", body: `Sẽ đổi ${m.count} món, sức mạnh +${m.gain.toLocaleString("vi-VN")}`,
+        confirm: m.count ? "Mặc" : "Đã tốt nhất" }, () => { if (m.count) this.room.send("equipbest", { slot: m.slot, token: m.token }); });
+    });
     this.room.onMessage("gear", (m: GearMsg) => { this.gear = m; this.renderBag(); this.renderChar(); this.askStats(); hud.npcRefresh(); }); // trang bị hồn sư (5.15): chỉ số tổng ở tin "stats"
     this.room.onMessage("bagd", (m: BagDeltaMsg) => {
       if (this.bag) onBag({ slots: m.slots, honTe: m.honTe, cd: m.cd, items: applyBagDelta(this.bag.items, m), buyback: m.buyback ?? this.bag.buyback,
@@ -2556,12 +2572,10 @@ export class GameScene extends Phaser.Scene {
     } else this.tweens.add({ targets: t, y: y - (plus ? 14 : 16) * SPR, alpha: 0, delay: plus ? 600 : 350, duration: plus ? 700 : 550, onComplete: () => t.destroy() });
   }
 
-  /** Túi mới so với túi cũ: đồ nhận thêm và Hồn Tệ tăng thì chữ bay trên đầu mình (#599). Chỉ hiển thị, số liệu từ tin `bag` / `bagd` của server. */
+  /** Hồn Tệ nhận thêm vào chat riêng; đồ đã ghi qua lootToasts, không còn chữ nhận đồ che nhân vật (#1462). */
   pickupBag(prev: BagMsg | null, next: BagMsg) {
     if (!prev) return;
-    const lines: PickupLine[] = lootGained(prev.items, next.items).map(({ it, n }) => { const i = hud.bagItemInfo(it); return { kind: "item" as const, text: n > 1 ? `${i.name} ×${n}` : i.name, col: i.color }; });
-    if (next.honTe > prev.honTe) lines.push({ kind: "coin", text: coinText(formatHonTe(next.honTe - prev.honTe)), col: COIN_COL });
-    this.pickupFloat(lines);
+    if (next.honTe > prev.honTe) chatLoot("coin", "Hồn Tệ", next.honTe - prev.honTe, COIN_COL);
   }
   /** Vẽ các dòng nhận được (pickupFx.planPickup) trên đầu mình: số dòng theo mức hiệu ứng, Giảm chuyển động thì đứng yên rồi mờ. */
   pickupFloat(lines: PickupLine[]) {

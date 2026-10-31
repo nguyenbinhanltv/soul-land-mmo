@@ -119,6 +119,7 @@ import { chapter2Test } from "./bot/chuong2.mjs";
 import { chapter3Test } from "./bot/chuong3.mjs";
 import { autoTest } from "./bot/auto.mjs";
 import { bagTest, charBagCmdTest } from "./bot/bag.mjs";
+import { equipBestTest } from "./bot/equip-best.mjs";
 import { gearLuckTest, forgePreviewTest, luckRaceTest, saveFailTest, buybackProcTest, socialAuditTest, equipSoak } from "./bot/gear.mjs";
 
 
@@ -242,6 +243,7 @@ function finish(){
 // BOT_ONLY=daily: chỉ chạy phần khảo hạch hằng ngày (thử nhanh khi sửa phần đó; lần chạy đầy đủ vẫn gồm phần này).
 // Liên kích Hạo Thiên 4 món (#249, comboTest; BOT_ONLY=combo, không chạy trong bot đầy đủ): lặp bài "liên kích ở đòn thứ 3" của
 // nhóm 1 nhiều lượt trên một bot riêng để thử chập chờn.
+if(process.env.BOT_ONLY==="equipbest"){ await equipBestTest(); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="bicanh"){ await bicanhTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="mail"){ await mailTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="achv"){ await achvTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }

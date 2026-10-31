@@ -1,0 +1,44 @@
+{
+  "id": "kim_vu_mieu_ung",
+  "raw": "art/src/phap-tuong/kim_vu_mieu_ung",
+  "glow": "#ffd54a",
+  "despill": true,
+  "selectedAttempts": {
+    "s": 1,
+    "se": 1,
+    "e": 3,
+    "ne": 1,
+    "n": 3
+  },
+  "attempts": {
+    "s": 3,
+    "se": 1,
+    "e": 3,
+    "ne": 1,
+    "n": 3
+  },
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": 0,
+    "bob": 0
+  },
+  "cutter": {
+    "gitBlob": "e9189290c797aa640347b7a0229d745ab4f69075"
+  },
+  "frame": 160,
+  "origin": [
+    80,
+    124
+  ],
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "sheetSha256": "2df7b9de9520a908ac354381852a6bf7a0d926dad923d587e90124d1832b7d72",
+  "glowSha256": "f4c77d936854172393b91f1819e35cbf271999c01f455a0148d7191bae4fa153"
+}

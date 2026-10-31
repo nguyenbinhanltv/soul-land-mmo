@@ -12,7 +12,7 @@ import { showCard } from "./actionCard.ts";
 import { vohonCard } from "./cards.ts";
 import { skillImg, artImg, artUrl } from "./uiArt.ts";
 import { compareRows, rarityOf } from "./bag.ts";
-import { stateBox } from "./uiParts.ts";
+import { stateBox, select } from "./uiParts.ts";
 import { setTip, type TipSpec, type TipLine } from "./tooltip.ts";
 import { itemColor, itemName, boneOf, coreOf, coreSet, coreLines, wornCores, boneIcon, boneEmptyIcon, coreIcon, yearsShort, boneFullText, boneSkillText, skillSpec, SKILL_KEYS,
   starSkillText, itemArt, toggleRoster, toggleBag, toggleReso, toggleWorld, toggleFriends, closeNpc, setBagFocus } from "./hud.ts";
@@ -43,6 +43,7 @@ const EQUIP_LEFT = ["vu_khi", "vong_trai", "nhan_trai", "dai"], EQUIP_RIGHT = ["
 let tab: DollTab = "bone";            // tab búp bê đang xem
 let selBone: string | null = null;    // ô hồn cốt đang chọn (mã vị trí): Túi lọc / sáng món hợp, thẻ dưới búp bê hiện món đang gắn
 let selCore: number | null = null;    // ô hồn hạch đang chọn (0..CORE_SLOTS − 1)
+let bestSlot = "0";
 let selEquip: string | null = null;   // ô trang bị trống đang chọn (mã ô EQUIP_SLOTS): Túi sáng món hợp ô
 let notice: { text: string; bad: boolean } | null = null; // kết quả lệnh gắn / tháo vừa gửi (tin "log" của server)
 let lastAct = 0, noticeTimer = 0;
@@ -258,6 +259,15 @@ export function renderChar(data: OwnedVohons, items: BagItem[], stats: StatsMsg 
     // --- Trang bị (NV4 #458): 10 ô kiểu Mir2, ảnh món + khung viền theo bậc + "+N"; ô trống là hình bóng của ô. Đọc từ tin riêng "gear";
     // mặc / tháo bằng equipgear / unequipgear (NV3: kéo thả, bấm đúp, thẻ thao tác). Bấm ô trống: Túi sáng món hợp ô, bấm món là mặc. ---
     left.appendChild(mk("small", "cshead", `Trang bị hồn sư (${gearBy.size}/${EQUIP_SLOTS.length})`));
+    const best = mk("button", "f2-nut-chinh", "Mặc tốt nhất"); best.type = "button";
+    best.disabled = act.combat();
+    best.addEventListener("click", () => send(() => act.send({ msg: "equipbest", data: {} })));
+    left.appendChild(best);
+    const slotPick = select({ label: "Ô mặc tốt nhất", value: bestSlot,
+      options: EQUIP_SLOTS.map((s, i) => ({ value: String(i), label: s.name })), onChange: (value) => { bestSlot = value; } });
+    const one = mk("button", "f2-nut-phu", "Mặc tốt nhất ô này"); one.type = "button"; one.disabled = act.combat();
+    one.addEventListener("click", () => send(() => act.send({ msg: "equipbest", data: { slot: Number(slotPick.get()) } })));
+    left.append(slotPick.root, one);
     const fig = mk("div", "edoll");
     const cell = (id: string) => {
       const s = EQUIP_SLOTS.find((x) => x.id === id)!, g = gearBy.get(id), it = g && gearAsBagItem(g), ref: SlotRef = { tab: "equip", slot: id, rowId: null };
