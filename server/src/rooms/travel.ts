@@ -136,12 +136,13 @@ export async function sendWorld(room: MapRoom, id: string) {
       feeRemote: hops[w.map] === undefined ? null : waypointFee(hops[w.map], true) })) });
 }
 
-/** Lý do không niệm truyền tống / Hồi Thành Phù được lúc này (null = được, "" = bỏ qua im lặng). Kiểm lại lúc niệm xong. */
+/** Lý do không niệm truyền tống / Hồi Thành Phù được lúc này (null = được, "" = bỏ qua im lặng). Kiểm lại lúc niệm xong. Bản đồ `kind: "boss"` (Lõi Tinh Đấu) cấm cả hai (cùng cơ chế niệm), dù đứng trên trận hay từ xa. */
 export function recallDeny(room: MapRoom, id: string): string | null {
   const p = room.state.players.get(id), d = room.pdata.get(id);
   if (!p || !d || d.travelling) return "";
   if (d.travelCast) return d.travelCast.wp ? "Đang niệm truyền tống." : "Đang đi qua cổng.";
   if (p.dead) return "Đã gục ngã, không truyền tống được.";
+  if (MAPS[room.state.mapId].kind === "boss") return `${MAPS[room.state.mapId].name} cấm truyền tống: muốn rời đi hãy tới cổng.`; // chủ repo 2026-10-31: cấm Ở TRONG và RỜI KHỎI; tới đây (đích) vẫn theo luật thường
   if (d.absorbing) return "Đang hấp thụ hồn hoàn, không truyền tống được.";
   const ctl = room.pctl(d); if (ctl.noMove || ctl.wander) return `Đang bị ${room.ccName(d, true)}: không truyền tống được.`; // #116
   if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới truyền tống được.`;
