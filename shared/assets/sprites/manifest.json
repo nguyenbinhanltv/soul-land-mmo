@@ -9421,6 +9421,10 @@
       }
     },
     {
+      "key": "pt_bich_lan_xa_hoang_glow",
+      "iso": true
+    },
+    {
       "key": "pt_can_khon_hon_nguyen_toa",
       "iso": true,
       "pt": {
@@ -9928,6 +9932,10 @@
         "ghost": 0.88,
         "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
       }
+    },
+    {
+      "key": "pt_yeu_ho_glow",
+      "iso": true
     },
     {
       "key": "skill_a_ngan_0",
