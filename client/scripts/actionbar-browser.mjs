@@ -129,6 +129,18 @@ try {
           if (touch) assert.ok(body.height >= 44, `Thân tổ đội bị ép ${size} fs${fs}`);
           assert.ok(stats.height > 44, `Thông tin nhân vật bị ép ${size}`);
           if (touch) {
+            const combat = await page.evaluate(() => {
+              const chat = document.getElementById("chatbox"), hidden = () => getComputedStyle(chat).visibility === "hidden";
+              const frames = ["target", "bossbar", "bossCd", "bossRank"].map(id => document.getElementById(id));
+              const saved = frames.map(e => e.hidden), wasBoss = document.body.classList.contains("boss");
+              frames.forEach(e => e.hidden = true); document.body.classList.remove("boss");
+              const checks = frames.map(e => { e.hidden = false; const ok = hidden(); e.hidden = true; return ok; });
+              document.body.classList.add("boss"); checks.push(hidden()); document.body.classList.remove("boss");
+              checks.push(!hidden());
+              frames.forEach((e, i) => e.hidden = saved[i]); document.body.classList.toggle("boss", wasBoss);
+              return checks;
+            });
+            assert.ok(combat.every(Boolean), `Chat nhường mục tiêu / boss rồi hiện lại: ${size} fs${fs}`);
             await page.locator("#sbTabQuest").click();
             await page.locator("#sbTabParty").click();
             const last = page.locator("#party .pmem").last();
@@ -136,7 +148,7 @@ try {
             await last.scrollIntoViewIfNeeded();
             assert.ok(await last.isVisible(), "Thành viên cuối truy cập được");
             await screenshot(page, `to-doi-fs${fs}`, size);
-            }
+          }
         }
       }
       await context.close(); console.log(`✓ HUD ${phase} ${size}: ba cỡ chữ`); continue;

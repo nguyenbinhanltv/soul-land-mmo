@@ -118,3 +118,6 @@ body.touch.ui-h460:not(.ui-portrait) #chattabs button{flex:none}
 body.touch.ui-h460:not(.ui-portrait) #chat{box-sizing:border-box;min-width:0;width:100%}
 /* Hàng kỹ năng phụ mở lên vùng chat: ưu tiên thao tác, đóng hàng thì chat hiện lại. */
 body.touch.ui-h460:not(.ui-portrait) #hud:has(#actrow.more) #chatbox{visibility:hidden}
+/* Mục tiêu / boss dùng vùng giữa trên: nhường chỗ trong lúc giao chiến. */
+body.touch.ui-h460:not(.ui-portrait).boss #chatbox,
+body.touch.ui-h460:not(.ui-portrait) #hud:has(:is(#target,#bossbar,#bossCd,#bossRank):not([hidden])) #chatbox{visibility:hidden}
