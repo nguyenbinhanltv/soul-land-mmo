@@ -1,0 +1,58 @@
+{
+  "e.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "433673fc0dc6574ec836deefef2fb9aa3d23e34fd33d17d1d23d77864706cb68"
+  },
+  "n.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "532f6183d4b4c59634c223cafd18f4d3cb2d064e0ffbdd3a72bda6b5e8382aba"
+  },
+  "ne.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "b89e72e52e933c2f0b5fcf6e3a64056ec5ea200873eb7a38aabbd94348c2e39a"
+  },
+  "s-padded.png": {
+    "size": [
+      1536,
+      1536
+    ],
+    "sha256": "891263e090498304361c8b4aea5f3a118b8d711bcc4b6cb6fa309c42361763dc"
+  },
+  "s-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "abe2f0946acd656d32d88694563d6bb9e70eb1e374373ef5a995429b14762009"
+  },
+  "s-v2.png": {
+    "size": [
+      1322,
+      1190
+    ],
+    "sha256": "ca3587bc056abb0deee7b37fa40b80ecc65054eeca2120c84db4b56c259919e3"
+  },
+  "s.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "7981c28b5b93792a03c8422b697109dd86e8a3c736604c479f6d0b55ea28b552"
+  },
+  "se.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "b95d6a3811909ea354ffd41af5807d3ff93e21ea29bb525bf5ed1cfdf8acc7b5"
+  }
+}
