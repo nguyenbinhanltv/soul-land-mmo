@@ -1,6 +1,6 @@
 # Pháp tướng Tử Vong Chu Hoàng (#1457)
 
-Đang thực hiện tại PR #1459. Chưa nhập game, chưa kiểm trong game.
+Đã nhập `pt_tu_vong_chu_hoang` và glow tại PR #1459, chưa merge.
 
 Nguồn: OpenAI / Codex image_gen tích hợp, ngày 31/10/2026. Dùng theo điều khoản đầu ra OpenAI, không gán CC0. Công cụ không trả model ID hay seed.
 
@@ -43,10 +43,21 @@ Các RAW chọn `se.png`, `e.png`, `ne.png`, `n.png` đều native 1254×1254, n
 | `ne.png` | `408940b9dab88cf0ad5e1b1a4eab7fa9f2f13ddc0a71ca1d2273021e79ed6285` |
 | `n.png` | `cf9000daf19fa0067fad1c31619b17ef5341d3d9e0baf2ccab97ececca7d4ba6` |
 
-## Chặn kỹ thuật hướng s
+## Padding hướng s và nhập
 
-Cutter chuẩn từ chối `s.png` ở khung 9 và 13: 29 và 21 điểm hình thật tại y937–941 sát ranh hàng y940,5. Đã báo điều phối xin quyết định hậu kỳ trung gian căn/padding từng ô, giữ RAW nguyên byte, không sửa cutter, không sinh lượt 4. Chưa nhập toàn bộ sheet, chưa dựng glow, chưa xem thành phẩm trong game.
+Cutter chuẩn từ chối `s.png` ở khung 9 và 13: 29 và 21 điểm hình thật tại y937–941 sát ranh hàng y940,5. Điều phối đã duyệt bản trung gian chỉ dịch/đệm, không co giãn hoặc vẽ thêm. Kiểm thành phần liên thông cho đúng 16 cụm nhện lớn tách rời: đỉnh giáp hàng cuối đi qua đường chia ô tưởng tượng nhưng **hình nguyên vẹn, không bị cắt mất ở RAW**, không chạm mép canvas, không nối sang con khác.
 
-`npm run check` xanh đầy đủ trước lượt 3 hướng s.
+Lệnh tái tạo: `node art/src/phap-tuong/tu_vong_chu_hoang/padding-s.mjs <thư-mục-trung-gian>`. Script chỉ dịch nguyên cụm và các điểm rìa đi kèm; ô đích 384, lề 32, không co giãn, không vẽ thêm, kiểm không chồng điểm và giữ đủ **540844/540844 điểm hình**. Bốn hướng còn lại chép nguyên byte. RAW `s.png` vẫn 1254×1254 với hash ở trên. Bản trung gian lưu `s-padded.png` 1536×1536, SHA256 `1a72ae5b5fbfafc552722fc842d566d1ced3dd8750b4d90726e5818430826cc2`; chi tiết ở `padding-report.json`.
+
+Ghép bằng cutter chuẩn, không sửa/ngoại lệ checker: `node tools/assets/phaptuong-sheet-cut.mjs <thư-mục-trung-gian> shared/assets/sprites/phaptuong/tu_vong_chu_hoang.png --no-despill`. Đã ghép đủ 80 khung, 48 màu, hệ số 0,8743. Glow dựng từ sheet mới bằng `buildGlow` của `phuthe-to-phaptuong-lib.mjs`, màu #9a4aff. `validate --register` sinh manifest/credits, rồi `credits.mjs` sinh dữ liệu credits. Recipe và hash thành phẩm ở `recipe.json`.
+
+## Kiểm trong game và kiểm kỹ thuật
+
+- `npm run check`: xanh đầy đủ sau nhập; server/client TypeScript, 1830 key validate không lỗi, quality không lỗi.
+- `npm run test:phaptuong --prefix client`: đạt.
+- Chrome thật headless, `--mute-audio`, trang `/choi/?thu=phaptuong&vh=tu_vong_chu_hoang`, `noAudio:true`, năm hướng s/se/e/ne/n, thở và sáu ảnh liên tiếp mỗi đòn đánh. Không lỗi trang.
+- Đã xem ảnh game: không cột tối hình người, thân nhện liền, không lóe trắng trong các pha đánh đã chụp; ne/n còn đọc được ở alpha trước thân 0,7. Giữ hiển thị scale=1, dx=0, dy=0, không đổi shared/data.ts.
+- `game-preview.png`: năm cột s/se/e/ne/n, hàng thở rồi đánh. `attack-preview.png`: ảnh cận năm hướng, hàng đầu thở, sáu hàng sau các pha đánh liên tiếp.
+- Hạn chế đã được điều phối chấp nhận: s lượt1 đỉnh đòn muộn hơn ô12–13. Không sinh lượt4.
 
 Tổng lượt đã dùng s/se/e/ne/n = 3/3/3/1/1. Không hướng nào quá ba lượt. Ba võ hồn sau chưa bắt đầu; làm tuần tự sau khi nhập Tử Vong Chu Hoàng.
