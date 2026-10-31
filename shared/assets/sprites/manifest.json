@@ -9421,6 +9421,10 @@
       }
     },
     {
+      "key": "pt_bich_lan_xa_hoang_glow",
+      "iso": true
+    },
+    {
       "key": "pt_can_khon_hon_nguyen_toa",
       "iso": true,
       "pt": {
@@ -9673,9 +9677,9 @@
       "key": "pt_liet_hoa_thuong_lang",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.6,
         "dx": 0,
-        "dy": 0,
+        "dy": -24,
         "back": [
           "s",
           "se",
@@ -9687,7 +9691,7 @@
         ],
         "frontAlpha": 0.7,
         "ghost": 0.88,
-        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+        "ghiChu": "Display sheet Codex #1435: thân sói lớn và cao hơn để đọc rõ sau vai hồn sư."
       }
     },
     {
@@ -9928,6 +9932,10 @@
         "ghost": 0.88,
         "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
       }
+    },
+    {
+      "key": "pt_yeu_ho_glow",
+      "iso": true
     },
     {
       "key": "skill_a_ngan_0",
@@ -45891,6 +45899,14 @@
     {"key":"ui_bicanh_luyen_hon","iso":true},
     {
       "key": "pt_nhu_cot_tho_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_liet_hoa_thuong_lang_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_u_minh_linh_mieu_glow",
       "iso": true
     },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },

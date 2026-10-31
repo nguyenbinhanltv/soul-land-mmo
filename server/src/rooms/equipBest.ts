@@ -50,7 +50,7 @@ export function equipBest(room: MapRoom, id: string, raw: unknown) {
   // Nhịp riêng bảo vệ vòng chấm điểm; xác nhận không phải chờ thêm một nhịp.
   if (m.token === undefined) {
     const now = Date.now(), last = asked.get(d);
-    if (last !== undefined && now - last < ASK_CD) return;
+    if (last !== undefined && now - last < ASK_CD * 1000) return;
     asked.set(d, now);
   } else if (pending.get(d)?.token !== m.token) return warn("Bản xem trước không còn hiệu lực. Hãy xem trước lại.");
   const plan = chooseBest(d.bag, d.gear, (gear) => scoreGear(room, d, gear), m.slot as number | undefined);

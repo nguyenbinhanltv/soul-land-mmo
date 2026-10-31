@@ -11,7 +11,7 @@ export async function equipBestTest() {
     const a = await make("ao_pham_khi", {ilvl:1,roll:0});
     const b = await make("ao_tu_kim", {ilvl:5,roll:0});
     const hat = await make("mu_tu_kim", {ilvl:5,roll:0});
-    const preview = async (extra={}) => { await sleep(ASK_CD+100); const n=s.best.length; s.room.send("equipbest",extra); await waitFor(()=>s.best.length>n); return s.best.at(-1); };
+    const preview = async (extra={}) => { await sleep(ASK_CD*1000+100); const n=s.best.length; s.room.send("equipbest",extra); await waitFor(()=>s.best.length>n); return s.best.at(-1); };
     const p = await preview({id:a, gain:999999, items:[a]});
     ok(p?.count===2 && p.gain>0 && s.gear.items.length===0,"server chọn hai ô, không tin món/điểm giả; xem trước chưa mặc");
     s.room.send("equipbest",{token:p.token}); await waitFor(()=>s.gear.items.length===2);
