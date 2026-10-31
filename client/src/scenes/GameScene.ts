@@ -42,7 +42,7 @@ import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScre
 import { bindMail, openMail, closeMail, onMail, type MailMsg } from "../mailScreen.ts";
 import { bindNpcGo } from "../hudNpc.ts";
 import { bindCalendar, watchCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
-import { bindRank, openRank, closeRank, onRankBoards, onRankTop, type RankTopMsg } from "../rankScreen.ts";
+import { bindRank, openRank, closeRank, onRankBoards, onRankTop, onRankResonance, onRankArena, onRankTong, type RankTopMsg } from "../rankScreen.ts";
 import type { ServerCommand } from "../charBagContract.ts";
 import { toggleChar, cycleCharTab, isCharOpen, onCharOpen, renderChar, charViewRow, charLog, type StatsMsg } from "../charPanel.ts";
 import { Predictor, PREDICT, LAG_MS, DEBUG_TAG, stepSpeed } from "../predict.ts";
@@ -1591,7 +1591,7 @@ export class GameScene extends Phaser.Scene {
         this.room.send("arena", { op: "top" });
       }
     });
-    this.room.onMessage("arenaTop", (m: hud.ArenaTopMsg) => { if (m && Array.isArray(m.list)) hud.setArenaTop(m); });
+    this.room.onMessage("arenaTop", (m: hud.ArenaTopMsg) => { if (m && Array.isArray(m.list)) { hud.setArenaTop(m); onRankArena(m); } });
     // Nhiệm vụ chuỗi cố định (6.2, #190: tân thủ, chương 2…): tiến độ do server đếm theo sự kiện thật; client vẽ khung theo dõi, dấu
     // trên đầu NPC giao bài, chỉ đường bản đồ nhỏ và thông báo.
     this.room.onMessage("quest", (m: QuestMsg) => {
@@ -1612,7 +1612,7 @@ export class GameScene extends Phaser.Scene {
       else if (m.ev === "reward" || m.ev === "finish") { this.audio.play("quest_reward"); this.audio.music?.jingle("quest_complete"); }
     });
     this.room.onMessage("tong", (m: hud.TongMsg) => { if (m && typeof m.tong === "string") hud.setTong(m); }); // #196, #197 tông vụ
-    this.room.onMessage("tongBoard", (m: hud.TongBoardMsg) => { if (m && m.cur && m.last) hud.setTongBoard(m); }); // #197 bảng tông tuần
+    this.room.onMessage("tongBoard", (m: hud.TongBoardMsg) => { if (m && m.cur && m.last) { hud.setTongBoard(m); onRankTong(m); } }); // #197 bảng tông tuần
     this.room.onMessage("looksinfo", (m: { n: number; err?: string }) => { if (m && Number.isInteger(m.n)) hud.setLooksInfo(m); }); // L4 #511: số lần đã đổi ngoại hình / lý do từ chối
     this.room.onMessage("shardinfo", (m: { n: number; daily: number }) => { if (m && Number.isInteger(m.n)) hud.setShardInfo(m); }); // #282
     // Khảo hạch hằng ngày: tiến độ do server đếm; client vẽ mục "Hằng ngày", dấu trên đầu Phất Lan Đức, chấm bản đồ nhỏ và thông báo.
@@ -1649,7 +1649,7 @@ export class GameScene extends Phaser.Scene {
       }
     });
     this.room.onMessage("resonanceTop", (m: ResonanceTopMsg) => {
-      if (m && Array.isArray(m.list)) hud.setResonanceTop(m);
+      if (m && Array.isArray(m.list)) { hud.setResonanceTop(m); onRankResonance(m); }
     });
     // Màn UI v2: bảng Xếp Hạng (#1201), chỉ hiển thị tin riêng của server.
     this.room.onMessage("rank", (m: Parameters<typeof onRankBoards>[0]) => onRankBoards(m));

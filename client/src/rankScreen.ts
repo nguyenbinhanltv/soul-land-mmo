@@ -1,13 +1,17 @@
 // UI v2, màn Xếp Hạng (docs/design/xep-hang.md "Giao diện", Part of #877). Chỉ hiển thị tin riêng `rank {k:"boards"}` / `rankTop` của server (#1201) và
 // gửi ý định `rank {op, board, page}`; điểm, hạng, đội hình đều do server suy ra.
-import { TONG_MON, VOHON, RANK_CD, RANK_PAGE_SIZE } from "../../shared/data.ts";
+import { TONG_MON, VOHON, RANK_CD } from "../../shared/data.ts";
 import { abbrevNumber, screenFrame, mount, addCloseButton, type PNode } from "./uiParts.ts";
+import { legacyBoards, rankSource, resonanceRank, arenaRank, tongRank } from "./rankAdapters.ts";
+import type { ResonanceTopMsg } from "./net.ts";
+import type { ArenaTopMsg } from "./hudArena.ts";
+import type { TongBoardMsg } from "./hudNpc.ts";
 import { hhmmVn } from "./svClock.ts";
 
 export interface RankBoardInfo { board: string; group: string; name: string; period: number }
 export interface RankSlot { vohon: string; level: number; stars: number }
 export interface RankRow { rank: number; name: string; score: number; tong?: string; lineup?: RankSlot[]; me?: boolean }
-export interface RankTopMsg { board: string; period: number; page: number; pageSize: number; total: number; hasNext: boolean; asOf: number; rows: RankRow[]; me: { rank: number; score: number; at?: number } | null }
+export interface RankTopMsg { received?: boolean; note?: string; summary?: string[]; sections?: { tong: string; rows: RankRow[] }[]; meText?: string; meHint?: string; board: string; period: number; page: number; pageSize: number; total: number; hasNext: boolean; asOf: number; rows: RankRow[]; me: { rank: number; score: number; at?: number } | null }
 export type RankStatus = "loading" | "ready" | "error";
 
 /** Nhóm hạng mục theo thứ tự xuất hiện (tầng 1 của điều hướng). */
@@ -49,7 +53,9 @@ let send: ((type: string, payload: unknown) => void) | null = null;
 let boards: RankBoardInfo[] = [];
 let cur: string | null = null, page = 1, status: RankStatus = "loading";
 let data: RankTopMsg | null = null; // dữ liệu đang hiện: giữ khi lỗi để không xoá trống
-let sentAt = 0, timer = 0, cdTimer = 0;
+const sourceAt = new Map<string, number>();
+let arenaCache: { m: ArenaTopMsg; at: number } | null = null, tongCache: { m: TongBoardMsg; at: number } | null = null;
+let timer = 0, cdTimer = 0;
 let selRank: number | null = null; // hạng của dòng đang mở thẻ nhỏ (đổi bảng / trang thì bỏ)
 const befriended = new Set<string>(); // tên đã bấm Kết bạn ở phiên này: nút đổi thành "Đã gửi" (kết quả thật do server báo ở khung chat)
 const LOAD_TIMEOUT_MS = 6000;
@@ -58,7 +64,9 @@ export const sendDelay = (lastSentAt: number, now: number, cdSecs: number = RANK
 let sendTimer = 0;
 const el = () => document.getElementById("rank");
 
-export function bindRank(sender: (type: string, payload: unknown) => void) { send = sender; }
+export function bindRank(sender: (type: string, payload: unknown) => void) {
+  closeRank(); send = sender; boards = []; cur = null; page = 1; data = null; arenaCache = null; tongCache = null; sourceAt.clear(); befriended.clear();
+}
 export const isRankOpen = () => { const e = el(); return !!e && !e.hidden; };
 
 /** Gửi tin `rank` (hạng mục `boards` khi chưa có danh mục, không thì `top`) sau khi hết nhịp RANK_CD; bấm dồn chỉ gửi yêu cầu cuối. */
@@ -68,13 +76,15 @@ function request() {
   window.clearTimeout(sendTimer); window.clearTimeout(timer);
   const fire = () => { // đọc `cur` / `page` mới nhất lúc gửi
     if (!send) return;
+    const source = rankSource(cur);
+    sourceAt.set(source.type, Date.now());
     if (!boards.length) send("rank", { op: "boards" });
-    else if (cur) send("rank", { op: "top", board: cur, page, pageSize: RANK_PAGE_SIZE });
+    else if (cur) send(source.type, source.type === "rank" ? { op: "top", board: cur, page, pageSize: source.size } : { op: source.op, ...(source.type === "resonance" ? { page, pageSize: source.size } : {}) });
     else return;
-    sentAt = Date.now();
     timer = window.setTimeout(() => { if (status === "loading") { status = "error"; render(); } }, LOAD_TIMEOUT_MS); // đếm từ lúc thật sự gửi
   };
-  const wait = sendDelay(sentAt, Date.now());
+  const source = rankSource(cur);
+  const wait = sendDelay(sourceAt.get(source.type) ?? 0, Date.now(), source.cd);
   if (wait > 0) sendTimer = window.setTimeout(fire, wait); else fire();
   render();
 }
@@ -87,13 +97,32 @@ export function closeRank() { selRank = null; const e = el(); if (e) e.hidden = 
 
 export function onRankBoards(m: { k?: string; list?: RankBoardInfo[] }) {
   if (m?.k !== "boards" || !Array.isArray(m.list)) return;
-  boards = m.list; cur = cur && boards.some((b) => b.board === cur) ? cur : boards[0]?.board ?? null; page = 1;
+  boards = [...m.list.filter((b) => !legacyBoards.some((l) => l.board === b.board)), ...legacyBoards]; cur = cur && boards.some((b) => b.board === cur) ? cur : boards[0]?.board ?? null; page = 1;
   if (isRankOpen()) request(); // `boards` và `top` cùng nhịp RANK_CD: request() tự chờ hết nhịp rồi gửi trang đầu
 }
 export function onRankTop(m: RankTopMsg) {
   if (!m || typeof m.board !== "string" || !Array.isArray(m.rows)) return;
   if (m.board !== cur || m.page !== page) return; // tin của bảng / trang đã bỏ
-  data = m; status = "ready"; window.clearTimeout(timer); render();
+  data = m; status = "ready"; window.clearTimeout(timer); window.clearTimeout(sendTimer); render();
+}
+
+export function onRankResonance(m: ResonanceTopMsg) {
+  sourceAt.set("resonance", Date.now());
+  onRankTop(resonanceRank(m, Date.now()));
+}
+export function onRankArena(m: ArenaTopMsg) {
+  const at = Date.now(); sourceAt.set("arena", at); arenaCache = { m, at };
+  if (cur === "elo") onRankTop(arenaRank(m, page, at));
+}
+export function onRankTong(m: TongBoardMsg) {
+  const at = Date.now(); sourceAt.set("tong", at); tongCache = { m, at };
+  if (cur === "tong_tuan") onRankTop(tongRank(m, page, at));
+}
+function turnPage(next: number) {
+  page = Math.max(1, next); selRank = null;
+  if (cur === "elo" && arenaCache) onRankTop(arenaRank(arenaCache.m, page, arenaCache.at));
+  else if (cur === "tong_tuan" && tongCache) onRankTop(tongRank(tongCache.m, page, tongCache.at));
+  else request();
 }
 
 const h = (tag: string, cls: string, o: { text?: string; attrs?: Record<string, string>; kids?: (PNode | null)[] } = {}): PNode =>
@@ -119,9 +148,10 @@ function rowNode(r: RankRow): PNode {
 function render() {
   const root = el(); if (!root || root.hidden) return;
   const groups = rankGroups(boards), board = boards.find((b) => b.board === cur), grp = board?.group ?? groups[0]?.group;
-  const cd = Math.max(0, sentAt + RANK_CD * 1000 - Date.now());
+  const source = rankSource(cur);
+  const cd = Math.max(0, (sourceAt.get(source.type) ?? 0) + source.cd * 1000 - Date.now());
   const f = screenFrame({
-    material: "muc", title: "Xếp Hạng", badge: "榜", info: "Điểm do máy chủ tính từ dữ liệu đã lưu; hạng cập nhật ở các lần lưu, không theo từng giây.",
+    material: "muc", title: "Xếp Hạng", badge: "榜", info: "Điểm và hạng do máy chủ gửi; từng bảng giữ cách tính và nhịp cập nhật hiện hành.",
     nav: groups.map((g) => ({ id: g.group, label: g.group, active: g.group === grp })),
     primary: { label: "Làm mới", disabled: cd > 0 || status === "loading", reason: status === "loading" ? "Đang tải…" : cd > 0 ? "Chờ một chút rồi làm mới" : undefined },
     onNav: (g) => { const first = groups.find((x) => x.group === g)?.boards[0]; if (first) { cur = first.board; page = 1; data = null; request(); } },
@@ -136,22 +166,28 @@ function render() {
   if (status === "error") body.push(h("div", "rk-msg rk-err", { kids: [h("span", "", { text: "Không tải được bảng (mất kết nối hoặc máy chủ chưa trả lời)." }), h("button", "rk-retry", { text: "Thử lại", attrs: { type: "button" } })] }));
   if (status === "loading" && !shown) body.push(h("div", "rk-skel", { attrs: { "aria-busy": "true", "aria-label": "Đang tải" }, kids: Array.from({ length: 6 }, () => h("span", "rk-skel-r")) }));
   if (shown) {
-    if (!shown.rows.length) body.push(h("div", "rk-msg", { text: "Chưa có ai trên bảng này." }));
-    else {
+    if (shown.note) body.push(h("div", "rk-note", { text: shown.note }));
+    if (shown.summary) body.push(h("div", "rk-paper", { kids: shown.summary.map((text) => h("p", "rk-summary", { text })) }));
+    if (shown.sections) for (const section of shown.sections) body.push(h("div", "rk-paper", { kids: [
+      h("h3", "rk-summary", { text: `Top ${tongName(section.tong) || section.tong}` }),
+      h("table", "rk-tab", { kids: [h("thead", "", { kids: [h("tr", "", { kids: ["Hạng trong tông", "Tên", "Điểm"].map((text) => h("th", "", { text })) })] }), h("tbody", "", { kids: section.rows.map((r) => h("tr", "", { kids: [h("td", "", { text: String(r.rank) }), h("td", "", { text: r.name }), h("td", "", { text: fullNum(r.score) })] })) })] }),
+    ] }));
+    if (!shown.rows.length && !shown.sections?.some((s) => s.rows.length)) body.push(h("div", "rk-msg", { text: "Chưa có ai trên bảng này." }));
+    if (shown.rows.length) {
       body.push(podiumNode(podiumOf(shown.page, shown.rows)));
       body.push(h("div", "rk-paper", { kids: [h("table", "rk-tab", { kids: [
         h("thead", "", { kids: [h("tr", "", { kids: ["Hạng", "Tên", "Điểm", "Đội hình"].map((t) => h("th", "", { text: t })) })] }),
         h("tbody", "", { kids: shown.rows.map(rowNode) }),
       ] })] }));
-      body.push(h("div", "rk-pager", { kids: [
+    }
+    body.push(h("div", "rk-pager", { kids: [
         h("button", "rk-pg", { text: "◀ Trước", attrs: { type: "button", "data-pg": "-1", ...(shown.page <= 1 ? { disabled: "" } : {}) } }),
         h("span", "rk-pg-l", { text: pageLabel(shown.page, shown.total, shown.pageSize) }),
         h("button", "rk-pg", { text: "Sau ▶", attrs: { type: "button", "data-pg": "1", ...(!shown.hasNext ? { disabled: "" } : {}) } }),
-        h("span", "rk-asof", { text: `Cập nhật ${hhmmVn(shown.asOf)}${status === "error" ? " · có thể đã cũ" : ""}` }),
+        h("span", "rk-asof", { text: `${shown.received ? "Nhận lúc" : "Cập nhật"} ${hhmmVn(shown.asOf)}${status === "error" ? " · có thể đã cũ" : ""}` }),
       ] }));
-    }
     const me = meLine(shown.me, board?.name ?? "");
-    body.push(h("div", `rk-mine${me.ranked ? "" : " rk-none"}`, { attrs: { title: me.title }, kids: [h("span", "rk-mine-l", { text: "Của tôi" }), h("span", "rk-mine-v", { text: me.text })] }));
+    body.push(h("div", `rk-mine${me.ranked ? "" : " rk-none"}`, { attrs: { title: shown.meHint ?? me.title }, kids: [h("span", "rk-mine-l", { text: "Của tôi" }), h("span", "rk-mine-v", { text: shown.meText ?? me.text })] }));
   }
   const pick = shown && selRank !== null ? shown.rows.find((r) => r.rank === selRank) : undefined;
   if (pick) {
@@ -173,7 +209,7 @@ function render() {
     if (t.closest(".rk-card-x")) { selRank = null; render(); return; }
     const fr = t.closest<HTMLElement>(".rk-card-f"); if (fr?.dataset.name && !(fr as HTMLButtonElement).disabled) { befriended.add(fr.dataset.name); send?.("friend", { op: "add", name: fr.dataset.name }); render(); return; }
     const row = t.closest<HTMLElement>(".rk-row"); if (row) { const rk = Number(row.querySelector<HTMLElement>(".rk-who")?.dataset.rk); if (rk) { selRank = selRank === rk ? null : rk; render(); } return; }
-    const pg = t.closest<HTMLElement>(".rk-pg"); if (pg && !(pg as HTMLButtonElement).disabled) { page = Math.max(1, page + Number(pg.dataset.pg)); request(); }
+    const pg = t.closest<HTMLElement>(".rk-pg"); if (pg && !(pg as HTMLButtonElement).disabled) { turnPage(page + Number(pg.dataset.pg)); }
   });
   addCloseButton(f.root, closeRank);
   root.replaceChildren(f.root);

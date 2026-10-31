@@ -36,6 +36,7 @@
     "test:audio": "node scripts/audio-test.mjs && node scripts/music-test.mjs",
     "test:itemtip": "node --experimental-strip-types scripts/item-tip-test.mjs",
     "test:uiparts": "node --experimental-strip-types scripts/ui-parts-test.mjs",
+    "test:rank-browser": "node scripts/rank-browser.mjs",
     "test:uiscreens": "node --experimental-strip-types scripts/ui-screens-test.mjs",
     "test:confirm": "node --experimental-strip-types scripts/confirm-test.mjs",
     "test:onboard": "node --experimental-strip-types scripts/onboard-test.mjs"

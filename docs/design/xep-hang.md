@@ -1,6 +1,6 @@
 # Bảng Xếp Hạng nhiều hạng mục
 
-Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Trạng thái:** X0, X1 (một phần), X2, X3 đã có code ở server (Cấp, Sưu tầm, Sức mạnh, tin `rank`; UI ở `rankScreen.ts`); phần còn lại vẫn là thiết kế.
+Màn **Xếp Hạng** gom mọi bảng xếp hạng vào một chỗ: nhóm hạng mục bên trái, bục top 3, bảng điểm, dòng "của tôi" ghim đáy. Bảng đã có (đấu trường, cộng minh, tông tuần) giữ nguyên luật và tin; tài liệu này thêm hạng mục mới, khung màn chung và đường tính / lưu. Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; mọi tên đánh dấu *(đề xuất)* chưa tồn tại, đặt khi làm). Số issue ở cuối file. **Trạng thái:** X0–X5 đã có (Cấp, Sưu tầm, Sức mạnh qua tin `rank`; màn chung và bộ nối Cộng minh / Elo / Tông tuần ở client); X6 còn là thiết kế.
 
 Tham chiếu bố cục: ảnh 14 (bảng xếp hạng) trong bộ tham chiếu UI của #877; chỉ học bố cục, không chép.
 
@@ -156,10 +156,16 @@ Mỗi bước server sửa **cả** `PgStore` và `MemoryStore`, thêm hàng và
 ### Đã làm (X5)
 - Soát: `docs/tech/soat-gian-lan-xep-hang.md` (14 giả thuyết, không lỗi Nghiêm trọng / Cao). Sửa kèm: `rankMe` có cache theo tài khoản, trang kẹp `RANK_PAGE_DEPTH` và mọi trang qua cache (số khoá có trần), `markTest` xoá cache bảng. Đo tải: 100 người mở bảng 35 → 6,9 truy vấn/giây.
 
+### Bộ nối client của X4
+- Danh mục từ tin `rank` giữ nguyên; client nối thêm Cộng minh (`resonanceTop`), Elo (`arenaTop`), Tông tuần (`tongBoard`). Các lối xem cũ tiếp tục hoạt động; không đổi luật tính, lọc tài khoản test, cache hay tin server.
+- Cộng minh xin trang theo `RESONANCE_RANK_PAGE_SIZE` / `RESONANCE_RANK_CD`; Elo và Tông tuần chỉ phân trang trong top đã nhận, không khẳng định đó là toàn bộ bảng. Làm mới theo `ARENA.topCd` / `TONG_BOARD_CD`. Đổi nhóm chỉ gửi yêu cầu cuối sau nhịp của nguồn, bỏ phản hồi khác bảng / trang. Đổi phiên phòng xóa dữ liệu cũ.
+- Tin cũ không có giờ cache: ghi “Nhận lúc”, không giả `asOf` server. Tông tuần hiện điểm trung bình / số thành viên hoạt động của các tông và top cá nhân **riêng từng tông**, giữ thứ tự nguồn. Tin không gửi hạng cá nhân toàn server nên dòng của tôi chỉ hiện điểm và nói rõ thiếu dữ liệu hạng; không suy hạng từ tên hay điểm. Không tự thêm tông / người chưa có trong tin.
+- Chỉ chiếu tên, điểm, số thứ tự, tông và cờ `me` được gửi; không đưa thành tích riêng, thưởng hay dữ liệu tuần trước sang màn chung. Không dựng đội hình khi nguồn không gửi.
+
 ### Câu hỏi mở
 Không còn. Trọng số RANK_POWER đã đặt ở X3 (có thể chỉnh sau khi xem số thật; tăng bậc thang cần cân nhắc cùng `balance-review`).
 
 ## Lịch sử / issue liên quan
 - Khung màn và hạng mục: bộ spec UI (#877, mục 3 dòng 10).
 - Bảng đã có: Elo (#738 cache), cộng minh (mục 5.10), tông tuần (#197).
-- Nhật ký từng bước: `docs/lich-su.md`.
+- Nhật ký từng bước: `docs/lich-su.md`; bộ nối X4: #1524.
