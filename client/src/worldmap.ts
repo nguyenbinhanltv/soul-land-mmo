@@ -2,7 +2,7 @@
 // (art/src/world-map) làm nền, nút bản đồ / truyền tống trận / đường nối cổng vẽ đè bằng code theo `bo-cuc.json` (toạ độ 0..1 của tranh, chỉ để vẽ,
 // KHÔNG gửi lên server). Chỉ hiển thị: trạng thái mở khoá, phí, đang đứng ở đâu đều đọc từ tin riêng `world` của server; luật dịch chuyển ở server.
 // Khung màn (tab, nút chính, đóng) do mapview.ts dựng; module này lo phần thân (#world) và báo nút chính cho khung qua `primary()`.
-import layout from "../../art/src/world-map/bo-cuc.json";
+import layout from "../../shared/assets/ui/ban-do-the-gioi/bo-cuc.json";
 import { MAPS, formatHonTe } from "../../shared/data.ts";
 import type { WorldMsg } from "./net.ts";
 import { assetUrl } from "./assetUrl.ts";
