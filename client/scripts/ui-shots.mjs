@@ -145,16 +145,21 @@ async function runSize(W, H) {
     await step("khung-nv-to-doi", async () => {
       const fakeParty = (m) => ev(`(window.__scene.room.onMessageHandlers.emit("party", ${JSON.stringify(m)}), true)`);
       const clearToasts = () => ev(`(document.querySelectorAll("#toasts .toast").forEach((e) => e.remove()), true)`);
-      await clearToasts(); await sleep(300); await shot("12-khung-nhiem-vu");
+      await click("sbTabQuest"); await clearToasts(); await sleep(300); await shot("12-khung-nhiem-vu"); // màn thấp mặc định thu gọn: bấm chip để mở
       await fakeParty({ id: 0, max: 5, members: [], invites: [{ name: "Đường Tam", secs: 30 }] }); await clearToasts(); await sleep(400); await shot("13-khung-to-doi-loi-moi");
       const me = { name: "Tiểu Vũ", leader: true, me: true, sid: "a", map: "", ch: 1, level: 20, vh: 0, hp: 80, maxHp: 100, dead: false, off: false };
-      await fakeParty({ id: 7, max: 5, members: [me, ...["Đường Tam", "Đới Mộc Bạch", "Chu Trúc Thanh", "Mã Hồng Tuấn"].map((name, i) => ({ ...me, name, leader: false, me: false, sid: "b" + i, hp: 40 + i * 10 }))], invites: [] }); await clearToasts(); await sleep(400); await shot("14-khung-to-doi");
+      await fakeParty({ id: 7, max: 5, members: [me, ...["Đường Tam", "Đới Mộc Bạch", "Chu Trúc Thanh", "Mã Hồng Tuấn"].map((name, i) => ({ ...me, name, leader: false, me: false, sid: "b" + i, hp: 40 + i * 10 }))], invites: [] }); await click("sbTabParty"); await clearToasts(); await sleep(400); await shot("14-khung-to-doi");
       // Dải boss giả (DOM, không qua state) + tổ đội: kiểm khung không đè dải boss / mục tiêu ở màn thấp.
       await ev(`(() => { const b = document.getElementById("bossbar"), set = () => { b.hidden = false; b.innerHTML = '<div class="bhead"><b>Thú vương Hắc Long Vương · boss thế giới</b></div><div class="bar hp"><i style="width:70%"></i><span>70%</span></div>'; }; set(); window.__fakeBoss = setInterval(set, 30); return true; })()`); // giữ dải boss giả (HUD vẽ lại mỗi khung sẽ ẩn nó)
       await sleep(400); await shot("14b-khung-to-doi-co-boss");
       await ev(`(clearInterval(window.__fakeBoss), document.getElementById("bossbar").hidden = true, true)`);
-      await click("sbFold"); await sleep(300); await shot("15-khung-thu-gon"); await click("sbFold");
+      await click("sbFold"); await sleep(300); await shot("15-khung-thu-gon"); await click("sbTabQuest");
       await click("sbTabQuest"); await fakeParty({ id: 0, max: 5, members: [], invites: [] }); await sleep(200);
+    });
+    // HUD sạch (tắt thẻ hướng dẫn / làm quen, dọn toast) để thấy cột trái, chip và khung dưới thông tin nhân vật; dùng cho cỡ màn nhỏ (--sizes 640x360,844x390).
+    await step("hud-sach", async () => {
+      await ev(`(document.querySelector("#guide .g-skip")?.click(), document.querySelector("#onboard .ob-skip")?.click(), document.querySelectorAll("#toasts .toast").forEach((e) => e.remove()), true)`);
+      await sleep(400); await shot("16-hud-sach");
     });
     await step("tui", async () => { await key("KeyB", "b"); await shot("20-tui"); await key("KeyB", "b"); });
     await step("nhan-vat", async () => { await key("KeyH", "h"); await shot("21-nhan-vat-trang-bi"); await key("BracketRight", "]"); await shot("22-nhan-vat-hon-cot"); await key("Escape", "Escape"); });

@@ -878,6 +878,8 @@ export class GameScene extends Phaser.Scene {
     hud.onBeforeBagFromBar(() => this.clearForPanel());
     // Chip "Tự động" (chỉ hiện khi đang tự săn) và chip hồn hoàn ở khung chỉ số: mở bảng Tự động / Hồn Cốt. Các nút menu cũ đã bỏ, hub (huy hiệu giữa trên / Esc) mở mọi bảng.
     document.getElementById("autoChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); mapview().close(); toggleAutoPanel(); }, on);
+    document.getElementById("vhChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleRoster(true); }, on);
+    document.getElementById("coinChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.toggleBag(true); }, on);
     document.getElementById("ringChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); hud.openBoneTab(); }, on);
     hud.onWorldGo((key) => this.room.send("wp", { op: "go", key }));
     hud.onResonanceTop((page, pageSize) => this.room.send("resonance", { op: "top", page, pageSize }));
@@ -963,7 +965,7 @@ export class GameScene extends Phaser.Scene {
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
       welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, mail: () => { this.clearForPanel(); openMail(); },
       bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },
-      quest: () => { const n = hud.revealQuestTracker(); toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc phải; gặp NPC có dấu trên đầu để nhận / trả"); }, // thẻ Nhiệm Vụ của hub: mở khung theo dõi, nhận / trả vẫn ở NPC
+      quest: () => { const n = hud.revealQuestTracker(); toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc trái, dưới thông tin nhân vật; gặp NPC có dấu trên đầu để nhận / trả"); }, // thẻ Nhiệm Vụ của hub: mở khung theo dõi, nhận / trả vẫn ở NPC
       notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
     }, this.ac.signal);
   }

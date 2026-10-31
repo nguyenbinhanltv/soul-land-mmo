@@ -169,14 +169,24 @@ export const TRAVEL_CAST = 1;
 export const BOAT_CAST = 3;
 /**
  * Truyền tống trận (11.2, mục 5.3 "Truyền tống trận"): object `waypoint` trong Tiled, bước lên lần đầu thì mở khóa (bảng `waypoints`).
- * Đứng trên một trận đã mở, chọn trận đích trên bản đồ thế giới: niệm WAYPOINT_CAST giây (di chuyển hoặc bị đánh thì hủy), tốn
+ * Chọn trận đích đã mở trên bản đồ thế giới (đứng trên một trận, hoặc từ bất kỳ đâu với phụ phí WAYPOINT_FEE.remote + hồi WAYPOINT_COOLDOWN_S): niệm WAYPOINT_CAST giây (di chuyển hoặc bị đánh thì hủy), tốn
  * waypointFee(số lần đi cổng ít nhất giữa hai bản đồ) đồng, trừ lúc dịch chuyển. Hồi Thành Phù (ITEMS `hoi_thanh_phu`) dùng cùng
  * thời gian niệm và luật hủy, đưa về thành gần nhất. Chờ chốt.
  */
 export const WAYPOINT_CAST = 3;
-export const WAYPOINT_FEE = { base: 5, perHop: 10 };
-/** Phí truyền tống (đồng) tới trận ở bản đồ cách `hops` lần đi cổng (cùng bản đồ: 0). */
-export const waypointFee = (hops: number) => WAYPOINT_FEE.base + WAYPOINT_FEE.perHop * Math.max(0, Math.floor(hops));
+/**
+ * `base` + `perHop` × số lần đi cổng: phí khi đứng trên một trận. `remote`: phụ phí cộng thêm khi dịch chuyển TỪ BẤT KỲ ĐÂU (không đứng
+ * trên trận; chủ repo duyệt luật 2026-10-31). Đặt cao hơn Hồi Thành Phù (giá 30 đồng, CAMP_SHOP) để dịch chuyển xa không làm phù vô dụng:
+ * 100 đồng ≈ vài nhát hạ hồn thú bậc giữa (BEAST_COIN), thu nhập một buổi săn thì không đáng kể, nhưng đủ để không bấm bừa.
+ */
+export const WAYPOINT_FEE = { base: 5, perHop: 10, remote: 100 };
+/**
+ * Thời gian hồi (giây) giữa hai lần dịch chuyển khi KHÔNG đứng trên trận; đứng trên trận không bị hồi. Tính từ lúc dịch chuyển xong
+ * (hủy niệm thì không mất, không tính hồi). Giữ theo tài khoản, không mất khi đổi bản đồ / kênh / vào lại.
+ */
+export const WAYPOINT_COOLDOWN_S = 180;
+/** Phí truyền tống (đồng) tới trận ở bản đồ cách `hops` lần đi cổng (cùng bản đồ: mức base); `remote`: không đứng trên trận, cộng phụ phí. */
+export const waypointFee = (hops: number, remote = false) => WAYPOINT_FEE.base + WAYPOINT_FEE.perHop * Math.max(0, Math.floor(hops)) + (remote ? WAYPOINT_FEE.remote : 0);
 export const TRAVEL_LEAVE_SECS = 10;
 /**
  * Kênh (mục 6 "Nhiều kênh"): mỗi phòng của một bản đồ là một kênh, tối đa CHANNEL_MAX người; phòng đầy thì mở kênh mới.
