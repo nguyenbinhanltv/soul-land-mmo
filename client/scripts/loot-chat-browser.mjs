@@ -1,5 +1,5 @@
 // #1462: kiểm thông báo nhận đồ trên game thật. LOOT_TAG=truoc: chỉ chụp ảnh đối chiếu.
-// LOOT_OUTPUT: thư mục ảnh; LOOT_TIMEOUT_MS: trần thời gian toàn bài.
+// LOOT_OUTPUT: thư mục ảnh; LOOT_TIMEOUT_MS: trần thời gian toàn bài; LOOT_SIZE: kiểm riêng một chiều rộng.
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp } from "node:fs/promises";
@@ -74,7 +74,14 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
   await page.waitForTimeout(1500);
   await page.locator(".g-skip").click();
   await page.locator(".ob-skip").click();
-  for (const [width, height, touch] of [[960,540,false],[1280,720,false],[640,360,true]]) {
+  const shot = async (name) => {
+    await page.locator(".toast").evaluateAll(async (els) => {
+      for (const el of els) for (const animation of el.getAnimations()) animation.finish();
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+    });
+    return page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${name}.png`) });
+  };
+  for (const [width, height, touch] of [[960,540,false],[1280,720,false],[640,360,true]].filter(([w]) => !process.env.LOOT_SIZE || w === Number(process.env.LOOT_SIZE))) {
     await page.reload();
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     await page.waitForFunction(() => window.__lootScene?.players.size > 0, null, { timeout:60000 });
@@ -90,7 +97,7 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       document.getElementById("toasts")?.replaceChildren();
       for (let n = 0; n < 5; n++) f.lootToasts(n ? [{ ...base, qty:n }] : [], [{ ...base, qty:n+1 }]);
     }, root.replaceAll("\\", "/"));
-    await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-x5.png`) });
+    await shot(`${width}x${height}-x5`);
     console.log(width, await page.locator("#chatbox").boundingBox(), await page.locator("#log").boundingBox());
     if (tag !== "truoc") {
       assert.match(await page.locator("#log").innerText(), /Nhận Mảnh Phá Hồn Thương ×5/);
@@ -111,13 +118,15 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       assert.match(await page.locator("#log").innerText(), /Hồn hoàn/);
       await page.locator('.toast[data-k="loot"]').waitFor({ state:"visible" });
     }
-    await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-hiem.png`) });
+    await shot(`${width}x${height}-hiem`);
     if (tag !== "truoc") assert.equal(await page.locator('.toast[data-k="loot"]').evaluate((e) => getComputedStyle(e).opacity), "1", "toast hiếm hiện rõ sau hiệu ứng vào");
     if (tag !== "truoc") {
       for (const code of ["hon_cot", "hon_hach"]) {
         await page.evaluate((code) => {
-          const { f, base } = window.__lootTest;
-          f.lootToasts([], [{ ...base, code, years:1, stars:1 }]);
+          const { f, d, base } = window.__lootTest;
+          const bone = code === d.BONE_ITEM;
+          f.lootToasts([], [{ ...base, code, kind:code, years:bone ? 1 : null, stars:bone ? null : 1,
+            stats:bone ? {beast:d.BEASTS[0].id,slot:d.BONE_SLOTS[0].id} : {set:d.CORE_SETS[0].id,main:"hp",subs:[]} }]);
         }, code);
         assert.equal(await page.locator('.toast[data-k="loot"]').count(), 1, `${code} bậc thấp vẫn giữ đúng một toast`);
       }
@@ -177,8 +186,10 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).waitFor();
       await page.locator("#chat-system-filter").dispatchEvent("pointerdown");
     }
-    await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-loi.png`) });
+    await shot(`${width}x${height}-loi`);
     if (tag !== "truoc" && touch) {
+      const errorRect = await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).boundingBox();
+      assert.ok(errorRect && errorRect.y >= 0 && errorRect.y + errorRect.height <= height && errorRect.x >= 0 && errorRect.x + errorRect.width <= width, "toàn bộ thanh lỗi nằm trong màn hình");
       assert.equal(await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).evaluate((e) => getComputedStyle(e).opacity), "1", "thanh lỗi không còn ở khung hình trong suốt");
       const uncovered = await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).evaluate((e) => {
         const r = e.getBoundingClientRect();
