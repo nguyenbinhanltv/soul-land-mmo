@@ -1,7 +1,7 @@
 // Trạng thái MỨC TIẾN TRÌNH của các phòng bản đồ, chỉ trong bộ nhớ (miền D1, #702): thú vương theo bản đồ (`kingSeats`, `kingClaimCache`), khóa thưởng tinh anh nhiều kênh
 // (`eliteLocks`), hồi chiêu Võ Hồn Dung Hợp Kỹ (`fusionReady`), đổi kênh / kênh vừa rời (`channelSwitchAt`, `leftRoom`, dọn định kỳ `sweepChannelMaps`), hook test (`testNoLeaveLock`,
 // `testOfflineAgo`), danh sách mua lại (`buybacks`). Nguyên văn từ MapRoom; MỘT thể hiện duy nhất mỗi Map / Set (MapRoom, các miền và script kiểm thử đều import từ đây).
-// Module lá: KHÔNG gọi presence / Redis và KHÔNG import MapRoom (chỉ phụ thuộc shared/data.ts, schedule.ts cho đồng hồ boss và type của db.ts / schema.ts). Tác dụng phụ lúc nạp duy nhất: `CHANNEL_CAP` đọc `GAME_TEST` / `CHANNEL_MAX` (như khi còn ở MapRoom); timer dọn định kỳ KHÔNG chạy lúc nạp mà do MapRoom gọi `startChannelSweep()` một lần. Map / hàm chỉ dùng cho hook test ở `testState.ts`. Phần ghi presence (`persistKingSeat`, `takeKingSeat`, `persistEliteLock`, `editBuyback`...) ở `presenceState.ts`, registry kênh ở `channel.ts`, ghế ở `seat.ts`.
+// Module lá: KHÔNG gọi presence / Redis và KHÔNG import MapRoom (chỉ phụ thuộc shared/data.ts, schedule.ts cho đồng hồ boss và type của db.ts / schema.ts). Tác dụng phụ lúc nạp duy nhất: `CHANNEL_CAP` đọc `GAME_TEST` / `CHANNEL_MAX` (như khi còn ở MapRoom); timer dọn định kỳ KHÔNG chạy lúc nạp mà do MapRoom gọi `startChannelSweep()` một lần. Hook test (`testNoLeaveLock`, `testOfflineAgo`, `kingClaimTest`) ở `testState.ts` (`kingRecs` / `applyKingDoc` / `kingClaimCache` vẫn xuất từ đây cho hook đó). Phần ghi presence (`persistKingSeat`, `takeKingSeat`, `persistEliteLock`, `editBuyback`...) ở `presenceState.ts`, registry kênh ở `channel.ts`, ghế ở `seat.ts`.
 import { KING, WORLD, BOSSES, MAPS, kingActive, worldActive, CHANNEL_MAX, CHANNEL_CD } from "../../../shared/data.ts";
 import { bossOffset } from "../schedule.ts";
 import type { BeastState } from "./schema.ts";
@@ -121,7 +121,8 @@ export function sweepChannelMaps(now: number) {
 }
 const CHANNEL_SWEEP_MS = 5 * 60_000;
 /** Bật dọn định kỳ `channelSwitchAt` / `leftRoom` (gọi đúng một lần lúc nạp MapRoom; module này không còn tác dụng phụ lúc nạp ngoài `CHANNEL_CAP`). */
-export function startChannelSweep() { return setInterval(() => sweepChannelMaps(Date.now()), CHANNEL_SWEEP_MS).unref(); }
+let channelSweepTimer: ReturnType<typeof setInterval> | null = null; // map-co-dinh: một timer duy nhất, startChannelSweep chạy lần hai là không làm gì
+export function startChannelSweep() { return channelSweepTimer ??= setInterval(() => sweepChannelMaps(Date.now()), CHANNEL_SWEEP_MS).unref(); }
 /**
  * Mua lại đồ bán nhầm (bước 9.8): BUYBACK_MAX lần bán gần nhất của mỗi tài khoản (mới nhất trước), mức tiến trình theo tài khoản để
  * đi cổng / đổi kênh / vào sân đấu vẫn còn; ghi cả vào presence (`buyback:<acc>`, TTL BUYBACK_TTL_MS, nạp lại lúc vào phòng) để sang phòng ở tiến trình khác vẫn còn; xóa khi người chơi rời game (onLeave không qua đi cổng, forgetBuyback).

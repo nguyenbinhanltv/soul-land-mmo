@@ -16,7 +16,7 @@ import { store } from "../db.ts";
  */
 export interface SeatPass { seatFor: number; mapId: string | null; key: string; }
 /** Mỗi tài khoản giữ tối đa bấy nhiêu chỗ chưa dùng cùng lúc (client thật: một, thêm lần dự phòng joinOrCreate / tab khác). */
-export const SEAT_PENDING_MAX = 3;
+const SEAT_PENDING_MAX = 3;
 /** Chỗ tạm (SeatPass.key) sống tối đa bấy nhiêu mili giây nếu matchmake không tới được bước giữ chỗ (bằng seatReservationTime mặc định). */
 const SEAT_PASS_MS = 15_000;
 /**

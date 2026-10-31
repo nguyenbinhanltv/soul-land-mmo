@@ -2,7 +2,6 @@
 // Mỗi bản đồ có thể có nhiều phòng (kênh); mọi phòng dùng chung một lớp, khác nhau ở dữ liệu bản đồ.
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
 import { Room, Client, ServerError, OnMessageException, type RoomException } from "colyseus";
-import { } from "node:crypto";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TIERS, VOHON, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
@@ -336,7 +335,7 @@ const numIn = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v :
 /** Cùng một lỗi bất ngờ ở cùng một chỗ (onUncaughtException) chỉ ghi log tối đa một lần mỗi bấy nhiêu mili giây. */
 const ERR_LOG_MS = 10_000;
 
-// ---------- Thú vương theo bản đồ, mức tiến trình (mục 6; bước BĐ5) ----------
+// ---------- Báo trước thú vương theo bản đồ (mức tiến trình, mục 6); trạng thái suất / khóa ở procState.ts + presenceState.ts ----------
 /**
  * Báo trước thú vương gần nhất theo bản đồ (kênh "boss", `at` = giờ xuất hiện, ms): phòng mở ra trong lúc chờ (kể cả báo trước của
  * hook test) vẫn có đếm ngược. Xóa khi thú vương của bản đồ đó xuất hiện.
