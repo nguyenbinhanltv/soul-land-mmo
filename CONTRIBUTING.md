@@ -93,6 +93,8 @@ Bị chặn (chờ việc khác / quyết định) thì thay `dang-lam` bằng `
 
 ### File hay xung đột
 
+**Ghi công sau khi merge main:** PR đổi `art/CREDITS.md`, bảng ghi công `art/src/beast-anim/*/NGUON.md` hoặc `tools/assets/private-packs.json` phải merge `origin/main` mới nhất, chạy `node tools/assets/credits.mjs`, `node --test tools/assets/credits.test.mjs` và `npm run check`, rồi commit kết quả sinh trước khi xin gộp. Nếu main đổi tiếp trước khi squash, làm lại; merge sạch vẫn có thể giữ JSON cũ. Không sửa tay `shared/assets/credits/credits.json` hay lấy nguyên JSON một phía khi xung đột: giữ đủ hồ sơ nguồn rồi sinh lại. Người gộp lô kiểm trên kết quả gộp cuối trước khi đẩy main. Chi tiết: [Đồng bộ ghi công khi gộp nhánh](docs/art/nguon-giay-phep.md#đồng-bộ-ghi-công-khi-gộp-nhánh).
+
 Nhiều việc cùng sửa các file sau. Sửa đúng chỗ cần, **không format lại hay sắp xếp lại cả file**, merge `origin/main` sớm khi thấy người khác cũng đang sửa:
 
 | File | Cách giảm xung đột |

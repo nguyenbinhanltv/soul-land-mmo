@@ -1,0 +1,32 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+SPIRIT: Yeu Ho, colossal three-tailed pink fox spirit. A complete SOLID fox animal sitting upright, proud arched chest, narrow angular muzzle, pointed ears, small cold slanted dark-gold eyes, tiny vermilion fox-seal mark on forehead (abstract, no writing). EXACTLY THREE large tapered blade-like bushy tails fanned behind body, all rooted into rump, tips pointed. Dark rose-purple #7a2a5a shadows and body base, muted rose midtone, pink #ff9ad5 along fur rims and tail tips, ivory chest tuft. Do not make cute, baby or round-eyed. Motifs only: abstract vermilion forehead fox seal, sharp flame-shaped tail tufts as fur. No detached foxfire, circles, particles, hearts, stars; effects added in code. Complete chest and belly, no human-shaped hole or dark rectangular pillar.
+SHEET: One EXACTLY SQUARE 1:1 image, native square resolution. 4x4 equal SQUARE cells, sixteen fox poses. Invisible grid, flat #FF00FF magenta. NO text, numbers, borders, labels, human, mannequin, ground or shadow.
+Each fox centered on exact evenly spaced cell centers: columns at12.5%,37.5%,62.5%,87.5% of full image; rows at12.5%,37.5%,62.5%,87.5%. Same scale and foot baseline in every cell.
+TINY COMPLETE ANIMAL including all THREE tails occupies maximum central40% of each cell width and height. At least30% of cell completely blank magenta on each side, including widest attack. Keep tails coiled compactly, never enter adjacent cell.
+VIEW: SOUTH-EAST, turned RIGHT and TOWARD viewer, three-quarter view; narrow long muzzle, cold SLIT eyes, angular face, lean adult fox, NO smile, elevated isometric angle.
+Rows1-2: eight-frame idle loop: same sitting fox, tiny1-2pixel chest breathing and tail sway, no body morph,8 returns1.
+Rows3-4: eight attack frames:9-11 draw all three tails back and coil,12 AND13 show IDENTICAL PEAK POSE with all three tails swept forward toward LOWER RIGHT as three separate sharp curved blades, body leans slightly forward with paws still together.14-16 recover to original seated fan of three tails. Do not turn face, do not add tails. Opaque body, hard #1a1020 outline, three flat tones per color region.
+Exactly3 unbranched tails with3 tips, no secondary lobes, connect to rump. All complete figures TINY, central35% of equal square cells, enormous30%+ blank magenta margins. Make face stern and predatory, thin narrow eyes, never round face or baby proportions. Peak cells12-13 identical sweep of3 tails toward lower right, stay compact.

@@ -1,0 +1,29 @@
+{
+  "id": "liet_hoa_thuong_lang",
+  "raw": "art/src/phap-tuong/liet_hoa_thuong_lang",
+  "native": [
+    1254,
+    1254
+  ],
+  "frame": 160,
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "selectedAttempts": {
+    "s": 3,
+    "se": 2,
+    "e": 2,
+    "ne": 1,
+    "n": 1
+  },
+  "despill": true,
+  "glow": "#ff7a3a",
+  "glowBuilder": "tools/assets/phuthe-to-phaptuong-lib.mjs:buildGlow",
+  "sheetSha256": "314b19a84db7a1ba2bb8dd0309954a2e128f364c581e341c825211e9413288c2",
+  "glowSha256": "abb01574941a0a6fd1e67362a7a6b0e69bad571f01b7fd8a7c91753038c1f31b"
+}

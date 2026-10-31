@@ -1,0 +1,47 @@
+{
+  "e-luot1.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "c0044b216216bb11f2a34d2cc5d312a4fe6cae11ae55da1eb54d9dbfbcb2c847"
+  },
+  "e.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "e06af0c44edfa6adfd15f207c711c877754e822639043583b87beeeba388e4a3"
+  },
+  "n.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "2663272a5df7f480ac39d724e91dffa302e07569e4ce8dc0805dd5fb6f574105"
+  },
+  "ne.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "74e64b89f866f2c4a2405c2b83a215c37fe49af1d975de9b63be6deb6d81d600"
+  },
+  "s-luot1.png": {
+    "width": 1272,
+    "height": 1236,
+    "sha256": "c608387866cdaa906a7969205fb09cec435c551a9dea793f883a9c7947b6406e"
+  },
+  "s-luot2.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "0886f49b3189018df9e6877c4af977772ad838579864033aded7239b0cf2294d"
+  },
+  "s.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "21d92c0f978bc975c0e7696bc64c45646d80874d2ab8851d9c33b7b1eb337601"
+  },
+  "se-luot1.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "45725c82bcd2c35e14c24704f728ce5f5879f9c772dd65fee2c330a3936ad161"
+  },
+  "se.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "ab42d627b84cd5913e20cbcb7b0ab99614e28f4e734801a36a99060046a0343e"
+  }
+}

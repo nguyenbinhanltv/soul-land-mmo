@@ -1,0 +1,37 @@
+CANVAS: perfect square 1:1, exactly four columns and four rows of equal square cells.
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF magenta background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+
+SPIRIT: Emerald Scale Serpent Emperor, an ancient lethal emerald-green serpent. A thick complete snake body coiled into layered loops, SOLID continuous scales through center, raised crested head with jade horns and long fangs. No humanoid hollow, no mannequin. Dark green body #145a38, emerald accents #3ad98a, lemon-gold eyes and small dull gold crest accents, violet-black fang cavity. Motifs only poison dao-rune engraved jade-leaf scales; no separate effects. All coils have true snake anatomy and connect to neck and tail.
+
+SHEET LAYOUT OVERRIDES: one SQUARE image, EXACTLY FOUR columns by FOUR rows, exactly sixteen equal square cells. No visible grid, no labels, no cell numbers. Flat #FF00FF everywhere outside the sprites. One single same complete serpent per cell. Same scale and baseline in EVERY cell. Each complete snake with ALL coils must fit within central 55% of cell, broad empty magenta border on all four sides.
+DIRECTION: NORTH. Direct rear view, head points away toward TOP. Show back of hood, rear crest and continuous coiled body. NO face, NO eyes, NO fangs facing viewer. No humans or mannequins, no human-shaped gap. Solid complete coiled serpent.
+ROW ONE: four almost identical neutral breathing poses.
+ROW TWO: four almost identical neutral breathing poses, tiny breathing only, final neutral.
+ROW THREE, exactly FOUR poses: column one neck recoils slightly; column two coils tighter; column three raises jaw ready to strike; column four short compact fang strike with open jaws.
+ROW FOUR, exactly FOUR poses: column one holds the same short strike; column two withdraws neck; column three relaxes; column four neutral.
+The strike NEVER extends far from coils: keep neck bent and whole snake small within its cell. No mist, particles, projectiles, glow, ground, shadow, detached effects or text. Hard edged pixels, outline #1a1020, three tones per region. Use references ONLY for shape/color/motif, never copy empty human gap or sheet composition.
+Keep the same shape and colors in all sixteen cells. Back views must retain large readable emerald scale planes and small gold crest edges at 70% opacity.
+BACK VIEW OVERRIDE for all poses: front face and eyes are invisible. Attack jaws open on FAR side away from viewer; show movement of back neck and crest, never turn head toward viewer.
