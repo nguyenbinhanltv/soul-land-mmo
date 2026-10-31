@@ -203,3 +203,38 @@ LỖI: to-ne-809-attempt3 — còn ba cặp chân ở nhiều khung, họa tiế
 
 - Phiếu vòng 3: Chặn: còn ba cặp chân ở nhiều khung, họa tiết sáng trên lưng; đủ ba lượt bổ sung, giữ ảnh tĩnh ne.
 - Bản nhập cuối: không chọn; giữ trong candidates.
+
+## Các lượt mẫu bổ sung phiên 882 (#1424)
+
+### turnaround — phiên 882 lượt 1
+
+- File: `candidates/882-turnaround1/turnaround.png`, **1536×1024**, 1710399 byte, SHA256 `561e699063925779442cacb697a982513218bc5b886af3f14b78c084584b6162`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-882.
+- Prompt: `candidates/882-turnaround1/turnaround.prompt.txt` (SHA256 `c135103672a3cc7e77ea8ea6ac7b32c492c80f6b6acfabdacb66315caa8a21eb`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: turnaround — giải phẫu — nhiều hình chỉ đọc được ba cặp chân; không dùng tham chiếu (mắt)
+```
+
+
+### turnaround — phiên 882 lượt 2
+
+- File: `candidates/882-turnaround2/turnaround.png`, **1620×971**, 1769970 byte, SHA256 `4e49fba7afefe5bdd1eae0c93ad19f7d7a13e64a6bac0d3e80897b3305914fd1`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-882.
+- Prompt: `candidates/882-turnaround2/turnaround.prompt.txt` (SHA256 `64fd58507a514400d68c7ff2843de8b4159472dc1106188644740c4006d7dbaf`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (ảnh mẫu 5 hướng, không có khối hướng).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+#### Lỗi ứng viên
+
+```text
+LỖI: turnaround — sai kích thước — toàn tờ — 1620×971 không đúng tỉ lệ 3:2 của turnaround (1536×1024).
+LỖI: turnaround — giải phẫu/hướng — nhiều hình chỉ đọc rõ ba cặp chân, ne/n còn họa tiết giống mặt; hết hai lượt mẫu, không dùng tham chiếu, giữ ne dự phòng (mắt)
+```
+

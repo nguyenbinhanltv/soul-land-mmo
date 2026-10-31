@@ -1,6 +1,6 @@
 // Thanh kỹ năng / hồn cốt / chỉ số nhân vật và khung đội hình nhỏ của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 2); hud.ts re-export để nơi gọi giữ nguyên.
 import { TIERS, VOHON, ringLimit, tierOfYears, vohonIndex, SWITCH_CD, TIEN_CO_MAX, tienCoOf, skillPower, BUFF_IDS, BUFFS, buffBit, STATUS_IDS, STATUS, statusBit, formatYears, MAX_RINGS, atBottleneck, PHONG_LOI, starSkillMult, starCdMult, starTienCoMult, starRing, PLAYER_STATUS, BEAST_BUFF_IDS, BEAST_BUFFS, beastBuffBit, BONE_SLOTS, boneSlotIndex, boneName, BONE_ACTIVE_SLOTS, boneSkillOf, passiveText, buffPower, boneSkillMult, ringSkill, CHAN_THAN_RING, chanThanOf, chanThanStats, CHAN_THAN_SKILL_SLOT, CHAN_THAN_SKILL_CD, FUSION, FUSIONS, fusionsOf, type SkillDef, type ChanThanDef, type ChanThanStat } from "../../shared/data.ts";
-import { artImg, chanThanImg, fusionImg, skillImg } from "./uiArt.ts";
+import { artImg, artUrl, chanThanImg, fusionImg, skillImg } from "./uiArt.ts";
 import { cbElementMark } from "./a11y.ts";
 import { setVhChip } from "./statChips.ts";
 import { elementOfVohonIndex } from "./audio/soundMap.ts";
@@ -9,6 +9,7 @@ import type { Vitals } from "../../shared/vitals.ts";
 import type { OwnedVohons, Squad } from "./net.ts";
 import { boneIcon, drawRecall, openBagTieuHao } from "./hud.ts";
 import "./ui2-hud-stats.css";
+import "./ui2-hud-act.css";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 
 export const ringColor = (t: number) => (t === 3 ? "#8a6bff" : TIERS[t].col);
@@ -75,16 +76,16 @@ let lastMp = 0; // hồn lực hiện tại (updateStats ghi), để ô dung h�
 let slotCd: number[] = [];  // hồi chiêu đầy của hồn kỹ ở từng ô (vẽ lớp phủ hồi chiêu trong updateStats)
 let avaDef: ChanThanDef | null = null; // Võ Hồn Chân Thân của võ hồn ra trận (nút R), null = võ hồn chưa có
 /** Hồn kỹ Chân Thân (9.6) hiện ở nút P khi đang biến hình; null = võ hồn chưa có Chân Thân. */
-interface SlotView { name: string; icon: string; art: string; col: string; label: string; tip: TipSpec | string; cost: number; cd: number; tier: number; locked?: boolean }
+interface SlotView { name: string; icon: string; art: string; col: string; label: string; tip: TipSpec | string; cost: number; cd: number; tier: number; locked?: boolean; empty?: boolean }
 let ctSlot: SlotView | null = null;
 let pSlot: SlotView | null = null; // nội dung gốc của nút P (để trả lại khi hết Chân Thân)
 /** Tráo nút P giữa hồn kỹ đang mang và hồn kỹ Chân Thân (class `ct`: viền vàng). Chỉ hiển thị; server quyết định ô P tung gì. */
 function setCtSlot(b: HTMLElement, on: boolean) {
   const sp = b.querySelectorAll<HTMLElement>("span");
   if (on) pSlot = { name: sp[1].textContent ?? "", icon: sp[0].textContent ?? "", art: sp[0].classList.contains("skart") ? sp[0].innerHTML : "", col: sp[0].style.color, label: b.getAttribute("aria-label") ?? "",
-    tip: cellBase.get(b) ?? "", cost: Number(b.dataset.cost), cd: Number(b.dataset.cdfull), tier: Number(b.dataset.tier ?? -1), locked: b.classList.contains("locked") };
+    tip: cellBase.get(b) ?? "", cost: Number(b.dataset.cost), cd: Number(b.dataset.cdfull), tier: Number(b.dataset.tier ?? -1), locked: b.classList.contains("locked"), empty: b.classList.contains("empty") };
   const v = on ? ctSlot : pSlot; if (!v) return;
-  b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked);
+  b.classList.toggle("ct", on); b.classList.toggle("locked", !on && !!v.locked); b.classList.toggle("empty", !on && !!v.empty); // ô P trống vẫn hiện hồn kỹ Chân Thân khi biến hình
   b.dataset.cool = "0"; // đổi nội dung ô không phải "vừa hồi xong" (paintCell không nháy .ready)
   if (v.art) sp[0].innerHTML = v.art; else sp[0].textContent = v.icon;
   sp[0].classList.toggle("skart", !!v.art); sp[0].style.color = v.col; sp[1].textContent = v.name;
@@ -131,7 +132,11 @@ export function buildSkills(vh: number, rings: number[], years: number[] | null,
   const id = VOHON[vh].id;
   loadout.forEach((r, i) => {
     const s = r >= 0 ? ringSkill(id, r) : null; slotCd[i] = s ? skillCd(s, r, stars) : 1;
-    if (!s) return mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: trống`, "Trống", "#666", `skill${i}`, "", true, i, { title: `Ô hồn kỹ ${i + 1}: trống`, lines: ["Chọn hồn kỹ mang theo ở bảng đội hình (V)."] });
+    if (!s) {
+      mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: trống`, "Trống", "#666", `skill${i}`, "", true, i, { title: `Ô hồn kỹ ${i + 1}: trống`, lines: ["Chọn hồn kỹ mang theo ở bảng đội hình (V)."] });
+      el.lastElementChild!.classList.add("empty"); // ô trống: chỉ viền mờ, không biểu tượng khóa
+      return;
+    }
     const has = r < rings.length;
     mk(SKILL_KEYS[i], `Ô hồn kỹ ${i + 1}: ${s.name} (vòng ${r + 1})${has ? "" : " (khóa)"}`, has ? s.name : `Vòng ${r + 1}`, has ? ringColor(rings[r]) : "#666",
       `skill${i}`, s.icon, !has, i, skillSpec(s, r, rings, years, stars), has ? rings[r] : -1, s.cost, skillCd(s, r, stars), skillImg(id, r));
@@ -274,7 +279,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     const s = BONE_SLOTS[boneSlotIndex(slot)], w = worn.find((x) => x.slot === slot), k = w ? boneSkillOf(w.beast, slot) : null;
     const sk = k?.active ? k.sk : null, col = w ? ringColor(tierOfYears(w.years)) : "#666";
     boneCd[i] = sk?.cd ?? 1;
-    const b = document.createElement("button"); b.className = "sk bsk ui-cell f2-o" + (sk ? "" : " locked"); b.dataset.b = String(i);
+    const b = document.createElement("button"); b.className = "sk bsk ui-cell f2-o" + (sk ? "" : w ? " locked passive" : " locked empty"); b.dataset.b = String(i);
     if (w) b.dataset.tier = String(tierOfYears(w.years)); // cả hồn cốt bị động (ô mờ nhưng giữ viền màu niên hạn)
     b.dataset.cost = String(sk?.cost ?? 0);
     b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico skart" style="color:${col}">${boneIcon(slot, col)}</span><span class="sk-name"></span><div class="ui-cd" aria-hidden="true"></div><em class="cdn" aria-hidden="true"></em><em class="sk-state" aria-hidden="true"></em>`;
@@ -284,7 +289,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     setCellTip(b, w && sk ? { title: boneName(w.beast, slot, w.years, w.enhance), color: TIERS[tierOfYears(w.years)].glow, sub: `Hồn cốt ${s.name} · tốn ${sk.cost} hồn lực · hồi ${cdText(sk.cd)} giây`,
         lines: [boneSkillText(w.beast, slot, w.years, w.enhance)] }
       : { title: `Ô ${s.name}: chưa gắn hồn cốt`, lines: ["Gắn hồn cốt ở bảng đội hình (V) để có kỹ năng chủ động."] });
-    b.querySelector(".sk-state")!.textContent = sk ? "" : "Khóa";
+    b.querySelector(".sk-state")!.textContent = sk || w ? "" : "Khóa";
     b.setAttribute("aria-disabled", String(!sk));
     const run = () => { if (!b.classList.contains("locked")) act(`bone${i}`); };
     bindPress(b, run);
@@ -399,12 +404,6 @@ export function setAbsorbing(a: typeof absorbing) { absorbing = a; }
 export const vohonDef = (id: string) => VOHON[Math.max(0, vohonIndex(id))];
 export const ownedById = (data: OwnedVohons, rowId: number) => data.list.find((v) => v.rowId === rowId);
 
-/** Rút gọn theo từ, giữ đầu và cuối để phân biệt võ hồn; tooltip giữ nguyên tên đầy đủ. */
-function teamName(name: string) {
-  const words = name.split(" ");
-  return name.length > 21 && words.length > 4 ? `${words.slice(0, 2).join(" ")} … ${words.slice(-2).join(" ")}` : name;
-}
-
 function teamTip(b: HTMLElement, state = b.dataset.sub ?? "") {
   setTip(b, { title: b.dataset.name ?? "Ô đội hình trống", sub: [b.dataset.level, state === b.dataset.level ? "" : state].filter(Boolean).join(" · "),
     lines: [...(b.dataset.tc ? [b.dataset.tc] : ["Chọn võ hồn ở bảng Đội hình (V)."]), ...(b.classList.contains("down") ? ["Hồi lại ngoài giao chiến hoặc khi về doanh trại."] : [])], foot: `Phím ${Number(b.dataset.slot) + 1} · Đổi võ hồn` });
@@ -420,8 +419,10 @@ export function buildTeam(data: OwnedVohons, sw: (slot: number) => void) {
     b.dataset.slot = String(i);
     if (def) b.style.setProperty("--c", def.col);
     if (v) b.dataset.row = String(rowId);
-    b.innerHTML = `<b class="key">${i + 1}</b><i class="dot"></i><span></span><small></small><i class="hpb"><i></i></i><i class="enb"><i></i></i><div class="ui-cd"></div><em class="cdn"></em>`;
-    b.querySelector("span")!.textContent = def ? teamName(def.name) : "Trống";
+    // Chỉ avatar tròn + số cấp + thanh sinh lực mỏng (không tên; tên và hồn kỹ tiên cơ ở chú thích). `small` giữ cho updateTeam, ẩn bằng CSS.
+    const pic = def ? artUrl(`portrait_${def.id}`) : null;
+    b.innerHTML = `<b class="key">${i + 1}</b><span class="av">${pic ? `<img src="${pic}" alt="" draggable="false">` : ""}</span><b class="lv"></b><small></small><i class="hpb"><i></i></i><i class="enb"><i></i></i><div class="ui-cd"></div><em class="cdn"></em>`;
+    b.querySelector(".lv")!.textContent = v ? String(v.level) : "";
     b.dataset.name = def?.name ?? "Ô đội hình trống";
     b.dataset.level = v ? `Cấp ${v.level}` : "";
     b.dataset.sub = v ? (on ? "Ra trận" : `Cấp ${v.level}`) : "";
