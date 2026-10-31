@@ -1,6 +1,6 @@
 # Pháp tướng Liệt Hỏa Thương Lang — ứng viên (#1435)
 
-Part of #1435, PR nháp #1469. Chưa nhập thành phẩm / chưa đóng issue.
+Part of #1435, PR #1469. Đã nhập thân + glow + credits; không tự đóng issue.
 
 ## Nguồn
 
@@ -18,7 +18,7 @@ Codex builtin `image_gen.imagegen`, ngày 31/10/2026, không trả model ID / se
 | ne | 1 | `ne.png` | — | Lưng chếch phải, đòn lao ra xa, đỉnh ô 12–13, qua cutter. |
 | n | 1 | `n.png` | — | Mặt lưng không mắt, đòn ra xa, đỉnh ô 12–13, qua cutter. |
 
-Một job mỗi lần, không vượt ba lượt mỗi tờ. Tờ chọn đều vuông 1254×1254 dù prompt yêu cầu 1024×1024. **Kích thước RAW native chưa được chốt ngoại lệ**, không đổi cỡ RAW hay ghi nhận là ảnh gốc 1024. Tờ s lượt 1 giữ nguyên kích thước lệch vuông do công cụ trả về.
+Một job mỗi lần, không vượt ba lượt mỗi tờ. Tờ chọn đều vuông 1254×1254 dù prompt yêu cầu 1024×1024. **Orchestrator đã chốt cho phép RAW native vuông 1254×1254**, chỉ cắt / thu bằng cutter chuẩn, không co giãn ngoài cutter. RAW không đổi byte; kích thước từng file và hash nằm trong `native-sizes.json` / `SHA256.json`. Tờ s lượt 1 lệch vuông là lượt loại.
 
 ## Ghép thử và xem trong game
 
@@ -26,4 +26,6 @@ Lệnh thử: `node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/liet
 
 Đã thay sheet tạm và xem đủ năm hướng TRONG GAME `/choi/?thu=phaptuong&vh=liet_hoa_thuong_lang&auto=1&danh=1`, thở / đánh lặp, `audio.noAudio: true`. Có ảnh năm hướng trong gallery `phaptuong-1435.html` của phiên AO885. Thân liền, không còn mảnh lam hay cột tối. **Cỡ / vị trí hiện tại chưa đạt:** s/se bị hồn sư che nhiều, ne/n còn quá nhỏ ở lớp mờ; cần chỉnh hiển thị và chụp lại trước khi coi đạt. Chưa đổi `shared/data.ts` trong PR RAW art. Client còn `flashHit` tô trắng thân ở cấu hình mặc định, không phải lỗi RAW; chưa sửa client trong PR này.
 
-`npm.cmd run check` xanh đầy đủ server/client sau cài dependencies, cả với sheet thử. Đã khôi phục sheet gốc sau chụp; chưa đăng ký thành phẩm, chưa sinh credits. Cần chốt RAW native, cỡ hiển thị và xử lý lóe trắng của client trước khi nhập thân + glow và xin AO review. PR vẫn dùng Part of vì cả ba võ hồn chưa nhập xong.
+Đã nhập `pt_liet_hoa_thuong_lang` và `_glow` qua `validate.mjs --register --iso`, sinh credits bằng `credits.mjs`. Lớp sáng dựng bằng `buildGlow` của `phuthe-to-phaptuong-lib.mjs` từ chính sheet Codex mới, tương đương phần dựng glow của CLI `--glow` nhưng không ghi đè thân bằng bản chuyển thể cũ. Recipe, SHA256 thành phẩm và số lượt chọn ở `recipe.json`.
+
+`npm.cmd run check` và test pháp tướng client được chạy lại sau nhập. Cỡ / vị trí Liệt Hỏa cùng việc bỏ flashHit trắng chung đã được giao PR code riêng, Part of #1435 / #1457; không đổi số cân bằng/server/checker trong PR art. PR này dùng Part of; orchestrator sẽ đóng issue khi đủ cả ba võ hồn.
