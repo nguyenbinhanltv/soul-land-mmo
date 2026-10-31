@@ -381,9 +381,27 @@ export async function waypointTest(){
     ok(await waitFor(()=>T.travel?.mapId==="nac_dinh_thanh",WAYPOINT_CAST*1000+2500),"niệm xong: về Nặc Đinh Thành");
     await rejoin();
     ok(T.room.state.mapId==="nac_dinh_thanh"&&at(wps[nd])&&qtyOf(T,"hoi_thanh_phu")===2,`về trận Quảng trường Nặc Đinh, còn ${qtyOf(T,"hoi_thanh_phu")} phù`); }
+  // Lõi Tinh Đấu (kind boss): cấm truyền tống Ở TRONG (trên trận lẫn từ xa, cả Hồi Thành Phù); ĐẾN đây theo luật thường.
+  { const lt="loi_tinh_dau:trai_cong", lsp=objsOf("loi_tinh_dau").find(o=>o.type==="spawn");
+    ok(MAPS.loi_tinh_dau.kind==="boss"&&wps[lt],"Lõi Tinh Đấu: kind boss, có trận Trại cổng");
+    await test(T,"clear",{all:true}); await coin(3000);
+    await warp("loi_tinh_dau",wps[lt].x,wps[lt].y);
+    ok(await waitFor(()=>T.wpUnlock.includes(lt),2000),"đứng trên trận Trại cổng Lõi Tinh Đấu: mở khóa");
+    { const h=T.bag.honTe; ok(/cấm truyền tống/.test(await go(rt))&&!T.recall?.on&&T.bag.honTe===h,"đứng trên trận ở Lõi Tinh Đấu: dịch chuyển bị cấm, không trừ phí"); }
+    await test(T,"goto",{x:lsp.x+lsp.width/2,y:lsp.y+lsp.height/2}); ok((await world())?.cur==="","rời trận, ở giữa Lõi Tinh Đấu");
+    { const h=T.bag.honTe; ok(/cấm truyền tống/.test(await go(rt))&&!T.recall?.on&&T.bag.honTe===h,"từ xa ở Lõi Tinh Đấu: dịch chuyển bị cấm, không trừ phí, không hồi"); }
+    ok((await test(T,"wpcd",{}))?.left===0,"cấm không đặt thời gian hồi");
+    { const l=T.logs.length; T.recall=null; T.room.send("use",{id:phuId()}); await waitFor(()=>T.logs.length>l,1500);
+      ok(/cấm truyền tống/.test(T.logs.at(-1))&&!T.recall?.on&&qtyOf(T,"hoi_thanh_phu")===2,"Hồi Thành Phù ở Lõi Tinh Đấu: bị cấm, giữ phù"); }
+    // Đích là Lõi Tinh Đấu (đã mở): từ bản đồ khác vẫn tới được.
+    await warp("nac_dinh_thanh",wps[nd].x,wps[nd].y); await stand(nd);
+    ok(/Đang niệm/.test(await go(lt)),"đích là Trại cổng Lõi Tinh Đấu (đã mở): vẫn niệm được");
+    ok(await waitFor(()=>T.travel?.mapId==="loi_tinh_dau",WAYPOINT_CAST*1000+2500),"tới được Lõi Tinh Đấu bằng truyền tống");
+    await rejoin(); await warp("nac_dinh_thanh",wps[nd].x,wps[nd].y);
+  }
   // Thoát vào lại: vẫn nhớ trận đã mở.
   await rejoin(); w=await world();
-  ok([lang,nd,tc,rt].every(k=>w?.list.find(x=>x.key===k)?.open)&&w.list.filter(x=>x.open).length===4,`thoát vào lại: còn ${w?.list.filter(x=>x.open).length} trận đã mở`);
+  ok([lang,nd,tc,rt,"loi_tinh_dau:trai_cong"].every(k=>w?.list.find(x=>x.key===k)?.open)&&w.list.filter(x=>x.open).length===5,`thoát vào lại: còn ${w?.list.filter(x=>x.open).length} trận đã mở`);
   await T.room.leave();
 }
 
