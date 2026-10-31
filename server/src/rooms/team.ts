@@ -8,7 +8,8 @@ import { VOHON, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX,
   SHARD_UNLOCK, MAX_STARS, starCost, shardCode,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText } from "../../../shared/data.ts";
 import { itemStacks } from "./items.ts";
-import { intIn, fusionCdLeft, CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
+import { fusionCdLeft, type MapRoom, type PData } from "./MapRoom.ts";
+import { intIn, CLAIM_BUSY, claimHeld } from "./common.ts";
 
 /**
  * Cộng minh (bước 8.2, mục 5.10): tính lại tiến độ 5 trụ cột từ dữ liệu sẵn có của tài khoản (mọi võ hồn sở hữu: cấp, số hồn

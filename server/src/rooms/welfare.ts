@@ -6,7 +6,8 @@ import { store, type CheckinRow } from "../db.ts";
 import { bossNow } from "../schedule.ts";
 import { takeToken } from "../ratelimit.ts";
 import { bagUsed } from "./items.ts";
-import { CLAIM_BUSY, claimHeld, intIn, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { CLAIM_BUSY, claimHeld, intIn } from "./common.ts";
 
 const DAY_MS = 86400000;
 /** Đồng hồ của Phúc Lợi: đồng hồ lịch boss (bot đẩy bằng `BOSS_CLOCK`) cộng lệch ngày của hook test `day`, như `room.today()`. */

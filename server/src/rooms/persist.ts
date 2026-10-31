@@ -6,7 +6,8 @@ import { store } from "../db.ts";
 import { MAPS } from "../../../shared/data.ts";
 import { ItemLockBusy, withItemLocks } from "../itemLock.ts";
 import { presenceBackend } from "../presence.ts";
-import { saveStats, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { saveStats } from "./common.ts";
 import { rankSync } from "./rank.ts";
 
 /** Lần ghi cuối chờ khóa món tối đa FINAL_LOCK_TRIES × FINAL_LOCK_WAIT_MS (#559). */

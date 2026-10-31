@@ -4,7 +4,8 @@
 
 import { RANK_BOARDS, RANK_CD, RANK_PAGE_MAX, RANK_PAGE_SIZE, RANK_SYNC_CD, TEAM_COMBAT_SECS, rankBoardOf, rankScores } from "../../../shared/data.ts";
 import { store } from "../db.ts";
-import { intIn, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { intIn } from "./common.ts";
 
 /**
  * Ghi điểm xếp hạng của người chơi nếu đổi (chỉ gọi trong chuỗi lưu của người đó: `room.chain`, sau lần ghi DB thành công, lúc vào phòng).

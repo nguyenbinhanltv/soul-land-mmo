@@ -10,7 +10,8 @@ import { TIERS, VOHON, tierOfYears, vohonIndex, beastIndex, starSkillMult, starC
 import { store } from "../db.ts";
 import * as party from "../party.ts";
 import { presenceBackend } from "../presence.ts";
-import { fusionCdLeft, fusionKey, fusionReady, type MapRoom, type PData, type Hit, type FusHit } from "./MapRoom.ts";
+import { fusionCdLeft, fusionReady, type MapRoom, type PData, type Hit, type FusHit } from "./MapRoom.ts";
+import { fusionKey } from "./common.ts";
 
 /**
  * Bộ máy hồn kỹ theo dữ liệu (SkillDef trong shared/data.ts) cho hồn kỹ chung, hồn kỹ riêng và chiêu tiên cơ riêng.
@@ -431,4 +432,4 @@ export function boneSkill(room: MapRoom, c: Client, i: number) {
   // Mốc cường hóa +5 / +10 / +15 / +20 nâng kỹ năng (4.4): sức mạnh và hiệu ứng lên bản thân nhân boneSkillMult.
   const em = boneSkillMult(bone.enhance);
   runSkill(room, id, sk, skillPower(bone.years) * em, buffPower(bone.years) * em, col, { kind: "skill", done: false }, sk.self ? d.ch.vohon : undefined);
-}
+}

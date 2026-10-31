@@ -5,7 +5,8 @@ import { itemDef, formatHonTe, npcDef, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAY
   tongDef, tongWeek, tongWeekDay, tongTop, tongTaskIds, questChain, questStatus, ARENA_SHARDS, shardCode, type QuestProgress } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import { progressFor } from "./calc.ts";
-import { CLAIM_BUSY, claimHeld, testShift, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { CLAIM_BUSY, claimHeld, testShift } from "./common.ts";
 
 /**
  * Tin client `tong {op, tong}`: `join` gia nhập hoặc đổi sang tông `tong` (đứng gần sứ giả của tông đó; xong chuỗi tân thủ, võ hồn

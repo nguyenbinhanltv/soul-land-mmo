@@ -4,7 +4,8 @@
 import type { Client } from "colyseus";
 import { VOHON, TIERS, atBottleneck, MAX_LEVEL, tierOfYears, vohonIndex, absorbSecs, absorbChance, formatYears, MAX_RINGS, RING_ITEM,
   TEAM_COMBAT_SECS, ringSkill, chanThanOf, CHAN_THAN_RING, LOADOUT_SIZE } from "../../../shared/data.ts";
-import { CLAIM_BUSY, claimHeld, type MapRoom } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import { CLAIM_BUSY, claimHeld } from "./common.ts";
 
 /**
  * Hấp thụ hồn hoàn trong túi vào một võ hồn (mục 5.2 "Hấp thụ", bước 3.3). Client gửi id ô và `vohonId` (vohons.id; thiếu thì

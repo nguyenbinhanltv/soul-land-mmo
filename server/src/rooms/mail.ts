@@ -6,7 +6,8 @@ import { MAIL, MAIL_KINDS, MSG_GROUP, formatHonTe, itemDef, type MailItem } from
 import { mailHasAttach, store, type MailRow } from "../db.ts";
 import { takeToken } from "../ratelimit.ts";
 import { bagFits } from "./welfare.ts";
-import { CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom, type PData } from "./MapRoom.ts";
+import { CLAIM_BUSY, claimHeld } from "./common.ts";
 
 /** Thư gửi xuống client: thêm tên người gửi theo nguồn (`MAIL_KINDS`). */
 const view = (m: MailRow) => ({ id: m.id, from: MAIL_KINDS[m.kind] ?? "Hệ thống", title: m.title, body: m.body, honTe: m.honTe, items: m.items, at: m.createdAt, exp: m.expiresAt, read: m.read, claimed: m.claimed });
