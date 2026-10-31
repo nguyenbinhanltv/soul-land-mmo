@@ -279,7 +279,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     const s = BONE_SLOTS[boneSlotIndex(slot)], w = worn.find((x) => x.slot === slot), k = w ? boneSkillOf(w.beast, slot) : null;
     const sk = k?.active ? k.sk : null, col = w ? ringColor(tierOfYears(w.years)) : "#666";
     boneCd[i] = sk?.cd ?? 1;
-    const b = document.createElement("button"); b.className = "sk bsk ui-cell f2-o" + (sk ? "" : " locked empty"); b.dataset.b = String(i);
+    const b = document.createElement("button"); b.className = "sk bsk ui-cell f2-o" + (sk ? "" : w ? " locked passive" : " locked empty"); b.dataset.b = String(i);
     if (w) b.dataset.tier = String(tierOfYears(w.years)); // cả hồn cốt bị động (ô mờ nhưng giữ viền màu niên hạn)
     b.dataset.cost = String(sk?.cost ?? 0);
     b.innerHTML = `<b class="key">${BONE_SKILL_KEYS[i]}</b><i></i><span class="ico skart" style="color:${col}">${boneIcon(slot, col)}</span><span class="sk-name"></span><div class="ui-cd" aria-hidden="true"></div><em class="cdn" aria-hidden="true"></em><em class="sk-state" aria-hidden="true"></em>`;
@@ -289,7 +289,7 @@ export function buildBoneSkills(worn: WornBone[], act: (k: string) => void) {
     setCellTip(b, w && sk ? { title: boneName(w.beast, slot, w.years, w.enhance), color: TIERS[tierOfYears(w.years)].glow, sub: `Hồn cốt ${s.name} · tốn ${sk.cost} hồn lực · hồi ${cdText(sk.cd)} giây`,
         lines: [boneSkillText(w.beast, slot, w.years, w.enhance)] }
       : { title: `Ô ${s.name}: chưa gắn hồn cốt`, lines: ["Gắn hồn cốt ở bảng đội hình (V) để có kỹ năng chủ động."] });
-    b.querySelector(".sk-state")!.textContent = sk ? "" : "Khóa";
+    b.querySelector(".sk-state")!.textContent = sk || w ? "" : "Khóa";
     b.setAttribute("aria-disabled", String(!sk));
     const run = () => { if (!b.classList.contains("locked")) act(`bone${i}`); };
     bindPress(b, run);
