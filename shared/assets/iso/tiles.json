@@ -635,7 +635,8 @@
   },
   "cot_co_do_vang": {
    "key": "prop_cot_co_do_vang",
-   "foot": [24, 78]
+   "foot": [24, 78],
+   "clip": { "key": "prop_cot_co_do_vang_clip", "frames": 16, "ms": 100 }
   },
   "lo_lua_dong": {
    "key": "prop_lo_lua_dong",

@@ -1,0 +1,22 @@
+{
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-01",
+  "license": "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có",
+  "rawSHA256": "483e61b8111e7d067f52541009de821905301f7518e0e3b6630ab9c78edc448f",
+  "originalSHA256": "a80471f275af04afb03f6e0e8243ce0d033a5898df9e331ec742749582006b52",
+  "clipSHA256": "243a0cc31c43e3abaf0bbe98abb6e25f9399b8c2ba56b1349774b3a6a9ecd9e6",
+  "region": [
+    10,
+    19,
+    18,
+    35
+  ],
+  "mask": "cloth-seam",
+  "rawFile": "RAW.png",
+  "nativeSize": [
+    1536,
+    1024
+  ],
+  "frames": 16,
+  "ms": 100
+}
