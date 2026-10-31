@@ -1,10 +1,11 @@
 // Miền tông môn (GAME_DESIGN.md mục 5.8 / tông môn #196, #197): gia nhập / rời tông, tông vụ hằng ngày, bảng tuần, thưởng tuần, tách khỏi MapRoom.ts (#702, bước 7).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / gm.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`, `room.saveTrade`.
-// MapRoom chỉ chuyển tiếp `tongAction` (đăng ký `onMessage("tong")` giữ nguyên thứ tự ở đó). `sendTong`, `tongNow`, `tongTasksOf`, `tongFresh` còn ở MapRoom (nhiều nơi gọi).
+// MapRoom chỉ chuyển tiếp `tongAction` (đăng ký `onMessage("tong")` giữ nguyên thứ tự ở đó) và `sendTong`, `tongNow`, `tongTasksOf`, `tongFresh` (bước 28, nhiều nơi gọi `room.sendTong`).
 import { itemDef, formatHonTe, npcDef, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAYS, TONG_POINTS, TONG_BOARD_CD, TONG_WEEK_MIN, TONG_TOP_N, TONG_WEEK_KIND, TONG_WEEK_REWARD,
-  tongDef, tongWeek, tongWeekDay, tongTop, questChain, questStatus, ARENA_SHARDS, shardCode } from "../../../shared/data.ts";
+  tongDef, tongWeek, tongWeekDay, tongTop, tongTaskIds, questChain, questStatus, ARENA_SHARDS, shardCode, type QuestProgress } from "../../../shared/data.ts";
 import { store } from "../db.ts";
-import { CLAIM_BUSY, claimHeld, type MapRoom, type PData } from "./MapRoom.ts";
+import { progressFor } from "./calc.ts";
+import { CLAIM_BUSY, claimHeld, testShift, type MapRoom, type PData } from "./MapRoom.ts";
 
 /**
  * Tin client `tong {op, tong}`: `join` gia nhập hoặc đổi sang tông `tong` (đứng gần sứ giả của tông đó; xong chuỗi tân thủ, võ hồn
@@ -178,4 +179,29 @@ export function tongClaim(room: MapRoom, id: string) {
     d.claimBusy--;
     if (room.pdata.get(id) === d) room.sendBag(id);
   });
+}
+
+/**
+ * Tin riêng `tong {tong, wait, day, tasks}`: tông đang thuộc ("" = không), số giây còn phải chờ mới gia nhập / đổi được (0 = được), và
+ * TONG_DAILY.count tông vụ hôm nay (#197: tiến độ như tin "daily" kèm trạng thái; nội dung bài client tự suy từ mã, questChain).
+ */
+export function sendTong(room: MapRoom, id: string) {
+  const d = room.pdata.get(id); if (!d) return;
+  tongFresh(room, d); room.dailyGive(d, d.tongTasks);
+  const wait = d.tongAt === null ? 0 : Math.max(0, Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - Date.now()) / 1000));
+  room.clients.getById(id)?.send("tong", { tong: d.tong ?? "", wait, day: d.tongDay,
+    tasks: d.tongTasks.map((q) => ({ ...q, prog: [...q.prog], status: questStatus(q) })) });
+}
+/** Giờ của tuần tông (ms): giờ thật, hook test `tweek` lệch được (#197). */
+export function tongNow() { return Date.now() + testShift.tong * 86400000; }
+/** Bộ tông vụ hôm nay từ các dòng `quests` đã lưu (như dailyOf); bài chưa có dòng thì chưa nhận. */
+export function tongTasksOf(room: MapRoom, saved: QuestProgress[] | undefined, day = room.dailyDay()) {
+  return { tongDay: day, tongTasks: progressFor(tongTaskIds(day), saved) };
+}
+/** Sang ngày mới thì thay bằng bộ tông vụ mới chưa nhận (như dailyFresh); trả true khi vừa đặt lại. */
+export function tongFresh(room: MapRoom, d: PData, day = room.dailyDay()) {
+  if (d.tongDay === day) return false;
+  Object.assign(d, tongTasksOf(room, undefined, day));
+  d.bagDirty = true;
+  return true;
 }
