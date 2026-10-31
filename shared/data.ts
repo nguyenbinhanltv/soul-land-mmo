@@ -2503,18 +2503,18 @@ const pt = (id: string, group: PtGroup, hat: PtHat, o: { scale?: number; dx?: nu
     scale: o.scale ?? 1, dx: o.dx ?? 0, dy: o.dy ?? 0, glow: o.glow, motion: { ...PT_BASE[group], ...o.motion } }];
 /** Bảng pháp tướng của đủ 25 võ hồn (bài kiểm thử đòi mỗi võ hồn có mục). Giá trị H1 (Lam Điện) lấy theo manifest ảnh; Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo (#1306) dùng sheet lấy từ phụ thể cũ: dạng bay sau lưng = phóng `scale` ~1,8 lúc vẽ (không nướng ×2 vào ảnh), dx / dy nâng lên cao hơn vai và lùi ra sau, `bob` nhấp nhô bằng code. */
 export const PHAP_TUONG: Record<string, PhapTuongDef> = Object.fromEntries([
-  pt("cuu_tinh_that_sat_kiem", "V", "hon", { dx: 10, dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
+  pt("cuu_tinh_that_sat_kiem", "V", "hon", { scale: 1.4, dx: 14, dy: -26, motion: { ...BAKED, bob: 3, pulse: 0.2 } }),
   pt("lam_dien_ba_vuong_long", "S", "dien"),
   pt("ky_nhung_thong_thien_cuc", "P", "hon", { scale: 1.6, dy: -24, motion: { ...BAKED, bob: 2, pulse: 0.25 } }),
   pt("ta_hoa_phuong_hoang", "B", "lua", { scale: 1.8, dy: -28, motion: { ...BAKED, bob: 3, pulse: 0.12 } }),
   pt("u_minh_linh_mieu", "T", "khoi", { motion: { ...BAKED, pulse: 0.12 } }),
-  pt("nguyet_nhan", "V", "hon", { scale: 1.2, dy: -6, motion: { ...BAKED, pulse: 0.15 } }),
+  pt("nguyet_nhan", "V", "hon", { scale: 1.3, dy: -22, motion: { ...BAKED, bob: 2, pulse: 0.15 } }),
   pt("hoa_long", "S", "lua", { scale: 1.5, dy: -20, motion: { ...BAKED, bob: 2, pulse: 0.12 } }),
   pt("nhu_cot_tho", "T", "hon", { motion: { ...BAKED, pulse: 0.1 } }),
   pt("kim_vu_mieu_ung", "B", "dien", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("tu_vong_chu_hoang", "T", "doc", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("bich_lan_xa_hoang", "S", "doc", { motion: { ...BAKED, pulse: 0.12 } }),
-  pt("can_khon_hon_nguyen_toa", "O", "hon", { dy: -4, motion: { ...BAKED, pulse: 0.2 } }),
+  pt("can_khon_hon_nguyen_toa", "O", "hon", { scale: 1.3, dy: -26, motion: { ...BAKED, bob: 2, pulse: 0.2 } }),
   pt("hoa_anh", "D", "lua", { scale: 1.5, dy: -20, motion: { ...BAKED, bob: 2, pulse: 0.15 } }),
   pt("yeu_ho", "T", "hon", { motion: { ...BAKED, pulse: 0.12 } }),
   pt("xuc_xich", "O", "khoi", { scale: 1.1, dx: 10, dy: -6, motion: { ...BAKED, pulse: 0.2 } }),

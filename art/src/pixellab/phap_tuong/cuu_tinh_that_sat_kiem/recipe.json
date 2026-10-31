@@ -15,9 +15,9 @@
     "xa": 40
   },
   "display": {
-    "scale": 1,
-    "dx": 10,
-    "dy": -4,
+    "scale": 1.4,
+    "dx": 14,
+    "dy": -26,
     "back": [
       "s",
       "se",
@@ -190,5 +190,11 @@
         "s": 1
       }
     ]
+  },
+  "dongGoi": {
+    "cong_cu": "tools/assets/phuthe-to-phaptuong.mjs",
+    "nguon": "vhanim_cuu_tinh_that_sat_kiem_b/_f (phụ thể mới nhất, clip idle / attack)",
+    "ngay": "2026-10-31",
+    "issue": 1306
   }
 }

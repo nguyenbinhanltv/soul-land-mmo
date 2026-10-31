@@ -14,6 +14,26 @@ Căn cứ: ảnh trong game của 3 mẫu (`art/preview/phaptuong-1306/`, PR #13
 
 Những võ hồn còn lại: giữ bản chuyển thể trừ khi chủ repo duyệt mẫu và thấy hỏng.
 
+### 1.1 Kết quả chạy công cụ trên 17 võ hồn còn lại (2026-10-31)
+
+Chạy từng võ hồn từ phụ thể mới nhất (`vohonanim/<id>_{b,f}`), xem trong game (`?thu=phaptuong`, đủ 5 hướng, thở + đánh). **Đã nhập (vật cứng, không nộm): Cửu Tinh Thất Sát Kiếm, Nguyệt Nhận, Càn Khôn Hỗn Nguyên Tỏa, Cửu Bảo Lưu Ly Tháp, Phá Hồn Thương, Thiên Càn Bạch Ngọc Đỉnh.** `display` (`scale` · `dx` · `dy`) đã chỉnh trong game: Cửu Tinh 1,4 · 14 · −26; Nguyệt Nhận 1,3 · 0 · −22; Càn Khôn 1,3 · 0 · −26; Cửu Bảo 1 · 0 · −20; Phá Hồn Thương 1,4 · 12 · −16; Thiên Càn 1,2 · 0 · −22. Hạn chế: Thiên Càn có vài khung đánh hướng `s` bị khói cắt vuông ở mép khung nguồn; mảng trắng đặc thấy lúc thử là hiệu ứng khựng đòn của client (`flashHit` ở `phapTuong.ts`), không phải ảnh. Còn **11 võ hồn sinh vật / hư ảnh** công cụ làm chưa ổn: phụ thể cũ là hình bọc quanh nộm nên giữa thân vẫn còn cột tối hình người (hàng sọc), `--fill 24` không xóa được. Giao Codex vẽ lại theo mục 3 và 4; đã tự ghi mức:
+
+| Mức | Võ hồn | Lý do (thấy trong game) |
+|---|---|---|
+| Nặng | Lam Điện Bá Vương Long (`lam_dien_ba_vuong_long`) | Cột tối hình người xếp tầng ở giữa thân rồng, lộ rõ ở mọi hướng; thân rồng không liền |
+| Nặng | U Minh Linh Miêu (`u_minh_linh_mieu`) | Cột tối + khoảng rỗng giữa thân báo, hình thú vỡ ở các khung đánh |
+| Nặng | Nhu Cốt Thố (`nhu_cot_tho`) | Ô tối chữ nhật lộ ở `s` / `se`; thân thỏ nhỏ, đứt ở khung đánh |
+| Nặng | Kim Vũ Miêu Ưng (`kim_vu_mieu_ung`) | Cột tối giữa hai cánh, chim không có thân thật |
+| Nặng | Yêu Hồ (`yeu_ho`) | Khối tối hình chữ nhật ở giữa, chỉ còn ba đuôi |
+| Nặng | Xúc Xích (`xuc_xich`) | Hình không đọc ra xúc xích; hướng `n` còn nguyên khoảng rỗng hình người |
+| Nặng | Liệt Hỏa Thương Lang (`liet_hoa_thuong_lang`) | Cột tối + mảnh lam lạc màu ở chân; sói không có thân liền |
+| Nặng | Bạch Hổ (`bach_ho`) | Cột tối, hình hổ vỡ ở `e` / `ne` / `n` |
+| Vừa | Bích Lân Xà Hoàng (`bich_lan_xa_hoang`) | Cột sọc tối giữa các vòng rắn; thân vòng ngoài còn đọc được |
+| Vừa | Băng Phượng Hoàng (`bang_phuong_hoang`) | Cột sọc tối giữa hai cánh băng; cánh tốt |
+| Nhẹ | Tử Vong Chu Hoàng (`tu_vong_chu_hoang`) | Thân nhện thật, tám chân tốt, chỉ còn cột sọc dưới bụng; ưu tiên cuối |
+
+Hạo Thiên Chùy: sheet đang có sinh lại từ `vohonanim` hiện tại cho kết quả giống từng byte (vũ khí cầm tay v2 ở atlas riêng, không đổi nguồn pháp tướng), và đã xem lại trong game nên giữ nguyên.
+
 ## 2. Quy cách ảnh giao
 
 - **Thành phẩm cuối** là sheet `pt_<id>`: khung 160×160, **16 cột × 5 hàng** (2560×800), hàng = hướng `s`, `se`, `e`, `ne`, `n`, cột 0–7 "thở", 8–15 "đánh" (`phap-tuong.md` mục 2, `PT_*` ở `shared/data.ts`). Gốc chân khung ở `(80, 124)`; hình cao 60–120 điểm trên gốc, chừa lề 2 điểm; **không chạm mép trên / trái / phải**. `sw`, `w`, `nw` lật gương từ `se`, `e`, `ne` (không vẽ).
