@@ -29,13 +29,11 @@ import { TIERS, VOHON, TICK_RATE, tierOfYears, vohonIndex,
   tongTaskIds,
   PARTY_XP_RANGE, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, BUFFS,
   type ResEffect,
-  RADAR, type AutoHint, type AutoSettings, type AutoSummary,
+  type AutoHint, type AutoSettings, type AutoSummary,
   type OfflinePower,
   type SellSettings } from "../../../shared/data.ts";
 import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
-import { FOG } from "../../../shared/data.ts"; // sương mù khám phá (R8)
 import type { Vitals } from "../../../shared/vitals.ts";
-import { fogDims, fogEmpty, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
 import { clampDir, MOVE_DEAD } from "../../../shared/move.ts";
 import { loadMap, mapFile, mapRoute, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
@@ -95,6 +93,7 @@ import * as kill from "./kill.ts";
 import * as ava from "./ava.ts";
 import * as tienco from "./tienco.ts";
 import * as stats from "./stats.ts";
+import * as fog from "./fog.ts";
 
 export interface PData {
   /** Hồn thú đang khoá (M3 #750, rooms/lock.ts); "" = không khoá. */
@@ -2411,107 +2410,17 @@ export class MapRoom extends Room<MapState> {
     return fxPoint(m, (id) => this.state.players.get(id), (id) => this.state.beasts.get(id));
   }
 
-  /**
-   * Hồn thú có thể nằm trong bán kính r quanh (x, y): ứng viên theo lưới không gian (đã cộng nửa cỡ hồn thú lớn nhất), thay cho quét cả
-   * bản đồ. Nơi gọi vẫn tự lọc theo khoảng cách thật.
-   */
-  beastsNear(x: number, y: number, r: number): [string, BeastState][] {
-    const out: [string, BeastState][] = [];
-    for (const id of this.interest.beasts.near(x, y, r + BEAST_HALF)) { const b = this.state.beasts.get(id); if (b) out.push([id, b]); }
-    return out;
-  }
-
-  // ---------- Sương mù khám phá (R8 #435, GAME_DESIGN.md mục 5.17) ----------
-  /** Bản đồ này có sương mù (bản đồ trong FOG.open mở sẵn; sân đấu nằm trong đó nên không bao giờ có). */
-  get fogOn() { return fogMapOn(this.state.mapId); }
-  fogDims() { return fogDims(this.map.MW, this.map.MH); }
-
-  /**
-   * Nạp bitset của người chơi ở bản đồ này (chạy trong chuỗi lưu: không chạy chồng lần ghi) rồi mở ô quanh chỗ đứng và gửi cả bitset. Dòng ghi cho
-   * file Tiled khác, sai kích thước hoặc có bit thừa (dữ liệu lạ) thì bỏ, bắt đầu từ trống: tài khoản cũ bắt đầu trống và chỉ mở quanh chỗ đứng.
-   */
-  fogLoad(id: string) {
-    const d = this.pdata.get(id); if (!d || !this.fogOn) return;
-    this.chain(d, async () => {
-      const dims = this.fogDims(), mapId = this.state.mapId;
-      let bits: Uint8Array | null = null;
-      try { bits = await store.getFog(d.accountId, mapId, mapFile(mapId)); } catch (e) { console.error(`Không đọc được sương mù của #${d.accountId} (${mapId})`, e); }
-      if (this.pdata.get(id) !== d) return;
-      if (bits && !fogValid(bits, dims)) { console.warn(`[fog] #${d.accountId} ${mapId}: bỏ bitset sai dạng (${bits.length} byte, cần ${dims.bytes})`); bits = null; }
-      d.fog = bits ?? fogEmpty(dims);
-      if (!bits) d.fogDirty = true;
-      this.fogMarkOne(id, d);
-      d.fogAdd.length = 0; // cả bitset gửi ngay dưới đây, không cần gửi lại từng ô
-      this.sendFog(id);
-    });
-  }
-
-  /** Mở ô quanh vị trí thật của một người (server tự lấy từ state, không nhận gì từ client). */
-  fogMarkOne(id: string, d: PData) {
-    const p = this.state.players.get(id); if (!p || !d.fog || d.travelling) return;
-    const add = fogReveal(d.fog, this.fogDims(), p.x / TILE, p.y / TILE);
-    if (add.length) { d.fogDirty = true; for (const i of add) d.fogAdd.push(i); }
-  }
-  fogMark() { this.pdata.forEach((d, id) => this.fogMarkOne(id, d)); }
-
-  /** Gửi các ô vừa mở (tối đa FOG.maxAdd mỗi tin, dư để nhịp sau) cho từng người, tin `fogd {add}`; số ô thô theo thứ tự hàng. */
-  fogSend() {
-    this.pdata.forEach((d, id) => {
-      if (!d.fog || !d.fogAdd.length) return;
-      const c = this.clients.getById(id); if (!c) return;
-      c.send("fogd", { add: d.fogAdd.splice(0, FOG.maxAdd) });
-    });
-  }
-
-  /** Tin riêng `fog {bits}`: cả bitset ô thô của chính người đó ở bản đồ này (cỡ lưới client tự tính từ cỡ bản đồ). Chưa nạp xong thì chưa gửi. */
-  sendFog(id: string) {
-    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d?.fog || !c) return;
-    d.fogAdd.length = 0;
-    c.send("fog", { bits: d.fog });
-  }
-
-  /** Ghi bitset nếu đổi từ lần ghi trước (chỉ gọi trong chuỗi lưu). Lỗi ghi: đánh dấu lại để lần sau ghi tiếp, không làm hỏng lần lưu khác. */
-  async fogFlush(d: PData) {
-    if (!d.fog || !d.fogDirty) return;
-    d.fogDirty = false;
-    const mapId = this.state.mapId;
-    try { await store.saveFog(d.accountId, mapId, mapFile(mapId), d.fog); }
-    catch (e) { d.fogDirty = true; console.error(`Lưu sương mù của #${d.accountId} (${mapId}) thất bại`, e); }
-  }
-
-  /**
-   * Bản đồ nhỏ (tin `mini`, mỗi SYNC_VIEW.mini giây): `p` vị trí theo ô `[sid, x, y]` của hồn sư, hồn thú thường từ nghìn năm `b`
-   * `[x, y, bậc]` và đồ rơi `d` `[x, y, bậc]` cả bản đồ, vì `players` / `beasts` / `drops` trong state chỉ còn thực thể ở gần. Tinh anh,
-   * thú vương luôn có trong state. Hồn sư tính RIÊNG cho từng client (R5, `RADAR.far`): người lạ ngoài `RADAR.far` ô không có trong
-   * tin (không lộ vị trí); đồng đội tổ đội cùng kênh và người cùng tông môn luôn có. Hồn thú / đồ rơi dùng chung một bản.
-   */
-  sendMini() {
-    const t = (v: number) => Math.floor(v / TILE), b: number[] = [], d: number[] = [];
-    this.state.beasts.forEach((q) => { if (q.tier >= 3 && !q.rank) b.push(t(q.x), t(q.y), q.tier); });
-    this.state.drops.forEach((q) => { d.push(t(q.x), t(q.y), q.tier); });
-    // Đồng đội: tài khoản -> sid trong phòng; cùng tông: tông -> các sid.
-    const sidOf = new Map<number, string>(), clan = new Map<number, string[]>();
-    for (const [sid, x] of this.pdata) {
-      sidOf.set(x.accountId, sid);
-      const tg = this.state.players.get(sid)?.tong ?? 0;
-      if (tg > 0) { const l = clan.get(tg); if (l) l.push(sid); else clan.set(tg, [sid]); }
-    }
-    const far = RADAR.far * TILE, far2 = far * far;
-    for (const c of this.clients) {
-      const me = this.state.players.get(c.sessionId), mx = this.pdata.get(c.sessionId);
-      if (!me || !mx) continue;
-      const ids = new Set<string>(), p: (string | number)[] = [];
-      const put = (id: string) => { if (ids.has(id)) return; const q = this.state.players.get(id); if (!q) return; ids.add(id); p.push(id, t(q.x), t(q.y)); };
-      put(c.sessionId);
-      for (const id of this.interest.players.near(me.x, me.y, far)) {
-        const q = this.state.players.get(id);
-        if (q && (q.x - me.x) ** 2 + (q.y - me.y) ** 2 <= far2) put(id);
-      }
-      for (const acc of party.partyMembers(mx.accountId)) { const id = sidOf.get(acc); if (id) put(id); }
-      if (me.tong > 0) for (const id of clan.get(me.tong) ?? []) put(id);
-      c.send("mini", { p, b, d });
-    }
-  }
+  /** Phạm vi quan tâm, sương mù khám phá, bản đồ nhỏ: logic ở `fog.ts` (#702), các hàm dưới chỉ chuyển tiếp để `tick`, `join`, `persist`, `travel`, `gm` và các miền gọi như cũ. */
+  beastsNear(x: number, y: number, r: number): [string, BeastState][] { return fog.beastsNear(this, x, y, r); }
+  get fogOn() { return fog.fogOn(this); }
+  fogDims() { return fog.fogDims(this); }
+  fogLoad(id: string) { fog.fogLoad(this, id); }
+  fogMarkOne(id: string, d: PData) { fog.fogMarkOne(this, id, d); }
+  fogMark() { fog.fogMark(this); }
+  fogSend() { fog.fogSend(this); }
+  sendFog(id: string) { fog.sendFog(this, id); }
+  async fogFlush(d: PData) { return fog.fogFlush(this, d); }
+  sendMini() { fog.sendMini(this); }
 
   perfLog(t0: number, t1: number, t2: number, c0: number, ti: number) { return tick.perfLog(this, t0, t1, t2, c0, ti); }
 

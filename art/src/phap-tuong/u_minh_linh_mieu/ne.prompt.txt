@@ -32,3 +32,6 @@ Rows3-4: eight attack frames: 9-11 crouch and pull back, 12 AND13 same maximal f
 Solid opaque body, hard-edged color clusters, 3 tones per region, #1a1020 outline; no ground, no shadow, no human, no mannequin, no frames, no letters, no detached particles.
 OUTPUT GEOMETRY IS MANDATORY: SQUARE canvas, width exactly equal height, 1024x1024. Not landscape. Four equal SQUARE columns and four equal SQUARE rows, sixteen complete separate panthers. Reduce every figure to 60 percent of available cell width and height, centered, generous magenta gutters. Retain the same complete black violet panther design.
 SPACING: Every whole pose including fully stretched attack, all claws and tail fits inside central HALF of its square cell. Pure magenta gutters minimum 64pixels on every side of each 256square cell. No pose crosses its cell.
+
+
+SPACING CORRECTION ONLY: Uniformly SHRINK ALL16 COMPLETE panthers to45percent current widthANDheight, including every tuft, whole tail and longest attackclaws. Every whole pose at most120x120px centered inside its256squarecell,minimum68px EMPTY PURE #FF00FF gutters on EVERY side. Sixteen SMALL isolated panthers on SQUARE4x4. Preserve same violet-black panther and rear northeast camera, no front eyes.
