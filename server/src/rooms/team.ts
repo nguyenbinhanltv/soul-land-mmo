@@ -8,7 +8,8 @@ import { VOHON, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX,
   SHARD_UNLOCK, MAX_STARS, starCost, shardCode,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText } from "../../../shared/data.ts";
 import { itemStacks } from "./items.ts";
-import { type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { fusionCdLeft } from "./procState.ts";
 import { intIn, CLAIM_BUSY, claimHeld } from "./common.ts";
 

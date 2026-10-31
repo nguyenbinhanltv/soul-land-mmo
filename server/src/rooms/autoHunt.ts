@@ -13,7 +13,8 @@ import { MOVE_DEAD, type SolidGrid } from "../../../shared/move.ts";
 import { findPath, findLongPath, clearLine, buildNav, navNode, type Pt, type Nav } from "../../../shared/path.ts";
 import type { GameMap } from "../map.ts";
 import * as party from "../party.ts";
-import type { MapRoom, PData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import type { PlayerState, BeastState, DropState } from "./schema.ts";
 import { AutoFeed } from "./autoStatus.ts";
 

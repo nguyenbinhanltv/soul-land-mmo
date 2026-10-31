@@ -6,7 +6,8 @@ import { itemDef, npcDef, questChain, questStart, questStatus, questRewardText, 
 import { mapRoute } from "../map.ts";
 import { bossNow } from "../schedule.ts";
 import { progressFor, giveCandidates } from "./calc.ts";
-import { type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { CLAIM_BUSY, claimHeld, testShift } from "./common.ts";
 
 /** Nói chuyện với NPC `raw` (mã trong NPCS): đứng đủ gần thì gửi riêng tin `npc {id}` để client mở hộp thoại (lời thoại ở NPCS). */

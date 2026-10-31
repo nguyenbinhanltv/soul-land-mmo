@@ -9,7 +9,8 @@ import { rallyPoint, type RallyMsg } from "../../../shared/rally.ts";
 import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { presenceBackend } from "../presence.ts";
 import { arenaQueueLocked, arenaReadActive } from "./arenaQueue.ts";
-import { type ChatRoute, type MapRoom } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { ChatRoute } from "./types.ts";
 import { worldChatKey, CHAT_TOPIC, FRIEND_COL, accOf, strIn } from "./common.ts";
 
 /**

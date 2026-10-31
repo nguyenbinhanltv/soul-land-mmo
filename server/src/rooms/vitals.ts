@@ -2,7 +2,8 @@
 // (schema.ts), nên đối thủ Đại Đấu Hồn Trường hay người đứng gần không đọc được. Gửi khi đổi, hồn lực hồi dần gộp theo `SYNC_VIEW.vitGap`,
 // hồi chiêu do client tự đếm lùi giữa hai tin (shared/vitals.ts). Dòng đầu sau khi vào phòng luôn gửi (d.vit = null).
 import { vitalsDue, vitalsPack, type Vitals } from "../../../shared/vitals.ts";
-import type { MapRoom, PData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import type { PlayerState } from "./schema.ts";
 
 const snap = (p: PlayerState): Vitals => ({ xp: p.xp, xpNeed: p.xpNeed, mp: p.mp, maxMp: p.maxMp, cds: [...p.cds], bcds: [...p.bcds], swCd: p.swCd, avaCd: p.avaCd, ctCd: p.ctCd });

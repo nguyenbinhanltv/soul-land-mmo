@@ -13,7 +13,8 @@ import {
 import type { Character } from "../db.ts";
 import type { PlayerState } from "./schema.ts";
 import { coreSetNoteOf, addGearBonus, buffMask } from "./calc.ts";
-import type { MapRoom, PData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 
 export function recalc(room: MapRoom, id: string, full: boolean) {
   const p = room.state.players.get(id)!, d = room.pdata.get(id)!;

@@ -9,7 +9,8 @@ import { BEASTS, MAPS, TIERS, MAX_YEARS, autoHint, OFFLINE, boneChance, AUTO_MSG
 import { MOVE_DEAD } from "../../../shared/move.ts";
 import { bagUsed } from "./items.ts";
 import { AutoHunter } from "./autoHunt.ts";
-import type { MapRoom, PData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 
 /**
  * Tin `auto {op, cfg}`: `on` bật với điểm neo là chỗ đang đứng, `off` tắt, `set` đổi cài đặt (kẹp bằng parseAuto), `get` xin trạng

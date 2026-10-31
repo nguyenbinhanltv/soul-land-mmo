@@ -6,7 +6,8 @@
 import { TIERS, BEAST_HALF, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
   STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult, HIT_INVULN_SECS } from "../../../shared/data.ts";
 import type { Character } from "../db.ts";
-import type { MapRoom, Hit, DmgOpt } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { Hit, DmgOpt } from "./types.ts";
 
 /**
  * Hồn thú gây `dmg` cho hồn sư `id`. Trả về true nếu đòn trúng (kể cả khiên đỡ hết), false nếu bị bỏ qua (vừa bị đánh, bất tử,

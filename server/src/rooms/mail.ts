@@ -6,7 +6,8 @@ import { MAIL, MAIL_KINDS, MSG_GROUP, formatHonTe, itemDef, type MailItem } from
 import { mailHasAttach, store, type MailRow } from "../db.ts";
 import { takeToken } from "../ratelimit.ts";
 import { bagFits } from "./welfare.ts";
-import { type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { CLAIM_BUSY, claimHeld } from "./common.ts";
 
 /** Thư gửi xuống client: thêm tên người gửi theo nguồn (`MAIL_KINDS`). */

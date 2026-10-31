@@ -18,7 +18,8 @@ import { sendState as sendBicanh, nowOf as bicanhNow } from "./bicanh.ts";
 import { gearLook, gearStats, itemStacks } from "./items.ts";
 import { MAPS, CHANNEL_CD, TEAM_COMBAT_SECS, encodeLpc, bagSlotsOf, STARTER_ITEMS, SHARD_BUY, BOSS_CLAIM_KING, BOSS_CLAIM_WORLD, AUTO_MSG_RATE, parseAuto, parseSell,
   QUESTS, QUEST_STARTER, questStart, TONG_MON, tongDef, resonanceBonus, bicanhDay } from "../../../shared/data.ts";
-import { type AuthData, type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { AuthData, PData } from "./types.ts";
 import { seatUsed } from "./seat.ts";
 import { leftLock, listChannels } from "./channel.ts";
 import { buybacks, channelSwitchAt, fusionReady, leftRoom, type Buyback } from "./procState.ts";

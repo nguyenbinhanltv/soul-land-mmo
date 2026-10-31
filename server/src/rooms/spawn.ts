@@ -8,7 +8,8 @@ import { bossOffset } from "../schedule.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { BOSS_BOX } from "./worldBoss.ts";
 import { BeastState, type PlayerState } from "./schema.ts";
-import { type MapRoom, type BData, type EliteData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { BData, EliteData } from "./types.ts";
 import { takeKingSeat } from "./presenceState.ts";
 import { bossK, newWorld, uid } from "./common.ts";
 /**
