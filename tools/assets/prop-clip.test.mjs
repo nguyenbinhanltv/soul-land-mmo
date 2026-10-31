@@ -6,7 +6,8 @@ import { createHash } from "node:crypto";
 import { ROOT, readPng } from "./lib.mjs";
 
 const tiles = JSON.parse(readFileSync(`${ROOT}/shared/assets/iso/tiles.json`, "utf8"));
-for (const name of ["lua_trai", "dai_phun_nuoc"]) test(`${name}: thân tĩnh, chân và hồ sơ SHA256`, () => {
+const feet = { lua_trai: [40,46], dai_phun_nuoc: [40,62], lo_ren_lang: [56,91] };
+for (const name of Object.keys(feet)) test(`${name}: thân tĩnh, chân và hồ sơ SHA256`, () => {
   const dir = `${ROOT}/art/src/prop-clip/${name}`, source = JSON.parse(readFileSync(`${dir}/nguon.json`, "utf8"));
   const originalFile = `${ROOT}/shared/assets/sprites/iso/props/${name}.png`, clipFile = originalFile.replace(".png", "_clip.png");
   const original = readPng(originalFile), clip = readPng(clipFile), [rx, ry, rw, rh] = source.region;
@@ -21,14 +22,15 @@ for (const name of ["lua_trai", "dai_phun_nuoc"]) test(`${name}: thân tĩnh, ch
     for (let y = 0; y < original.h; y++) for (let x = 0; x < original.w; x++) {
       const c = clip.get(n * original.w + x, y);
       assert.ok(c[3] === 0 || c[3] === 255);
-      if (x < rx || x >= rx + rw || y < ry || y >= ry + rh) assert.deepEqual(c, original.get(x, y), `Khung ${n}, điểm ${x},${y}`);
+      const [r, , b, a] = original.get(x, y), protectedPixel = source.mask === "warm-interior" && !(a && r > 125 && r > b * 1.35);
+      if (x < rx || x >= rx + rw || y < ry || y >= ry + rh || protectedPixel) assert.deepEqual(c, original.get(x, y), `Khung ${n}, điểm ${x},${y}`);
       else pixels.push(...c);
     }
     variations.add(createHash("sha256").update(Buffer.from(pixels)).digest("hex"));
   }
   assert.ok(variations.size >= 8, "Clip phải có chuyển động thật");
-  assert.deepEqual(tiles.props[name].foot, name === "lua_trai" ? [40,46] : [40,62]);
+  assert.deepEqual(tiles.props[name].foot, feet[name]);
 });
-test("Thí điểm không thêm clip lò rèn", () => {
-  for (const name of ["lo_lua_dong", "lo_ren_lang"]) assert.equal(tiles.props[name]?.clip, undefined);
+test("Lò lửa đồng để nhóm tiếp theo", () => {
+  assert.equal(tiles.props.lo_lua_dong.clip, undefined);
 });

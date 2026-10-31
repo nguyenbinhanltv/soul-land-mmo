@@ -4,18 +4,22 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { ROOT, Img, readPng, encodePng, allowedColors, accentColors, hex } from "./lib.mjs";
 
-const [name, rawFile] = process.argv.slice(2);
-if (!["lua_trai", "dai_phun_nuoc"].includes(name) || !rawFile) throw new Error("prop-clip.mjs lua_trai|dai_phun_nuoc <tờ Codex 4×2.png>");
-const fire = name === "lua_trai", dir = path.join(ROOT, "art/src/prop-clip", name);
+const [name, rawFile, sourceDate = new Date().toLocaleDateString("sv-SE")] = process.argv.slice(2);
+const specs = { lua_trai: { region: [31, 2, 18, 23] }, dai_phun_nuoc: { region: [34, 0, 13, 12] }, lo_ren_lang: { region: [66, 52, 13, 13], inset: true } };
+const spec = specs[name];
+if (!spec || !rawFile || !/^\d{4}-\d{2}-\d{2}$/.test(sourceDate)) throw new Error("prop-clip.mjs lua_trai|dai_phun_nuoc|lo_ren_lang <tờ Codex 4×2.png> [ngày nguồn YYYY-MM-DD]");
+const fire = name !== "dai_phun_nuoc", dir = path.join(ROOT, "art/src/prop-clip", name);
 mkdirSync(dir, { recursive: true });
 const raw = readPng(rawFile), originalFile = path.join(ROOT, `shared/assets/sprites/iso/props/${name}.png`), original = readPng(originalFile);
 const base = new Img(original.w, original.h, original.data.slice());
 // Chỉ lấy ngọn lửa, hoặc tia nước trên đỉnh; giữ nguyên củi/đá, trụ và thành bể.
-const region = fire ? [31, 2, 18, 23] : [34, 0, 13, 12];
+const region = spec.region;
 const [rx, ry, rw, rh] = region;
+const warm = ([r, , b, a]) => a && r > 125 && r > b * 1.35;
+const protectedAt = (x, y) => spec.inset && !warm(original.get(x, y));
 for (let y = ry; y < ry + rh; y++) for (let x = rx; x < rx + rw; x++) {
   const [r, g, b, a] = base.get(x, y);
-  if (a && (fire ? r > 125 && r > b * 1.35 : b > r * 1.08 && b > g * 0.95)) base.set(x, y, [0, 0, 0, 0]);
+  if (a && (fire ? warm([r, g, b, a]) : b > r * 1.08 && b > g * 0.95)) base.set(x, y, spec.inset ? [26, 16, 32, 255] : [0, 0, 0, 0]);
 }
 const palette = [...new Set([...allowedColors(), ...accentColors()])].map(hex);
 const nearest = (c) => palette.reduce((best, p) => {
@@ -38,7 +42,7 @@ const layers = boxes.map(([l,t,r,b]) => {
     const sx = Math.round(cx + (x - (rw - 1) / 2) / scale), sy = Math.round(b - (rh - 1 - y) / scale);
     if (sx < l || sx > r || sy < t || sy > b) continue;
     const c = raw.get(sx, sy);
-    if (c[3] >= 160) out.set(rx + x, ry + y, [...nearest(c), 255]);
+    if (c[3] >= 160 && !protectedAt(rx + x, ry + y)) out.set(rx + x, ry + y, [...nearest(c), 255]);
   }
   return out;
 });
@@ -62,5 +66,5 @@ writeFileSync(path.join(dir, "chuyen-dong.png"), encodePng(motion));
 const out = path.join(ROOT, `shared/assets/sprites/iso/props/${name}_clip.png`);
 writeFileSync(out, encodePng(sheet));
 const sha = (f) => createHash("sha256").update(readFileSync(f)).digest("hex");
-writeFileSync(path.join(dir, "nguon.json"), JSON.stringify({ tool: "Codex builtin OpenAI image_gen.imagegen", date: "2026-10-31", license: "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có", rawSHA256: sha(rawFile), originalSHA256: sha(originalFile), clipSHA256: sha(out), region, frames: 16, ms: 100 }, null, 2) + "\n");
+writeFileSync(path.join(dir, "nguon.json"), JSON.stringify({ tool: "Codex builtin OpenAI image_gen.imagegen", date: sourceDate, license: "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có", rawSHA256: sha(rawFile), originalSHA256: sha(originalFile), clipSHA256: sha(out), region, ...(spec.inset ? { mask: "warm-interior" } : {}), frames: 16, ms: 100 }, null, 2) + "\n");
 console.log(out);
