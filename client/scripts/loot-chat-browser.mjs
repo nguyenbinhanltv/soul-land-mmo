@@ -90,7 +90,7 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       document.getElementById("toasts")?.replaceChildren();
       for (let n = 0; n < 5; n++) f.lootToasts(n ? [{ ...base, qty:n }] : [], [{ ...base, qty:n+1 }]);
     }, root.replaceAll("\\", "/"));
-    await page.screenshot({ path: resolve(out, `${tag}-${width}x${height}-x5.png`) });
+    await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-x5.png`) });
     console.log(width, await page.locator("#chatbox").boundingBox(), await page.locator("#log").boundingBox());
     if (tag !== "truoc") {
       assert.match(await page.locator("#log").innerText(), /Nhận Mảnh Phá Hồn Thương ×5/);
@@ -109,8 +109,10 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
     if (tag !== "truoc") {
       assert.equal(await page.locator('.toast[data-k="loot"]').count(), 1, "chỉ một thanh đồ hiếm kể cả đang mờ");
       assert.match(await page.locator("#log").innerText(), /Hồn hoàn/);
+      await page.locator('.toast[data-k="loot"]').waitFor({ state:"visible" });
     }
-    await page.screenshot({ path: resolve(out, `${tag}-${width}x${height}-hiem.png`) });
+    await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-hiem.png`) });
+    if (tag !== "truoc") assert.equal(await page.locator('.toast[data-k="loot"]').evaluate((e) => getComputedStyle(e).opacity), "1", "toast hiếm hiện rõ sau hiệu ứng vào");
     if (tag !== "truoc") {
       for (const code of ["hon_cot", "hon_hach"]) {
         await page.evaluate((code) => {
@@ -152,7 +154,7 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).waitFor();
       await page.locator("#chat-system-filter").dispatchEvent("pointerdown");
     }
-    await page.screenshot({ path: resolve(out, `${tag}-${width}x${height}-loi.png`) });
+    await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-loi.png`) });
     if (tag !== "truoc" && touch) {
       const box = await page.locator("#log").boundingBox();
       assert.ok(box && box.y >= 0 && box.y + box.height <= height, "hai dòng chat nằm trong màn cảm ứng");
