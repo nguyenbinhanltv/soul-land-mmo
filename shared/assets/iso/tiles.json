@@ -424,7 +424,8 @@
   },
   "lua_trai": {
    "key": "prop_lua_trai",
-   "foot": [40, 46]
+   "foot": [40, 46],
+   "clip": { "key": "prop_lua_trai_clip", "frames": 16, "ms": 100 }
   },
   "thong_cao": {
    "key": "prop_thong_cao",
@@ -601,7 +602,8 @@
   },
   "dai_phun_nuoc": {
    "key": "prop_dai_phun_nuoc",
-   "foot": [40, 62]
+   "foot": [40, 62],
+   "clip": { "key": "prop_dai_phun_nuoc_clip", "frames": 16, "ms": 100 }
   },
   "cay_hoa_anh_dao": {
    "key": "prop_cay_hoa_anh_dao",

@@ -6,6 +6,8 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 
 ## Nguồn ảnh được phép (hiện hành)
 
+Thí điểm lửa trại và đài phun nước: lớp lửa/tia nước tạo bằng Codex builtin OpenAI `image_gen.imagegen` (31/10/2026), theo điều khoản đầu ra OpenAI, không gán CC0. Prompt thật, nguồn thân gốc và SHA256 RAW/ảnh gốc/clip tại `art/src/prop-clip/{lua_trai,dai_phun_nuoc}/NGUON.md` và `nguon.json`. Chỉ dùng hai ảnh game sẵn có làm đầu vào; không dùng AI hoạt ảnh khác. Lò rèn chưa làm; clip chờ chủ repo duyệt trong PR nháp.
+
 | Asset | Nguồn | Ghi chú |
 |---|---|---|
 | Nền bản đồ thế giới M (`art/src/world-map/`) | Codex builtin OpenAI `image_gen.imagegen` (Q53), 31/10/2026; không dùng asset bên thứ ba làm đầu vào | Không CC0; prompt, RAW nguyên byte và SHA-256 ở `art/src/world-map/`; quy cách ở [ban-do-the-gioi.md](ban-do-the-gioi.md); chưa nhập client, chờ duyệt PR art |

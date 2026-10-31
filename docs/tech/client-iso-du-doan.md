@@ -9,6 +9,8 @@
 - Hồn sư: animation `{sheet}:{animation}_{s|se|e|ne|n}` (`honsuAnimKey`; thân LPC hiện 4 hướng gần nhất qua `lpcFace`), gốc và cỡ lớp theo texture (`fitHonsuLayer`), khung phụ thể `vohonFrame`, nửa sheet theo giới `vohonHalf`. NPC dùng sheet LPC `lpc_<mã>` nếu có, không thì thân LPC ghép từ `looks`; dân thường trang trí (`client/src/crowd.ts`) chỉ ở client, không gửi gì lên server, không có trong state (mục 5.11 "NPC phụ và dân thường").
 - `?view=topdown`: vẽ nhìn thẳng (cùng đường code, ma trận chiếu khác) để so sánh / khắc phục.
 
+Vật đứng có `clip` trong `iso/tiles.json` dùng dải khung ghép cùng thân tĩnh, cỡ khung và điểm chân giữ nguyên. `IsoMap` chia sẻ các khung texture/atlas giữa các thực thể, đổi khung theo đồng hồ scene; không thêm Sprite hoặc timer riêng. Mức hiệu ứng Thấp (kể cả tự hạ mức) và Giảm chuyển động dừng ở khung đầu, thay đổi cài đặt có hiệu lực ngay. Cất khối thì bỏ đăng ký clip; thiếu clip vẫn dùng ảnh tĩnh. Thí điểm chỉ `lua_trai` và `dai_phun_nuoc`, chưa làm lò rèn; không đổi va chạm hoặc luật server.
+
 **Dự đoán chuyển động phía client**
 - Va chạm ô và bước đi dùng chung `shared/move.ts` (`solidGrid`, `hits`, `moveEnt`) ở cả `server/src/map.ts` và client. Bước đi của hồn sư có lách góc (`MOVE_NUDGE`, tham số `nudge` của `moveEnt`): vướng góc ô chỉ vài pixel thì tự đẩy sang phía trống, server và dự đoán cùng gọi nên không lệch. Client vẫn chỉ gửi hướng; server tự tính vị trí trong `tick()`.
 - Client đánh số input `input {x, y, s, w}` (`w`: giữ Shift, đi bộ); server ghi `PlayerState.seq` (số cuối đã nhận), `seqT` (số giây hướng đó đã được áp), `spd` (tốc độ thật lúc này, đã nhân `RUN_MULT` khi đang chạy), `calm` (ngoài giao chiến) và `walk` (cờ `w` của input cuối). Server tự dừng hướng đi thì tăng `seq`.
