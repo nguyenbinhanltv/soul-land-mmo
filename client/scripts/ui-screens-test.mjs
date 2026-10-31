@@ -251,3 +251,20 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.match(dGift, /ml-claim f2-nut-phu/); assert.doesNotMatch(dGift, /ml-del/, "thư còn quà chưa nhận: không có nút Xóa, có gợi ý"); assert.match(dGift, /Nhận quà rồi mới xóa/);
   assert.doesNotMatch(dDone, /ml-claim/); assert.match(dDone, /ml-del/); assert.match(dBusy, /disabled/); assert.match(JSON.stringify(mailDetailNode(null, false, now)), /Chọn một thư/);
 }
+
+// Bộ nối X4: giữ điểm, thứ tự và giới hạn trường công khai.
+const { resonanceRank, arenaRank, tongRank, rankSource } = await import("../src/rankAdapters.ts");
+const { RANK_PAGE_SIZE } = await import("../../shared/data.ts");
+const res = resonanceRank({ page: 2, pageSize: 10, total: 25, hasNext: true, list: [{ name: "<b>Hồn sư</b>", score: 123, me: true, milestones: 2, bag: ["bí mật"], x: 7 }], me: { rank: 11, score: 123, extraStars: 99 } }, 42);
+assert.deepEqual(res.rows, [{ rank: 11, name: "<b>Hồn sư</b>", score: 123, me: true }]);
+assert.deepEqual(res.me, { rank: 11, score: 123 }); assert.equal(res.asOf, 42);
+const arena = { list: Array.from({ length: RANK_PAGE_SIZE + 2 }, (_, i) => ({ name: `Hồn sư ${i}`, elo: 2000 - i, me: false, wins: 10, losses: 3, draws: 1 })), me: { rank: 123, elo: 888, accountId: 4 }, start: 1000, left: 5 };
+const ar = arenaRank(arena, 2, 43);
+assert.equal(ar.rows[0].rank, RANK_PAGE_SIZE + 1); assert.equal(ar.rows.length, 2); assert.equal(ar.hasNext, false);
+assert.deepEqual(ar.me, { rank: 123, score: 888 }); assert.equal(arenaRank({ ...arena, list: [], me: null }, 1, 0).me, null);
+const tg = tongRank({ week: 123, min: 10, me: 7, cur: { tongs: [{ tong: "hao_thien", avg: 12.5, active: 2 }], top: { hao_thien: [{ name: "A", points: 30, bag: [] }], that_bao: [{ name: "B", points: 50 }] } }, last: { reward: "top" } }, 1, 44);
+assert.deepEqual(tg.rows, []); assert.equal(tg.me, null); assert.equal(tg.sections[0].rows[0].rank, 1); assert.equal(tg.sections[1].rows[0].rank, 1);
+assert.equal(tg.sections[0].rows[0].score, 30); assert.equal(JSON.stringify(tg).includes('"bag"'), false); assert.equal(JSON.stringify(tg).includes('"reward"'), false);
+assert.match(tg.meText, /7 điểm tông/); assert.match(tg.note, /không có hạng cá nhân toàn server/);
+assert.equal(rankSource("cong_minh").type, "resonance"); assert.equal(rankSource("elo").type, "arena"); assert.equal(rankSource("tong_tuan").op, "board");
+console.log("✓ Bộ nối Xếp Hạng: điểm, trang, quyền riêng tư");

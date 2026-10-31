@@ -97,6 +97,8 @@
 **Nhóm Bí Cảnh, MVP Luyện Hồn Cảnh solo** (#877, `docs/design/bi-canh.md`).
 - [x] P0 thiết kế; P1 `BICANH` + `bicanhDay` (làm mới 05:00); P2 tin `bicanh` `get` / `buy` + lượt; P3 `BiCanhRoom` (`enter`, ba sóng + tinh anh, thưởng quyển theo sóng, trần quyển ngày, hoàn lượt khi lỗi; `setup("luyen_hon_canh")`); P4 Hồn Kinh Quyển; P5 màn client (`bicanhScreen.ts`); P6 soát chống gian lận + `balance-review` + `soak-perf` (`docs/tech/soat-gian-lan-bi-canh.md`); bản đồ Tiled riêng (#1295) + poster (#1292); bot nhóm `bicanh`.
 
+- [x] X4 Xếp Hạng: màn chung nối Cộng minh / Elo / Tông tuần bằng tin cũ; giữ giới hạn dữ liệu nguồn và phân trang, không thêm luật tính điểm.
+
 ## Số issue / PR
 
 - Giai đoạn 10: #96, #100–#103, #105, #331, #333, #335, #336–#342, #383, #385–#387, #395, #436, #444, #447, #451, #463, #466, #476, #480–#484, #564.
@@ -111,3 +113,5 @@
 - Hình ảnh kỹ năng: #541, #542, #546, #548, #566–#569, #583, #590.
 - Hồn sư LPC: #507–#511, #564, #565, #570–#574, #578, #588; họ asset Codex C1–C16: #596, #597, #599–#601, #541, #553, #554, #576, #577.
 - Tối ưu tài liệu: #619, #636, #637, #640. Hồn thú v2: #862–#866, #870, #766–#768. UI gốc (kit Mực + Giấy): #878–#880, #887. Di chuyển & giao chiến: #746–#752. Chống gian lận và hiệu năng: #716, #734–#739.
+
+- Bộ nối Xếp Hạng X4: #1524.
