@@ -1964,57 +1964,6 @@
       "map": "tinh_dau_noi_dia"
     },
     {
-      "key": "beast_loi_duc_ung_anim",
-      "frame": [
-        96,
-        96
-      ],
-      "iso": true,
-      "anim": {
-        "dirs": [
-          "s",
-          "se",
-          "e",
-          "ne",
-          "n"
-        ],
-        "cols": 6,
-        "rowsPerDir": 4,
-        "anims": {
-          "idle": {
-            "band": 0,
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "band": 1,
-            "col": 0,
-            "n": 6
-          },
-          "attack": {
-            "band": 2,
-            "col": 0,
-            "n": 6
-          },
-          "hurt": {
-            "band": 0,
-            "col": 4,
-            "n": 2
-          },
-          "die": {
-            "band": 3,
-            "col": 0,
-            "n": 4
-          }
-        },
-        "origin": [
-          48,
-          88
-        ]
-      },
-      "map": "tinh_dau_noi_dia"
-    },
-    {
       "key": "beast_loi_quang_hai_dieu",
       "frame": [
         96,
@@ -3418,6 +3367,108 @@
       "map": "hai_than_dao"
     },
     {
+      "key": "beast_loi_duc_ung_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ]
+      },
+      "map": "tinh_dau_noi_dia"
+    },
+    {
+      "key": "beast_tu_van_bao_anim",
+      "frame": [
+        96,
+        96
+      ],
+      "iso": true,
+      "anim": {
+        "dirs": [
+          "s",
+          "se",
+          "e",
+          "ne",
+          "n"
+        ],
+        "cols": 6,
+        "rowsPerDir": 4,
+        "anims": {
+          "idle": {
+            "band": 0,
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "band": 1,
+            "col": 0,
+            "n": 6
+          },
+          "attack": {
+            "band": 2,
+            "col": 0,
+            "n": 6
+          },
+          "hurt": {
+            "band": 0,
+            "col": 4,
+            "n": 2
+          },
+          "die": {
+            "band": 3,
+            "col": 0,
+            "n": 4
+          }
+        },
+        "origin": [
+          48,
+          88
+        ]
+      },
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
       "key": "beast_thiet_giap_te_nguu",
       "frame": [
         96,
@@ -3608,57 +3659,6 @@
       ],
       "iso": true,
       "static": true,
-      "map": "tinh_dau_ngoai_vi"
-    },
-    {
-      "key": "beast_tu_van_bao_anim",
-      "frame": [
-        96,
-        96
-      ],
-      "iso": true,
-      "anim": {
-        "dirs": [
-          "s",
-          "se",
-          "e",
-          "ne",
-          "n"
-        ],
-        "cols": 6,
-        "rowsPerDir": 4,
-        "anims": {
-          "idle": {
-            "band": 0,
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "band": 1,
-            "col": 0,
-            "n": 6
-          },
-          "attack": {
-            "band": 2,
-            "col": 0,
-            "n": 6
-          },
-          "hurt": {
-            "band": 0,
-            "col": 4,
-            "n": 2
-          },
-          "die": {
-            "band": 3,
-            "col": 0,
-            "n": 4
-          }
-        },
-        "origin": [
-          48,
-          88
-        ]
-      },
       "map": "tinh_dau_ngoai_vi"
     },
     {
@@ -4717,22 +4717,6 @@
       "iso": true
     },
     {
-      "key": "fx_sk_bh_t3",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bh_t3_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
       "key": "fx_sk_bh_t3a",
       "frame": [
         168,
@@ -4966,182 +4950,6 @@
     },
     {
       "key": "fx_sk_bl_zone8_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_dash5",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_dash5_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_proj1",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_proj1_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_proj8",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_proj8_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_slash2",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_slash2_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_t3a",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_t3a_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_t3b",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_t3b_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone_tc",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone_tc_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone3",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone3_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone4",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone4_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone6",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone6_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone9",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_bp_zone9_g",
       "frame": [
         104,
         104
@@ -5865,358 +5673,6 @@
       "frame": [
         168,
         168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_hit2",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_hit2_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_hit9",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_hit9_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_slash1",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_slash1_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_slash5",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_slash5_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_t3a",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_t3a_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_t3b",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_t3b_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone_tc",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone_tc_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone3",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone3_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone4",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone4_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone6",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone6_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone8",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_ha_zone8_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_hit2",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_hit2_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_hit6",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_hit6_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj1",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj1_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj3",
-      "frame": [
-        52,
-        52
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj3_g",
-      "frame": [
-        52,
-        52
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj5",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj5_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj8",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_proj8_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_t3a",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_t3a_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_t3b",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_t3b_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_zone_tc",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_zone_tc_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_zone4",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_zone4_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_zone9",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_hl_zone9_g",
-      "frame": [
-        104,
-        104
       ],
       "iso": true
     },
@@ -7821,182 +7277,6 @@
       "iso": true
     },
     {
-      "key": "fx_sk_qm_aura_tc",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura_tc_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura2",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura2_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura3",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura3_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura4",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura4_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura6",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura6_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura8",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_aura8_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_hit1",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_hit1_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_t3a",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_t3a_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_t3b",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_t3b_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_zone5",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_zone5_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_zone9",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_qm_zone9_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
       "key": "fx_sk_td_aura_tc",
       "frame": [
         104,
@@ -8166,182 +7446,6 @@
     },
     {
       "key": "fx_sk_td_zone8_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_dash3",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_dash3_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_dash6",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_dash6_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_proj5",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_proj5_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_slash1",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_slash1_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_t3a",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_t3a_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_t3b",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_t3b_g",
-      "frame": [
-        168,
-        168
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone_tc",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone_tc_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone2",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone2_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone4",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone4_g",
-      "frame": [
-        72,
-        72
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone8",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone8_g",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone9",
-      "frame": [
-        104,
-        104
-      ],
-      "iso": true
-    },
-    {
-      "key": "fx_sk_tp_zone9_g",
       "frame": [
         104,
         104
@@ -8909,386 +8013,6 @@
       "iso": true
     },
     {
-      "key": "gi_ct_a_ngan",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_bach_ho",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_bang_phuong_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_bich_lan_xa_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_can_khon_hon_nguyen_toa",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_cuu_bao_luu_ly_thap",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_cuu_tinh_that_sat_kiem",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_hao_thien_chuy",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_hoa_anh",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_hoa_long",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_kim_vu_mieu_ung",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_ky_nhung_thong_thien_cuc",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_lam_dien_ba_vuong_long",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_lam_ngan_thao",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_liet_hoa_thuong_lang",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_nguyet_nhan",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_nhu_cot_tho",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_pha_hon_thuong",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_quy_mi",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_ta_hoa_phuong_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_thien_can_bach_ngoc_dinh",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_tu_vong_chu_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_u_minh_linh_mieu",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_xuc_xich",
-      "iso": true
-    },
-    {
-      "key": "gi_ct_yeu_ho",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_a_ngan",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_bach_ho",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_bang_phuong_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_bich_lan_xa_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_can_khon_hon_nguyen_toa",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_cuu_bao_luu_ly_thap",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_cuu_tinh_that_sat_kiem",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_hao_thien_chuy",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_hoa_anh",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_hoa_long",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_kim_vu_mieu_ung",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_ky_nhung_thong_thien_cuc",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_lam_dien_ba_vuong_long",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_lam_ngan_thao",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_liet_hoa_thuong_lang",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_nguyet_nhan",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_nhu_cot_tho",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_pha_hon_thuong",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_quy_mi",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_ta_hoa_phuong_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_thien_can_bach_ngoc_dinh",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_tu_vong_chu_hoang",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_u_minh_linh_mieu",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_xuc_xich",
-      "iso": true
-    },
-    {
-      "key": "gi_ctskill_yeu_ho",
-      "iso": true
-    },
-    {
-      "key": "gi_fusion_bang_hoa_luong_nghi",
-      "iso": true
-    },
-    {
-      "key": "gi_fusion_hao_thien_nhu_cot",
-      "iso": true
-    },
-    {
-      "key": "gi_fusion_loi_doc_song_sat",
-      "iso": true
-    },
-    {
-      "key": "gi_fusion_u_minh_bach_ho",
-      "iso": true
-    },
-    {
-      "key": "gi_fusion_yeu_nguyet",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_area",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_area_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_arena",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_arena_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_auto",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_auto_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_bag",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_bag_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_channel",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_channel_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_char",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_char_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_chat",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_chat_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_forge",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_forge_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_friends",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_friends_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_quest",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_quest_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_rank",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_rank_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_reso",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_reso_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_roster",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_roster_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_settings",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_settings_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_shop",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_shop_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_world",
-      "iso": true
-    },
-    {
-      "key": "gi_menu_world_1x",
-      "iso": true
-    },
-    {
-      "key": "gi_notice_boss",
-      "iso": true
-    },
-    {
-      "key": "gi_notice_info",
-      "iso": true
-    },
-    {
-      "key": "gi_notice_level",
-      "iso": true
-    },
-    {
-      "key": "gi_notice_loot",
-      "iso": true
-    },
-    {
-      "key": "gi_notice_quest",
-      "iso": true
-    },
-    {
-      "key": "gi_ui_connected",
-      "iso": true
-    },
-    {
-      "key": "gi_ui_disconnected",
-      "iso": true
-    },
-    {
-      "key": "gi_ui_menu",
-      "iso": true
-    },
-    {
       "key": "he_cuong_cong",
       "iso": true
     },
@@ -9302,230 +8026,6 @@
     },
     {
       "key": "he_phu_tro",
-      "iso": true
-    },
-    {
-      "key": "icon_a_ngan_24",
-      "iso": true
-    },
-    {
-      "key": "icon_a_ngan_32",
-      "iso": true
-    },
-    {
-      "key": "icon_bach_ho_24",
-      "iso": true
-    },
-    {
-      "key": "icon_bach_ho_32",
-      "iso": true
-    },
-    {
-      "key": "icon_bang_phuong_hoang_24",
-      "iso": true
-    },
-    {
-      "key": "icon_bang_phuong_hoang_32",
-      "iso": true
-    },
-    {
-      "key": "icon_bich_lan_xa_hoang_24",
-      "iso": true
-    },
-    {
-      "key": "icon_bich_lan_xa_hoang_32",
-      "iso": true
-    },
-    {
-      "key": "icon_can_khon_hon_nguyen_toa_24",
-      "iso": true
-    },
-    {
-      "key": "icon_can_khon_hon_nguyen_toa_32",
-      "iso": true
-    },
-    {
-      "key": "icon_cuu_bao_luu_ly_thap_24",
-      "iso": true
-    },
-    {
-      "key": "icon_cuu_bao_luu_ly_thap_32",
-      "iso": true
-    },
-    {
-      "key": "icon_cuu_tinh_that_sat_kiem_24",
-      "iso": true
-    },
-    {
-      "key": "icon_cuu_tinh_that_sat_kiem_32",
-      "iso": true
-    },
-    {
-      "key": "icon_hao_thien_chuy_24",
-      "iso": true
-    },
-    {
-      "key": "icon_hao_thien_chuy_32",
-      "iso": true
-    },
-    {
-      "key": "icon_hoa_anh_24",
-      "iso": true
-    },
-    {
-      "key": "icon_hoa_anh_32",
-      "iso": true
-    },
-    {
-      "key": "icon_hoa_long_24",
-      "iso": true
-    },
-    {
-      "key": "icon_hoa_long_32",
-      "iso": true
-    },
-    {
-      "key": "icon_kim_vu_mieu_ung_24",
-      "iso": true
-    },
-    {
-      "key": "icon_kim_vu_mieu_ung_32",
-      "iso": true
-    },
-    {
-      "key": "icon_ky_nhung_thong_thien_cuc_24",
-      "iso": true
-    },
-    {
-      "key": "icon_ky_nhung_thong_thien_cuc_32",
-      "iso": true
-    },
-    {
-      "key": "icon_lam_dien_ba_vuong_long_24",
-      "iso": true
-    },
-    {
-      "key": "icon_lam_dien_ba_vuong_long_32",
-      "iso": true
-    },
-    {
-      "key": "icon_lam_ngan_thao_24",
-      "iso": true
-    },
-    {
-      "key": "icon_lam_ngan_thao_32",
-      "iso": true
-    },
-    {
-      "key": "icon_liet_hoa_thuong_lang_24",
-      "iso": true
-    },
-    {
-      "key": "icon_liet_hoa_thuong_lang_32",
-      "iso": true
-    },
-    {
-      "key": "icon_nguyet_nhan_24",
-      "iso": true
-    },
-    {
-      "key": "icon_nguyet_nhan_32",
-      "iso": true
-    },
-    {
-      "key": "icon_nhu_cot_tho_24",
-      "iso": true
-    },
-    {
-      "key": "icon_nhu_cot_tho_32",
-      "iso": true
-    },
-    {
-      "key": "icon_pha_hon_thuong_24",
-      "iso": true
-    },
-    {
-      "key": "icon_pha_hon_thuong_32",
-      "iso": true
-    },
-    {
-      "key": "icon_quy_mi_24",
-      "iso": true
-    },
-    {
-      "key": "icon_quy_mi_32",
-      "iso": true
-    },
-    {
-      "key": "icon_ta_hoa_phuong_hoang_24",
-      "iso": true
-    },
-    {
-      "key": "icon_ta_hoa_phuong_hoang_32",
-      "iso": true
-    },
-    {
-      "key": "icon_thien_can_bach_ngoc_dinh_24",
-      "iso": true
-    },
-    {
-      "key": "icon_thien_can_bach_ngoc_dinh_32",
-      "iso": true
-    },
-    {
-      "key": "icon_tu_vong_chu_hoang_24",
-      "iso": true
-    },
-    {
-      "key": "icon_tu_vong_chu_hoang_32",
-      "iso": true
-    },
-    {
-      "key": "icon_u_minh_linh_mieu_24",
-      "iso": true
-    },
-    {
-      "key": "icon_u_minh_linh_mieu_32",
-      "iso": true
-    },
-    {
-      "key": "icon_xuc_xich_24",
-      "iso": true
-    },
-    {
-      "key": "icon_xuc_xich_32",
-      "iso": true
-    },
-    {
-      "key": "icon_yeu_ho_24",
-      "iso": true
-    },
-    {
-      "key": "icon_yeu_ho_32",
-      "iso": true
-    },
-    {
-      "key": "item_bua_ho_menh",
-      "iso": true
-    },
-    {
-      "key": "item_da_cuong_hoa_1",
-      "iso": true
-    },
-    {
-      "key": "item_da_cuong_hoa_2",
-      "iso": true
-    },
-    {
-      "key": "item_da_cuong_hoa_3",
-      "iso": true
-    },
-    {
-      "key": "item_da_cuong_hoa_4",
-      "iso": true
-    },
-    {
-      "key": "item_da_cuong_hoa_5",
       "iso": true
     },
     {
@@ -9881,43 +8381,11 @@
       "iso": true
     },
     {
-      "key": "item_hon_hach_ba_vuong_long",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_hao_thien",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_lam_ngan",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_linh_mieu",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_luu_ly",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_phuong_hoang",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_that_sat",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_tien_co",
-      "iso": true
-    },
-    {
-      "key": "item_hon_hach_xa_hoang",
-      "iso": true
-    },
-    {
       "key": "item_hon_hoan",
+      "iso": true
+    },
+    {
+      "key": "item_manh_vo_hon",
       "iso": true
     },
     {
@@ -10013,10 +8481,6 @@
       "iso": true
     },
     {
-      "key": "item_manh_vo_hon",
-      "iso": true
-    },
-    {
       "key": "item_manh_xuc_xich",
       "iso": true
     },
@@ -10029,15 +8493,7 @@
       "iso": true
     },
     {
-      "key": "item_than_hon",
-      "iso": true
-    },
-    {
       "key": "item_tien_thao",
-      "iso": true
-    },
-    {
-      "key": "item_tinh_hoa_duong_mon",
       "iso": true
     },
     {
@@ -11235,10 +9691,6 @@
       }
     },
     {
-      "key": "pt_liet_hoa_thuong_lang_glow",
-      "iso": true
-    },
-    {
       "key": "pt_nguyet_nhan",
       "iso": true,
       "pt": {
@@ -11284,10 +9736,6 @@
         "ghost": 0.88,
         "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
       }
-    },
-    {
-      "key": "pt_nhu_cot_tho_glow",
-      "iso": true
     },
     {
       "key": "pt_pha_hon_thuong",
@@ -12778,53 +11226,9 @@
       "iso": true
     },
     {
-      "key": "ui_bicanh_luyen_hon",
-      "iso": true
-    },
-    {
       "key": "ui_cuon_giay",
       "iso": true,
       "nine": 14
-    },
-    {
-      "key": "ui_cursor_attack_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_attack_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_blocked_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_blocked_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_default_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_default_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_pickup_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_pickup_64",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_talk_32",
-      "iso": true
-    },
-    {
-      "key": "ui_cursor_talk_64",
-      "iso": true
     },
     {
       "key": "ui_goc_duoi_phai",
@@ -12948,688 +11352,11 @@
       "iso": true
     },
     {
-      "key": "ui2_giay_ky_nang_hoi_chieu",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_ky_nang_khoa",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_ky_nang_san_sang",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_ky_nang_thieu_hon_luc",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_nut_chinh_chon",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_chinh_nhan",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_chinh_ro",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_chinh_tat",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_chinh_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_phu_chon",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_phu_nhan",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_phu_ro",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_phu_tat",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_nut_phu_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_giay_o_chon",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_o_co",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_o_hiem_1",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_o_hiem_2",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_o_hiem_3",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_o_hiem_4",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_o_hiem_5",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_o_nhap",
-      "iso": true,
-      "nine": {
-        "x2": 18,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_giay_o_trong",
-      "iso": true
-    },
-    {
-      "key": "ui2_giay_tab_chon",
-      "iso": true,
-      "nine": {
-        "x2": 18,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_giay_tab_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 18,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_giay_thanh_cuon",
-      "iso": true,
-      "nine": {
-        "x2": 10,
-        "x1": 5
-      }
-    },
-    {
-      "key": "ui2_giay_thanh_do_hon",
-      "iso": true,
-      "nine": {
-        "x2": 2,
-        "x1": 1
-      }
-    },
-    {
-      "key": "ui2_giay_thanh_do_kn",
-      "iso": true,
-      "nine": {
-        "x2": 2,
-        "x1": 1
-      }
-    },
-    {
-      "key": "ui2_giay_thanh_do_sinh",
-      "iso": true,
-      "nine": {
-        "x2": 2,
-        "x1": 1
-      }
-    },
-    {
-      "key": "ui2_giay_thanh_khung_hon",
-      "iso": true,
-      "nine": {
-        "x2": 20,
-        "x1": 10
-      }
-    },
-    {
-      "key": "ui2_giay_thanh_khung_kn",
-      "iso": true,
-      "nine": {
-        "x2": 20,
-        "x1": 10
-      }
-    },
-    {
-      "key": "ui2_giay_thanh_khung_sinh",
-      "iso": true,
-      "nine": {
-        "x2": 20,
-        "x1": 10
-      }
-    },
-    {
-      "key": "ui2_giay_vach_chia",
-      "iso": true,
-      "nine": {
-        "x2": 4,
-        "x1": 2
-      }
-    },
-    {
-      "key": "ui2_khung_giay_lon",
-      "iso": true,
-      "nine": {
-        "x2": 13,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_khung_giay_nho",
-      "iso": true,
-      "nine": {
-        "x2": 17,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_khung_muc_lon",
-      "iso": true,
-      "nine": {
-        "x2": 22,
-        "x1": 11
-      }
-    },
-    {
-      "key": "ui2_khung_muc_nho",
-      "iso": true,
-      "nine": {
-        "x2": 19,
-        "x1": 10
-      }
-    },
-    {
-      "key": "ui2_khung_toast",
-      "iso": true,
-      "nine": {
-        "x2": 17,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_khung_tooltip",
-      "iso": true,
-      "nine": {
-        "x2": 20,
-        "x1": 10
-      }
-    },
-    {
-      "key": "ui2_ky_nang_hoi_chieu",
-      "iso": true
-    },
-    {
-      "key": "ui2_ky_nang_khoa",
-      "iso": true
-    },
-    {
-      "key": "ui2_ky_nang_san_sang",
-      "iso": true
-    },
-    {
-      "key": "ui2_ky_nang_thieu_hon_luc",
-      "iso": true
-    },
-    {
-      "key": "ui2_nut_chinh_chon",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_nhan",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_ro",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_tat",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_chinh_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 15,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_nut_phu_chon",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_nhan",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_ro",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_tat",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_nut_phu_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 14,
-        "x1": 7
-      }
-    },
-    {
-      "key": "ui2_o_chon",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_co",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_1",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_2",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_3",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_4",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_hiem_5",
-      "iso": true
-    },
-    {
-      "key": "ui2_o_nhap",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_o_trong",
-      "iso": true
-    },
-    {
-      "key": "ui2_tab_chon",
-      "iso": true,
-      "nine": {
-        "x2": 18,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_tab_thuong",
-      "iso": true,
-      "nine": {
-        "x2": 18,
-        "x1": 9
-      }
-    },
-    {
-      "key": "ui2_thanh_cuon",
-      "iso": true,
-      "nine": {
-        "x2": 8,
-        "x1": 4
-      }
-    },
-    {
-      "key": "ui2_thanh_do_hon",
-      "iso": true,
-      "nine": {
-        "x2": 8,
-        "x1": 4
-      }
-    },
-    {
-      "key": "ui2_thanh_do_kn",
-      "iso": true,
-      "nine": {
-        "x2": 3,
-        "x1": 2
-      }
-    },
-    {
-      "key": "ui2_thanh_do_sinh",
-      "iso": true,
-      "nine": {
-        "x2": 8,
-        "x1": 4
-      }
-    },
-    {
-      "key": "ui2_thanh_khung_hon",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_thanh_khung_kn",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_thanh_khung_sinh",
-      "iso": true,
-      "nine": {
-        "x2": 16,
-        "x1": 8
-      }
-    },
-    {
-      "key": "ui2_vach_chia",
-      "iso": true,
-      "nine": {
-        "x2": 4,
-        "x1": 2
-      }
-    },
-    {
       "key": "vh_a_ngan_b",
       "iso": true
     },
     {
       "key": "vh_a_ngan_f",
-      "iso": true
-    },
-    {
-      "key": "vh_bach_ho_b",
-      "iso": true,
-      "blank": true
-    },
-    {
-      "key": "vh_bach_ho_f",
-      "iso": true
-    },
-    {
-      "key": "vh_bang_phuong_hoang_b",
-      "iso": true
-    },
-    {
-      "key": "vh_bang_phuong_hoang_f",
-      "iso": true
-    },
-    {
-      "key": "vh_bich_lan_xa_hoang_b",
-      "iso": true,
-      "blank": true
-    },
-    {
-      "key": "vh_bich_lan_xa_hoang_f",
-      "iso": true
-    },
-    {
-      "key": "vh_can_khon_hon_nguyen_toa_b",
-      "iso": true
-    },
-    {
-      "key": "vh_can_khon_hon_nguyen_toa_f",
-      "iso": true
-    },
-    {
-      "key": "vh_cuu_bao_luu_ly_thap_b",
-      "iso": true
-    },
-    {
-      "key": "vh_cuu_bao_luu_ly_thap_f",
-      "iso": true
-    },
-    {
-      "key": "vh_cuu_tinh_that_sat_kiem_b",
-      "iso": true
-    },
-    {
-      "key": "vh_cuu_tinh_that_sat_kiem_f",
-      "iso": true
-    },
-    {
-      "key": "vh_hao_thien_chuy_b",
-      "iso": true
-    },
-    {
-      "key": "vh_hao_thien_chuy_f",
-      "iso": true
-    },
-    {
-      "key": "vh_hoa_anh_b",
-      "iso": true
-    },
-    {
-      "key": "vh_hoa_anh_f",
-      "iso": true
-    },
-    {
-      "key": "vh_hoa_long_b",
-      "iso": true,
-      "blank": true
-    },
-    {
-      "key": "vh_hoa_long_f",
-      "iso": true
-    },
-    {
-      "key": "vh_kim_vu_mieu_ung_b",
-      "iso": true
-    },
-    {
-      "key": "vh_kim_vu_mieu_ung_f",
-      "iso": true
-    },
-    {
-      "key": "vh_ky_nhung_thong_thien_cuc_b",
-      "iso": true
-    },
-    {
-      "key": "vh_ky_nhung_thong_thien_cuc_f",
-      "iso": true
-    },
-    {
-      "key": "vh_lam_dien_ba_vuong_long_b",
-      "iso": true
-    },
-    {
-      "key": "vh_lam_dien_ba_vuong_long_f",
-      "iso": true
-    },
-    {
-      "key": "vh_lam_ngan_thao_b",
-      "iso": true
-    },
-    {
-      "key": "vh_lam_ngan_thao_f",
-      "iso": true
-    },
-    {
-      "key": "vh_liet_hoa_thuong_lang_b",
-      "iso": true
-    },
-    {
-      "key": "vh_liet_hoa_thuong_lang_f",
-      "iso": true
-    },
-    {
-      "key": "vh_nguyet_nhan_b",
-      "iso": true
-    },
-    {
-      "key": "vh_nguyet_nhan_f",
-      "iso": true
-    },
-    {
-      "key": "vh_nhu_cot_tho_b",
-      "iso": true,
-      "blank": true
-    },
-    {
-      "key": "vh_nhu_cot_tho_f",
-      "iso": true
-    },
-    {
-      "key": "vh_pha_hon_thuong_b",
-      "iso": true
-    },
-    {
-      "key": "vh_pha_hon_thuong_f",
-      "iso": true
-    },
-    {
-      "key": "vh_quy_mi_b",
-      "iso": true
-    },
-    {
-      "key": "vh_quy_mi_f",
-      "iso": true
-    },
-    {
-      "key": "vh_ta_hoa_phuong_hoang_b",
-      "iso": true
-    },
-    {
-      "key": "vh_ta_hoa_phuong_hoang_f",
-      "iso": true
-    },
-    {
-      "key": "vh_thien_can_bach_ngoc_dinh_b",
-      "iso": true
-    },
-    {
-      "key": "vh_thien_can_bach_ngoc_dinh_f",
-      "iso": true
-    },
-    {
-      "key": "vh_tu_vong_chu_hoang_b",
-      "iso": true
-    },
-    {
-      "key": "vh_tu_vong_chu_hoang_f",
-      "iso": true
-    },
-    {
-      "key": "vh_u_minh_linh_mieu_b",
-      "iso": true
-    },
-    {
-      "key": "vh_u_minh_linh_mieu_f",
-      "iso": true,
-      "blank": true
-    },
-    {
-      "key": "vh_xuc_xich_b",
-      "iso": true
-    },
-    {
-      "key": "vh_xuc_xich_f",
-      "iso": true
-    },
-    {
-      "key": "vh_yeu_ho_b",
-      "iso": true
-    },
-    {
-      "key": "vh_yeu_ho_f",
       "iso": true
     },
     {
@@ -13667,1590 +11394,6 @@
     },
     {
       "key": "vhanim_a_ngan_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_bach_ho_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_bach_ho_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_bang_phuong_hoang_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_bang_phuong_hoang_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_bich_lan_xa_hoang_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_bich_lan_xa_hoang_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_can_khon_hon_nguyen_toa_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_can_khon_hon_nguyen_toa_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_cuu_bao_luu_ly_thap_b",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_cuu_bao_luu_ly_thap_f",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_cuu_tinh_that_sat_kiem_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_cuu_tinh_that_sat_kiem_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_hao_thien_chuy_b",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_hao_thien_chuy_f",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_hoa_anh_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_hoa_anh_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_hoa_long_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_hoa_long_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_kim_vu_mieu_ung_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_kim_vu_mieu_ung_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_ky_nhung_thong_thien_cuc_b",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_ky_nhung_thong_thien_cuc_f",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_lam_dien_ba_vuong_long_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_lam_dien_ba_vuong_long_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_lam_ngan_thao_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_lam_ngan_thao_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_liet_hoa_thuong_lang_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_liet_hoa_thuong_lang_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_nguyet_nhan_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_nguyet_nhan_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_nhu_cot_tho_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_nhu_cot_tho_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_pha_hon_thuong_b",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_pha_hon_thuong_f",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_quy_mi_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_quy_mi_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_ta_hoa_phuong_hoang_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_ta_hoa_phuong_hoang_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_thien_can_bach_ngoc_dinh_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_thien_can_bach_ngoc_dinh_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_tu_vong_chu_hoang_b",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_tu_vong_chu_hoang_f",
-      "iso": true,
-      "frame": [
-        128,
-        128
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_u_minh_linh_mieu_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_u_minh_linh_mieu_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_xuc_xich_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_xuc_xich_f",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 13,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 2
-          },
-          "walk": {
-            "col": 2,
-            "n": 4
-          },
-          "attack": {
-            "col": 6,
-            "n": 4
-          },
-          "cast": {
-            "col": 10,
-            "n": 2
-          },
-          "hurt": {
-            "col": 12,
-            "n": 1
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_yeu_ho_b",
-      "iso": true,
-      "frame": [
-        96,
-        96
-      ],
-      "anim": {
-        "cols": 22,
-        "clips": {
-          "idle": {
-            "col": 0,
-            "n": 4
-          },
-          "walk": {
-            "col": 4,
-            "n": 6
-          },
-          "attack": {
-            "col": 10,
-            "n": 6
-          },
-          "cast": {
-            "col": 16,
-            "n": 4
-          },
-          "hurt": {
-            "col": 20,
-            "n": 2
-          }
-        }
-      }
-    },
-    {
-      "key": "vhanim_yeu_ho_f",
       "iso": true,
       "frame": [
         96,
@@ -16234,6 +12377,81 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_bach_ho_b",
+      "iso": true,
+      "blank": true
+    },
+    {
+      "key": "vh_bach_ho_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_bach_ho_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_bach_ho_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -18777,6 +14995,80 @@
       }
     },
     {
+      "key": "vh_bang_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_bang_phuong_hoang_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_bang_phuong_hoang_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_bang_phuong_hoang_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_bang_phuong_hoang_b",
       "iso": true,
       "frame": [
@@ -19480,6 +15772,81 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_bich_lan_xa_hoang_b",
+      "iso": true,
+      "blank": true
+    },
+    {
+      "key": "vh_bich_lan_xa_hoang_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_bich_lan_xa_hoang_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_bich_lan_xa_hoang_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -20437,6 +16804,80 @@
       }
     },
     {
+      "key": "vh_can_khon_hon_nguyen_toa_b",
+      "iso": true
+    },
+    {
+      "key": "vh_can_khon_hon_nguyen_toa_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_can_khon_hon_nguyen_toa_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_can_khon_hon_nguyen_toa_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_can_khon_hon_nguyen_toa_b",
       "iso": true,
       "frame": [
@@ -21391,6 +17832,80 @@
       }
     },
     {
+      "key": "vh_cuu_bao_luu_ly_thap_b",
+      "iso": true
+    },
+    {
+      "key": "vh_cuu_bao_luu_ly_thap_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_cuu_bao_luu_ly_thap_b",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_cuu_bao_luu_ly_thap_f",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_cuu_bao_luu_ly_thap_b",
       "iso": true,
       "frame": [
@@ -21982,6 +18497,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_cuu_tinh_that_sat_kiem_b",
+      "iso": true
+    },
+    {
+      "key": "vh_cuu_tinh_that_sat_kiem_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_cuu_tinh_that_sat_kiem_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_cuu_tinh_that_sat_kiem_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
       }
     },
     {
@@ -22699,6 +19288,80 @@
       }
     },
     {
+      "key": "vh_hao_thien_chuy_b",
+      "iso": true
+    },
+    {
+      "key": "vh_hao_thien_chuy_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_hao_thien_chuy_b",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_hao_thien_chuy_f",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_hao_thien_chuy_b",
       "iso": true,
       "frame": [
@@ -23410,6 +20073,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_hoa_anh_b",
+      "iso": true
+    },
+    {
+      "key": "vh_hoa_anh_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_hoa_anh_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_hoa_anh_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -25953,6 +22690,81 @@
       }
     },
     {
+      "key": "vh_hoa_long_b",
+      "iso": true,
+      "blank": true
+    },
+    {
+      "key": "vh_hoa_long_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_hoa_long_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_hoa_long_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_hoa_long_b",
       "iso": true,
       "frame": [
@@ -26904,6 +23716,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_kim_vu_mieu_ung_b",
+      "iso": true
+    },
+    {
+      "key": "vh_kim_vu_mieu_ung_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_kim_vu_mieu_ung_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_kim_vu_mieu_ung_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -29379,6 +26265,80 @@
       }
     },
     {
+      "key": "vh_ky_nhung_thong_thien_cuc_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ky_nhung_thong_thien_cuc_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_ky_nhung_thong_thien_cuc_b",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_ky_nhung_thong_thien_cuc_f",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_ky_nhung_thong_thien_cuc_b",
       "iso": true,
       "frame": [
@@ -29970,6 +26930,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_b",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_dien_ba_vuong_long_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_lam_dien_ba_vuong_long_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_lam_dien_ba_vuong_long_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -32445,6 +29479,80 @@
       }
     },
     {
+      "key": "vh_lam_ngan_thao_b",
+      "iso": true
+    },
+    {
+      "key": "vh_lam_ngan_thao_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_lam_ngan_thao_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_lam_ngan_thao_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_lam_ngan_thao_b",
       "iso": true,
       "frame": [
@@ -33396,6 +30504,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_liet_hoa_thuong_lang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_liet_hoa_thuong_lang_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_liet_hoa_thuong_lang_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_liet_hoa_thuong_lang_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -35939,6 +33121,80 @@
       }
     },
     {
+      "key": "vh_nguyet_nhan_b",
+      "iso": true
+    },
+    {
+      "key": "vh_nguyet_nhan_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_nguyet_nhan_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_nguyet_nhan_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_nguyet_nhan_b",
       "iso": true,
       "frame": [
@@ -36770,6 +34026,81 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_nhu_cot_tho_b",
+      "iso": true,
+      "blank": true
+    },
+    {
+      "key": "vh_nhu_cot_tho_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_nhu_cot_tho_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_nhu_cot_tho_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -39245,6 +36576,80 @@
       }
     },
     {
+      "key": "vh_pha_hon_thuong_b",
+      "iso": true
+    },
+    {
+      "key": "vh_pha_hon_thuong_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_pha_hon_thuong_b",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_pha_hon_thuong_f",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_pha_hon_thuong_b",
       "iso": true,
       "frame": [
@@ -39948,6 +37353,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_quy_mi_b",
+      "iso": true
+    },
+    {
+      "key": "vh_quy_mi_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_quy_mi_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_quy_mi_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -40657,6 +38136,80 @@
       }
     },
     {
+      "key": "vh_ta_hoa_phuong_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_ta_hoa_phuong_hoang_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_ta_hoa_phuong_hoang_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_ta_hoa_phuong_hoang_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_ta_hoa_phuong_hoang_b",
       "iso": true,
       "frame": [
@@ -41251,6 +38804,80 @@
       }
     },
     {
+      "key": "vh_thien_can_bach_ngoc_dinh_b",
+      "iso": true
+    },
+    {
+      "key": "vh_thien_can_bach_ngoc_dinh_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_thien_can_bach_ngoc_dinh_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_thien_can_bach_ngoc_dinh_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_thien_can_bach_ngoc_dinh_b",
       "iso": true,
       "frame": [
@@ -41842,6 +39469,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_tu_vong_chu_hoang_b",
+      "iso": true
+    },
+    {
+      "key": "vh_tu_vong_chu_hoang_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_tu_vong_chu_hoang_b",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_tu_vong_chu_hoang_f",
+      "iso": true,
+      "frame": [
+        128,
+        128
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -42796,6 +40497,81 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_u_minh_linh_mieu_b",
+      "iso": true
+    },
+    {
+      "key": "vh_u_minh_linh_mieu_f",
+      "iso": true,
+      "blank": true
+    },
+    {
+      "key": "vhanim_u_minh_linh_mieu_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_u_minh_linh_mieu_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -45271,6 +43047,80 @@
       }
     },
     {
+      "key": "vh_xuc_xich_b",
+      "iso": true
+    },
+    {
+      "key": "vh_xuc_xich_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_xuc_xich_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_xuc_xich_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 13,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 2
+          },
+          "walk": {
+            "col": 2,
+            "n": 4
+          },
+          "attack": {
+            "col": 6,
+            "n": 4
+          },
+          "cast": {
+            "col": 10,
+            "n": 2
+          },
+          "hurt": {
+            "col": 12,
+            "n": 1
+          }
+        }
+      }
+    },
+    {
       "key": "vkanim_xuc_xich_b",
       "iso": true,
       "frame": [
@@ -45862,6 +43712,80 @@
           ]
         },
         "gripSex": "m"
+      }
+    },
+    {
+      "key": "vh_yeu_ho_b",
+      "iso": true
+    },
+    {
+      "key": "vh_yeu_ho_f",
+      "iso": true
+    },
+    {
+      "key": "vhanim_yeu_ho_b",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
+      }
+    },
+    {
+      "key": "vhanim_yeu_ho_f",
+      "iso": true,
+      "frame": [
+        96,
+        96
+      ],
+      "anim": {
+        "cols": 22,
+        "clips": {
+          "idle": {
+            "col": 0,
+            "n": 4
+          },
+          "walk": {
+            "col": 4,
+            "n": 6
+          },
+          "attack": {
+            "col": 10,
+            "n": 6
+          },
+          "cast": {
+            "col": 16,
+            "n": 4
+          },
+          "hurt": {
+            "col": 20,
+            "n": 2
+          }
+        }
       }
     },
     {
@@ -46457,6 +44381,1593 @@
         },
         "gripSex": "m"
       }
-    }
+    },
+    {
+      "key": "fx_sk_bh_t3",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bh_t3_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_dash5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_dash5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_proj1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_proj1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_proj8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_proj8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_slash2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_slash2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_bp_zone9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_hit2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_hit2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_hit9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_hit9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_slash1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_slash1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_slash5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_slash5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_ha_zone8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_hit2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_hit2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_hit6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_hit6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj3",
+      "frame": [
+        52,
+        52
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj3_g",
+      "frame": [
+        52,
+        52
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_proj8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_zone9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_hl_zone9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_aura8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_hit1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_hit1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_zone5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_zone5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_zone9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_qm_zone9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_dash3",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_dash3_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_dash6",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_dash6_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_proj5",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_proj5_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_slash1",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_slash1_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_t3a",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_t3a_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_t3b",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_t3b_g",
+      "frame": [
+        168,
+        168
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone_tc",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone_tc_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone2",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone2_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone4",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone4_g",
+      "frame": [
+        72,
+        72
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone8",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone8_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone9",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_sk_tp_zone9_g",
+      "frame": [
+        104,
+        104
+      ],
+      "iso": true
+    },
+    {
+      "key": "gi_ct_cuu_tinh_that_sat_kiem",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_lam_dien_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_ky_nhung_thong_thien_cuc",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_ta_hoa_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_u_minh_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_nguyet_nhan",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_hoa_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_nhu_cot_tho",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_kim_vu_mieu_ung",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_tu_vong_chu_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_bich_lan_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_can_khon_hon_nguyen_toa",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_hoa_anh",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_yeu_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_xuc_xich",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_quy_mi",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_thien_can_bach_ngoc_dinh",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_lam_ngan_thao",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_hao_thien_chuy",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_cuu_bao_luu_ly_thap",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_pha_hon_thuong",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_liet_hoa_thuong_lang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_bang_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ct_bach_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_cuu_tinh_that_sat_kiem",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_lam_dien_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_ky_nhung_thong_thien_cuc",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_ta_hoa_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_u_minh_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_nguyet_nhan",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_hoa_long",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_nhu_cot_tho",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_kim_vu_mieu_ung",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_tu_vong_chu_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_bich_lan_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_can_khon_hon_nguyen_toa",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_hoa_anh",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_yeu_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_xuc_xich",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_quy_mi",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_thien_can_bach_ngoc_dinh",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_lam_ngan_thao",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_hao_thien_chuy",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_cuu_bao_luu_ly_thap",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_pha_hon_thuong",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_a_ngan",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_liet_hoa_thuong_lang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_bang_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "gi_ctskill_bach_ho",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_yeu_nguyet",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_hao_thien_nhu_cot",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_loi_doc_song_sat",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_bang_hoa_luong_nghi",
+      "iso": true
+    },
+    {
+      "key": "gi_fusion_u_minh_bach_ho",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_1",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_2",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_3",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_4",
+      "iso": true
+    },
+    {
+      "key": "item_da_cuong_hoa_5",
+      "iso": true
+    },
+    {
+      "key": "item_bua_ho_menh",
+      "iso": true
+    },
+    {
+      "key": "item_tinh_hoa_duong_mon",
+      "iso": true
+    },
+    {
+      "key": "item_than_hon",
+      "iso": true
+    },
+    {
+      "key": "gi_menu_char",
+      "iso": true
+    },
+    { "key": "gi_menu_char_1x", "iso": true },
+    {
+      "key": "gi_menu_roster",
+      "iso": true
+    },
+    { "key": "gi_menu_roster_1x", "iso": true },
+    {
+      "key": "gi_menu_bag",
+      "iso": true
+    },
+    { "key": "gi_menu_bag_1x", "iso": true },
+    {
+      "key": "gi_menu_reso",
+      "iso": true
+    },
+    { "key": "gi_menu_reso_1x", "iso": true },
+    {
+      "key": "gi_menu_settings",
+      "iso": true
+    },
+    { "key": "gi_menu_settings_1x", "iso": true },
+    {
+      "key": "gi_menu_auto",
+      "iso": true
+    },
+    { "key": "gi_menu_auto_1x", "iso": true },
+    {
+      "key": "gi_menu_channel",
+      "iso": true
+    },
+    { "key": "gi_menu_channel_1x", "iso": true },
+    {
+      "key": "gi_menu_area",
+      "iso": true
+    },
+    { "key": "gi_menu_area_1x", "iso": true },
+    {
+      "key": "gi_menu_world",
+      "iso": true
+    },
+    { "key": "gi_menu_world_1x", "iso": true },
+    {
+      "key": "gi_menu_friends",
+      "iso": true
+    },
+    { "key": "gi_menu_friends_1x", "iso": true },
+    {
+      "key": "gi_menu_rank",
+      "iso": true
+    },
+    { "key": "gi_menu_rank_1x", "iso": true },
+    {
+      "key": "gi_menu_quest",
+      "iso": true
+    },
+    { "key": "gi_menu_quest_1x", "iso": true },
+    {
+      "key": "gi_menu_chat",
+      "iso": true
+    },
+    { "key": "gi_menu_chat_1x", "iso": true },
+    {
+      "key": "gi_menu_arena",
+      "iso": true
+    },
+    { "key": "gi_menu_arena_1x", "iso": true },
+    {
+      "key": "gi_menu_shop",
+      "iso": true
+    },
+    { "key": "gi_menu_shop_1x", "iso": true },
+    {
+      "key": "gi_menu_forge",
+      "iso": true
+    },
+    { "key": "gi_menu_forge_1x", "iso": true },
+    {
+      "key": "item_hon_hach_phuong_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_ba_vuong_long",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_xa_hoang",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_hao_thien",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_that_sat",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_linh_mieu",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_lam_ngan",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_luu_ly",
+      "iso": true
+    },
+    {
+      "key": "item_hon_hach_tien_co",
+      "iso": true
+    },
+    { "key": "ui_cursor_default_32", "iso": true },
+    { "key": "ui_cursor_default_64", "iso": true },
+    { "key": "ui_cursor_attack_32", "iso": true },
+    { "key": "ui_cursor_attack_64", "iso": true },
+    { "key": "ui_cursor_talk_32", "iso": true },
+    { "key": "ui_cursor_talk_64", "iso": true },
+    { "key": "ui_cursor_pickup_32", "iso": true },
+    { "key": "ui_cursor_pickup_64", "iso": true },
+    { "key": "ui_cursor_blocked_32", "iso": true },
+    { "key": "ui_cursor_blocked_64", "iso": true },
+    {
+      "key": "gi_ui_menu",
+      "iso": true
+    },
+    {
+      "key": "gi_ui_connected",
+      "iso": true
+    },
+    {
+      "key": "gi_ui_disconnected",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_info",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_loot",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_level",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_quest",
+      "iso": true
+    },
+    {
+      "key": "gi_notice_boss",
+      "iso": true
+    },
+    {
+      "key": "icon_cuu_tinh_that_sat_kiem_32",
+      "iso": true
+    },
+    {
+      "key": "icon_cuu_tinh_that_sat_kiem_24",
+      "iso": true
+    },
+    {
+      "key": "icon_lam_dien_ba_vuong_long_32",
+      "iso": true
+    },
+    {
+      "key": "icon_lam_dien_ba_vuong_long_24",
+      "iso": true
+    },
+    {
+      "key": "icon_ky_nhung_thong_thien_cuc_32",
+      "iso": true
+    },
+    {
+      "key": "icon_ky_nhung_thong_thien_cuc_24",
+      "iso": true
+    },
+    {
+      "key": "icon_ta_hoa_phuong_hoang_32",
+      "iso": true
+    },
+    {
+      "key": "icon_ta_hoa_phuong_hoang_24",
+      "iso": true
+    },
+    {
+      "key": "icon_hao_thien_chuy_32",
+      "iso": true
+    },
+    {
+      "key": "icon_hao_thien_chuy_24",
+      "iso": true
+    },
+    {
+      "key": "icon_pha_hon_thuong_32",
+      "iso": true
+    },
+    {
+      "key": "icon_pha_hon_thuong_24",
+      "iso": true
+    },
+    {
+      "key": "icon_bach_ho_32",
+      "iso": true
+    },
+    {
+      "key": "icon_bach_ho_24",
+      "iso": true
+    },
+    {
+      "key": "icon_u_minh_linh_mieu_32",
+      "iso": true
+    },
+    {
+      "key": "icon_u_minh_linh_mieu_24",
+      "iso": true
+    },
+    {
+      "key": "icon_nguyet_nhan_32",
+      "iso": true
+    },
+    {
+      "key": "icon_nguyet_nhan_24",
+      "iso": true
+    },
+    {
+      "key": "icon_hoa_long_32",
+      "iso": true
+    },
+    {
+      "key": "icon_hoa_long_24",
+      "iso": true
+    },
+    {
+      "key": "icon_nhu_cot_tho_32",
+      "iso": true
+    },
+    {
+      "key": "icon_nhu_cot_tho_24",
+      "iso": true
+    },
+    {
+      "key": "icon_kim_vu_mieu_ung_32",
+      "iso": true
+    },
+    {
+      "key": "icon_kim_vu_mieu_ung_24",
+      "iso": true
+    },
+    {
+      "key": "icon_liet_hoa_thuong_lang_32",
+      "iso": true
+    },
+    {
+      "key": "icon_liet_hoa_thuong_lang_24",
+      "iso": true
+    },
+    {
+      "key": "icon_tu_vong_chu_hoang_32",
+      "iso": true
+    },
+    {
+      "key": "icon_tu_vong_chu_hoang_24",
+      "iso": true
+    },
+    {
+      "key": "icon_bich_lan_xa_hoang_32",
+      "iso": true
+    },
+    {
+      "key": "icon_bich_lan_xa_hoang_24",
+      "iso": true
+    },
+    {
+      "key": "icon_can_khon_hon_nguyen_toa_32",
+      "iso": true
+    },
+    {
+      "key": "icon_can_khon_hon_nguyen_toa_24",
+      "iso": true
+    },
+    {
+      "key": "icon_hoa_anh_32",
+      "iso": true
+    },
+    {
+      "key": "icon_hoa_anh_24",
+      "iso": true
+    },
+    {
+      "key": "icon_yeu_ho_32",
+      "iso": true
+    },
+    {
+      "key": "icon_yeu_ho_24",
+      "iso": true
+    },
+    {
+      "key": "icon_lam_ngan_thao_32",
+      "iso": true
+    },
+    {
+      "key": "icon_lam_ngan_thao_24",
+      "iso": true
+    },
+    {
+      "key": "icon_bang_phuong_hoang_32",
+      "iso": true
+    },
+    {
+      "key": "icon_bang_phuong_hoang_24",
+      "iso": true
+    },
+    {
+      "key": "icon_quy_mi_32",
+      "iso": true
+    },
+    {
+      "key": "icon_quy_mi_24",
+      "iso": true
+    },
+    {
+      "key": "icon_thien_can_bach_ngoc_dinh_32",
+      "iso": true
+    },
+    {
+      "key": "icon_thien_can_bach_ngoc_dinh_24",
+      "iso": true
+    },
+    {
+      "key": "icon_cuu_bao_luu_ly_thap_32",
+      "iso": true
+    },
+    {
+      "key": "icon_cuu_bao_luu_ly_thap_24",
+      "iso": true
+    },
+    {
+      "key": "icon_a_ngan_32",
+      "iso": true
+    },
+    {
+      "key": "icon_a_ngan_24",
+      "iso": true
+    },
+    {
+      "key": "icon_xuc_xich_24",
+      "iso": true
+    },
+    {
+      "key": "icon_xuc_xich_32",
+      "iso": true
+    },
+    {"key":"ui_bicanh_luyen_hon","iso":true},
+    {
+      "key": "pt_nhu_cot_tho_glow",
+      "iso": true
+    },
+    {
+      "key": "pt_liet_hoa_thuong_lang_glow",
+      "iso": true
+    },
+    { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
+    { "key": "ui2_giay_ky_nang_khoa", "iso": true },
+    { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
+    { "key": "ui2_giay_ky_nang_thieu_hon_luc", "iso": true },
+    { "key": "ui2_giay_nut_chinh_chon", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_chinh_nhan", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_chinh_ro", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_chinh_tat", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_chinh_thuong", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_phu_chon", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_phu_nhan", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_phu_ro", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_phu_tat", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_nut_phu_thuong", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_giay_o_chon", "iso": true },
+    { "key": "ui2_giay_o_co", "iso": true },
+    { "key": "ui2_giay_o_hiem_1", "iso": true },
+    { "key": "ui2_giay_o_hiem_2", "iso": true },
+    { "key": "ui2_giay_o_hiem_3", "iso": true },
+    { "key": "ui2_giay_o_hiem_4", "iso": true },
+    { "key": "ui2_giay_o_hiem_5", "iso": true },
+    { "key": "ui2_giay_o_nhap", "iso": true, "nine": {"x2": 18, "x1": 9} },
+    { "key": "ui2_giay_o_trong", "iso": true },
+    { "key": "ui2_giay_tab_chon", "iso": true, "nine": {"x2": 18, "x1": 9} },
+    { "key": "ui2_giay_tab_thuong", "iso": true, "nine": {"x2": 18, "x1": 9} },
+    { "key": "ui2_giay_thanh_cuon", "iso": true, "nine": {"x2": 10, "x1": 5} },
+    { "key": "ui2_giay_thanh_do_hon", "iso": true, "nine": {"x2": 2, "x1": 1} },
+    { "key": "ui2_giay_thanh_do_kn", "iso": true, "nine": {"x2": 2, "x1": 1} },
+    { "key": "ui2_giay_thanh_do_sinh", "iso": true, "nine": {"x2": 2, "x1": 1} },
+    { "key": "ui2_giay_thanh_khung_hon", "iso": true, "nine": {"x2": 20, "x1": 10} },
+    { "key": "ui2_giay_thanh_khung_kn", "iso": true, "nine": {"x2": 20, "x1": 10} },
+    { "key": "ui2_giay_thanh_khung_sinh", "iso": true, "nine": {"x2": 20, "x1": 10} },
+    { "key": "ui2_giay_vach_chia", "iso": true, "nine": {"x2": 4, "x1": 2} },
+    { "key": "ui2_khung_giay_lon", "iso": true, "nine": {"x2": 13, "x1": 7} },
+    { "key": "ui2_khung_giay_nho", "iso": true, "nine": {"x2": 17, "x1": 9} },
+    { "key": "ui2_khung_muc_lon", "iso": true, "nine": {"x2": 22, "x1": 11} },
+    { "key": "ui2_khung_muc_nho", "iso": true, "nine": {"x2": 19, "x1": 10} },
+    { "key": "ui2_khung_toast", "iso": true, "nine": {"x2": 17, "x1": 9} },
+    { "key": "ui2_khung_tooltip", "iso": true, "nine": {"x2": 20, "x1": 10} },
+    { "key": "ui2_ky_nang_hoi_chieu", "iso": true },
+    { "key": "ui2_ky_nang_khoa", "iso": true },
+    { "key": "ui2_ky_nang_san_sang", "iso": true },
+    { "key": "ui2_ky_nang_thieu_hon_luc", "iso": true },
+    { "key": "ui2_nut_chinh_chon", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_nhan", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_ro", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_tat", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_chinh_thuong", "iso": true, "nine": {"x2": 15, "x1": 8} },
+    { "key": "ui2_nut_phu_chon", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_nhan", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_ro", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_tat", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_nut_phu_thuong", "iso": true, "nine": {"x2": 14, "x1": 7} },
+    { "key": "ui2_o_chon", "iso": true },
+    { "key": "ui2_o_co", "iso": true },
+    { "key": "ui2_o_hiem_1", "iso": true },
+    { "key": "ui2_o_hiem_2", "iso": true },
+    { "key": "ui2_o_hiem_3", "iso": true },
+    { "key": "ui2_o_hiem_4", "iso": true },
+    { "key": "ui2_o_hiem_5", "iso": true },
+    { "key": "ui2_o_nhap", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_o_trong", "iso": true },
+    { "key": "ui2_tab_chon", "iso": true, "nine": {"x2": 18, "x1": 9} },
+    { "key": "ui2_tab_thuong", "iso": true, "nine": {"x2": 18, "x1": 9} },
+    { "key": "ui2_thanh_cuon", "iso": true, "nine": {"x2": 8, "x1": 4} },
+    { "key": "ui2_thanh_do_hon", "iso": true, "nine": {"x2": 8, "x1": 4} },
+    { "key": "ui2_thanh_do_kn", "iso": true, "nine": {"x2": 3, "x1": 2} },
+    { "key": "ui2_thanh_do_sinh", "iso": true, "nine": {"x2": 8, "x1": 4} },
+    { "key": "ui2_thanh_khung_hon", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_thanh_khung_kn", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_thanh_khung_sinh", "iso": true, "nine": {"x2": 16, "x1": 8} },
+    { "key": "ui2_vach_chia", "iso": true, "nine": {"x2": 4, "x1": 2} }
   ]
 }
