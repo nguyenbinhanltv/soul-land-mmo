@@ -196,7 +196,8 @@ Túi đầy (như tự săn; ủy thác offline không tự bán, mục 5.7), v�
 ### Bảng nhận thưởng
 Tin riêng `offline`, khung giấy cuộn thủy mặc, `client/src/offline.ts`:
 - vùng, thời gian vắng / được tính / đã săn, số hồn thú, kinh nghiệm, Hồn Tệ, vật phẩm, lý do dừng sớm, giờ treo còn lại hôm nay;
-- nút "Nhận" đóng bảng (thưởng đã vào túi lúc vào game).
+- dòng xác nhận kinh nghiệm đã được cộng cho đội, Hồn Tệ và vật phẩm liệt kê đã vào túi khi đăng nhập; trang bị bỏ do túi đầy vẫn ghi riêng, không tính là đồ đã nhận;
+- nút "Đã rõ" chỉ đóng bảng, không gửi yêu cầu nhận thêm; đóng bảng không làm mất thưởng.
 
 ### Cài đặt (tham khảo)
 - `MapRoom.onLeave` ghi (`offlineZone`, bảng `auto_offline`); `rooms/autoRun.ts` `claimOffline` (`MapRoom` chuyển tiếp; xếp vào chuỗi lưu khi vào phòng) tính, cộng rồi `write()`.
