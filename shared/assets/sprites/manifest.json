@@ -45930,6 +45930,14 @@
       "iso": true
     },
     {
+      "key": "npc_tho_may",
+      "iso": true
+    },
+    {
+      "key": "npc_tho_may_thien_dau",
+      "iso": true
+    },
+    {
       "key": "prop_lo_lua_dong_clip",
       "iso": true
     },
