@@ -9,3 +9,7 @@
 .cfm .buse:focus-visible{outline:2px solid var(--xp);outline-offset:1px}
 .buse.busy{opacity:.55;cursor:progress}
 body.touch .cfm .buse{min-height:44px}
+/* Khung Mực (nền tối): chữ giấy, không dùng chữ mực tối của khung giấy cũ. */
+.cfm.f2-muc-nho{color:var(--plate-text)}
+.cfm.f2-muc-nho p{color:var(--paper3)}
+.cfm.f2-muc-nho .cfm-no{color:var(--plate-text)}

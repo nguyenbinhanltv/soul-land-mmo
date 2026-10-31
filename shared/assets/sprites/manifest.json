@@ -9593,6 +9593,10 @@
       }
     },
     {
+      "key": "pt_kim_vu_mieu_ung_glow",
+      "iso": true
+    },
+    {
       "key": "pt_ky_nhung_thong_thien_cuc",
       "iso": true,
       "pt": {
@@ -45882,7 +45886,7 @@
     },
     {"key":"ui_bicanh_luyen_hon","iso":true},
     {
-      "key": "pt_kim_vu_mieu_ung_glow",
+      "key": "pt_nhu_cot_tho_glow",
       "iso": true
     },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },

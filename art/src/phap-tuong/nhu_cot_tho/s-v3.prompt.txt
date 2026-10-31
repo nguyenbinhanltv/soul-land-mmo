@@ -1,0 +1,30 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+SPIRIT: Nhu Cot Tho, a colossal fierce white-and-pink rabbit spirit. Fully drawn complete animal with SOLID chest and belly, no human-shaped empty gap, no dark rectangular pillar. Tall crouching rabbit, two extremely long blade-like ears, powerful hindlegs, sharp claws, narrow blood-red eyes, ivory teeth. Dark muted rose-purple body shadows #70364f, rose base #c86a9a, white-ivory fur highlights and pale pink #ffc2e2 only on ear rims and fur tips. Motifs: thin non-letter dao-rune strokes on hindlegs, two hard-edged attached ribbon-like ear locks. No detached effects.
+SHEET: Exactly one square 1024x1024 image, 4x4 grid of sixteen 256x256 cells, invisible grid. Each cell contains the SAME single rabbit, complete body. South direction: facing straight toward viewer, elevated isometric view. Same scale, center and foot baseline in every cell. Leave at least 32 pixels of completely empty magenta all around every pose including ears and extended feet. No text, numbers, borders, people, mannequin, ground, shadow.
+Rows 1-2: eight subtle idle breathing frames, tiny ear sway and chest breath, frame 8 returns to 1.
+Rows 3-4: eight attack frames, 9-11 crouch windup, 12-13 powerful forward hindleg kick with long ears swept back, 13 holds peak, 14-16 recover to original pose. All feet and ears inside cell margins. Opaque body, hard outline. Reference sheets only guide colors and ear motifs; do not copy empty human gap or layout.
+REVISION 2: Change only composition scale. Reduce ALL rabbits uniformly to occupy maximum 65% cell width and 65% cell height, centered, leaving at least 40 pixels margin in each 256-pixel cell. Every ear, ribbon, foot must stay inside. Output must be exactly 1024 by 1024 pixels.
+REVISION 3, action correction only: Attack must be unmistakably a RABBIT HINDLEG KICK, not a forepaw swipe or feline pounce. Cells 9-11 crouch and rear slightly, cells 12 AND 13 show identical peak posture: rabbit reclining backward with BOTH LONG HIND FEET thrust toward camera, small front paws tucked at chest, ears swept backward. Cells 14-16 bring hind feet down and return to neutral seated rabbit. Keep full figure compact within 65% of cell, same scale as idle. TWO peak cells identical. Exact 4x4 invisible grid, square native output.
