@@ -1,0 +1,14 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "attempts":  2,
+    "round":  "mới theo ảnh dẫn",
+    "issue":  1423,
+    "rawSha256":  "98a7e0b8530d426a3d40cc613c1c694991214f0af6798c4257aeb94232c3be17",
+    "promptSha256":  "c0202fcf81445398920560fdc95057148023995b3c0cc31f85e474bb32c3c145",
+    "reference":  "candidates/884-guide2/guide.png",
+    "referenceSha256":  "1d5d46cae3404194f9b46ccdb1b8ae21c026e34cf213721e44efee3e915c8816",
+    "verdict":  "Chặn: hàng die có hình dính."
+}

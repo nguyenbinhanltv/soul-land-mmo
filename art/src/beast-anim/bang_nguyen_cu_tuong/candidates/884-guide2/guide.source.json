@@ -1,0 +1,13 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "stage":  "ảnh dẫn bố cục",
+    "attempt":  2,
+    "rawSha256":  "1d5d46cae3404194f9b46ccdb1b8ae21c026e34cf213721e44efee3e915c8816",
+    "promptSha256":  "6ef80bb0e221c539c1d2db7d458e75a7a14f53d9fd9cfd5c2de12904e77f87fd",
+    "reference":  "C:\\Users\\PC\\.ao\\data\\worktrees\\soul_land_game\\soul_land_game-884\\art\\src\\beast-anim\\bang_nguyen_cu_tuong\\candidates\\884-guide1\\guide.png",
+    "referenceSha256":  "a55e7869b8c451cc55d5e6bc21d4a38570992fbe89f51c4955dd4317def1d767",
+    "verdict":  "Ảnh dẫn: còn một đuôi, mắt khuất sau tai; bốn chân giải phẫu với chân xa khuất một phần."
+}

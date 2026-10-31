@@ -241,12 +241,6 @@
         "origin": [
           64,
           120
-        ],
-        "dirsOk": [
-          "s",
-          "se",
-          "ne",
-          "n"
         ]
       },
       "map": "cuc_bac_chi_dia"
