@@ -1,8 +1,12 @@
 // Miền NPC / nhiệm vụ / khảo hạch hằng ngày (NPC 6.1, nhiệm vụ 6.2, khảo hạch hằng ngày mục 5.8): nói chuyện NPC, nhận / trả chuỗi nhiệm vụ, nhận / trả khảo hạch, tách khỏi MapRoom.ts (#702, bước 8).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / tong.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.saveTrade`, `room.save`.
-// MapRoom chỉ chuyển tiếp `talkNpc`, `questAction`, `dailyAction` (đăng ký `onMessage("talk")` / `onMessage("quest")` giữ nguyên thứ tự ở đó). Bộ đếm `questEvent` / `questBump`, `sendQuest`, `sendDaily`, `dailyGive`... còn ở MapRoom (nhiều nơi gọi).
-import { itemDef, npcDef, questChain, questStatus, questRewardText, isDaily, DAILY, MAPS, QUEST_STARTER, QUEST_AFTER } from "../../../shared/data.ts";
-import { CLAIM_BUSY, claimHeld, type MapRoom } from "./MapRoom.ts";
+// MapRoom chỉ chuyển tiếp `talkNpc`, `questAction`, `dailyAction` (đăng ký `onMessage("talk")` / `onMessage("quest")` giữ nguyên thứ tự ở đó) và các hàm bộ đếm / tin riêng `sendQuest`, `fixedQuest`, `questOpen`, `questHave`, `questEvent`, `rewardFits`, `grantReward`, `dailyDay`, `dailyOf`, `dailyFresh`, `giveItems`, `dailyGive`, `sendDaily`, `dailyBag` (bước 28, nhiều miền gọi `room.questEvent` / `room.sendDaily` như cũ).
+import { itemDef, npcDef, questChain, questStart, questStatus, questRewardText, isDaily, DAILY, dailyIds, MAPS, QUEST_STARTER, QUEST_AFTER, BONE_SLOTS, vnDay,
+  type QuestGoal, type QuestReward, type QuestProgress, type QuestEvent } from "../../../shared/data.ts";
+import { mapRoute } from "../map.ts";
+import { bossNow } from "../schedule.ts";
+import { progressFor, giveCandidates } from "./calc.ts";
+import { CLAIM_BUSY, claimHeld, testShift, type MapRoom, type PData } from "./MapRoom.ts";
 
 /** Nói chuyện với NPC `raw` (mã trong NPCS): đứng đủ gần thì gửi riêng tin `npc {id}` để client mở hộp thoại (lời thoại ở NPCS). */
 export function talkNpc(room: MapRoom, id: string, raw: unknown) {
@@ -121,4 +125,146 @@ export function dailyAction(room: MapRoom, id: string, op: unknown, chainId: str
   room.sendBag(id);
   room.sendDaily(id, "reward", i);
   room.save(id); // phần thưởng, đồ đã nộp và bài đã xong ghi ngay, cùng một lần ghi túi đồ
+}
+
+/**
+ * Tin riêng "quest": tiến độ chuỗi tân thủ (bước, đã nhận, số đếm từng mục tiêu) và trạng thái (questStatus). Nội dung bài, mục
+ * tiêu, phần thưởng client đọc từ QUESTS. `ev`: vừa nhận (`accept`), vừa đủ mục tiêu (`ready`), vừa trả (`reward`, kèm `done` = mã
+ * bước vừa trả), vừa xong cả chuỗi (`finish`); client hiện thông báo theo `ev`.
+ */
+export function sendQuest(room: MapRoom, id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string, chain = QUEST_STARTER) {
+  const d = room.pdata.get(id), q = d && fixedQuest(d, chain); if (!q) return;
+  room.clients.getById(id)?.send("quest", { ...q, prog: [...q.prog], status: questStatus(q), ev, done });
+}
+/** Tiến độ chuỗi cố định `chain` (tân thủ hoặc chương sau) của người chơi; undefined nếu không phải chuỗi cố định. */
+export function fixedQuest(d: PData, chain: string) { return d.quest.chain === chain ? d.quest : d.chains.find((q) => q.chain === chain); }
+/** Chuỗi `chain` đã mở cho người chơi chưa: chuỗi không có điều kiện, hoặc chuỗi `QUEST_AFTER` của nó đã xong. */
+export function questOpen(d: PData, chain: string) { const a = QUEST_AFTER[chain]; return !a || questStatus(fixedQuest(d, a) ?? questStart(a)) === "done"; }
+/**
+ * Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó,
+ * đang thuộc một tông môn (#286).
+ */
+export function questHave(room: MapRoom, d: PData, g: QuestGoal) {
+  if (g.k === "absorb") return d.ringYears.length > 0 || d.owned.some((v) => v !== d.ch && v.rings.length > 0);
+  if (g.k === "equip") return d.bag.some((i) => i.vohonId !== null);
+  if (g.k === "map") return g.map === room.state.mapId;
+  if (g.k === "tong") return d.tong !== null;
+  return false;
+}
+/**
+ * Sự kiện thật cho bộ đếm nhiệm vụ (hạ hồn thú, đổi tay trong trận, tiên cơ, hấp thụ trong giới hạn, gắn đồ, nói chuyện với NPC,
+ * vào bản đồ; từ khảo hạch hằng ngày thêm hồn thú hợp cấp `fit`, trận đấu hồn `arena`; #286 thêm dung hợp kỹ `fusion`, gia nhập tông
+ * `tong`): chỉ tính khi đã nhận bước đang làm; mỗi mục tiêu khớp `ev` cộng 1 (kẹp ở `n`), cho chuỗi tân thủ và từng bài khảo hạch.
+ * Đủ mọi mục tiêu thì báo quay về NPC.
+ * Tiến độ ghi DB cùng túi đồ (bagDirty -> lưu định kỳ, rời phòng, transaction đi cổng).
+ */
+export function questEvent(room: MapRoom, id: string, ev: QuestEvent) {
+  const d = room.pdata.get(id); if (!d || d.travelling) return;
+  for (const q of [d.quest, ...d.chains]) {
+    const r = room.questBump(q, ev), chain = questChain(q.chain);
+    if (!r || !chain) continue;
+    d.bagDirty = true;
+    if (r === "ready") room.log(id, `Hoàn thành "${chain.steps[q.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
+    sendQuest(room, id, r === "ready" ? "ready" : undefined, undefined, q.chain);
+  }
+  // Khảo hạch hằng ngày: cùng sự kiện, từng bài đã nhận (sang ngày mới thì bộ bài cũ bỏ trước).
+  if (dailyFresh(room, d)) sendDaily(room, id, "reset");
+  let hit = false, ready = -1;
+  d.daily.forEach((q, i) => {
+    const x = room.questBump(q, ev); if (!x) return;
+    hit = true;
+    if (x === "ready") { ready = i; room.log(id, `Hoàn thành khảo hạch "${questChain(q.chain)?.steps[0].name}": quay về gặp ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name} để nhận thưởng.`, "#86e0b0"); }
+  });
+  if (hit) { d.bagDirty = true; sendDaily(room, id, ready >= 0 ? "ready" : undefined, ready); }
+  // Tông vụ (#197): cùng sự kiện, từng bài đã nhận.
+  if (room.tongFresh(d)) room.sendTong(id);
+  let tHit = false;
+  for (const q of d.tongTasks) {
+    const x = room.questBump(q, ev); if (!x) continue;
+    tHit = true;
+    if (x === "ready") room.log(id, `Hoàn thành tông vụ "${questChain(q.chain)?.steps[0].name}": quay về sứ giả tông môn để nhận thưởng.`, "#86e0b0");
+  }
+  if (tHit) { d.bagDirty = true; room.sendTong(id); }
+}
+/** Túi đủ chỗ cho cả phần thưởng nhiệm vụ `r` không: vật phẩm như bagFits, mỗi hồn cốt (`bones`, #285) thêm một ô. */
+export function rewardFits(room: MapRoom, d: PData, r: QuestReward) { return room.bagFits(d, r.items, r.bones?.length ?? 0); }
+/**
+ * Trao phần thưởng nhiệm vụ đã qua rewardFits: Hồn Tệ, vật phẩm, rồi mỗi hồn cốt (#285) đúng loài và số năm, vị trí tung đều trong
+ * BONE_SLOTS, +0, chưa có dòng phụ như hồn cốt rơi (addBone). Trả văn bản để báo log (hồn cốt ghi vị trí đã tung). Không gửi "bag".
+ */
+export function grantReward(room: MapRoom, d: PData, r: QuestReward) {
+  room.addCoin(d, r.honTe);
+  for (const it of r.items) room.addItem(d, it.code, it.qty);
+  const bones = (r.bones ?? []).flatMap((b) => {
+    const it = room.addBone(d, b.years, b.beast, BONE_SLOTS[Math.floor(Math.random() * BONE_SLOTS.length)].id);
+    return it ? [room.itemLabel(it)] : [];
+  });
+  return [questRewardText({ ...r, bones: [] }), ...bones].filter(Boolean).join(", ");
+}
+/**
+ * Ngày của bộ khảo hạch (vnDay, đổi lúc 00:00 giờ Việt Nam): như `today` (hook `day` của phòng lệch được), cộng độ lệch toàn tiến
+ * trình `testShift.daily` của hook `daily {shift}` (để bot chọn ngày có bộ bài cần thử và mang cùng ngày đó sang phòng sân đấu).
+ */
+export function dailyDay(room: MapRoom) { return vnDay(bossNow() + (room.dayShift + testShift.daily) * 86400000); }
+/** Bộ khảo hạch hôm nay (dailyIds) từ các dòng `quests` đã lưu; bài chưa có dòng thì chưa nhận. Dòng của ngày khác bỏ qua. */
+export function dailyOf(room: MapRoom, saved: QuestProgress[] | undefined, day = dailyDay(room)) {
+  return { dailyDay: day, daily: progressFor(dailyIds(day), saved) };
+}
+/**
+ * Sang ngày mới (00:00 giờ Việt Nam, dailyDay) thì thay bằng bộ bài mới chưa nhận; bài cũ dở dang bỏ luôn (dòng cũ trong bảng `quests`
+ * bị xóa ở lần ghi túi kế tiếp, writeBag). Trả true khi vừa đặt lại (nơi gọi gửi tin "daily").
+ */
+export function dailyFresh(room: MapRoom, d: PData, day = dailyDay(room)) {
+  if (d.dailyDay === day) return false;
+  Object.assign(d, dailyOf(room, undefined, day));
+  d.bagDirty = true;
+  return true;
+}
+/**
+ * Các món mã `code` nộp được cho mục tiêu `give`: nằm trong túi (không gắn), chưa cường hóa / nâng cấp, không phải hồn hoàn đang hấp
+ * thụ (#165: đồ đang dùng không làm nguyên liệu đồng thời); rẻ nhất trước.
+ */
+export function giveItems(d: PData, code: string) {
+  return giveCandidates(d.bag, code, d.absorbing?.itemId);
+}
+/**
+ * Số đếm của mục tiêu `give` = số món đang có trong túi (kẹp ở `n`), tính lại mỗi khi túi đổi. Trả chỉ số bài vừa đủ mục tiêu
+ * (-1 = không có) và có đổi số đếm nào không.
+ */
+export function dailyGive(d: PData, list: QuestProgress[] = d.daily) {
+  let changed = false, ready = -1;
+  list.forEach((q, i) => {
+    const step = q.accepted ? questChain(q.chain)?.steps[q.step] : undefined; if (!step) return;
+    const was = questStatus(q);
+    step.goals.forEach((g, k) => {
+      if (g.k !== "give" || !g.item) return;
+      const n = Math.min(g.n, giveItems(d, g.item).reduce((a, it) => a + it.qty, 0));
+      if (q.prog[k] !== n) { q.prog[k] = n; changed = true; }
+    });
+    if (was !== "ready" && questStatus(q) === "ready") ready = i;
+  });
+  return { changed, ready };
+}
+/**
+ * Tin riêng "daily": ngày (vnDay), DAILY.count bài (tiến độ như tin "quest" và trạng thái), `ev` vừa nhận / vừa đủ / vừa trả /
+ * vừa đặt lại sang ngày mới (`reset`) kèm `i` = bài đó, và `route` chỉ đường từ bản đồ này (mapRoute) để client chấm mục tiêu
+ * ở bản đồ khác lên cổng đúng hướng. Nội dung bài client tự suy từ mã (questChain).
+ */
+export function sendDaily(room: MapRoom, id: string, ev?: "accept" | "ready" | "reward" | "reset", i = -1) {
+  const d = room.pdata.get(id), c = room.clients.getById(id); if (!d || !c) return;
+  if (dailyFresh(room, d)) ev = "reset";
+  dailyGive(d);
+  c.send("daily", { day: d.dailyDay, list: d.daily.map((q) => ({ ...q, prog: [...q.prog], status: questStatus(q) })), ev, i, route: mapRoute(room.state.mapId) });
+}
+/** Túi vừa đổi: mục tiêu nộp vật phẩm có thể vừa đủ / vừa thiếu, gửi lại tin "daily" khi đổi số đếm. */
+export function dailyBag(room: MapRoom, id: string) {
+  const d = room.pdata.get(id); if (!d) return;
+  const t = dailyGive(d, d.tongTasks); // tông vụ nộp vật phẩm (#197)
+  if (t.changed) {
+    if (t.ready >= 0) room.log(id, `Đã đủ đồ cho tông vụ "${questChain(d.tongTasks[t.ready].chain)?.steps[0].name}": mang tới nộp cho sứ giả tông môn.`, "#86e0b0");
+    room.sendTong(id);
+  }
+  const { changed, ready } = dailyGive(d); if (!changed) return;
+  if (ready >= 0) room.log(id, `Đã đủ đồ cho khảo hạch "${questChain(d.daily[ready].chain)?.steps[0].name}": mang tới nộp cho ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name}.`, "#86e0b0");
+  sendDaily(room, id, ready >= 0 ? "ready" : undefined, ready);
 }

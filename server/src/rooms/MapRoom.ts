@@ -12,7 +12,7 @@ import { TIERS, VOHON, TICK_RATE, tierOfYears, vohonIndex,
   itemDef, formatHonTe, type ItemDef,
   RING_ITEM, DROP_OWNER_SECS,
   SHARD_UNLOCK, starCost,
-  BONE_ITEM, BONE_SLOTS,
+  BONE_ITEM,
   CORE_ITEM, type CoreData,
   type CoreStat, EQUIP_ITEM, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
   type CoreFx,
@@ -23,10 +23,8 @@ import { TIERS, VOHON, TICK_RATE, tierOfYears, vohonIndex,
   BOSSES, bossIndex, ELITE, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS, type BeastBuffId,
   KING, kingActive, kingNext, vnDay, type BossDef, type FormDef,
   WORLD, worldActive, worldNext, worldBossOn, type He,
-  npcDef, NPC_RANGE, looksChangeCost, TONG_SWITCH_DAYS, tongDef, type NpcRole,
-  QUEST_STARTER, QUEST_AFTER, questChain, questStart, questStatus, questRewardText, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
-  DAILY, dailyIds,
-  tongTaskIds,
+  npcDef, NPC_RANGE, looksChangeCost, tongDef, type NpcRole,
+  QUEST_STARTER, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
   PARTY_XP_RANGE, PARTY_BUFF_R, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, BUFFS,
   type ResEffect,
   type AutoHint, type AutoSettings, type AutoSummary,
@@ -36,7 +34,7 @@ import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực 
 import type { Vitals } from "../../../shared/vitals.ts";
 import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
 import { clampDir, MOVE_DEAD } from "../../../shared/move.ts";
-import { loadMap, mapFile, mapRoute, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
+import { loadMap, mapFile, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, bossOffset, bossNow, type BossEvent } from "../schedule.ts";
 import { store, Character, type AccountLooks, type Location, type Item, type Bag, type AutoRow, type SoldRow, type TongRow, type SocialRow } from "../db.ts";
 import { takeToken, type TokenBucket, type ChatChannel } from "../ratelimit.ts";
@@ -58,7 +56,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount, type GearStats } from "./items.ts";
 import { questBump } from "./questBump.ts";
-import { beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, progressFor, giveCandidates, regenStep } from "./calc.ts";
+import { beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, regenStep } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import { equipBest } from "./equipBest.ts";
@@ -534,8 +532,6 @@ export async function takeKingSeat(mapId: string, slot: number, until: number, r
  * hook test) vẫn có đếm ngược. Xóa khi thú vương của bản đồ đó xuất hiện.
  */
 const kingWarns = new Map<string, BossEvent & { at: number }>();
-/** Nửa cỡ hồn thú lớn nhất (TIERS.size): cộng vào bán kính khi lấy ứng viên từ lưới không gian (beastsNear, 11.4). */
-export const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 
 // ---------- Kênh (mục 6 "Nhiều kênh") ----------
 /** Số người tối đa mỗi kênh: CHANNEL_MAX; chỉ khi bật GAME_TEST=1 mới hạ được bằng biến môi trường CHANNEL_MAX (bot thử kênh 2). */
@@ -1512,30 +1508,11 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Tông môn (#196, mục 5.14) ----------
-  /**
-   * Tin riêng `tong {tong, wait, day, tasks}`: tông đang thuộc ("" = không), số giây còn phải chờ mới gia nhập / đổi được (0 = được), và
-   * TONG_DAILY.count tông vụ hôm nay (#197: tiến độ như tin "daily" kèm trạng thái; nội dung bài client tự suy từ mã, questChain).
-   */
-  sendTong(id: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    this.tongFresh(d); this.dailyGive(d, d.tongTasks);
-    const wait = d.tongAt === null ? 0 : Math.max(0, Math.ceil((d.tongAt + TONG_SWITCH_DAYS * 86400000 - Date.now()) / 1000));
-    this.clients.getById(id)?.send("tong", { tong: d.tong ?? "", wait, day: d.tongDay,
-      tasks: d.tongTasks.map((q) => ({ ...q, prog: [...q.prog], status: questStatus(q) })) });
-  }
-  /** Giờ của tuần tông (ms): giờ thật, hook test `tweek` lệch được (#197). */
-  tongNow() { return Date.now() + testShift.tong * 86400000; }
-  /** Bộ tông vụ hôm nay từ các dòng `quests` đã lưu (như dailyOf); bài chưa có dòng thì chưa nhận. */
-  tongTasksOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) {
-    return { tongDay: day, tongTasks: progressFor(tongTaskIds(day), saved) };
-  }
-  /** Sang ngày mới thì thay bằng bộ tông vụ mới chưa nhận (như dailyFresh); trả true khi vừa đặt lại. */
-  tongFresh(d: PData, day = this.dailyDay()) {
-    if (d.tongDay === day) return false;
-    Object.assign(d, this.tongTasksOf(undefined, day));
-    d.bagDirty = true;
-    return true;
-  }
+  /** Tin riêng `tong`, giờ tuần tông, bộ tông vụ: logic ở `tong.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  sendTong(id: string) { return tong.sendTong(this, id); }
+  tongNow() { return tong.tongNow(); }
+  tongTasksOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) { return tong.tongTasksOf(this, saved, day); }
+  tongFresh(d: PData, day = this.dailyDay()) { return tong.tongFresh(this, d, day); }
 
   /** Tin client `tong` (xem rooms/tong.ts): gia nhập / rời tông, tông vụ, bảng tuần, thưởng tuần. */
   tongAction(id: string, op: unknown, raw: unknown, chain?: unknown) { tong.tongAction(this, id, op, raw, chain); }
@@ -1554,159 +1531,33 @@ export class MapRoom extends Room<MapState> {
   }
 
   // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
-  /**
-   * Tin riêng "quest": tiến độ chuỗi tân thủ (bước, đã nhận, số đếm từng mục tiêu) và trạng thái (questStatus). Nội dung bài, mục
-   * tiêu, phần thưởng client đọc từ QUESTS. `ev`: vừa nhận (`accept`), vừa đủ mục tiêu (`ready`), vừa trả (`reward`, kèm `done` = mã
-   * bước vừa trả), vừa xong cả chuỗi (`finish`); client hiện thông báo theo `ev`.
-   */
-  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string, chain = QUEST_STARTER) {
-    const d = this.pdata.get(id), q = d && this.fixedQuest(d, chain); if (!q) return;
-    this.clients.getById(id)?.send("quest", { ...q, prog: [...q.prog], status: questStatus(q), ev, done });
-  }
-  /** Tiến độ chuỗi cố định `chain` (tân thủ hoặc chương sau) của người chơi; undefined nếu không phải chuỗi cố định. */
-  fixedQuest(d: PData, chain: string) { return d.quest.chain === chain ? d.quest : d.chains.find((q) => q.chain === chain); }
-  /** Chuỗi `chain` đã mở cho người chơi chưa: chuỗi không có điều kiện, hoặc chuỗi `QUEST_AFTER` của nó đã xong. */
-  questOpen(d: PData, chain: string) { const a = QUEST_AFTER[chain]; return !a || questStatus(this.fixedQuest(d, a) ?? questStart(a)) === "done"; }
+  /** Nhiệm vụ, khảo hạch hằng ngày, bộ đếm sự kiện, thưởng nhiệm vụ: logic ở `quest.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  sendQuest(id: string, ev?: "accept" | "ready" | "reward" | "finish", done?: string, chain = QUEST_STARTER) { return quest.sendQuest(this, id, ev, done, chain); }
+  fixedQuest(d: PData, chain: string) { return quest.fixedQuest(d, chain); }
+  questOpen(d: PData, chain: string) { return quest.questOpen(d, chain); }
 
-  /**
-   * Mục tiêu `have` đã đạt sẵn chưa (lúc nhận nhiệm vụ): võ hồn nào đã có hồn hoàn, đang gắn hồn cốt / hồn hạch, đang ở bản đồ đó,
-   * đang thuộc một tông môn (#286).
-   */
-  questHave(d: PData, g: QuestGoal) {
-    if (g.k === "absorb") return d.ringYears.length > 0 || d.owned.some((v) => v !== d.ch && v.rings.length > 0);
-    if (g.k === "equip") return d.bag.some((i) => i.vohonId !== null);
-    if (g.k === "map") return g.map === this.state.mapId;
-    if (g.k === "tong") return d.tong !== null;
-    return false;
-  }
+  questHave(d: PData, g: QuestGoal) { return quest.questHave(this, d, g); }
 
-  /**
-   * Sự kiện thật cho bộ đếm nhiệm vụ (hạ hồn thú, đổi tay trong trận, tiên cơ, hấp thụ trong giới hạn, gắn đồ, nói chuyện với NPC,
-   * vào bản đồ; từ khảo hạch hằng ngày thêm hồn thú hợp cấp `fit`, trận đấu hồn `arena`; #286 thêm dung hợp kỹ `fusion`, gia nhập tông
-   * `tong`): chỉ tính khi đã nhận bước đang làm; mỗi mục tiêu khớp `ev` cộng 1 (kẹp ở `n`), cho chuỗi tân thủ và từng bài khảo hạch.
-   * Đủ mọi mục tiêu thì báo quay về NPC.
-   * Tiến độ ghi DB cùng túi đồ (bagDirty -> lưu định kỳ, rời phòng, transaction đi cổng).
-   */
-  questEvent(id: string, ev: QuestEvent) {
-    const d = this.pdata.get(id); if (!d || d.travelling) return;
-    for (const q of [d.quest, ...d.chains]) {
-      const r = this.questBump(q, ev), chain = questChain(q.chain);
-      if (!r || !chain) continue;
-      d.bagDirty = true;
-      if (r === "ready") this.log(id, `Hoàn thành "${chain.steps[q.step].name}": quay về gặp ${npcDef(chain.giver)?.name} ở ${MAPS[chain.map].name} để nhận thưởng.`, "#86e0b0");
-      this.sendQuest(id, r === "ready" ? "ready" : undefined, undefined, q.chain);
-    }
-    // Khảo hạch hằng ngày: cùng sự kiện, từng bài đã nhận (sang ngày mới thì bộ bài cũ bỏ trước).
-    if (this.dailyFresh(d)) this.sendDaily(id, "reset");
-    let hit = false, ready = -1;
-    d.daily.forEach((q, i) => {
-      const x = this.questBump(q, ev); if (!x) return;
-      hit = true;
-      if (x === "ready") { ready = i; this.log(id, `Hoàn thành khảo hạch "${questChain(q.chain)?.steps[0].name}": quay về gặp ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name} để nhận thưởng.`, "#86e0b0"); }
-    });
-    if (hit) { d.bagDirty = true; this.sendDaily(id, ready >= 0 ? "ready" : undefined, ready); }
-    // Tông vụ (#197): cùng sự kiện, từng bài đã nhận.
-    if (this.tongFresh(d)) this.sendTong(id);
-    let tHit = false;
-    for (const q of d.tongTasks) {
-      const x = this.questBump(q, ev); if (!x) continue;
-      tHit = true;
-      if (x === "ready") this.log(id, `Hoàn thành tông vụ "${questChain(q.chain)?.steps[0].name}": quay về sứ giả tông môn để nhận thưởng.`, "#86e0b0");
-    }
-    if (tHit) { d.bagDirty = true; this.sendTong(id); }
-  }
+  questEvent(id: string, ev: QuestEvent) { return quest.questEvent(this, id, ev); }
   /** Cộng sự kiện `ev` vào bước đang làm (đã nhận) của tiến độ `q`: null = không mục tiêu nào khớp, "ready" = vừa đủ mọi mục tiêu. */
   questBump(q: QuestProgress, ev: QuestEvent): "hit" | "ready" | null { return questBump(q, ev); }
 
 
-  /** Túi đủ chỗ cho cả phần thưởng nhiệm vụ `r` không: vật phẩm như bagFits, mỗi hồn cốt (`bones`, #285) thêm một ô. */
-  rewardFits(d: PData, r: QuestReward) { return this.bagFits(d, r.items, r.bones?.length ?? 0); }
+  rewardFits(d: PData, r: QuestReward) { return quest.rewardFits(this, d, r); }
 
-  /**
-   * Trao phần thưởng nhiệm vụ đã qua rewardFits: Hồn Tệ, vật phẩm, rồi mỗi hồn cốt (#285) đúng loài và số năm, vị trí tung đều trong
-   * BONE_SLOTS, +0, chưa có dòng phụ như hồn cốt rơi (addBone). Trả văn bản để báo log (hồn cốt ghi vị trí đã tung). Không gửi "bag".
-   */
-  grantReward(d: PData, r: QuestReward) {
-    this.addCoin(d, r.honTe);
-    for (const it of r.items) this.addItem(d, it.code, it.qty);
-    const bones = (r.bones ?? []).flatMap((b) => {
-      const it = this.addBone(d, b.years, b.beast, BONE_SLOTS[Math.floor(Math.random() * BONE_SLOTS.length)].id);
-      return it ? [this.itemLabel(it)] : [];
-    });
-    return [questRewardText({ ...r, bones: [] }), ...bones].filter(Boolean).join(", ");
-  }
+  grantReward(d: PData, r: QuestReward) { return quest.grantReward(this, d, r); }
 
   /** Tin client `quest` (xem rooms/quest.ts): nhận / trả bước chuỗi nhiệm vụ, hoặc xin tiến độ; `chainId` khảo hạch thì chuyển `dailyAction`. */
   questAction(id: string, op: unknown, chainId?: unknown) { quest.questAction(this, id, op, chainId); }
 
   // ---------- Khảo hạch hằng ngày của Phất Lan Đức (mục 5.8 "Nhiệm vụ hằng ngày") ----------
-  /**
-   * Ngày của bộ khảo hạch (vnDay, đổi lúc 00:00 giờ Việt Nam): như `today` (hook `day` của phòng lệch được), cộng độ lệch toàn tiến
-   * trình `testShift.daily` của hook `daily {shift}` (để bot chọn ngày có bộ bài cần thử và mang cùng ngày đó sang phòng sân đấu).
-   */
-  dailyDay() { return vnDay(bossNow() + (this.dayShift + testShift.daily) * 86400000); }
-  /** Bộ khảo hạch hôm nay (dailyIds) từ các dòng `quests` đã lưu; bài chưa có dòng thì chưa nhận. Dòng của ngày khác bỏ qua. */
-  dailyOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) {
-    return { dailyDay: day, daily: progressFor(dailyIds(day), saved) };
-  }
-  /**
-   * Sang ngày mới (00:00 giờ Việt Nam, dailyDay) thì thay bằng bộ bài mới chưa nhận; bài cũ dở dang bỏ luôn (dòng cũ trong bảng `quests`
-   * bị xóa ở lần ghi túi kế tiếp, writeBag). Trả true khi vừa đặt lại (nơi gọi gửi tin "daily").
-   */
-  dailyFresh(d: PData, day = this.dailyDay()) {
-    if (d.dailyDay === day) return false;
-    Object.assign(d, this.dailyOf(undefined, day));
-    d.bagDirty = true;
-    return true;
-  }
-  /**
-   * Các món mã `code` nộp được cho mục tiêu `give`: nằm trong túi (không gắn), chưa cường hóa / nâng cấp, không phải hồn hoàn đang hấp
-   * thụ (#165: đồ đang dùng không làm nguyên liệu đồng thời); rẻ nhất trước.
-   */
-  giveItems(d: PData, code: string) {
-    return giveCandidates(d.bag, code, d.absorbing?.itemId);
-  }
-  /**
-   * Số đếm của mục tiêu `give` = số món đang có trong túi (kẹp ở `n`), tính lại mỗi khi túi đổi. Trả chỉ số bài vừa đủ mục tiêu
-   * (-1 = không có) và có đổi số đếm nào không.
-   */
-  dailyGive(d: PData, list: QuestProgress[] = d.daily) {
-    let changed = false, ready = -1;
-    list.forEach((q, i) => {
-      const step = q.accepted ? questChain(q.chain)?.steps[q.step] : undefined; if (!step) return;
-      const was = questStatus(q);
-      step.goals.forEach((g, k) => {
-        if (g.k !== "give" || !g.item) return;
-        const n = Math.min(g.n, this.giveItems(d, g.item).reduce((a, it) => a + it.qty, 0));
-        if (q.prog[k] !== n) { q.prog[k] = n; changed = true; }
-      });
-      if (was !== "ready" && questStatus(q) === "ready") ready = i;
-    });
-    return { changed, ready };
-  }
-  /**
-   * Tin riêng "daily": ngày (vnDay), DAILY.count bài (tiến độ như tin "quest" và trạng thái), `ev` vừa nhận / vừa đủ / vừa trả /
-   * vừa đặt lại sang ngày mới (`reset`) kèm `i` = bài đó, và `route` chỉ đường từ bản đồ này (mapRoute) để client chấm mục tiêu
-   * ở bản đồ khác lên cổng đúng hướng. Nội dung bài client tự suy từ mã (questChain).
-   */
-  sendDaily(id: string, ev?: "accept" | "ready" | "reward" | "reset", i = -1) {
-    const d = this.pdata.get(id), c = this.clients.getById(id); if (!d || !c) return;
-    if (this.dailyFresh(d)) ev = "reset";
-    this.dailyGive(d);
-    c.send("daily", { day: d.dailyDay, list: d.daily.map((q) => ({ ...q, prog: [...q.prog], status: questStatus(q) })), ev, i, route: mapRoute(this.state.mapId) });
-  }
-  /** Túi vừa đổi: mục tiêu nộp vật phẩm có thể vừa đủ / vừa thiếu, gửi lại tin "daily" khi đổi số đếm. */
-  dailyBag(id: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    const t = this.dailyGive(d, d.tongTasks); // tông vụ nộp vật phẩm (#197)
-    if (t.changed) {
-      if (t.ready >= 0) this.log(id, `Đã đủ đồ cho tông vụ "${questChain(d.tongTasks[t.ready].chain)?.steps[0].name}": mang tới nộp cho sứ giả tông môn.`, "#86e0b0");
-      this.sendTong(id);
-    }
-    const { changed, ready } = this.dailyGive(d); if (!changed) return;
-    if (ready >= 0) this.log(id, `Đã đủ đồ cho khảo hạch "${questChain(d.daily[ready].chain)?.steps[0].name}": mang tới nộp cho ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name}.`, "#86e0b0");
-    this.sendDaily(id, ready >= 0 ? "ready" : undefined, ready);
-  }
+  dailyDay() { return quest.dailyDay(this); }
+  dailyOf(saved: QuestProgress[] | undefined, day = this.dailyDay()) { return quest.dailyOf(this, saved, day); }
+  dailyFresh(d: PData, day = this.dailyDay()) { return quest.dailyFresh(this, d, day); }
+  giveItems(d: PData, code: string) { return quest.giveItems(d, code); }
+  dailyGive(d: PData, list: QuestProgress[] = d.daily) { return quest.dailyGive(d, list); }
+  sendDaily(id: string, ev?: "accept" | "ready" | "reward" | "reset", i = -1) { return quest.sendDaily(this, id, ev, i); }
+  dailyBag(id: string) { return quest.dailyBag(this, id); }
   /** Nhận / trả bài khảo hạch hằng ngày (xem rooms/quest.ts). */
   dailyAction(id: string, op: unknown, chainId: string) { quest.dailyAction(this, id, op, chainId); }
 
