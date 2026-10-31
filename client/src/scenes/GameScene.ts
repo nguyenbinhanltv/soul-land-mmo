@@ -357,6 +357,7 @@ export class GameScene extends Phaser.Scene {
    */
   npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; mark: Phaser.GameObjects.Text | null;
     qmark: Phaser.GameObjects.Text | null; nameText: Phaser.GameObjects.Text; titleText: Phaser.GameObjects.Text | null; top: number }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
+  talkingNpc: string | null = null; // Chỉ giữ mã trong scene, không giữ sprite qua bản đồ.
   daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
   /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
   qt: { key: string; npcs: Pt[]; zones: Rect[]; portals: Rect[] } = { key: "", npcs: [], zones: [], portals: [] };
@@ -764,6 +765,22 @@ export class GameScene extends Phaser.Scene {
     }
     const open = hud.npcOpenId(), on = open && this.npcs.find((n) => n.id === open);
     if (on && Math.hypot(on.x - me.x, on.y - me.y) > NPC_RANGE + 12) hud.closeNpc();
+    this.faceTalkingNpc(me);
+  }
+
+  /** Chốt hướng lúc mở hội thoại, giữ suốt cuộc nói chuyện để không giật ở ranh giới hướng / NPC gần nhau. */
+  faceTalkingNpc(me: { x: number; y: number }) {
+    const open = hud.npcOpenId();
+    if (open === this.talkingNpc) return;
+    for (const n of this.npcs) {
+      if (!n.body || (n.id !== open && n.id !== this.talkingNpc)) continue;
+      const dx = me.x - n.x, dy = me.y - n.y;
+      // Gần trùng chân thì giữ hướng gốc, tránh chọn hướng từ sai số vị trí.
+      const d = n.id === open && Math.hypot(dx, dy) > 2 ? dir8(dx, dy) ?? "s" : "s";
+      const a = honsuAnimKey(n.body.texture.key, "idle", d);
+      n.body.setFlipX(a.flip).play(a.key, true);
+    }
+    this.talkingNpc = open;
   }
 
   /**
