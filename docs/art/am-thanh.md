@@ -17,6 +17,10 @@
 - **Mức hiệu ứng mặc định và Giảm chuyển động:** mặc định Vừa (`FX_DEFAULT_LEVEL`, cả bản lưu hỏng); máy yếu tự hạ về Thấp bằng bộ điều tốc H8. "Giảm chuyển động" (mặc định theo `prefers-reduced-motion` của hệ điều hành) gắn lớp `reduce-motion` lên `<html>` (`combatFx.ts`): ngoài rung / chớp / zoom / hitstop của cảnh, CSS cuối `style.css` tắt các hoạt ảnh nhấp nháy vô hạn của giao diện (nút dung hợp / Chân Thân, ô sẵn sàng, cảnh báo boss, hiệu ứng cường hóa, toast).
 - Trang nghe thử `?thu=am` (không cần đăng nhập, `client/src/audioTest.ts`): mọi nhóm, từng biến thể, thanh trộn từng kênh, hồn hoàn theo niên hạn, gầm boss hạ nhạc, chồng 40 tiếng, bảng nguồn và giấy phép.
 
+### Va chạm đá và linh thể (#1496)
+
+Sáu chất liệu trong `MATERIALS` đều có mẫu. `hit-da` dùng ba tiếng đá, `hit-linh_the` dùng ba va phép ngắn CC0. Đánh thường và chí mạng chọn cùng nhóm chất liệu sau khi gói combat tải xong; chỉ chưa tải/lỗi tải mới dự phòng `combat_hit` tổng hợp. Không đổi ánh xạ loài, sát thương, boss hay T3. Nguồn/hash từng mẫu và công thức xử lý ở `art/CREDITS.md` và catalog.
+
 **Nhạc nền** (`client/src/audio/music.ts`; nhạc sáng tác bằng code ở `tools/audio/compose`, danh sách bài trong `shared/assets/audio/music/manifest.json`):
 - **Nhạc cụ và bộ tiếng:** render bằng SpessaSynth với GeneralUser GS (nền, tiêu, chuông) và DSK Asian DreamZ (tỳ bà, cổ tranh, nhị hồ, sáo trúc, bộ gõ; truyền `--extra-soundfont`, bank 1); nguồn và giấy phép ở `art/CREDITS.md` mục "Asset bên ngoài". Khuôn bài ở `tools/audio/compose/lib/ngucung.mjs`, cách chạy ở `tools/audio/compose/README.md`.
 - Mỗi bản đồ một bài lặp (`kind: "map"`, khớp `mapId` trong state của phòng); điểm lặp là cả file, phát bằng `AudioBufferSourceNode` lặp nên liền mạch đúng từng mẫu. `seconds` của manifest chỉ làm tròn tới ms nên không dùng làm điểm cắt; độ dài vòng thật là `musicLoopSeconds` (bội `MUSIC_LOOP_BLOCK` mẫu ở `MUSIC_RENDER_RATE`), chỉ dùng khi bộ giải mã đệm thêm ở cuối file.

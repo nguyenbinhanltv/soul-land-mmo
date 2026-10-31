@@ -2400,11 +2400,11 @@ Ghi công hồn thú hoạt ảnh (H2 / H4, ảnh raw chờ preview) **không n�
 <!-- private-assets:end -->
 
 
-### M?u va ch?m ?? v? linh th? (#1496)
+### Mẫu va chạm đá và linh thể (#1496)
 
-Ki?m CC0 tr?c ti?p t?i trang ngu?n 31/10/2026; archive hash trong catalog/manifest. Kh?ng AI, kh?ng ti?ng h?; c?t/l?c/c?n ??nh b?ng process-sfx.mjs, c?ng th?c v? SHA256 ??u v?o trong catalog.
+Đã kiểm CC0 trực tiếp trên trang nguồn ngày 31/10/2026. Không AI, không tiếng hô. SHA256 archive trong catalog/manifest; công thức cắt/lọc/cân đỉnh trong catalog, process-sfx.mjs kiểm hash trước khi xử lý. Tên gốc chỉ ghi trong bảng nguồn này.
 
-| Clip game | T?n g?c | T?c gi? | Gi?y ph?p | Trang ngu?n | SHA256 ??u v?o |
+| Clip game | Tên gốc | Tác giả | Giấy phép | Trang nguồn | SHA256 đầu vào |
 |---|---|---|---|---|---|
 | hit-da-1 | impactMining_000.ogg | Kenney | CC0-1.0 | <https://kenney.nl/assets/impact-sounds> | `36b4ea107222d073c67ca64dde26944975609202d5090b2f2021213c1a7e35cd` |
 | hit-linh-the-1 | spell_01.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/80-cc0-rpg-sfx> | `09821a53c418c5eeeac4fa25bada9d245e822fed302eeeae9ae4151522a45ae5` |
