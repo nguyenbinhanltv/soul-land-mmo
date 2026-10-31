@@ -760,7 +760,8 @@
   },
   "lo_ren_lang": {
    "key": "prop_lo_ren_lang",
-   "foot": [56, 91]
+   "foot": [56, 91],
+   "clip": { "key": "prop_lo_ren_lang_clip", "frames": 16, "ms": 100 }
   },
   "man_day_leo_sang": {
    "key": "prop_man_day_leo_sang",
