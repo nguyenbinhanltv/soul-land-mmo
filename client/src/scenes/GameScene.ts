@@ -78,6 +78,7 @@ import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } f
 const SV_OFF = new URLSearchParams(location.search).get("sv") === "0";
 import { hitWeight, KNOCK_PX, materialSparks, damageStyle, playHitFeelSheets, registerHitFeelSheets } from "../hitFeel.ts";
 import { footDustCount, rootSnareDiameter, shouldForceShake, flashAllowed } from "../combatFeelRules.ts";
+import { fadeDamageText } from "../damageTextMotion.ts";
 import { PhapTuongSystem, PhapTuongCutIn } from "../phapTuong.ts";
 import { phuFaceOf, phuDirRow, weaponHidden } from "../phutheAnim.ts";
 import { PHU_NO_ANCHOR, phuAnchorAt, phuAnchorsOf, phuLayerPlacement } from "../phutheAnchor.ts";
@@ -2578,6 +2579,10 @@ export class GameScene extends Phaser.Scene {
       color: ds.color,
       stroke: "#" + ds.stroke.toString(16).padStart(6, "0"), strokeThickness: m.crit || self ? 4 : 3, resolution: 4,
     }).setOrigin(0.5).setDepth(self ? 100000 : 99999).setScale(k * (m.crit ? 0.6 : 0.8));
+    if (fxPrefs.reduce) {
+      fadeDamageText(this.tweens, t, self, !!m.crit, plus);
+      return;
+    }
     const base = t.scaleX;
     if (self) {
       t.setScale(base * 1.5); this.tweens.add({ targets: t, scale: base, duration: 140, ease: "Quad.easeOut" });
