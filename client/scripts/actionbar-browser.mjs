@@ -257,6 +257,19 @@ try {
       assert.match(await page.locator("#bag .bfilter .on").innerText(), /Tiêu hao/);
       await tapBag();
       assert.ok(await page.locator("#bag").isVisible(), "Bấm Tiêu hao lần nữa giữ Túi mở");
+      if (touch) {
+        // Đồ rơi của người khác (ownerTtl > 0) không báo "có đồ nhặt": túi nhanh vẫn mở túi tiêu hao (giả drop ở client, không đổi server).
+        await page.evaluate(() => {
+          const sc = window.__c8Scene, drops = sc.room.state.drops, me = sc.room.state.players.get(sc.room.sessionId);
+          drops.__forEach = drops.forEach; drops.forEach = (fn) => fn({ x: me.x, y: me.y, owner: "nguoi-khac", ownerTtl: 30, item: "", tier: 0, years: 100 }, "fake");
+        });
+        await sleep(400);
+        assert.ok(await page.locator(".qbag").evaluate((e) => !e.classList.contains("loot")), "Đồ rơi của người khác không bật chỉ báo nhặt");
+        await tapBag();
+        await page.waitForFunction(() => !document.querySelector("#bag").hidden);
+        await escClose(page);
+        await page.evaluate(() => { const d = window.__c8Scene.room.state.drops; d.forEach = d.__forEach; delete d.__forEach; });
+      }
       await escClose(page);
       for (const [item, panel] of [["settings", "audio"], ["auto", "autoPanel"]]) {
         // Nút menu cũ đã bỏ: mở bằng hub (huy hiệu giữa trên rồi thẻ / mục rail).
