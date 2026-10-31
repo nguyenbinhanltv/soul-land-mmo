@@ -18,13 +18,15 @@ const installed = fileURLToPath(new URL("../../", import.meta.url));
 const root = await realpath(resolve(process.env.C8_SOURCE_ROOT ?? installed));
 const out = resolve(process.env.C8_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "c8-preview-")));
 const before = process.env.C8_PHASE === "before", phase = before ? "before" : "after";
+const bossOnly = process.env.C8_BOSS_ONLY === "1";
+if (bossOnly) process.env.C8_NAMES_ONLY = "1";
 const children = [], samples = [], nameSamples = [], nameFailures = [];
 const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
 if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true], [390, 844, true]);   // ngang + dọc (điện thoại)
 const hudOnly = process.env.C8_HUD_ONLY === "1";
 if (hudOnly) viewports.splice(0, viewports.length, [640, 360, true], [844, 390, true], [1280, 720, false], [960, 540, false], [1920, 1080, false]);
 const namesOnly = process.env.C8_NAMES_ONLY === "1";
-const bossOnly = process.env.C8_BOSS_ONLY === "1";
+const toastOnly = process.env.C8_TOAST_ONLY === "1";
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => {
@@ -104,8 +106,8 @@ try {
     });
     await page.goto(`${web}/choi/`);
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
-    await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
     if (bossOnly) {
+      await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
       await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
       for (const fs of [0,1,2]) {
         await page.evaluate(async fs => {
@@ -130,6 +132,34 @@ try {
       }
       await page.evaluate(async()=>{clearInterval(window.__bossFixture);(await import("/src/hudBoss.ts")).showBoss(null);});
       await context.close(); console.log(`✓ Boss ${phase} ${size}: ba cỡ chữ`); continue;
+    }
+    await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
+    if (toastOnly) {
+      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      for (const fs of [0, 1, 2]) for (const kind of ["level", "info"]) {
+        await page.evaluate(async ({fs,kind}) => {
+          document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (fs) document.body.classList.add(`a11y-fs-${fs}`);
+          document.querySelectorAll("#toasts .toast").forEach(e => e.remove());
+          const {toast}=await import("/src/feedback.ts");
+          const title=kind==="level" ? "Hồn sư tăng cấp, mở tiến độ mới" : "Đạt mốc Cộng Minh mới";
+          const sub="Mở bảng Cộng Minh để xem các chỉ số tăng thêm và điều kiện đạt mốc tiếp theo.";
+          toast(kind,title,sub); toast(kind,title,sub);
+        }, {fs,kind});
+        await page.waitForTimeout(300);
+        const text = await page.locator(".toast:not(.out)").last().evaluate(e => [...e.querySelectorAll(".tk,b,small,.tn")].map(el => {
+          const range=document.createRange(); range.selectNodeContents(el);
+          const lines=[...range.getClientRects()].filter(r=>r.width>0).map(r=>({top:r.top,bottom:r.bottom}));
+          const style=getComputedStyle(el);
+          return {tag:el.tagName,lines,font:Number.parseFloat(style.fontSize),line:Number.parseFloat(style.lineHeight)};
+        }));
+        samples.push({size,fs,kind,text});
+        if (!before) for (const item of text) {
+          assert.ok(item.line >= item.font, `Khoảng dòng nhỏ hơn chữ ${size} fs${fs} ${item.tag}`);
+          for (let i=1;i<item.lines.length;i++) assert.ok(item.lines[i].top >= item.lines[i-1].bottom-0.5, `Chữ đè dòng ${size} fs${fs} ${item.tag}`);
+        }
+        await screenshot(page, `toast-${kind}-fs${fs}`, size);
+      }
+      await context.close(); console.log(`✓ Toast ${phase} ${size}: ba cỡ chữ`); continue;
     }
     if (hudOnly) {
       await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
@@ -460,7 +490,7 @@ try {
   await writeFile(resolve(out, `${phase}-metrics.json`), JSON.stringify(samples, null, 2));
   await writeFile(resolve(out, `${phase}-names.json`), JSON.stringify(nameSamples, null, 2));
   assert.deepEqual(nameFailures, [], "Tên hồn kỹ phải hiển thị đầy đủ bằng pixel, không clamp/overflow/che chữ");
-  if (!before && !namesOnly && !hudOnly && !bossOnly) {
+  if (!before && !namesOnly && !hudOnly && !toastOnly) {
     const images = new Set(await readdir(out));
     const sections = viewports.map(([w, h, touch]) => {
       const size = `${w}x${h}`, state = touch ? "san-sang" : "ten-day-du";
