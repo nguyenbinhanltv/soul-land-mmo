@@ -128,8 +128,12 @@ export async function autoBossTest(){
     await test(A,"bmax",{bid:KB,x:1000});
     const inL=(x,y)=>x>=LR.x&&x<=LR.x+LR.w&&y>=LR.y&&y<=LR.y+LR.h;
     ok(KB&&await near(LR.x+LR.w/2,LR.y+LR.h/2,Math.max(LR.w,LR.h)/2+30,(x,y)=>!inL(x,y)&&farSafe(x,y)),`thú vương ${beastName(2,kb()?.species)} trong hang; A đứng ngoài hang`);
+    // Gốc chập chờn (#1421): đứng ngoài hang vẫn có hồn thú thường hồi sinh / lang thang quanh A; con nào chạm tầm aggro thì đánh A, tự săn
+    // đã trúng hoặc bị đánh thì giữ tới khi hạ và không xét lại thú vương (autoHunt.decide), 10 giây không đủ. Dọn hồn thú thường (giữ thú vương)
+    // ngay trước khi bật, như bước tinh anh (#984).
+    await test(A,"clear",{keep:true});
     await cfg({years:[0,0],elite:false,world:false}); m=await autoOp("on");
-    ok(m?.on&&await until(async()=>{ ai=await info(); return ai.target===KB&&ai.boss; },10000),"tự săn tới đánh thú vương");
+    ok(m?.on&&await until(async()=>{ ai=await info(); return ai.target===KB&&ai.boss; },10000),"tự săn tới đánh thú vương"+` [mục tiêu ${ai.target}, A ${me().x?.toFixed(0)},${me().y?.toFixed(0)} ${me().hp}/${me().maxHp}, thú vương ${kb()?.x?.toFixed(0)},${kb()?.y?.toFixed(0)}]`);
     ok(await until(async()=>{ ki=await test(A,"king"); return ki.parts?.includes(sid)&&ki.dmgBy?.[sid]>0; },30000),`đóng góp được ghi: ${ki.dmgBy?.[sid]} sát thương`);
     await info({kn:KING.daily});
     ok(await until(async()=>(await info()).target!==KB,8000),`hết lượt rương hôm nay (${KING.daily}/${KING.daily}): thôi nhắm thú vương`);
