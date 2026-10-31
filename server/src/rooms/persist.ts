@@ -6,7 +6,8 @@ import { store } from "../db.ts";
 import { MAPS } from "../../../shared/data.ts";
 import { ItemLockBusy, withItemLocks } from "../itemLock.ts";
 import { presenceBackend } from "../presence.ts";
-import { type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { saveStats } from "./common.ts";
 import { rankSync } from "./rank.ts";
 

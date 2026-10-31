@@ -5,7 +5,8 @@ import { ACHV_COUNTERS, ARENA, ARENA_SHARDS, MSG_GROUP, QUESTS, achvDef, achvRea
 import { store, type AchvCounters } from "../db.ts";
 import { takeToken } from "../ratelimit.ts";
 import { bagFits } from "./welfare.ts";
-import { type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { CLAIM_BUSY, claimHeld, strIn } from "./common.ts";
 
 /** Chỉ số của người chơi lúc này: phần suy từ RAM đã nạp cộng trận thắng đấu trường (đọc DB) và bộ đếm `counters`. */

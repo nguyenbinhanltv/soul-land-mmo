@@ -4,7 +4,8 @@
 // có luật riêng của trận: các pha (chờ vào sân, đếm ngược, giao đấu, kết quả), thắng thua, Elo, thưởng, rời sân = thua.
 // Server quyết định mọi thứ; client chỉ gửi ý định như ở bản đồ (mục 6).
 import { Client, ServerError } from "colyseus";
-import { MapRoom, type AuthData, type PData } from "./MapRoom.ts";
+import { MapRoom } from "./MapRoom.ts";
+import type { AuthData, PData } from "./types.ts";
 import { seatAccount, seatUsed, type SeatPass } from "./seat.ts";
 import { ArenaState, ArenaSide } from "./schema.ts";
 import { ARENA, ARENA_MAP, ARENA_SHARDS, PARTY_BUFF_R, arenaCrossPairs, arenaRanked, dir4, eloAfter, shardCode, sellPrice, type ArenaRecord } from "../../../shared/data.ts";

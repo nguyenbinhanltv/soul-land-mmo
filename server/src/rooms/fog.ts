@@ -9,7 +9,8 @@ import { fogDims as sharedFogDims, fogEmpty, fogReveal, fogValid, fogOn as fogMa
 import { mapFile } from "../map.ts";
 import { store } from "../db.ts";
 import * as party from "../party.ts";
-import type { MapRoom, PData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 
 /**
  * Hồn thú có thể nằm trong bán kính r quanh (x, y): ứng viên theo lưới không gian (đã cộng nửa cỡ hồn thú lớn nhất), thay cho quét cả

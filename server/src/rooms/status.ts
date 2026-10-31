@@ -4,7 +4,8 @@
 // (`damageBeast`, `hurtPlayer`, `skill.ts`, `tick.ts`, `arena.ts`, `autoHunt.ts`, `gm.ts` gọi `room.applyStatus` / `room.pctl` ... như cũ).
 import { PlayerState, BeastState } from "./schema.ts";
 import { VOHON, isCcStatus, type CoreFx, STATUS, STATUS_TICK, CC_TIER_MULT, statusBit, SLOW_CAP, type StatusId, type StatusApply, PLAYER_STATUS, ARENA, ARENA_HE_DMG, RESIST_AS, PLAYER_CHARM } from "../../../shared/data.ts";
-import type { MapRoom, BData, PData, FusHit, SInst } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { BData, PData, FusHit, SInst } from "./types.ts";
 
 /**
  * Gây trạng thái `a` lên hồn thú `bid`, người gây `by`, sức mạnh hồn kỹ `power`. Cộng dồn tầng tới STATUS.max, thời gian lấy

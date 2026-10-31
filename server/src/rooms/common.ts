@@ -5,7 +5,7 @@
 import type { Client } from "colyseus";
 import { WORLD, KING, MSG_GROUP, MSG_HARD, type BossDef, type MsgGroup } from "../../../shared/data.ts";
 import type { TokenBucket } from "../ratelimit.ts";
-import type { KingData, WorldData } from "./MapRoom.ts"; // chỉ type: bị xóa lúc biên dịch, không tạo vòng import runtime
+import type { KingData, WorldData } from "./types.ts"; // chỉ type: bị xóa lúc biên dịch, không tạo vòng import runtime
 
 let nextId = 1;
 export const uid = (p: string) => p + (nextId++).toString(36);

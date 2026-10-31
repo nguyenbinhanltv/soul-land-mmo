@@ -4,7 +4,8 @@
 // qua MapRoom.attack nên hồi chiêu, Choáng, vùng an toàn, tàng hình… áp như khi tự bấm. Client chỉ gửi ý định `target {id}`.
 import { ATTACK_REACH, BEAST_HALF, dir4 } from "../../../shared/data.ts";
 import { reachGap } from "../../../shared/clickgoal.ts";
-import type { MapRoom, PData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import type { BeastState, PlayerState } from "./schema.ts";
 
 /** Hồn thú `b` nằm trong tầm đòn thường của hồn sư `p` (quay mặt về nó thì đòn trúng). */

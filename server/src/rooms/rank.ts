@@ -4,7 +4,8 @@
 
 import { RANK_BOARDS, RANK_CD, RANK_PAGE_MAX, RANK_PAGE_SIZE, RANK_SYNC_CD, TEAM_COMBAT_SECS, rankBoardOf, rankScores } from "../../../shared/data.ts";
 import { store } from "../db.ts";
-import { type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { intIn } from "./common.ts";
 
 /**

@@ -5,7 +5,8 @@ import { sendGear } from "../src/rooms/equip.ts";
 import { chooseBest, equipBest } from "../src/rooms/equipBest.ts";
 import { ASK_CD, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_SLOTS, rollEquip, equipSlotIndex } from "../../shared/data.ts";
 import type { Item } from "../src/db.ts";
-import type { MapRoom, PData } from "../src/rooms/MapRoom.ts";
+import type { MapRoom } from "../src/rooms/MapRoom.ts";
+import type { PData } from "../src/rooms/types.ts";
 const tpl = EQUIP_TEMPLATES[0], slot = equipSlotIndex(tpl.slot);
 const mk = (id: string, enhance: number, locked = false): Item => ({ id, kind: "trang_bi", code: EQUIP_ITEM, qty: 1, years: null, stars: null,
   enhance, stats: rollEquip(tpl, 1, () => 0.5), vohonId: null, created: 0, locked });

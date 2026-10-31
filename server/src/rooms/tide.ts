@@ -3,7 +3,8 @@
 // và nhịp các đợt nước. Số liệu ở shared/data.ts (TideDef). MapRoom chỉ gọi `tick`.
 import { type Tele, type TideDef } from "../../../shared/data.ts";
 import type { GameMap } from "../map.ts";
-import type { BData, MapRoom } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { BData } from "./types.ts";
 import { PLAYER_BOX, lairSpot, openRing, type Anchor } from "./worldBoss.ts";
 
 type Pt = { x: number; y: number };

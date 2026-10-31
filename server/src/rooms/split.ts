@@ -3,7 +3,8 @@
 // trước `warn`, `once`); file này chỉ chia hang và giữ nhịp luân phiên. Số liệu ở shared/data.ts (SplitDef). MapRoom chỉ gọi `tick`.
 import { type SplitDef, type Tele } from "../../../shared/data.ts";
 import type { Rect } from "../map.ts";
-import type { BData, MapRoom } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { BData } from "./types.ts";
 
 /**
  * Hang `l` chia theo chiều dài (cạnh dài hơn của chữ nhật) thành `n` phần bằng nhau, mỗi phần là một dải (`line`: gốc ở giữa mép đầu

@@ -6,7 +6,8 @@ import { BeastState } from "./schema.ts";
 import { TIERS, beastIndex, MAX_YEARS, rollYears, teleHits, teleSafe, TELE_FIRST, type BeastSkillDef, type Tele, teleZones, BOSSES, WORLD, SUMMON_RING } from "../../../shared/data.ts";
 import { PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { floorSafeZones } from "./worldBoss.ts";
-import type { MapRoom, BData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { BData } from "./types.ts";
 
 /**
  * Hồn thú `bid` bắt đầu báo trước chiêu `s` nhắm hồn sư `pid`: khóa vùng (hướng vệt / nón, tâm vòng dưới chân mục tiêu) theo vị

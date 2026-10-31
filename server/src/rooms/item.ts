@@ -2,7 +2,8 @@
 // `pickup` (nhặt hồn hoàn / hồn cốt / hồn hạch / trang bị / mảnh dưới đất), `useItem` (dùng món trong túi: đan, Hồi Thành Phù, Ủy Thác Lệnh) và `useHerb` (tiên thảo cho võ hồn).
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts / bag.ts; nguyên văn từ MapRoom, không đổi số / thứ tự xử lý / thứ tự ghi DB qua `room.chain`. MapRoom chỉ chuyển tiếp 3 hàm
 // (`onMessage("pickup" / "use")`, `autoHunt.ts` gọi `room.pickup` như cũ). Còn ở MapRoom: `addItem` / `addRing` / `addBone` / `addEquip`, `takeItem`, `canLoot`, `lootNote` / `shardNote`, `useAutoToken`.
-import type { MapRoom, PData } from "./MapRoom.ts";
+import type { MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { DropState } from "./schema.ts";
 import { TIERS, VOHON, vohonIndex, BEASTS, itemDef, DAN_CD, formatYears, PICKUP_RANGE, BONE_ITEM, BONE_SLOTS, boneName, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, equipName, EQUIP_TEMPLATES, EQUIP_TIERS, HERB_MAX, herbDef, herbText, BICANH, xpBlocked } from "../../../shared/data.ts";
 import { store, type Item } from "../db.ts";

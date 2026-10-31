@@ -3,7 +3,8 @@
 import { BeastState } from "./schema.ts";
 import { TIERS, VOHON, TIEN_CO, TIEN_CO_MAX, TIEN_CO_IDLE_SECS, TIEN_CO_DECAY, energyGain, tienCoDmgMult, starTienCoMult, CORE_SET_2, CORE_SET_4, coreSetCounts, skillPower, PHONG_LOI, TIEN_CO_RIENG, chanThanOf, ARENA, ATTACK_REACH, TIEN_CO_DASH_INV } from "../../../shared/data.ts";
 import { Character } from "../db.ts";
-import { type MapRoom, type PData, type Hit } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData, Hit } from "./types.ts";
 
 /** Bộ hồn hạch Tiên Cơ (mục 5.6) gắn trên võ hồn `v` (từ 5.2): 2 món tích năng lượng nhanh hơn (khi ở ngoài), 4 món tiên cơ mạnh hơn. */
 export function tienCoSet(room: MapRoom, d: PData, v: Character) {

@@ -5,7 +5,8 @@ import { itemDef, formatHonTe, npcDef, TONG_MON, TONG_MIN_LEVEL, TONG_SWITCH_DAY
   tongDef, tongWeek, tongWeekDay, tongTop, tongTaskIds, questChain, questStatus, ARENA_SHARDS, shardCode, type QuestProgress } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import { progressFor } from "./calc.ts";
-import { type MapRoom, type PData } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import type { PData } from "./types.ts";
 import { CLAIM_BUSY, claimHeld, testShift } from "./common.ts";
 
 /**
