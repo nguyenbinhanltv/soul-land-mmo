@@ -21,12 +21,13 @@ let shopSel = "";         // mã món đang chọn ở lưới mua
 let shopQty = 1;          // số lượng đang kéo
 
 /** Ô tìm (bỏ dấu để khớp): lọc tại chỗ các phần tử `.shoprow` / `.s2-card` theo `data-name`, không vẽ lại nên không mất con trỏ. */
-function shopSearch(el: HTMLElement, label: string, scope: () => HTMLElement): HTMLElement {
+function shopSearch(el: HTMLElement, label: string, scope: () => HTMLElement, onFilter?: () => void): HTMLElement {
   const none = document.createElement("p"); none.className = "nline s2-none"; none.hidden = true; none.textContent = "Không có món nào khớp. Xoá bớt chữ để xem lại.";
   const apply = () => {
     let shown = 0;
     for (const r of scope().querySelectorAll<HTMLElement>("[data-name]")) { const ok = matchQuery(r.dataset.name ?? "", shopQuery); r.hidden = !ok; if (ok) shown++; }
     none.hidden = shown > 0 || !scope().querySelector("[data-name]");
+    onFilter?.();
   };
   const { root: box } = searchField({ label, value: shopQuery, onInput: (q) => { shopQuery = q; apply(); } }); box.classList.add("s2-search");
   el.append(box, none);
@@ -37,14 +38,13 @@ function shopSearch(el: HTMLElement, label: string, scope: () => HTMLElement): H
 /** Lưới món (UI v2): mỗi món một thẻ (ô, tên, giá, nhãn "Chưa có" / "Thiếu tiền"); chọn thẻ thì phần dưới hiện thanh trượt số lượng và nút Mua son. */
 function renderShopGrid(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: string) {
   const shop = shopOf(npcId).filter((r) => itemDef(r.code));
-  if (!shop.some((r) => r.code === shopSel)) { shopSel = shop[0]?.code ?? ""; shopQty = 1; }
+  const visibleShop = () => shop.filter((r) => matchQuery(itemDef(r.code)!.name, shopQuery));
   const have = (code: string) => bag.items.filter((i) => i.code === code && i.vohon === null).reduce((a, i) => a + i.qty, 0);
   const grid = document.createElement("div"); grid.className = "s2-grid"; grid.setAttribute("role", "listbox"); grid.setAttribute("aria-label", "Hàng bán");
   const detail = document.createElement("div"); detail.className = "s2-detail";
-  shopSearch(el, "Tìm món trong cửa hàng", () => grid);
   const paintDetail = () => {
     detail.innerHTML = "";
-    const r = shop.find((x) => x.code === shopSel), def = r && itemDef(r.code); if (!r || !def) return;
+    const r = visibleShop().find((x) => x.code === shopSel), def = r && itemDef(r.code); if (!r || !def) return;
     const cap = Math.max(1, Math.min(SHOP_MAX_QTY, Math.floor(bag.honTe / r.price)));
     shopQty = Math.min(Math.max(1, shopQty), cap);
     const head = document.createElement("div"); head.className = "s2-dhead"; head.style.setProperty("--c", def.col);
@@ -61,10 +61,20 @@ function renderShopGrid(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: st
       buy.setAttribute("aria-label", `Mua ${q.get()} ${def.name}, giá ${formatHonTe(cost)}`);
       buy.disabled = poor;
     };
-    buy.addEventListener("click", () => { buy.blur(); act.buy(r.code, q.get()); });
+    buy.addEventListener("click", () => {
+      if (!buy.isConnected || r.code !== shopSel || !visibleShop().some((x) => x.code === r.code)) return;
+      buy.blur(); act.buy(r.code, q.get());
+    });
     sum();
     detail.append(head, desc, ...(poor ? [] : [q.root]), buy);
   };
+  const syncSelection = () => {
+    const visible = visibleShop();
+    if (!visible.some((r) => r.code === shopSel)) { shopSel = visible[0]?.code ?? ""; shopQty = 1; }
+    for (const x of grid.children) { const on = (x as HTMLElement).dataset.code === shopSel; x.classList.toggle("sel", on); x.setAttribute("aria-selected", String(on)); }
+    paintDetail();
+  };
+  shopSearch(el, "Tìm món trong cửa hàng", () => grid, syncSelection);
   for (const r of shop) {
     const def = itemDef(r.code)!, own = have(r.code), poor = bag.honTe < r.price;
     const c = document.createElement("button"); c.type = "button"; c.className = "s2-card" + (r.code === shopSel ? " sel" : "") + (poor ? " lock" : "");
@@ -77,15 +87,15 @@ function renderShopGrid(el: HTMLElement, bag: BagMsg, act: NpcActions, npcId: st
     if (poor) tag.textContent = "Khoá"; else if (!own) tag.textContent = "Mới"; else tag.hidden = true;
     c.setAttribute("aria-label", `${def.name}, ${formatHonTe(r.price)}${poor ? ", khoá: thiếu Hồn Tệ" : !own ? ", chưa có" : ""}`);
     c.addEventListener("click", () => {
+      if (c.hidden) return;
       shopSel = r.code; shopQty = 1;
-      for (const x of grid.children) { const on = (x as HTMLElement).dataset.code === shopSel; x.classList.toggle("sel", on); x.setAttribute("aria-selected", String(on)); }
-      paintDetail();
+      syncSelection();
     });
     shopCell(c, { title: def.name, color: def.col, sub: ITEM_KINDS[def.kind].name, lines: [def.desc, { k: "Giá", v: formatHonTe(r.price) }, { k: "Đang có", v: String(own) }] });
     grid.appendChild(c);
   }
   el.append(grid, detail);
-  paintDetail();
+  syncSelection();
 }
 
 /**
