@@ -289,6 +289,54 @@
       "start": 10.93
     },
     {
+      "duration": 0.3,
+      "group": "hit-da",
+      "id": "hit-da-1",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 11.06
+    },
+    {
+      "duration": 0.35,
+      "group": "hit-linh_the",
+      "id": "hit-linh-the-1",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 11.41
+    },
+    {
+      "duration": 0.3,
+      "group": "hit-da",
+      "id": "hit-da-2",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 11.81
+    },
+    {
+      "duration": 0.35,
+      "group": "hit-linh_the",
+      "id": "hit-linh-the-2",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 12.16
+    },
+    {
+      "duration": 0.3,
+      "group": "hit-da",
+      "id": "hit-da-3",
+      "pack": "combat",
+      "sourceId": "kenney-impact-sounds",
+      "start": 12.56
+    },
+    {
+      "duration": 0.35,
+      "group": "hit-linh_the",
+      "id": "hit-linh-the-3",
+      "pack": "combat",
+      "sourceId": "oga-80-cc0-rpg-sfx",
+      "start": 12.91
+    },
+    {
       "duration": 0.67,
       "group": "skill-fire-start",
       "id": "skill-fire-start-1",
@@ -2926,14 +2974,14 @@
       }
     },
     "combat": {
-      "duration": 11.06,
+      "duration": 13.31,
       "files": {
         "m4a": {
-          "bytes": 114682,
+          "bytes": 138885,
           "path": "sfx/combat.m4a"
         },
         "ogg": {
-          "bytes": 83971,
+          "bytes": 99990,
           "path": "sfx/combat.ogg"
         }
       }
