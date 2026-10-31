@@ -1,9 +1,8 @@
 // Kiểu dữ liệu của phòng bản đồ, tách khỏi MapRoom.ts (#702, miền E1): `PData` (trạng thái riêng từng hồn sư), `BData` / `EliteData` / `KingData` / `WorldData` (hồn thú, tinh anh,
 // thú vương, boss thế giới), `Hit` / `FusHit` / `DmgOpt` / `SInst` / `RecallCast` / `AuthData` / `ChatRoute` / `Proj`. Nguyên văn từ MapRoom: chỉ `interface`, KHÔNG có mã chạy
 // (esbuild xóa hết lúc biên dịch). Các file miền `import type` từ đây thay vì từ MapRoom.
-import type { CoreFx, BonePassive, ChanThanStat, SkillDef, StatusId, StatusApply, BuffId, BeastSkillDef, Tele, BeastBuffId, BossDef, He, QuestProgress, ResEffect, AutoHint, AutoSettings, SellSettings } from "../../../shared/data.ts";
+import type { CoreFx, BonePassive, ChanThanStat, SkillDef, StatusId, StatusApply, BuffId, BeastSkillDef, Tele, BeastBuffId, BossDef, He, QuestProgress, ResEffect, AutoHint, AutoSettings, SellSettings, MsgGroup } from "../../../shared/data.ts";
 import type { Vitals } from "../../../shared/vitals.ts";
-import type { MsgGroup } from "../../../shared/data.ts";
 import type { Portal } from "../map.ts";
 import type { Character, AccountLooks, Location, Item, Bag, AutoRow, SoldRow, TongRow, SocialRow } from "../db.ts";
 import type { TokenBucket, ChatChannel } from "../ratelimit.ts";
