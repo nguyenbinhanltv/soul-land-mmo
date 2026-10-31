@@ -22,6 +22,8 @@ const children = [], samples = [], nameSamples = [], nameFailures = [];
 const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
 if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true], [390, 844, true]);   // ngang + dọc (điện thoại)
 const namesOnly = process.env.C8_NAMES_ONLY === "1";
+const screensOnly = process.env.C8_SCREENS_ONLY === "1";
+if (screensOnly) viewports.splice(0, viewports.length, [640, 360, true], [844, 390, true], [1280, 720, false], [960, 540, false], [1920, 1080, false]);
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => {
@@ -102,6 +104,45 @@ try {
     await page.goto(`${web}/choi/`);
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
+    if (screensOnly) {
+      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      for (const fs of [0, 1, 2]) for (const kind of ["mail", "rank", "calendar"]) {
+        await page.evaluate(async ({ fs, kind }) => {
+          document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
+          if (fs) document.body.classList.add(`a11y-fs-${fs}`);
+          const modules = { mail: "/src/mailScreen.ts", rank: "/src/rankScreen.ts", calendar: "/src/calendarScreen.ts" };
+          const mod = await import(modules[kind]); mod[{ mail:"openMail", rank:"openRank", calendar:"openCalendar" }[kind]]();
+        }, { fs, kind });
+        await page.mouse.move(1, 1);
+        await page.waitForTimeout(500);
+        if (kind === "mail") await page.evaluate(async () => {
+          const mail = await import("/src/mailScreen.ts");
+          mail.onMail({ list:Array.from({length:8}, (_,i) => ({id:i+1,from:"Phúc Lợi",title:`Thư thử ${i+1}`,body:"Nội dung thư dài để kiểm cuộn và đọc rõ.\n".repeat(30),honTe:0,items:[],at:Date.now(),exp:Date.now()+86400000*5,read:true,claimed:true})),unread:0,pending:0 });
+        });
+        const screen = page.locator(`#${kind}`);
+        await screenshot(page, `${kind}-fs${fs}`, size);
+        const geometry = await screen.evaluate(e => {
+          const r=e.getBoundingClientRect(), b=e.querySelector(".p2-body"), nav=e.querySelector(".p2-nav");
+          return {height:b.clientHeight,scroll:b.scrollHeight,top:r.top,bottom:r.bottom,left:r.left,right:r.right,navOverflow:nav.scrollWidth-nav.clientWidth,badgeHidden:getComputedStyle(document.getElementById("hubBtn")).visibility==="hidden"};
+        });
+        samples.push({size,kind,fs,geometry});
+        if (!before) {
+          assert.ok(geometry.height >= 80, `Vùng đọc ${kind} ${size} fs${fs}: ${JSON.stringify(geometry)}`);
+          if (touch) assert.ok(geometry.badgeHidden, `Huy hiệu cần nhường cửa sổ ${kind} ${size}`);
+          if (touch) assert.ok(geometry.navOverflow <= 1, `Điều hướng tràn ngang ${kind} ${size}`);
+          assert.ok(geometry.top>=0 && geometry.bottom<=height+1 && geometry.left>=0 && geometry.right<=width+1, `Khung ngoài màn ${kind} ${size}`);
+          if (kind === "mail") {
+            await screen.locator(".ml-row").first().click();
+            await screen.locator(".ml-body").scrollIntoViewIfNeeded();
+            await screenshot(page, `mail-doc-fs${fs}`, size);
+          }
+        }
+        await screen.locator(".scr-x").click();
+        assert.ok(await screen.isHidden());
+        if (touch && !before) assert.ok(await page.locator("#hubBtn").evaluate(e => getComputedStyle(e).visibility !== "hidden"), "Đóng cửa sổ trả lại huy hiệu menu");
+      }
+      await context.close(); console.log(`✓ Cửa sổ ${phase} ${size}: ba cỡ chữ`); continue;
+    }
     for (const vohon of ["cuu_tinh_that_sat_kiem", "thien_can_bach_ngoc_dinh"]) await hook(page, "grant", { vohon });
     await page.waitForFunction(() => window.__c8Scene.owned.list.length === 4);
     const list = await page.evaluate(() => window.__c8Scene.owned.list);
@@ -377,7 +418,7 @@ try {
   await writeFile(resolve(out, `${phase}-metrics.json`), JSON.stringify(samples, null, 2));
   await writeFile(resolve(out, `${phase}-names.json`), JSON.stringify(nameSamples, null, 2));
   assert.deepEqual(nameFailures, [], "Tên hồn kỹ phải hiển thị đầy đủ bằng pixel, không clamp/overflow/che chữ");
-  if (!before && !namesOnly) {
+  if (!before && !namesOnly && !screensOnly) {
     const images = new Set(await readdir(out));
     const sections = viewports.map(([w, h, touch]) => {
       const size = `${w}x${h}`, state = touch ? "san-sang" : "ten-day-du";
