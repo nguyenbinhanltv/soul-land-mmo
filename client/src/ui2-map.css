@@ -17,10 +17,13 @@
 #hud #worldBtn.c12-with-icon::before{width:16px;height:16px}
 #hud :is(#chanBtn,#worldBtn)[aria-expanded="true"]{box-shadow:inset 0 -3px 0 var(--accent)}   /* đang mở: vạch dưới chân (hình), không chỉ màu */
 #hud :is(#chanBtn,#worldBtn):focus-visible,#hud #chans button:focus-visible,#hud #flagBar .minibtn:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
-body.touch #hud :is(#chanBtn,#worldBtn){min-height:40px}
+body.touch #hud :is(#chanBtn,#worldBtn){min-height:44px;min-width:44px}
+body.touch #hud #radar .rbtn{width:44px;height:44px;font:var(--fs-m)/1 var(--f12)}
 /* màn thấp (điện thoại ngang): thanh kỹ năng phủ chỗ dưới radar, nên nút Bản đồ lên góc trên phải cạnh radar (44 px, vẫn bấm được) */
 :where(body.ui-h500) #hud #worldBtn{position:absolute;right:var(--sp-2);top:var(--sp-2);z-index:2;width:44px;min-height:44px;margin:0;padding:0;font:var(--fs-s)/1.1 var(--f10)}
 :where(body.ui-h500) #hud #worldBtn kbd{display:none}
+body.touch.ui-h500 #hud #worldBtn{white-space:normal}
+body.touch.ui-h500 #hud #worldBtn::before{display:none}
 
 /* hộp chọn kênh và thanh cờ */
 #hud #chans{color:var(--ink-text);background:var(--plate);border:var(--bd) solid var(--ink2)}

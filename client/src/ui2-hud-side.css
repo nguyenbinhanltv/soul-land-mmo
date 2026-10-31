@@ -99,7 +99,12 @@ body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,
 #hud #sideBox.collapsed .sb-bar{margin:0;padding:0;border:0}
 #hud #sideBox.collapsed .sb-body{display:none}
 #hud #sideBox.collapsed .sb-tab{border-color:var(--ink2);background:var(--track);color:var(--plate-text);box-shadow:none}
-:where(body.touch) #hud #sideBox :is(.sb-tab,.sb-fold){min-height:40px}
+:where(body.touch) #hud #sideBox :is(.sb-tab,.sb-fold){min-height:44px;min-width:44px}
+body.touch #hud :is(#chattabs button,.stat-chip,.pbtn){min-height:44px;min-width:44px}
+body.touch #hud #chattabs{overflow-x:auto;touch-action:pan-x}
+body.touch #hud #chattabs button{flex-shrink:0}
+body.touch #hud #chat{min-height:44px;box-sizing:border-box}
+body.touch #hud #party .pbtn{min-height:44px;min-width:44px}
 /* Như hành vi cũ: khi dải xếp hạng boss hoặc đấu trường chiếm chỗ, chỉ phần Nhiệm vụ bị ẩn; tab Tổ đội (sinh lực đồng đội, Rời đội, lời mời) vẫn hiện và được ép chọn. */
 #hud:has(#bossRank:not([hidden])) #sideBox :is(#quest,.sb-empty,#sbTabQuest),body.arena #hud #sideBox :is(#quest,.sb-empty,#sbTabQuest){display:none!important}
 #hud:has(#bossRank:not([hidden])) #sideBox #party,body.arena #hud #sideBox #party{display:block!important}
