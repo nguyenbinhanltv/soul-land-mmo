@@ -2400,7 +2400,16 @@ Ghi công hồn thú hoạt ảnh (H2 / H4, ảnh raw chờ preview) **không n�
 <!-- private-assets:end -->
 
 
-<<<<<<< HEAD
+### Mẫu hồn thú biển (#1497)
+
+Kiểm CC0 tại trang nguồn ngày 31/10/2026; SHA256 archive trong catalog/manifest. Không AI, không tiếng hô; đổi tên, cắt, hạ cao độ/lọc thấp và cân âm qua `process-sfx.mjs`. Công thức và SHA256 đầu vào trong catalog; giữ tiếng gầm boss riêng.
+
+| Clip game | Tên gốc | Tác giả | Giấy phép | Trang nguồn | SHA256 đầu vào |
+|---|---|---|---|---|---|
+| beast-bien-1 | splash_01.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/100-cc0-sfx> | `8d48e8da680fbdfd3c885aa2f69d8e83ad16717bae43d178861d7af08d142849` |
+| beast-bien-2 | splash_02.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/100-cc0-sfx> | `e515b7da00b2a268263824dbea9b7bc0c2e972fbd189fe3c02576d2e29af3aa5` |
+| beast-bien-3 | plop_02.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/100-cc0-sfx> | `b4cbe7e0c49ad1caf2dc02dc218897bdf9b5bce2e5d11b3b87861dd5269c1749` |
+
 ### Mẫu vũ khí phụ thể (#1495)
 
 Đã kiểm CC0 trực tiếp trên trang nguồn ngày 31/10/2026. Không AI, không tiếng hô. SHA256 archive trong catalog/manifest; công thức cắt/lọc/cân đỉnh trong catalog, process-sfx.mjs kiểm hash trước khi xử lý. Tên gốc chỉ ghi trong bảng nguồn này.
@@ -2416,14 +2425,3 @@ Ghi công hồn thú hoạt ảnh (H2 / H4, ảnh raw chờ preview) **không n�
 | `swing-cung-3` | English Longbow Shoot.wav | Ben Jaszczak & Brian Nelson | CC0-1.0 | <https://opengameart.org/content/medieval-sound-effects-weapon-textures> | `c25684ccdab3eb13f17a0ffa637fbd175659d092665f16c0bce8510d46c4fbee` | {"startSeconds":0.77,"maxSeconds":0.23} |
 | `swing-day-3` | chain_03.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/80-cc0-rpg-sfx> | `ae2247dc68aa85bca15d87355353b5858441644b6a65172e9659f4d0819b42d6` | {"maxSeconds":0.45,"highpass":160} |
 | `swing-quat-3` | swish-6.wav | artisticdude | CC0-1.0 | <https://opengameart.org/content/swishes-sound-pack> | `edcaacf008da7ae692566f4fe0d6023ea68d0a014149889e95209be7ee0b746d` | {"maxSeconds":0.35,"highpass":450,"pitch":1.12} |
-=======
-### Mẫu hồn thú biển (#1497)
-
-Kiểm CC0 tại trang nguồn ngày 31/10/2026; SHA256 archive trong catalog/manifest. Không AI, không tiếng hô; đổi tên, cắt, hạ cao độ/lọc thấp và cân âm qua `process-sfx.mjs`. Công thức và SHA256 đầu vào trong catalog; giữ tiếng gầm boss riêng.
-
-| Clip game | Tên gốc | Tác giả | Giấy phép | Trang nguồn | SHA256 đầu vào |
-|---|---|---|---|---|---|
-| beast-bien-1 | splash_01.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/100-cc0-sfx> | `8d48e8da680fbdfd3c885aa2f69d8e83ad16717bae43d178861d7af08d142849` |
-| beast-bien-2 | splash_02.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/100-cc0-sfx> | `e515b7da00b2a268263824dbea9b7bc0c2e972fbd189fe3c02576d2e29af3aa5` |
-| beast-bien-3 | plop_02.ogg | rubberduck | CC0-1.0 | <https://opengameart.org/content/100-cc0-sfx> | `b4cbe7e0c49ad1caf2dc02dc218897bdf9b5bce2e5d11b3b87861dd5269c1749` |
->>>>>>> origin/main
