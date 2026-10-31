@@ -12,7 +12,8 @@ import { chromium } from "playwright";
 const installed = fileURLToPath(new URL("../../", import.meta.url));
 const root = await realpath(resolve(process.env.BANDO_SOURCE_ROOT ?? installed));
 const out = resolve(process.env.BANDO_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "bando-")));
-const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false], [640, 360, true]];
+const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false], [640, 360, true], [844, 390, true]];
+const before = process.env.BANDO_BEFORE === "1";
 const children = []; let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => { const s = createServer(); s.on("error", reject); s.listen(0, "127.0.0.1", () => { const n = s.address().port; s.close(() => done(n)); }); });
@@ -40,7 +41,7 @@ try {
     const data = await r.json(); assert.ok(r.ok, data.error); return data;
   };
   browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
-  for (const [width, height, touch] of viewports) {
+  for (const [width, height, touch] of viewports.filter(([, , touch]) => !process.env.BANDO_TOUCH_ONLY || touch)) {
     const size = `${width}x${height}`, tag = (s) => `${size}: ${s}`;
     const { token } = await post("/api/login", { name: `BD ${width} ${Date.now().toString(36)}`, password: "BD-local-preview!" });
     await post("/api/looks", { token, sex: 0, hair: 0, hairCol: 0, outfitCol: 0 });
@@ -73,6 +74,32 @@ try {
     }
     await dismiss();
 
+    if (touch) {
+      for (const fs of [0, 1, 2]) {
+        await page.evaluate((fs) => {
+          document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
+          if (fs) document.body.classList.add(`a11y-fs-${fs}`);
+        }, fs);
+        const targets = await page.locator("#radarMode,#radarIn,#radarOut,#chanBtn,#worldBtn,#chattabs button,#chat,#sbTabQuest,#sbTabParty").evaluateAll((els) => els.map((e) => {
+          const r = e.getBoundingClientRect(); return { id:e.id || e.textContent, w:r.width, h:r.height };
+        }));
+        if (!before) for (const t of targets) check(t.w >= 43.5 && t.h >= 43.5, tag(`fs${fs}: vùng chạm ${t.id} ${t.w}×${t.h}`));
+        if (!before) {
+          const overlaps = await page.locator("#radarMode,#radarIn,#radarOut,#worldBtn,#chanBtn").evaluateAll((els) => {
+            const pairs = [];
+            for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+              const a = els[i].getBoundingClientRect(), b = els[j].getBoundingClientRect();
+              if (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) pairs.push([els[i].id, els[j].id]);
+            }
+            return pairs;
+          });
+          check(overlaps.length === 0, tag(`fs${fs}: vùng chạm radar chồng nhau ${JSON.stringify(overlaps)}`));
+        }
+        await page.screenshot({ path: resolve(out, `${size}-hud-fs${fs}.png`) });
+      }
+      await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2"));
+    }
+
     // 1. Radar gọn: không còn dòng chú giải / online / ba nút; một nút Bản đồ.
     const radar = await page.evaluate(() => {
       const r = (id) => document.getElementById(id), box = (id) => { const e = r(id); if (!e) return null; const b = e.getBoundingClientRect(); return { w: Math.round(b.width), h: Math.round(b.height), shown: b.width > 0 && getComputedStyle(e).display !== "none" }; };
@@ -98,6 +125,31 @@ try {
     await page.waitForFunction(() => document.querySelector("#world .wm-notice")?.hidden === true && !!document.querySelector("#world .wm-node.open")); // tin `world` đã về, trận vừa mở khoá sáng
     await sleep(900);
     await page.screenshot({ path: resolve(out, `${size}-2-the-gioi.png`) });
+    if (touch) {
+      for (const fs of [0, 1, 2]) {
+        await page.evaluate((fs) => {
+          document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
+          if (fs) document.body.classList.add(`a11y-fs-${fs}`);
+        }, fs);
+        const overflow = await page.evaluate(() => {
+          const box = document.querySelector("#world").getBoundingClientRect();
+          return [...document.querySelectorAll(".wm-bar button,.wm-search input")].map(e => {
+            const r = e.getBoundingClientRect();
+            return { label:e.getAttribute("aria-label") || e.textContent, fits:r.left >= box.left && r.right <= box.right && r.top >= box.top && r.bottom <= box.bottom, w:r.width, h:r.height };
+          });
+        });
+        if (!before) for (const t of overflow) check(t.fits && t.w >= 43.5 && t.h >= 43.5, tag(`fs${fs}: công cụ ngoài khung / nhỏ: ${JSON.stringify(t)}`));
+        if (!before) {
+          const minus = page.locator(".wm-tools button").filter({ hasText: /^−$/ });
+          await minus.tap();
+          await page.locator(".wm-tools button").filter({ hasText: /^Vừa khung$/ }).tap();
+        }
+        await page.mouse.move(1, 1);
+        await page.waitForTimeout(300);
+        await page.screenshot({ path: resolve(out, `${size}-world-fs${fs}.png`) });
+      }
+      await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2"));
+    }
     const world = await page.evaluate(() => {
       const bx = (e) => { const b = e.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height }; };
       const nodes = [...document.querySelectorAll("#world .wm-node")].map((e) => ({ id: e.dataset.id, cls: e.className, ...bx(e), label: e.getAttribute("aria-label") }));
@@ -122,7 +174,11 @@ try {
 
     // 3. Chọn Thánh Hồn Thôn: thẻ chi tiết hiện cấp đề xuất, các trận; nút chính hợp lý; trận hiện ra.
     await dismiss();
-    await page.locator('#world .wm-node[data-id="nac_dinh_thanh"]').click();
+    if (touch) {
+      // #1447: điểm trên tranh vừa khung đang chồng nhau; chọn qua tìm kiếm có sẵn.
+      await page.locator(".wm-search input").fill("nac dinh thanh");
+      await page.locator(".wm-find li").first().click();
+    } else await page.locator('#world .wm-node[data-id="nac_dinh_thanh"]').click();
     await page.waitForFunction(() => document.querySelector("#world .wm-card .wm-t")?.textContent === "Nặc Đinh Thành");
     check(await page.locator("#world .wm-card .wm-li").count() === 3, tag("thẻ bản đồ không liệt kê 3 trận"));
     check(await page.locator("#world .wm-wp").count() >= 3, tag("trận của bản đồ đang chọn không hiện trên tranh"));
