@@ -136,13 +136,15 @@ export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, a
 
 /** Nhận từ chênh lệch túi của chính mình; cộng lượng thật, gộp cả khi có món khác xen giữa trong cửa sổ hai giây. */
 export function chatLoot(key: string, name: string, n: number, col?: string) {
+  saveReadPosition();
+  const readingHistory = chatOpen() && readPositions.get(chatTab)?.bottom === false;
   const at = Date.now();
   const prev = [...chatHist].reverse().find((l) => l.lootKey === key && at - l.at <= LOOT_MERGE_MS);
   let updated = prev;
   if (prev) {
     prev.n = (prev.n ?? 1) + n;
-    // Khi đang đọc giữ thứ tự dòng; chat thu nhỏ đưa món mới nhất xuống cuối. Không kéo dài cửa sổ gộp.
-    if (!chatOpen()) { chatHist.splice(chatHist.indexOf(prev), 1); chatHist.push(prev); }
+    // Chỉ giữ thứ tự khi đang đọc lịch sử; còn lại đưa món vừa nhận xuống cuối. Không kéo dài cửa sổ gộp.
+    if (!readingHistory) { chatHist.splice(chatHist.indexOf(prev), 1); chatHist.push(prev); }
   } else {
     updated = { ch: "sys", text: `Nhận ${name}`, n, col, at, lootKey: key };
     chatHist.push(updated);

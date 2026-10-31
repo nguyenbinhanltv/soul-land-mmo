@@ -69,6 +69,20 @@ export async function checkChatScroll(page, out, tag) {
     assert.match(await page.locator("#log").innerText(), /mảnh kiểm cuộn ×3/);
     await page.locator("#log").evaluate((e) => { e.scrollTop = e.scrollHeight; e.dispatchEvent(new Event("scroll")); });
     await page.waitForFunction(() => document.querySelector("#chat-new").hidden);
+    // Chat mở ở cuối: loot gộp phải về cuối dù có dòng xen, vẫn tự cuộn và không báo chưa đọc.
+    const bottomKey = `${stem}-bottom`;
+    await page.evaluate((key) => {
+      const c = window.__scrollChat;
+      c.chatLoot(key, `loot ở cuối ${key}`, 1);
+      c.log(`Dòng xen loot ở cuối ${key}`);
+      c.chatLoot(key, `loot ở cuối ${key}`, 2);
+    }, bottomKey);
+    await page.waitForFunction((key) => {
+      const e = document.querySelector("#log");
+      return e.lastElementChild?.textContent === `Nhận loot ở cuối ${key} ×3`
+        && e.scrollHeight - e.clientHeight - e.scrollTop <= 2
+        && document.querySelector("#chat-new").hidden;
+    }, bottomKey);
     // Dòng loot đang đọc tự gộp cũng phải giữ mốc, kể cả có dòng xen sau nó.
     await page.evaluate((key) => {
       const c = window.__scrollChat;
