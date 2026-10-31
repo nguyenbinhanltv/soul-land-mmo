@@ -904,8 +904,6 @@ Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normali
 | `shared/assets/sprites/phaptuong/tu_vong_chu_hoang_glow.png` | `pt_tu_vong_chu_hoang_glow` | Codex / OpenAI image_gen + buildGlow | art/src/phap-tuong/tu_vong_chu_hoang/*.prompt.txt | 2026-10-31 | Lớp sáng dựng từ sheet Codex mới bằng buildGlow của phuthe-to-phaptuong, màu #9a4aff |
 | `shared/assets/sprites/phaptuong/nhu_cot_tho_glow.png` | `pt_nhu_cot_tho_glow` | Codex + phuthe-to-phaptuong buildGlow | Lớp sáng dựng từ sheet Nhu Cốt Thố vẽ lại, màu võ hồn #ffc2e2 | 2026-10-31 | Sinh bằng công cụ, #1456 |
 | `shared/assets/sprites/phaptuong/bich_lan_xa_hoang_glow.png` | `pt_bich_lan_xa_hoang_glow` | Codex / OpenAI image_gen + buildGlow | art/src/phap-tuong/bich_lan_xa_hoang/*.prompt.txt | 2026-10-31 | RAW nguyên byte, cutter chuẩn; buildGlow màu #3ad98a |
-| `shared/assets/sprites/iso/props/lua_trai_clip.png` | `prop_lua_trai_clip` | Codex builtin OpenAI image_gen.imagegen | Xem prompt đầy đủ tại art/src/prop-clip/lua_trai/NGUON.md | 2026-10-31 | Part of #1498; nguồn + SHA256 tại art/src/prop-clip/lua_trai/nguon.json; đầu ra OpenAI, không CC0. |
-| `shared/assets/sprites/iso/props/dai_phun_nuoc_clip.png` | `prop_dai_phun_nuoc_clip` | Codex builtin OpenAI image_gen.imagegen | Xem prompt đầy đủ tại art/src/prop-clip/dai_phun_nuoc/NGUON.md | 2026-10-31 | Part of #1498; nguồn + SHA256 tại art/src/prop-clip/dai_phun_nuoc/nguon.json; đầu ra OpenAI, không CC0. |
 
 ## Asset tạo bằng AI (Gemini)
 
@@ -1774,6 +1772,8 @@ Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), r�
 | `shared/assets/sprites/phaptuong/u_minh_linh_mieu_glow.png` | `pt_u_minh_linh_mieu_glow` | ChatGPT / Codex image_gen | art/src/phap-tuong/u_minh_linh_mieu/recipe.json | 2026-10-31 | buildGlow từ sheet Codex mới, màu #b06bff. |
 | `shared/assets/sprites/phaptuong/bang_phuong_hoang_glow.png` | `pt_bang_phuong_hoang_glow` | ChatGPT / Codex image_gen + buildGlow | Lớp sáng dựng từ sheet Băng Phượng Hoàng mới bằng buildGlow màu #a8e8ff. | 2026-10-31 | PR #1491; sinh lại sau merge main. |
 | `shared/assets/sprites/phaptuong/bach_ho_glow.png` | `pt_bach_ho_glow` | ChatGPT / Codex image_gen + buildGlow | Lớp sáng dựng bằng buildGlow từ sheet Bạch Hổ độc lập tại PR #1476. | 2026-10-31 | Sinh lại từ RAW sau merge main, không sao chép glow cũ. |
+| `shared/assets/sprites/iso/props/lua_trai_clip.png` | `prop_lua_trai_clip` | Codex builtin OpenAI image_gen.imagegen | Xem prompt đầy đủ tại art/src/prop-clip/lua_trai/NGUON.md | 2026-10-31 | Part of #1498; nguồn + SHA256 tại art/src/prop-clip/lua_trai/nguon.json; đầu ra OpenAI, không CC0. |
+| `shared/assets/sprites/iso/props/dai_phun_nuoc_clip.png` | `prop_dai_phun_nuoc_clip` | Codex builtin OpenAI image_gen.imagegen | Xem prompt đầy đủ tại art/src/prop-clip/dai_phun_nuoc/NGUON.md | 2026-10-31 | Part of #1498; nguồn + SHA256 tại art/src/prop-clip/dai_phun_nuoc/nguon.json; đầu ra OpenAI, không CC0. |
 
 ## Asset tạo bằng AI (Microsoft Copilot)
 
