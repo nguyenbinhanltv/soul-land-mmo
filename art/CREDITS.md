@@ -1775,6 +1775,7 @@ Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), r�
 | `shared/assets/sprites/iso/props/lua_trai_clip.png` | `prop_lua_trai_clip` | Codex builtin OpenAI image_gen.imagegen | Xem prompt đầy đủ tại art/src/prop-clip/lua_trai/NGUON.md | 2026-10-31 | Part of #1498; nguồn + SHA256 tại art/src/prop-clip/lua_trai/nguon.json; đầu ra OpenAI, không CC0. |
 | `shared/assets/sprites/iso/props/dai_phun_nuoc_clip.png` | `prop_dai_phun_nuoc_clip` | Codex builtin OpenAI image_gen.imagegen | Xem prompt đầy đủ tại art/src/prop-clip/dai_phun_nuoc/NGUON.md | 2026-10-31 | Part of #1498; nguồn + SHA256 tại art/src/prop-clip/dai_phun_nuoc/nguon.json; đầu ra OpenAI, không CC0. |
 | `shared/assets/sprites/iso/props/lo_ren_lang_clip.png` | `prop_lo_ren_lang_clip` | ChatGPT / Codex builtin OpenAI image_gen.imagegen | Prompt thật: art/src/prop-clip/lo_ren_lang/NGUON.md; chỉ lửa thấp miệng lò, tờ 4x2 trong suốt, chân cố định. | 2026-11-01 | Part of #1498; nhân rộng sau duyệt #1501; SHA256 RAW/gốc/clip: art/src/prop-clip/lo_ren_lang/nguon.json; đầu ra OpenAI, không CC0. |
+| `shared/assets/sprites/iso/props/lo_lua_dong_clip.png` | `prop_lo_lua_dong_clip` | ChatGPT / Codex builtin OpenAI image_gen.imagegen | Prompt thật: art/src/prop-clip/lo_lua_dong/NGUON.md; chỉ lửa trên bát đồng, tờ 4x2 trong suốt, chân cố định. | 2026-11-01 | Part of #1498; cùng kỹ thuật #1501, nhóm sau #1508; SHA256 RAW/gốc/clip: art/src/prop-clip/lo_lua_dong/nguon.json; đầu ra OpenAI, không CC0. |
 
 ## Asset tạo bằng AI (Microsoft Copilot)
 

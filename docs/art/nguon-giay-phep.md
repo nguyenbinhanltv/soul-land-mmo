@@ -6,6 +6,8 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 
 ## Nguồn ảnh được phép (hiện hành)
 
+Lửa trên `lo_lua_dong` (01/11/2026): nhóm riêng sau lò rèn, dùng kỹ thuật clip đã duyệt #1501; lớp lửa Codex builtin OpenAI `image_gen.imagegen`, thân đồng Gemini cũ giữ nguyên. Điều khoản đầu ra OpenAI, không CC0. Prompt thật, SHA256 RAW/gốc/clip và cách giới hạn vùng lửa tại `art/src/prop-clip/lo_lua_dong/NGUON.md`, `nguon.json`; không dùng nguồn AI hoạt ảnh khác.
+
 Lửa miệng `lo_ren_lang` (01/11/2026): nhân rộng kỹ thuật clip sau duyệt thí điểm #1501, chỉ lớp lửa nhỏ từ Codex builtin OpenAI `image_gen.imagegen`; thân Gemini cũ giữ nguyên. Điều khoản đầu ra OpenAI, không CC0. Prompt thật, SHA256 RAW/gốc/clip và cách khóa kết cấu miệng lò tại `art/src/prop-clip/lo_ren_lang/NGUON.md`, `nguon.json`. Mẫu lò rèn bàn giao trong PR nháp riêng, không đổi ngoại lệ nguồn AI.
 
 Thí điểm lửa trại và đài phun nước: lớp lửa/tia nước tạo bằng Codex builtin OpenAI `image_gen.imagegen` (31/10/2026), theo điều khoản đầu ra OpenAI, không gán CC0. Prompt thật, nguồn thân gốc và SHA256 RAW/ảnh gốc/clip tại `art/src/prop-clip/{lua_trai,dai_phun_nuoc}/NGUON.md` và `nguon.json`. Chỉ dùng hai ảnh game sẵn có làm đầu vào; không dùng AI hoạt ảnh khác. Hai clip đã được chủ repo duyệt ở #1501; các loại lò được nhân rộng thành từng PR riêng.

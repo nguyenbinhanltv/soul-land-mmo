@@ -1,0 +1,11 @@
+# Lửa trên lò đồng
+
+Part of #1498. Nhóm riêng sau lò rèn #1508, dùng cùng kỹ thuật clip đã được chủ repo duyệt ở #1501; mẫu bàn giao trong PR nháp #1513.
+
+Nguồn: Codex builtin OpenAI `image_gen.imagegen`, ngày nguồn 01/11/2026. Đầu vào duy nhất: `shared/assets/sprites/iso/props/lo_lua_dong.png` đã có trong game (Gemini cũ đã duyệt, giữ nguyên ghi công). Lửa mới theo điều khoản đầu ra OpenAI, **không gán CC0**; không dùng AI hoạt ảnh khác hoặc nguồn ngoài mới. Công cụ không trả model ID/seed. SHA256 RAW nguyên byte, ảnh gốc và clip tại `nguon.json`; RAW giữ ở generated_images của Codex, không đưa ảnh thô vào game.
+
+Prompt thực tế:
+
+> Create ONLY the orange flame animation layer above the bowl of this copper brazier. No metal bowl, stand, ornaments, building, smoke, shadow or ground. Pixel art sheet, 8 consecutive frames in exactly 4 columns and 2 rows, equal cells and fixed bottom-center flame root. A small upright tuft of orange-red and gold fire, one central tongue with smaller side tongues curling gently, matched to reference palette and pixel texture. Smooth gentle flickering with very small changes in height and width; seamless cyclic transition from last frame to first. Dark purple edging, crisp pixel clusters, actual transparent background, ample equal margins, no external halo, no text, labels or grid lines.
+
+Nhập: `node tools/assets/prop-clip.mjs lo_lua_dong <RAW.png> 2026-11-01`, rồi `node tools/assets/normal.mjs shared/assets/sprites/iso/props/lo_lua_dong_clip.png --frame 48x64`. Giữ lớp thân `than-tinh.png` và lớp lửa `chuyen-dong.png` riêng. Vùng lửa `[12,5,25,24]` nằm trên bát; pixel bên ngoài vùng, bát đồng, hoa văn, cột đỡ và chân `[24,62]` giữ nguyên ở cả 16 khung. 8 hình Codex thêm khung pha màu thành 16 khung × 100 ms, alpha nhị phân, màu về bảng cho phép. Dải 768×64 dùng chung qua atlas; đường client không đổi, không thêm Sprite/timer theo vật; dừng ở Thấp/Giảm chuyển động.

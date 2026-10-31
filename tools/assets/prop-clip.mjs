@@ -5,9 +5,9 @@ import path from "node:path";
 import { ROOT, Img, readPng, encodePng, allowedColors, accentColors, hex } from "./lib.mjs";
 
 const [name, rawFile, sourceDate = new Date().toLocaleDateString("sv-SE")] = process.argv.slice(2);
-const specs = { lua_trai: { region: [31, 2, 18, 23] }, dai_phun_nuoc: { region: [34, 0, 13, 12] }, lo_ren_lang: { region: [66, 52, 13, 13], inset: true } };
+const specs = { lua_trai: { region: [31, 2, 18, 23] }, dai_phun_nuoc: { region: [34, 0, 13, 12] }, lo_ren_lang: { region: [66, 52, 13, 13], inset: true }, lo_lua_dong: { region: [12, 5, 25, 24] } };
 const spec = specs[name];
-if (!spec || !rawFile || !/^\d{4}-\d{2}-\d{2}$/.test(sourceDate)) throw new Error("prop-clip.mjs lua_trai|dai_phun_nuoc|lo_ren_lang <tờ Codex 4×2.png> [ngày nguồn YYYY-MM-DD]");
+if (!spec || !rawFile || !/^\d{4}-\d{2}-\d{2}$/.test(sourceDate)) throw new Error("prop-clip.mjs lua_trai|dai_phun_nuoc|lo_ren_lang|lo_lua_dong <tờ Codex 4×2.png> [ngày nguồn YYYY-MM-DD]");
 const fire = name !== "dai_phun_nuoc", dir = path.join(ROOT, "art/src/prop-clip", name);
 mkdirSync(dir, { recursive: true });
 const raw = readPng(rawFile), originalFile = path.join(ROOT, `shared/assets/sprites/iso/props/${name}.png`), original = readPng(originalFile);

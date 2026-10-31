@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { ROOT, readPng } from "./lib.mjs";
 
 const tiles = JSON.parse(readFileSync(`${ROOT}/shared/assets/iso/tiles.json`, "utf8"));
-const feet = { lua_trai: [40,46], dai_phun_nuoc: [40,62], lo_ren_lang: [56,91] };
+const feet = { lua_trai: [40,46], dai_phun_nuoc: [40,62], lo_ren_lang: [56,91], lo_lua_dong: [24,62] };
 for (const name of Object.keys(feet)) test(`${name}: thân tĩnh, chân và hồ sơ SHA256`, () => {
   const dir = `${ROOT}/art/src/prop-clip/${name}`, source = JSON.parse(readFileSync(`${dir}/nguon.json`, "utf8"));
   const originalFile = `${ROOT}/shared/assets/sprites/iso/props/${name}.png`, clipFile = originalFile.replace(".png", "_clip.png");
@@ -31,6 +31,6 @@ for (const name of Object.keys(feet)) test(`${name}: thân tĩnh, chân và hồ
   assert.ok(variations.size >= 8, "Clip phải có chuyển động thật");
   assert.deepEqual(tiles.props[name].foot, feet[name]);
 });
-test("Lò lửa đồng để nhóm tiếp theo", () => {
-  assert.equal(tiles.props.lo_lua_dong.clip, undefined);
+test("Chỉ bốn loại đã duyệt kỹ thuật có clip", () => {
+  assert.deepEqual(Object.keys(tiles.props).filter(name => tiles.props[name].clip).sort(), Object.keys(feet).sort());
 });
