@@ -341,10 +341,11 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   bagPage = Math.max(0, Math.min(pages - 1, bagPage));
   const bar = document.createElement("div"); bar.className = "bpages";
   for (let p = 0; p < pages; p++) {
-    const cap = Math.min(BAG_PAGE, displaySlots - p * BAG_PAGE), n = Math.max(0, Math.min(cap, shown.length - p * BAG_PAGE));
-    const b = document.createElement("button"); b.className = "bpg f2-nut-phu" + (p === bagPage ? " cur" : "") + (n >= cap ? " full" : n === 0 ? " none" : "");
-    b.innerHTML = `<b>${p + 1}</b><i style="--f:${n / cap}"></i>`;
-    b.title = `Trang ${p + 1}: ${n}/${cap} ô${n >= cap ? " (đầy)" : ""}`; b.setAttribute("aria-label", b.title);
+    const cap = Math.max(0, Math.min(BAG_PAGE, bag.slots - p * BAG_PAGE));
+    const n = shown.slice(p * BAG_PAGE, (p + 1) * BAG_PAGE).filter((i) => !wornIds.has(i.id)).length;
+    const b = document.createElement("button"); b.className = "bpg f2-nut-phu" + (p === bagPage ? " cur" : "") + (cap > 0 && n >= cap ? " full" : n === 0 ? " none" : "");
+    b.innerHTML = `<b>${p + 1}</b><i style="--f:${cap ? n / cap : 0}"></i>`;
+    b.title = cap ? `Trang ${p + 1}: ${n}/${cap} ô túi${n >= cap ? " (đầy)" : ""}` : `Trang ${p + 1}: đồ đang mặc (không chiếm ô túi)`; b.setAttribute("aria-label", b.title);
     b.setAttribute("aria-pressed", String(p === bagPage));
     b.addEventListener("click", () => { b.blur(); bagPage = p; again(); });
     bar.appendChild(b);
@@ -368,8 +369,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
     const it = shown[k], b = document.createElement("button");
     b.className = "bslot ui-cell f2-o" + (it ? "" : " empty") + (it && it.id === bagSel ? " sel" : "") + (it && bagFocus ? (bagFocus.match(it) ? " hint" : " dim") : "");
     // Kéo thả (NV3 #457, dragDrop.ts): thả lên ô túi khác = đổi chỗ (chỉ khi không lọc; thứ tự nhớ ở trình duyệt); kéo từ búp bê thả lên ô túi = tháo.
-    addZone({ el: b, kind: "cell", test: (d) => ("bagIndex" in d.from ? (!filtered && d.item.id !== it?.id ? { ok: true } : null) : bagArea(d)), drop: (d) => {
-      if ("bagIndex" in d.from) { moveItem(view, d.item.id, it ? view.indexOf(it) : view.length); bagSortMode = "tay"; again(); } else bagAreaDrop(d); } });
+    addZone({ el: b, kind: "cell", test: (d) => ("bagIndex" in d.from ? (!filtered && (!it || !wornIds.has(it.id)) && d.item.id !== it?.id ? { ok: true } : null) : bagArea(d)), drop: (d) => {
+      if ("bagIndex" in d.from) { const loose = view.filter((i) => !wornIds.has(i.id)); moveItem(loose, d.item.id, it ? loose.indexOf(it) : loose.length); bagSortMode = "tay"; again(); } else bagAreaDrop(d); } });
     if (it) {
       const def = itemDef(it.code);
       b.dataset.id = it.id; if (def?.cd) b.dataset.cd = def.cd;
@@ -384,7 +385,7 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const bone = boneOf(it), icon = itemArt(it) || (bone ? boneIcon(bone.slot, itemColor(it)) : core ? coreIcon(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
       b.innerHTML = `${icon}${etpl ? artImg(equipFrameKey(etpl.tier), "efr") : ""}${corner ? `<small>${corner}</small>` : ""}${(bone || core || etpl) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}${isNew(it.id) ? `<i class="nw" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
       if (wornIds.has(it.id)) {
-        const mark = document.createElement("i"); mark.className = "bworn"; mark.textContent = "M"; mark.setAttribute("aria-hidden", "true"); b.appendChild(mark);
+        const mark = document.createElement("i"); mark.className = "bworn"; mark.setAttribute("aria-hidden", "true"); b.appendChild(mark);
       }
       b.setAttribute("aria-label", (etpl ? `${itemName(it)} (${EQUIP_TIERS[etpl.tier].name})` : hasYears(it) ? `${bone ? "Hồn cốt " : ""}${itemName(it)} (${TIERS[tierOfYears(it.years)].color})` : core ? itemName(it) : `${itemName(it)}, ${it.qty} món`)
         + (it.lock ? ", đang khoá" : "") + (wornIds.has(it.id) ? ", đang mặc · xem ở Hồn sư" : ""));

@@ -17,7 +17,7 @@ const children = [];
 let browser;
 const killChildren = () => { for (const child of children) { try { process.kill(process.platform === "win32" ? child.pid : -child.pid, "SIGTERM"); } catch {} } };
 // Chặn treo: cả bài quá BAG_TIMEOUT_MS (mặc định 180 s; chạy thường ~15 s) thì tắt tiến trình con rồi thoát mã 1.
-const watchdog = setTimeout(() => { console.error("panel-browser quá thời gian (treo?): tắt tiến trình con rồi thoát"); killChildren(); process.exit(1); }, Number(process.env.BAG_TIMEOUT_MS ?? 180000));
+const watchdog = setTimeout(() => { console.error("bag-browser quá thời gian (treo?): tắt tiến trình con rồi thoát"); killChildren(); process.exit(1); }, Number(process.env.BAG_TIMEOUT_MS ?? 180000));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => {
   const s = createServer(); s.on("error", reject); s.listen(0, "127.0.0.1", () => { const n = s.address().port; s.close(() => done(n)); });
@@ -77,7 +77,7 @@ GameScene.prototype.create = function(...a) {
   await test({ op: "give", code: "hon_cot", qty: 4 });
   await test({ op: "give", code: "hon_hach", qty: 4 });
   await test({ op: "give", code: "hon_hoan", qty: 4 });
-  await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3 });
+  await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3, enhance: 5 });
   await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
   if (!soft) {
     await page.keyboard.press("KeyH"); await page.keyboard.press("KeyB");
@@ -98,9 +98,27 @@ GameScene.prototype.create = function(...a) {
     await drag(worn, page.locator('#bag .bslot.empty').first());
     await page.waitForFunction((id) => !window.__u1.gear.items.some((g) => g.id === id), gearId);
     console.log("✓ kéo Túi → Hồn sư → Túi và dấu đang mặc");
+    // Ô tham chiếu không báo đầy trang: 45 món thật / 50 ô + 7 món đang mặc.
+    const occupancy = await page.evaluate(() => {
+      const sc = window.__u1, savedBag = sc.bag, savedGear = sc.gear;
+      const loose = savedBag.items.find((i) => i.vohon === null);
+      sc.bag = { ...savedBag, slots:50, items:Array.from({length:45}, (_,i) => ({...loose,id:`thu-tui-${i}`})) };
+      const ref = savedGear.items[0] ?? {id:"thu",code:"trang_bi",enhance:5,stats:savedBag.items.find((i) => i.code === "trang_bi").stats,slot:0};
+      sc.gear = {...savedGear, items:Array.from({length:7},(_,i) => ({...ref,id:`thu-mac-${i}`}))};
+      sc.renderBag();
+      const full = document.querySelectorAll('#bag .bpg.full').length;
+      sc.bag = savedBag; sc.gear = savedGear; sc.renderBag();
+      return full;
+    });
+    check(occupancy === 0, "45/50 món + 7 ô đang mặc không báo trang đầy");
     // Mặc lại để các ảnh thể hiện dấu đang mặc; thao tác ô Túi chỉ mở Hồn sư.
     await page.evaluate((id) => window.__u1.room.send("equipgear", {id}), gearId);
     await page.waitForFunction((id) => window.__u1.gear.items.some((g) => g.id === id), gearId);
+    const badgeClear = await page.locator(`#bag .bslot[data-id="${gearId}"]`).evaluate((cell) => {
+      const a=cell.querySelector('.bworn').getBoundingClientRect(), b=cell.querySelector('.enh').getBoundingClientRect();
+      return a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom;
+    });
+    check(badgeClear, "dấu đang mặc không che số cường hóa");
     await page.locator(`#bag .bslot[data-id="${gearId}"]`).click();
     check(await page.evaluate((id) => window.__u1.gear.items.some((g) => g.id === id), gearId), "bấm đồ mặc không tháo trong Túi");
   }

@@ -87,7 +87,7 @@ body:not(.dual-win) #bag{width:min(520px,96vw)}
 #bag .rhead :is(.bsort,.bsellbtn){padding:0 var(--sp-2)}
 #bag .bfilter{flex-wrap:nowrap;overflow-x:auto;flex-shrink:0}
 #bag .bfilter>*{flex:none;white-space:nowrap}
-#bag .bworn{position:absolute;top:var(--sp-1);left:var(--sp-1);z-index:2;font:var(--fs-s)/1.2 var(--f10);font-style:normal;color:var(--accent);background:var(--track);padding:var(--sp-1);pointer-events:none}
+#bag .bworn{position:absolute;bottom:var(--sp-2);left:var(--sp-2);z-index:2;width:8px;height:8px;transform:rotate(45deg);background:var(--accent);border:var(--bd-fine) solid var(--track);pointer-events:none}
 #bag .bequip{display:none;flex-wrap:nowrap;gap:var(--sp-1);overflow-x:auto;flex-shrink:0}
 body.dual-win #bag .bequip{display:flex}
 #bag .bequip>small{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
