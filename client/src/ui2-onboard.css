@@ -7,6 +7,7 @@
   display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 var(--sp-5);align-items:center;padding:var(--sp-4) var(--sp-5);pointer-events:auto;
   background:var(--paper);color:var(--ink);border:var(--bd) solid var(--wood);font:var(--fs-m)/1.5 var(--f12)}
 #onboard[hidden]{display:none}
+#onboard[data-mode="done"]{z-index:8} /* bước cuối vừa mở hub (z 7): CTA phải bấm được cả ở màn hẹp */
 #onboard[data-dock="low"]{bottom:var(--sp-5)}
 #onboard .ob-head{display:flex;justify-content:space-between;gap:var(--sp-4);color:var(--inkl);font:var(--fs-s)/1.4 var(--f10)}
 #onboard .ob-dots{color:var(--son);letter-spacing:2px;white-space:nowrap}

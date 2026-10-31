@@ -70,6 +70,11 @@ GameScene.prototype.create = function(...a) { window.__obScene = this; window.__
   const finish = async () => {
     for (let i = 0; i < 6; i++) {
       if (await page.locator('#onboard[data-mode="done"]:visible').count()) break;
+      if (await page.locator('#onboard h4').textContent() === 'Mở menu') {
+        await page.locator('#hubBtn').click();
+        await page.locator('#onboard[data-mode="done"]').waitFor();
+        break;
+      }
       await page.locator("#onboard .ob-next").click();
     }
     await page.locator('#onboard[data-mode="done"]').waitFor();
@@ -124,6 +129,7 @@ GameScene.prototype.create = function(...a) { window.__obScene = this; window.__
       const ob = await import('/src/onboard.ts'); ob.onboardAttach('Thu goi y'); ob.onboardBegin();
     });
     await finish();
+    await page.evaluate(async () => { const { setHubOpen } = await import('/src/hubMenu.ts'); setHubOpen(false); });
     await page.evaluate(async () => { const { guideHint } = await import('/src/guide.ts'); guideHint('hit'); });
     await page.locator('#guide[data-mode="hint"]').waitFor();
     assert.equal(await page.locator('#onboard:visible').count(), 0, 'thẻ xong nhường gợi ý');
