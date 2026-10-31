@@ -83,3 +83,21 @@ Cảnh báo nhẹ e đã duyệt: checker ghi chân lệch 17% ở attack H3 C3�
 ## Hồ sơ mọi lượt trước
 
 [Hồ sơ lịch sử đến phiên 862](candidates/NGUON-lich-su-den-862.md) giữ đầy đủ prompt/hash/phiếu các vòng 778, 797, 809, 860 và e lượt 1 phiên 862; mọi RAW vẫn giữ nguyên byte. Các kết luận chặn ở bản lịch sử không phải trạng thái nhập hiện tại.
+
+## Kiểm lại nguồn hiện tại phiên 882 (#1426)
+
+### to-n — kiểm lại RAW cũ, không sinh lượt mới
+
+- File: `to-n.png`, **1536×1024**, 1603641 byte, SHA256 `b5711cf4192832024856431aaeae6b7929a674446f69e4721fc97d35c6414857`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-882.
+- Prompt: `to-n.prompt.txt` (SHA256 `60d33fe81dd5113684fe9e2f5797ec7529035933e36fd1fa7bfff446c0632479`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **nhẹ** (khối hướng: n nhẹ).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+#### Cảnh báo tự động
+
+```text
+LỖI: to-n — chân lệch — H3 (n) C5 — chân lệch > 12% chiều cao so với trung vị dải (lệch lớn nhất 15%).
+```
+
