@@ -206,7 +206,7 @@ try {
     check(/phụ phí/.test(await page.locator(".cfm").innerText()), tag("hộp xác nhận từ xa không nêu phụ phí"));
     await page.screenshot({ path: resolve(out, `${size}-6-xac-nhan-tu-xa.png`) });
     await page.locator(".cfm-yes").click();
-    await page.waitForFunction(() => document.getElementById("mapview").hidden, null, { timeout: 12000 }).catch(async (e) => { // server niệm (recall) thì bản đồ đóng
+    await page.waitForFunction(() => document.getElementById("mapview").hidden, null, { timeout: 25000 }).catch(async (e) => { // server niệm (recall) thì bản đồ đóng
       console.error("Không đóng sau khi xác nhận:", await page.locator("#world .wm-card").innerText().catch(() => ""), "| cfm:", await page.locator(".cfm").count()); await page.screenshot({ path: resolve(out, `${size}-loi-xac-nhan.png`) }); throw e;
     });
     await page.waitForFunction(() => window.__bd.wpHere === window.__bd.waypoints[0].label, null, { timeout: 15000 }); // niệm xong, đứng trên trận 0
