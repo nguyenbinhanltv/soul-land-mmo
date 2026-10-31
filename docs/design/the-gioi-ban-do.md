@@ -31,6 +31,9 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**.
 | Hải Thần Đảo / Ma Quỷ Hải Vực (`hai_than_dao`) | Săn | Đảo giữa biển sâu, cầu tàu ở bờ tây; rạn nông có đường đá nối các bãi; đền Hải Thần với tượng đinh ba trên Vách Hải Thần, sân trước đền là vùng `safe` **Thánh địa Hải Thần** (không hồn thú, không giao chiến; tự săn đi vòng); trại Bến Hải Thần có vùng `safe` nhỏ quanh Hải Mã Đấu La; hồn thú biển; nơi duy nhất có hồn thú thường 10 vạn năm | Thiên Đấu Thành (bến thuyền) |
 | Lõi Tinh Đấu (`loi_tinh_dau`) | Boss | Hồ trung tâm Tinh Đấu Đại Sâm Lâm: Hồ Sinh Mệnh phát sáng (rìa nước nông có sen, rêu phát quang quanh bờ), sàn đấu boss thế giới lát đá giữa vòng cột tinh thể, cổ thụ phát quang | Nội địa |
 | Đại Đấu Hồn Trường (`dai_dau_hon_truong`) | Sân đấu | Sân nhỏ cho một trận 1v1 hoặc 2v2 (`ARENA_MAP`): khán đài hai phía, sàn đá có huy hiệu giữa sân cát, cột cờ, lò lửa, sư tử vàng | – |
+| Luyện Hồn Cảnh (`luyen_hon_canh`) | Phòng riêng (`arena`) | Bí Cảnh theo kịch bản sóng; không đi cổng, không lưu vị trí như bản đồ thế giới | – |
+
+Tranh nền và tọa độ lớp phủ của bản đồ thế giới M: [bàn giao mỹ thuật](../art/ban-do-the-gioi.md). Danh sách / mã trận và cổng trong JSON được đối chiếu từ `MAPS` và Tiled mặc định, không suy tuyến từ tranh.
 
 ## Cổng và truyền tống
 
@@ -44,11 +47,13 @@ Thế giới gồm nhiều bản đồ nối bằng **cổng**.
 ### Truyền tống trận
 Object `waypoint`, mỗi bản đồ trừ sân đấu có 1–3 trận (thành, trại cổng, giữa bản đồ săn); cổng nối bản đồ kề nhau vẫn giữ.
 - **Mở khóa:** bước lên trận lần đầu thì mở khóa cho tài khoản (lưu DB), có thông báo. Trận vẽ bằng code (vòng phù văn phát sáng lam ngọc theo phong cách A, chưa mở thì xám), chấm lam trên radar.
-- **Bản đồ thế giới** (thủy mặc; M, nút "Thế giới", hoặc F khi đứng trên trận): sơ đồ các bản đồ nối bằng nét mực theo cổng; danh sách từng bản đồ với cấp đề xuất, các trận đã mở / chưa mở và phí. Không đứng trên trận thì chỉ xem.
-- **Dịch chuyển:** đứng trên một trận, chọn trận đích đã mở khác trận đang đứng: niệm `WAYPOINT_CAST` giây (thanh niệm, cột sáng ai cũng thấy). Di chuyển hoặc bị đánh thì hủy, không mất gì.
-  - Phí `waypointFee` theo số lần đi cổng ít nhất giữa hai bản đồ (cùng bản đồ: mức `WAYPOINT_FEE.base`), trừ lúc dịch chuyển.
-  - Không dùng khi đang giao chiến, gục, đang hấp thụ, đang đi cổng; trong sân Đại Đấu Hồn Trường bị chặn.
-  - Cùng bản đồ thì đặt thẳng vị trí; bản đồ khác thì đi đúng transaction đi cổng (mục 6), nên an toàn khi trong tổ đội và lưu đúng thứ tự. Lưu lỗi thì trả lại phí.
+- **Bản đồ thế giới** (thủy mặc; M, nút "Thế giới", hoặc F khi đứng trên trận): sơ đồ các bản đồ nối bằng nét mực theo cổng; danh sách từng bản đồ với cấp đề xuất, các trận đã mở / chưa mở và phí. Không đứng trên trận thì vẫn chọn được trận đã mở để dịch chuyển từ xa (ghi phụ phí và thời gian hồi còn lại).
+- **Dịch chuyển:** chọn trận đích **đã mở khóa** của tài khoản (khác trận đang đứng): niệm `WAYPOINT_CAST` giây (thanh niệm, cột sáng ai cũng thấy). Di chuyển hoặc bị đánh thì hủy, không mất gì. Dùng được **từ bất kỳ đâu** (chủ repo duyệt 2026-10-31), hai chế độ:
+  - **Đứng trên một trận:** phí `waypointFee` theo số lần đi cổng ít nhất giữa hai bản đồ (cùng bản đồ: mức `WAYPOINT_FEE.base`), trừ lúc dịch chuyển; **không bị hồi**.
+  - **Không đứng trên trận (từ xa):** phí như trên **cộng phụ phí** `WAYPOINT_FEE.remote` (`waypointFee(hops, true)`), và **hồi** `WAYPOINT_COOLDOWN_S` giây giữa hai lần từ xa (tính từ lúc dịch chuyển xong; hủy niệm không tính hồi; giữ theo tài khoản, không mất khi đổi bản đồ hay thoát vào lại). Đứng lên trận thì dùng ngay, không bị hồi. Phụ phí đặt cao hơn Hồi Thành Phù (30 đồng, chỉ về thành) để không làm phù vô dụng, nhưng chỉ ngang vài lần hạ hồn thú bậc giữa (`BEAST_COIN`) nên không chặn người chơi cần di chuyển nhanh.
+  - Không dùng khi đang giao chiến, gục, đang hấp thụ, đang đi cổng, bị khống chế; trong Đại Đấu Hồn Trường, Bí Cảnh / Luyện Hồn Cảnh và phòng riêng bị chặn. Riêng từ xa còn bị chặn khi **đang tự săn / ủy thác treo** (tắt tự săn trước).
+  - Trận đích chưa mở khóa thì từ chối (phải tới bước lên trận một lần). Server kiểm mọi điều kiện, client chỉ gửi trận muốn tới.
+  - Cùng bản đồ thì đặt thẳng vị trí; bản đồ khác thì đi đúng transaction đi cổng (mục 6), nên an toàn khi trong tổ đội và lưu đúng thứ tự. Lưu lỗi thì trả lại phí và xóa thời gian hồi. Giao thức: `docs/tech/giao-thuc-server.md`.
 - **Hồi Thành Phù** (vật phẩm, thương nhân bán): dùng trong túi thì niệm như truyền tống (cùng luật cấm / hủy; hủy thì giữ phù) rồi về **thành gần nhất** (thành ít lần đi cổng nhất, xuất hiện ở truyền tống trận của thành), mất một phù.
 - Quanh trận không sinh hồn thú (`SPAWN_CLEAR`, như quanh cổng).
 

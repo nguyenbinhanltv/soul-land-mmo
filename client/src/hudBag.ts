@@ -7,6 +7,7 @@ import { boneSvg } from "./boneIcons.ts";
 import { coreSvg } from "./coreIcons.ts";
 import { artImg, shardImg, tintedUrl } from "./uiArt.ts";
 import { setPanel } from "./charPanel.ts";
+import { setCoinChip } from "./statChips.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 import { panelChanged, swapButton } from "./dualWindow.ts";
 import { setTip, type TipLine } from "./tooltip.ts";
@@ -271,7 +272,7 @@ export let bagPage = 0; // trang túi đang xem (#215: mỗi trang BAG_PAGE ô)
  * "Dùng". Client chỉ gửi id ô muốn dùng; server kiểm tra và gửi lại túi mới.
  */
 export function renderBag(bag: BagMsg, act: BagActions) {
-  bagCap = bag.slots; setEnhCoin(bag.honTe);
+  bagCap = bag.slots; setEnhCoin(bag.honTe); setCoinChip(bag.honTe);
   bagCdEnd = performance.now() + Math.max(0, bag.cd) * 1000;
   const el = $("#bag"); el.innerHTML = "";
   const items = bag.items.filter((i) => i.vohon === null);
