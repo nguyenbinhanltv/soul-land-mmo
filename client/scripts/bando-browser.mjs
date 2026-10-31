@@ -173,6 +173,18 @@ try {
     const same = await prim();
     check(same.d && /đang đứng/.test(same.why), tag(`trận đang đứng phải khoá kèm lý do: ${JSON.stringify(same)}`));
     await page.screenshot({ path: resolve(out, `${size}-4-dich-chuyen-tren-tran.png`) });
+    // Bản đồ KHÔNG dừng game: mở trên trận rồi bước ra (map vẫn mở) → nút phải chuyển sang phí từ xa + có xác nhận, không giữ phí thường cũ.
+    await pickWp(0);
+    for (const [dx, dy] of [[160, 0], [-160, 0], [0, 160], [0, -160], [260, 0]]) {
+      await page.evaluate(([dx, dy]) => { const w = window.__bd.waypoints[1]; window.__bd.room.send("test", { op: "goto", x: w.x + w.w / 2 + dx, y: w.y + w.h / 2 + dy }); }, [dx, dy]);
+      await sleep(400); if (await page.evaluate(() => !window.__bd.wpHere)) break;
+    }
+    await page.waitForFunction(() => /Phí từ xa/.test(document.querySelector("#world .wm-card")?.textContent ?? "") && !document.querySelector("#mapview .p2-primary").disabled, null, { timeout: 10000 }); // tin world mới về (nút hết khoá "đang cập nhật")
+    const stepped = await prim();
+    check(/^Dịch chuyển · /.test(stepped.t) && !stepped.d, tag(`bước ra khỏi trận khi bản đồ đang mở: nút ${JSON.stringify(stepped)}`));
+    await page.locator("#mapview .p2-primary").click(); await page.waitForSelector(".cfm", { state: "visible" });
+    check(/phụ phí/.test(await page.locator(".cfm").innerText()), tag("bước ra khỏi trận: bấm Dịch chuyển phải hỏi xác nhận phụ phí"));
+    await page.locator(".cfm-no").click();
     await page.keyboard.press("Escape"); await page.waitForFunction(() => document.getElementById("mapview").hidden);
     // Ra khỏi trận (đi ra vài điểm) rồi dịch chuyển từ xa tới trận 0.
     for (const [dx, dy] of [[160, 0], [-160, 0], [0, 160], [0, -160], [260, 0]]) {

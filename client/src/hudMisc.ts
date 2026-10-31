@@ -258,6 +258,8 @@ export function toggleWorld(open = !worldOpen()) {
 }
 /** Dòng `log` của server: nếu vừa bấm Dịch chuyển thì đó là lý do bị từ chối, bản đồ thế giới hiện ở thẻ chi tiết. */
 export function worldNote(text: string) { worldMap().note(text); }
+/** Đứng lên / rời truyền tống trận (tin `wp {k: "here"}`): bản đồ thế giới đang mở thì làm tươi. */
+export function worldHere() { worldMap().hereChanged(); }
 /** Tin `world` mới (server gửi khi xin): bản đồ thế giới vẽ lại. */
 export function setWorld(m: WorldMsg) { worldMap().setMsg(m); }
 

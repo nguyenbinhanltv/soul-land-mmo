@@ -1473,7 +1473,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("portal", (m: PortalInfo) => { this.portal = m?.name ? m : null; hud.showPortal(this.portal, () => this.goPortal()); });
     // Truyền tống trận (11.2): đứng trên / rời trận, mở khóa trận mới; bảng bản đồ thế giới; thanh niệm truyền tống / Hồi Thành Phù.
     this.room.onMessage("wp", (m: { k: string; key: string; label: string; map?: string }) => {
-      if (m?.k === "here") { this.wpHere = m.key ? m.label : null; hud.showWaypoint(this.wpHere, () => this.openWorld(true)); }
+      if (m?.k === "here") { this.wpHere = m.key ? m.label : null; hud.showWaypoint(this.wpHere, () => this.openWorld(true)); hud.worldHere(); }
       if (m?.k === "unlock") {
         this.audio.play("teleport_unlock");
         this.wpOpen.add(m.key); this.labelWaypoints();

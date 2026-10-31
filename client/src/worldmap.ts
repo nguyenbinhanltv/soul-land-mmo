@@ -56,6 +56,8 @@ class WorldMap {
   private waitTimer = 0; private waitErr = false; private imgErr = false;
   /** Lúc (ms) vừa gửi yêu cầu dịch chuyển (0 = không chờ phản hồi); lý do server vừa trả; lúc nhận tin `world` (đếm lùi hồi); hẹn giờ đếm lùi. */
   private pending = 0; private reply = ""; private cdAt = 0; private cdTimer = 0;
+  /** Trận đang đứng đã đổi sau tin `world` cuối (bước lên / rời trận): `cur` cũ, nút Dịch chuyển khoá tới khi có tin mới. */
+  private stale = false; private staleTimer = 0;
   private ptrs = new Map<number, Pt>(); private drag: { x: number; y: number; vx: number; vy: number; moved: boolean } | null = null; private pinch = 0;
 
   private readonly viewEl = el("div", "wm-view"); private readonly stage = el("div", "wm-stage");
@@ -75,9 +77,9 @@ class WorldMap {
 
   // ---------- API cho mapview.ts / hudMisc.ts ----------
   setMsg(m: WorldMsg) {
-    this.msg = m; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0; this.cdAt = performance.now();
+    this.msg = m; this.stale = false; this.waitErr = false; clearTimeout(this.waitTimer); this.waitTimer = 0; this.cdAt = performance.now();
     if (this.sel?.t === "wp" && !this.wp(this.sel.id)) this.sel = null;
-    this.render();
+    this.render(); this.onChange?.(); // nút chính của khung theo tin mới (phí, hồi, đang đứng ở đâu)
   }
   /** Chế độ Thế giới vừa hiện: xin tin mới, đặt khung nhìn (lần đầu / bản đồ lạ), chờ tin trong WAIT_MS. */
   show() {
@@ -93,7 +95,7 @@ class WorldMap {
     if (this.cdLeft() <= 0) this.paintCard();
   }
   private cdText() { const left = this.cdLeft(); return left > 0 ? `Còn ${left} giây` : "Dùng được"; }
-  hide() { clearTimeout(this.waitTimer); this.waitTimer = 0; clearInterval(this.cdTimer); this.cdTimer = 0; this.pending = 0; this.reply = ""; }
+  hide() { clearTimeout(this.waitTimer); this.waitTimer = 0; clearInterval(this.cdTimer); this.cdTimer = 0; this.pending = 0; this.reply = ""; this.stale = false; clearTimeout(this.staleTimer); }
   /**
    * Nút chính của khung: "Dịch chuyển" tới trận đang chọn. Chỉ chặn theo thứ server đã báo trong tin `world` (đã mở, tới được, đủ Hồn Tệ, còn hồi);
    * mọi điều kiện khác (giao chiến, tự săn, sân đấu…) do server kiểm và trả lý do bằng dòng `log`, hiện ở thẻ chi tiết.
@@ -108,6 +110,13 @@ class WorldMap {
     if (!this.pending || performance.now() - this.pending > REPLY_MS) return;
     this.pending = 0; this.reply = text; this.paintCard(); this.onChange?.();
   }
+  /** Đứng lên / rời một trận (tin `wp {k: "here"}`): bản đồ đang mở thì xin tin `world` mới, nút khoá tới khi tin về (phí và hồi phụ thuộc đang đứng trên trận hay không). */
+  hereChanged() { if (!this.host?.isOpen()) return; this.stale = true; this.refresh(0); this.paintCard(); this.onChange?.(); }
+  /** Xin tin `world`; server giới hạn tốc độ tin `wp` nên chưa có tin mới sau 1,5 giây thì xin lại (tối đa 4 lần). */
+  private refresh(n: number) {
+    this.onShow?.(); clearTimeout(this.staleTimer);
+    if (n < 4) this.staleTimer = window.setTimeout(() => { if (this.stale && this.host?.isOpen()) this.refresh(n + 1); }, 1500);
+  }
   /** Server đã bắt đầu niệm (tin `recall`): đóng bản đồ để thấy thanh niệm. */
   recallStarted() { this.pending = 0; this.reply = ""; if (this.host?.isOpen()) this.host.show(false); }
   /** Server đã gửi phí từ xa (tin `world` mới); server cũ không có: nút từ xa khoá với lý do "Chỉ dùng khi đứng trên trận". */
@@ -116,6 +125,7 @@ class WorldMap {
   private goState(): { reason: string; fee: number | null; remote: boolean; key: string } {
     const m = this.msg, none = (reason: string) => ({ reason, fee: null, remote: false, key: "" });
     if (!m) return none("Đang tải trạng thái truyền tống trận");
+    if (this.stale) return none("Đang cập nhật vị trí đứng…");
     if (this.sel?.t !== "wp") return none(this.sel ? "Chọn một truyền tống trận cụ thể" : "Chọn một truyền tống trận đã mở");
     const w = this.wp(this.sel.id); if (!w) return none("Truyền tống trận không còn trong danh sách");
     const remote = m.cur === "", fee = remote ? (this.remoteOk() ? w.feeRemote ?? null : null) : w.fee, key = w.key;
