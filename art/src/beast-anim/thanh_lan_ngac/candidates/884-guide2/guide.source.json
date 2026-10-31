@@ -1,0 +1,13 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "stage":  "sửa ảnh dẫn",
+    "attempt":  2,
+    "rawSha256":  "fcd2b174958d8f1816ab603656208c4cb227216e2c5476b3d8dcfbff6c8b20a6",
+    "promptSha256":  "13fc755483e4ac7d43b34b699484c9f56204cfb9c4ed5b581e9beb1a7e87ddff",
+    "editTarget":  "candidates/884-guide1/guide.png",
+    "editTargetSha256":  "1df4e9bb1416997836f5aefbfd6e846d3732666c41cfd46a4b2c627eb8ac49ab",
+    "verdict":  "Chặn ảnh dẫn: phóng lớn vẫn thấy chấm sáng trong hốc tối ở cạnh đầu, không dùng cho tờ ne."
+}

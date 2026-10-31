@@ -1,0 +1,13 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "stage":  "ảnh dẫn ne từ n đã đạt",
+    "attempt":  1,
+    "rawSha256":  "1df4e9bb1416997836f5aefbfd6e846d3732666c41cfd46a4b2c627eb8ac49ab",
+    "promptSha256":  "d99be7ea49d09ebbd9a6a1c792cc57a070796732741713628e19f90e8d3fd034",
+    "reference":  "to-n.png",
+    "referenceSha256":  "b5ec1255bf8952b865d6a1e508bc8e3c74a63d4accf13cbb6a759656533d3dc8",
+    "verdict":  "Bố cục và bốn chân/đuôi đúng; còn chấm sáng giống mắt ở cạnh đầu, sửa riêng ảnh dẫn trước khi dùng."
+}
