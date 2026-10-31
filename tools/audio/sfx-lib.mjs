@@ -23,6 +23,7 @@ export const SFX_REQUIRED = {
   "ring-glow": 2, "ring-absorb": 2, "ring-drop": 2,
   ...Object.fromEntries(["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc"].map((f) => [`beast-${f}`, 2])),
   "beast-boss": 3, "beast-die": 3,
+  "beast-bien": 3,
   ...Object.fromEntries(["co", "dat", "da", "tuyet", "go", "nuoc"].map((s) => [`step-${s}`, 3])),
   // Lô 2 (G5, #396): môi trường lớp chồng, giao diện, PK
   "amb-wind": 3, "amb-wave": 3, "amb-bird": 3, "amb-cricket": 3, "amb-fire": 3, "amb-bell": 2,
