@@ -2,7 +2,8 @@
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts; nguyên văn từ MapRoom, không đổi thứ tự xử lý / thứ tự gọi RNG (`roll*` giữ thứ tự cũ). MapRoom chỉ chuyển tiếp `killBeast`.
 import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, partyXpShare } from "../../../shared/data.ts";
 import { achvCount } from "./achv.ts";
-import { type MapRoom, persistEliteLock } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import { persistEliteLock } from "./presenceState.ts";
 import { eliteLocks, eliteKey, eliteLockLeft } from "./procState.ts";
 import { uid } from "./common.ts";
 

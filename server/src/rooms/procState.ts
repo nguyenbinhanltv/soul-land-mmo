@@ -1,7 +1,7 @@
 // Trạng thái MỨC TIẾN TRÌNH của các phòng bản đồ, chỉ trong bộ nhớ (miền D1, #702): thú vương theo bản đồ (`kingSeats`, `kingClaimCache`), khóa thưởng tinh anh nhiều kênh
 // (`eliteLocks`), hồi chiêu Võ Hồn Dung Hợp Kỹ (`fusionReady`), đổi kênh / kênh vừa rời (`channelSwitchAt`, `leftRoom`, dọn định kỳ `sweepChannelMaps`), hook test (`testNoLeaveLock`,
 // `testOfflineAgo`), danh sách mua lại (`buybacks`). Nguyên văn từ MapRoom; MỘT thể hiện duy nhất mỗi Map / Set (MapRoom, các miền và script kiểm thử đều import từ đây).
-// Module lá: KHÔNG gọi presence / Redis và KHÔNG import MapRoom (chỉ phụ thuộc shared/data.ts, schedule.ts cho đồng hồ boss và type của db.ts / schema.ts). Hai tác dụng phụ lúc nạp module, giữ nguyên như khi còn ở MapRoom: `CHANNEL_CAP` đọc `GAME_TEST` / `CHANNEL_MAX`, và `setInterval(sweepChannelMaps).unref()` (chạy đúng một lần vì module chỉ nạp một lần). Phần ghi presence (`persistKingSeat`, `takeKingSeat`, `persistEliteLock`, `editBuyback`...) là miền D2, còn ở MapRoom.
+// Module lá: KHÔNG gọi presence / Redis và KHÔNG import MapRoom (chỉ phụ thuộc shared/data.ts, schedule.ts cho đồng hồ boss và type của db.ts / schema.ts). Tác dụng phụ lúc nạp duy nhất: `CHANNEL_CAP` đọc `GAME_TEST` / `CHANNEL_MAX` (như khi còn ở MapRoom); timer dọn định kỳ KHÔNG chạy lúc nạp mà do MapRoom gọi `startChannelSweep()` một lần. Map / hàm chỉ dùng cho hook test ở `testState.ts`. Phần ghi presence (`persistKingSeat`, `takeKingSeat`, `persistEliteLock`, `editBuyback`...) ở `presenceState.ts`, registry kênh ở `channel.ts`, ghế ở `seat.ts`.
 import { KING, WORLD, BOSSES, MAPS, kingActive, worldActive, CHANNEL_MAX, CHANNEL_CD } from "../../../shared/data.ts";
 import { bossOffset } from "../schedule.ts";
 import type { BeastState } from "./schema.ts";
@@ -64,8 +64,6 @@ export function applyKingDoc(mapId: string, doc: KingDoc | null) {
   for (const slot of kingSeats.get(mapId)?.keys() ?? []) if (!recs.has(slot)) dropKingClaims(mapId, slot);
   kingSeats.set(mapId, recs);
 }
-/** Hook kiểm thử (server/scripts/map-leak-test.ts): nạp tài liệu khung, lấy các khung còn hạn, đếm / hỏi bộ nhớ đệm rương. */
-export const kingClaimTest = { apply: applyKingDoc, recs: kingRecs, size: () => kingClaimCache.size, has: (mapId: string, slot: number) => kingClaimCache.has(`${mapId}:${slot}`) };
 /**
  * `${mapId}|${mã tinh anh}` -> accountId -> lúc (ms) được nhận lại thưởng tinh anh đó (ELITE.lock giây sau lần nhận). Theo bản đồ, không
  * theo phòng: mỗi kênh có tinh anh hồi sinh riêng, nên đổi kênh liên tục không nhân thưởng. Mất khi khởi động lại server (lâu nhất
@@ -122,14 +120,8 @@ export function sweepChannelMaps(now: number) {
   return n;
 }
 const CHANNEL_SWEEP_MS = 5 * 60_000;
-setInterval(() => sweepChannelMaps(Date.now()), CHANNEL_SWEEP_MS).unref();
-/** Hook test `chan {nolock}`: lần rời phòng kế tiếp của tài khoản không ghi leftRoom (bot thử chọn kênh khi vào game). */
-export const testNoLeaveLock = new Set<number>(); // map-co-dinh: đường xóa duy nhất là `testNoLeaveLock.delete` ở onLeave (join.ts), như trước khi tách
-/**
- * Hook test `offline {ago}` (Auto 3, chỉ GAME_TEST): lần ủy thác offline kế tiếp của tài khoản ghi thời điểm bắt đầu lùi `ago` giây,
- * như đã thoát từ `ago` giây trước (giả lập thời gian trôi: bot vào lại ngay mà vẫn nhận thưởng theo quãng vắng mặt đó).
- */
-export const testOfflineAgo = new Map<number, number>(); // map-co-dinh: đường xóa duy nhất là `testOfflineAgo.delete` ở onLeave (join.ts), như trước khi tách
+/** Bật dọn định kỳ `channelSwitchAt` / `leftRoom` (gọi đúng một lần lúc nạp MapRoom; module này không còn tác dụng phụ lúc nạp ngoài `CHANNEL_CAP`). */
+export function startChannelSweep() { return setInterval(() => sweepChannelMaps(Date.now()), CHANNEL_SWEEP_MS).unref(); }
 /**
  * Mua lại đồ bán nhầm (bước 9.8): BUYBACK_MAX lần bán gần nhất của mỗi tài khoản (mới nhất trước), mức tiến trình theo tài khoản để
  * đi cổng / đổi kênh / vào sân đấu vẫn còn; ghi cả vào presence (`buyback:<acc>`, TTL BUYBACK_TTL_MS, nạp lại lúc vào phòng) để sang phòng ở tiến trình khác vẫn còn; xóa khi người chơi rời game (onLeave không qua đi cổng, forgetBuyback).

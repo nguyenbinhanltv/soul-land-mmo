@@ -21,7 +21,8 @@ import { newItem, gearStats, bagUsed } from "./items.ts";
 import { savePeriodic } from "./persist.ts";
 import * as party from "../party.ts";
 import { type MapRoom, type PData } from "./MapRoom.ts";
-import { CHANNEL_CAP, channelSwitchAt, eliteLockLeft, eliteLocks, fusionReady, leftRoom, testNoLeaveLock, testOfflineAgo } from "./procState.ts";
+import { CHANNEL_CAP, channelSwitchAt, eliteLockLeft, eliteLocks, fusionReady, leftRoom } from "./procState.ts";
+import { testNoLeaveLock, testOfflineAgo } from "./testState.ts";
 import { channelLeftKey, channelSwitchKey, fusionKey, worldChatKey, claimHeld, strIn, testShift } from "./common.ts";
 
 /**

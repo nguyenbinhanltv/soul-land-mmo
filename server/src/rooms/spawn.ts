@@ -8,7 +8,8 @@ import { bossOffset } from "../schedule.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { BOSS_BOX } from "./worldBoss.ts";
 import { BeastState, type PlayerState } from "./schema.ts";
-import { takeKingSeat, type MapRoom, type BData, type EliteData } from "./MapRoom.ts";
+import { type MapRoom, type BData, type EliteData } from "./MapRoom.ts";
+import { takeKingSeat } from "./presenceState.ts";
 import { bossK, newWorld, uid } from "./common.ts";
 /**
  * Sinh một hồn thú trong vùng `zi`: tuổi ngẫu nhiên trong khoảng `years` của vùng (bảng 5.3; vùng thiếu `years` thì tung bậc
