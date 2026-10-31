@@ -15,10 +15,14 @@ export async function channelTest(health){
   const say=async(b,type,msg)=>{ const l=b.logs.length; b.room.send(type,msg); await waitFor(()=>b.logs.length>l,2000); await sleep(50); return b.logs.slice(l).join(" | "); };
   const chans=async b=>{ await sleep(1050); b.chans=null; b.room.send("channels"); await waitFor(()=>b.chans,1500); return b.chans; };
   const fresh=async b=>{ b.owned=null; b.bag=null; b.room.send("vohons"); b.room.send("bag"); await waitFor(()=>b.owned&&b.bag&&meC(b),2000); };
+  /** Chờ tin `travel` theo state: có tin, hoặc phòng đã đóng (`leftCode`: 4001 lease hết hạn, 4003 quá hạn rời phòng…) thì dừng ngay, không chờ hết giờ.
+   * Server chỉ gửi `travel` sau khi chuỗi lưu xong (CI tải thì quá 3 giây) hoặc ghi log "Không chuyển được"; chỉ không gửi khi client đã rời phòng (#898). */
+  const travelWait=async(b,ms=10000)=>{ await waitFor(()=>b.travel||b.leftCode!==null,ms); return !!b.travel; };
+  const travelWhy=b=>`mã đóng phòng ${b.leftCode??"chưa đóng"}, log: ${b.logs.slice(-3).join(" | ")}`;
   /** Đi theo tin `travel` như client: rời phòng cũ, vào đúng phòng server chọn (roomId null thì joinOrCreate). */
   const follow=async b=>{ const t=b.travel; if(!t) return; await b.room.leave(); await sleep(200); b.mapId=t.mapId; await enter(b,t.roomId??undefined); await fresh(b); };
   /** Chờ tin `travel` (server chỉ gửi sau khi lưu xong, CI tải thì quá 3 giây): hết giờ thì ✗ kèm log thay vì để `follow` bỏ qua im lặng. */
-  const gotTravel=async(b,what,ms=10000)=>{ const got=await waitFor(()=>b.travel,ms); ok(!!got,`${what}: nhận travel (log: ${b.logs.slice(-3).join(" | ")})`); return got; };
+  const gotTravel=async(b,what,ms=10000)=>{ const got=await travelWait(b,ms); ok(got,`${what}: nhận travel (${travelWhy(b)})`); return got; };
   /** Xin đổi kênh `ch` rồi đi theo `travel`. Hồn thú hoang có thể đánh trúng giữa `rest` và lệnh (fight về 0): server từ chối "Đang giao chiến"
    * đúng luật nên dọn quanh bot, nghỉ, gửi lại (tối đa 4 lần). Server chỉ gửi `travel` sau khi lưu xong nên chờ tới 10 giây; hết giờ thì ✗ kèm log. */
   const gotoChannel=async(b,ch,what)=>{
@@ -26,9 +30,9 @@ export async function channelTest(health){
     for(let i=0;i<4&&!got;i++){
       await T(b,"clear",{keep:1}); await T(b,"rest",{s:TEAM_COMBAT_SECS+1}); await T(b,"chan",{reset:1});
       b.travel=null; const l=await say(b,"channel",{ch});
-      got=await waitFor(()=>b.travel,/giao chiến/.test(l)?300:10000);
+      got=await travelWait(b,/giao chiến/.test(l)?300:10000); if(b.leftCode!==null) break;
     }
-    ok(got,`${what}: nhận travel (log: ${b.logs.slice(-3).join(" | ")})`); if(got) await follow(b); return got; };
+    ok(got,`${what}: nhận travel (${travelWhy(b)})`); if(got) await follow(b); return got; };
   const prog=b=>JSON.stringify(b.owned.list.map(v=>[v.rowId,v.level,v.xp,v.stars,v.rings]));
   const pact=async(b,op,extra,w)=>{ const n=w.partyMsgs; b.room.send("party",{op,...extra}); await waitFor(()=>w.partyMsgs>n,2000); await sleep(120); };
 
@@ -56,8 +60,8 @@ export async function channelTest(health){
   await T(P2,"rest",{s:TEAM_COMBAT_SECS+1}); await fresh(P2);
   const before={prog:prog(P2),bag:bagKey(P2),x:meC(P2).x,y:meC(P2).y};
   P2.travel=null; const l2=await say(P2,"channel",{ch:2});
-  ok(/Đang chuyển sang kênh 2/.test(l2)&&await waitFor(()=>P2.travel,10000)&&P2.travel.mapId===P2.mapId&&P2.travel.roomId===P3.room.roomId,
-    `đổi sang kênh 2: "${l2}", travel ${JSON.stringify(P2.travel)}`);
+  ok(/Đang chuyển sang kênh 2/.test(l2)&&await travelWait(P2)&&P2.travel.mapId===P2.mapId&&P2.travel.roomId===P3.room.roomId,
+    `đổi sang kênh 2: "${l2}", travel ${JSON.stringify(P2.travel)} (${travelWhy(P2)})`);
   { // #164: client không tự chọn kênh đích: rời phòng rồi joinById kênh khác kênh server chọn bị từ chối (CHANNEL_CD giây)
     const t=P2.travel; await P2.room.leave(); await sleep(200);
     let other=""; try{ const r=await new Client(WS).joinById(P1.room.roomId,{token:P2.token,mapId:P2.mapId}); await r.leave(); other="vào được"; }catch(e){ other=String(e?.message??e); }
@@ -159,8 +163,8 @@ export async function channelTest(health){
      */
     const swap=async(b,ch)=>{ for(let k=0;k<3;k++){ await T(b,"clear",{keep:1}); await T(b,"status",{s:"stun",secs:5,all:1});
       await T(b,"rest",{s:TEAM_COMBAT_SECS+1}); await T(b,"chan",{reset:1});
-      b.travel=null; const w=await say(b,"channel",{ch}); if(await waitFor(()=>b.travel,10000)) return follow(b);
-      console.log(`    ${b.name} chưa đổi được sang kênh ${ch} (đang ở kênh ${chOf(b)}): "${w}"`); } };
+      b.travel=null; const w=await say(b,"channel",{ch}); if(await travelWait(b)) return follow(b);
+      console.log(`    ${b.name} chưa đổi được sang kênh ${ch} (đang ở kênh ${chOf(b)}; ${travelWhy(b)}): "${w}"`); if(b.leftCode!==null) return; } };
     ok(!!EB,`tinh anh của ${MAPS[NV].name}: ${EB}`);
     // Kênh 1: P1 hạ tinh anh (hook sinh 1 máu, cùng mã): chắc chắn rơi hồn hạch (số ngẫu nhiên 0,5), bị khóa ELITE.lock giây.
     await T(P1,"elock",{s:0}); await T(P1,"core",{r:50});

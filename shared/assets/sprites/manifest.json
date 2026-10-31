@@ -9593,6 +9593,10 @@
       }
     },
     {
+      "key": "pt_kim_vu_mieu_ung_glow",
+      "iso": true
+    },
+    {
       "key": "pt_ky_nhung_thong_thien_cuc",
       "iso": true,
       "pt": {
@@ -9852,6 +9856,10 @@
         "ghost": 0.88,
         "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
       }
+    },
+    {
+      "key": "pt_tu_vong_chu_hoang_glow",
+      "iso": true
     },
     {
       "key": "pt_u_minh_linh_mieu",

@@ -1,0 +1,34 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF magenta background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+SPIRIT: Lam Dien Ba Vuong Long, Blue Lightning Tyrant Dragon. An immense ancient Chinese serpentine dragon, a powerful large horned head held high, branching antler horns, jagged lightning-shaped mane, long thick muscular body in a compact upright S-curve, four clawed limbs. Complete solid fully drawn blue body, chest and coiling belly, NO human-shaped hole, NO rectangular dark filling column. Deep blue #1f3f8f scales, blue #5ab8ff highlights, small white electric accents and violet lightning dao-rune marks etched on scales. Three flat tones per region; restrained dark navy shadows. Only motifs: etched thunder dao-rune scales, lightning-shaped horn crests, attached dark thundercloud-shaped mane tufts. No detached clouds, no arcs, no floating sphere, no blur; code adds FX. Reference sheets only supply SHAPE COLOR MOTIF, never human gap or composition.
+
+SHEET: Exactly ONE SQUARE image 1024x1024, width equals height, 4columns4rows of sixteen equal SQUARE cells, no visible grid lines, no numbers, no text. Flat pure #FF00FF background in every cell. One complete dragon per cell, SAME dragon design and same scale in all cells. EVERY entire pose including antlers, tail and stretched attack is small and compact, fits central HALF of its cell, at least64px empty magenta gutters to ALL cell boundaries. Tail curls compactly, all claw tips stay in cell. Spirit floats alone without ground or cast shadow. Same lowest baseline across frames.
+VIEW: EAST, STRICT right-facing SIDE PROFILE: muzzle projects RIGHT, only one eye visible, horns seen from side, coiled body below and tail to left. ALL16 poses face EAST, never facing viewer.
+Rows1-2: eight subtle breathing loop frames, same silhouette,1-2pixel bob, frame8 returns to frame1.
+Rows3-4: eight attack frames,9-11 head and neck pull back,12AND13 hold identical maximum neck-lunge and claw strike to RIGHT,14-16 recover to neutral.
+Hard-edged chunky pixel look, opaque solid anatomical body, #1a1020 outline,3tones per region, no human/mannequin, no hollow humanoid gap, no text/frame/grid, no white flash, no detached sparks or smoke.
+SMALL FIGURES: Each entire dragon INCLUDING BIGGEST ATTACK fits central120x140px of each256squarecell, minimum58pixels empty magenta gutters. SQUARE canvas4x4, preserve consistent body scale, do NOT fill cells.
+CORRECT SPACING ONLY: SHRINK every complete dragon to45percent current widthANDheight, including antlers mane claws tail and biggest attack. Each whole pose at most120x120pixels centered inside its256squarecell, minimum68px magenta to EACH boundary. SIXTEEN SMALL isolated dragons on SQUARE4x4. Keep exact same STRICT EAST profile nose RIGHT. No changes to design.
+CORRECT VIEW ONLY: STRICT EAST RIGHT-FACING SIDE PROFILE throughout ALL16cells. Dragon nose points horizontally RIGHT, head in true profile, ONLY ONE EYE, only ONE SIDE of jaw visible. NOT three-quarter view, NOT southeast, NO frontal chest, NO two-eye face. Side of dragon neck and flank shown, belly narrowly along right edge of neck. Preserve SMALL overall size and full64pixel gutters. Same BLUE Chinese serpent dragon from reference, not western dragon, no wings.

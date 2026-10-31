@@ -33,6 +33,7 @@ export interface DollView { rowId: number | null; bag: readonly BagItem[]; gear:
 export type ServerCommand =
   | { msg: "equip"; data: { itemId: string; vohonId: number; slot: string } }
   | { msg: "equipcore"; data: { itemId: string; vohonId: number; slot: number } }
+  | { msg: "equipbest"; data: { slot?: number; token?: string } }
   | { msg: "equipgear"; data: { id: string } }
   | { msg: "unequip"; data: { itemId: string } }
   | { msg: "unequipcore"; data: { itemId: string } }

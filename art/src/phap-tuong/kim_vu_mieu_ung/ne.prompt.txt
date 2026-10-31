@@ -1,0 +1,31 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+SPIRIT: Kim Vu Mieu Ung, colossal golden owl-eagle thunder spirit. Complete solid ANIMAL body: broad feathered breast and belly, powerful talons, cat-like owl facial disc, sharp hooked beak, two long pointed ear tufts, narrow cold vertical amber eyes. NOT a human, NO human-shaped hole or dark rectangular pillar. Dark bronze-brown #7a5a12 body shadow, muted gold feather base, golden highlights #ffd54a, tiny white-gold eyes and feather edges; black wing tips. Angular blade-like primary feathers with thin non-letter lightning dao-rune lines. Only these motifs: carved lightning lines along feathers, tiny hard-edged white accents at feather tips. Storm, lightning arcs, glow, particles added by code, DO NOT paint detached effects.
+SHEET: EXACTLY SQUARE 1:1 image, 1024x1024 or native square. Exactly 4 columns and 4 rows of equal SQUARE cells, 16 poses total, invisible grid. Flat solid #FF00FF background. NO letters, labels, numbers, borders, gridlines, mannequin, person, ground, shadow.
+All sixteen cells show SAME owl-eagle, same size, centered baseline. IMPORTANT: full bounding box including BOTH WINGS occupies ONLY CENTRAL 45% of each cell width and height. Leave over ONE QUARTER cell width blank magenta on all sides even at widest attack. Whole image mostly empty magenta, do not fill cells with wings. Solid fully drawn animal breast, no hollow.
+View: NORTH-EAST, turned RIGHT AND AWAY from viewer, mostly BACK visible. Back of ear-tufted head and feathered spine visible, only a narrow right cheek; NO frontal breast or face, slightly elevated isometric view. Wings half-spread in upright imposing pose, one slightly higher, talons hang below solid belly.
+Rows 1-2: 8 subtle idle breathing frames, wings and breast move only 1-2 pixels, last returns to first.
+Rows 3-4: 8 attack frames. 9-11 draw wings upward/back, talons coil; 12 and 13 SAME PEAK forceful downstroke with owl leaning and talons thrust toward UPPER RIGHT away from viewer; 14-16 recover to original upright half-spread wings. NO extra birds, feathers, sparks. Keep entire downstroke compact within center45% cell.
+SIZE PRIORITY: TINY complete owl including every raised wing feather fits inside CENTRAL30% square of each cell, 35% completely empty magenta on every side. Head back, back of shoulders and wings highlighted gold so recognizable at 70% opacity. Draw broader simple gold feather clusters, fewer details. Cell12 and13 identical peak downstroke, talons thrust UPPER RIGHT away from viewer. Strict square image 4x4 invisible equal square cells.

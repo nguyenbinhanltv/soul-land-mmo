@@ -42,6 +42,7 @@ Mọi tin đăng ký trong `MapRoom.onCreate` (`onMessage` / `onLimitedMsg(nhóm
 | `pickup`, `discard`, `sortbag`, `lock`, `autosell`, `use`, `open`, `unlock`, `starup` | thao tác túi, mở khóa / thăng sao võ hồn | bag | `pickup`, `discardItem`, `sortBag`, `lockItem`, `setAutoSell`, `useItem`, `openChest`, `unlockVohon`, `starUp` |
 | `absorb` | hấp thụ hồn hoàn | bag | `absorb.ts` `tryAbsorb` |
 | `equip`, `unequip`, `equipcore`, `unequipcore`, `enhance`, `enhancecore`, `coreset` | hồn cốt, hồn hạch | bag | `bones.ts` |
+| `equipbest {slot?, token?}` | Xem trước một ô (chỉ số EQUIP_SLOTS) hoặc cả bộ; không token trả tin riêng `equipbestp {token, slot?, count, gain}`. Xác nhận gửi lại slot + token: server kiểm trạng thái, khóa và tính lại bằng `teamPowerOf` / `teamPowerScore`; bản xem trước đổi thì từ chối. Hòa điểm giữ đồ cũ, ứng viên hòa điểm theo ID; mỗi bước chọn mức tăng lớn nhất, mỗi ô xét một lần. Nhịp ASK_CD cho xem trước, chặn đấu trường | bag | `equipBest.ts` |
 | `equipgear`, `unequipgear`, `equipenh`, `equipenhpreview`, `equipsynth`, `equipsalvage`, `equipluck`, `equipluckpreview` | trang bị hồn sư, Thợ rèn | bag | `equip.ts` |
 | `buy`, `sell`, `shardbuy`, `buyback`, `expand`, `looks` | cửa hàng, mảnh võ hồn, mua lại, mở rộng túi, đổi ngoại hình ở thợ may | trade | `shop.ts`, `changeLooks` |
 | `travel`, `wp`, `channels`, `channel` | đi cổng, điểm dịch chuyển (`op`), xin / đổi kênh | social | `travel.ts`, `join.ts` |
@@ -58,7 +59,8 @@ Client nghe ở `GameScene.ts` (`room.onMessage`, buffer lúc vào ở `roomBuff
 | `fx`, `dmg` | gần | hiệu ứng hình ảnh (`k`) và số sát thương / hồi máu, không ảnh hưởng luật | `MapRoom.ts`, `absorb.ts`, `eggs.ts`, `team.ts`, `travel.ts` |
 | `elite`, `boss` | phòng / riêng | tinh anh xuất hiện / hạ; thú vương, boss thế giới (đếm ngược, nổi giận, điểm yếu, người vào giữa chừng) | `MapRoom.ts` |
 | `bag`, `bagd` | riêng | cả túi khi xin; thay đổi túi (`bagSync.ts`) | `bag.ts` |
-| `gear` | riêng | các món đang mặc + chỉ số tổng | `equip.ts` |
+| `gear` | riêng | các món đang mặc + chỉ số tổng + `upgrades` (ID món trong túi tăng Sức mạnh đội hình, server tính) | `equip.ts` |
+| `equipbestp` | riêng | xem trước số món đổi và mức tăng Sức mạnh đội hình | `equipBest.ts` |
 | `equipenhp`, `equipenhd`, `equipluckp`, `equipluckd`, `equipsynd`, `equipsalvd` | riêng | xem trước / kết quả cường hóa, khắc may mắn, hợp thành, phân giải trang bị | `equip.ts` |
 | `enhanced`, `enhancedcore` | riêng | kết quả cường hóa hồn cốt / hồn hạch | `bones.ts` |
 | `autosold` | riêng | tổng kết bán tự động | `shop.ts` |
