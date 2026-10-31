@@ -1,0 +1,65 @@
+{
+  "e-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "e43402f518e5790063e42c3ded7b9a7d8defa9132674e72a164672618c69c801"
+  },
+  "e.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "fae2cee042147fc5a9b5c34753d4fe5aca010330c4da04cdf4f5a57f78f10af9"
+  },
+  "n-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "f95c9547585f6229803d1d25ef4b23fbbf873d78b801d0e968792ab048cf2f04"
+  },
+  "n.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "cfcb62284ff42c01816491559c9a0bba416f6980f621254d32a12b9ba62bd9e9"
+  },
+  "ne-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "f5a3a50325bafaee55ec2e764ad80f96a7e86f9581ce3dd01efccab9e049d29f"
+  },
+  "ne.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "49dad6f37496b87bb102514447065f599f1e00fcfc8db3ca93745bdb80e824ec"
+  },
+  "s.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "2bb13f16e0b05de3a486faccc38320b2cb957e0bb97cd60039edc8d845851cbe"
+  },
+  "se-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "a86a5251004bc1ff8e363d5e9c74947714cdbeafb44c901c725011f1c38ef2b5"
+  },
+  "se.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "ac766bf82a6c56f5635d83f6d8d59fc1344678905314714736fa90a493077c2c"
+  }
+}
