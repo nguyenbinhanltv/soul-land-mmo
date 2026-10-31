@@ -1,5 +1,5 @@
 // Bảng nhận thưởng ủy thác offline (Auto 3, GAME_DESIGN.md mục 5.13 "Ủy thác offline"): server tính và cộng thưởng lúc vào game rồi
-// gửi tin riêng `offline`; client chỉ hiển thị (khung giấy cuộn thủy mặc như bảng kết quả trận), nút "Nhận" đóng bảng.
+// gửi tin riêng `offline`; client chỉ hiển thị (khung giấy cuộn thủy mặc như bảng kết quả trận), nút "Đã rõ" đóng bảng.
 import { autoTimeText, formatHonTe } from "../../shared/data.ts";
 import "./ui2-auto.css";
 
@@ -24,6 +24,7 @@ export function showOffline(m: OfflineMsg | null) {
   el.classList.add("f2-giay-nho"); // UI v2: khung Giấy của kit (ui2-auto.css)
   const add = (tag: string, text: string, cls = "") => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = text; el.appendChild(e); return e; };
   add("h2", "Ủy thác trở về");
+  add("div", "Kinh nghiệm đã được cộng cho đội; Hồn Tệ và vật phẩm liệt kê dưới đây đã vào túi khi đăng nhập. Đóng bảng không làm mất thưởng.", "oline");
   add("div", `${m.zone} · ${m.map}`, "oline omuted");
   add("div", `Vắng mặt ${autoTimeText(m.away)}: tính ${autoTimeText(m.secs)} treo, đã săn ${autoTimeText(m.used)}.`, "oline");
   add("div", `Hạ ${m.kills.toLocaleString("vi-VN")} hồn thú${m.weak ? ` (bỏ qua ${m.weak.toLocaleString("vi-VN")} con quá sức)` : ""}.`, "oline");
@@ -38,7 +39,7 @@ export function showOffline(m: OfflineMsg | null) {
   if (m.bonusUsed) add("div", `Đã dùng ${autoTimeText(m.bonusUsed)} từ Ủy Thác Lệnh sau khi hết giờ miễn phí.`, "oline omuted");
   add("small", `Giờ treo còn lại: ${autoTimeText(m.left)}${m.bonus ? ` (trong đó ${autoTimeText(m.bonus)} từ Ủy Thác Lệnh)` : ""}; mỗi ngày ${autoTimeText(m.max)} miễn phí, chung với tự săn.`, "rnote");
   const row = document.createElement("div"); row.className = "brow";
-  const b = document.createElement("button"); b.type = "button"; b.className = "buse absorb f2-nut-chinh"; b.textContent = "Nhận";
+  const b = document.createElement("button"); b.type = "button"; b.className = "buse absorb f2-nut-chinh"; b.textContent = "Đã rõ";
   b.addEventListener("click", () => { b.blur(); showOffline(null); }); row.appendChild(b);
   el.appendChild(row);
 }
