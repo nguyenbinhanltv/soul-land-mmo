@@ -10,12 +10,11 @@ Tham chiếu hình, màu và motif: `shared/assets/sprites/vohonanim/tu_vong_chu
 
 | Hướng | Lượt | Kết quả |
 | --- | ---: | --- |
-| s | 1 | RAW nguyên byte `s-v1.png`, 1254×1254 thay vì 1024×1024; chưa chọn. Đỉnh đòn muộn hơn yêu cầu. |
+| s | 1 | RAW nguyên byte `s-v1.png`, 1254×1254 thay vì 1024×1024; đã chọn theo quyết định điều phối, giữ hạn chế đỉnh đòn muộn. |
 | s | 2 | RAW nguyên byte `s-v2.png`, vẫn 1254×1254 dù yêu cầu rõ kích thước mã hóa; chân đánh sát mép ô. Chưa chọn. |
-
 | s | 3 | RAW nguyên byte `s-v3.png`, 1269×1240, không vuông và sai lưới (6 hình ở hàng đầu, 8 ở hàng đánh). Loại. Đã hết ba lượt. |
 
-Điều phối đã chấp nhận RAW vuông native 1254×1254, giữ nguyên byte, cắt bằng cutter chuẩn. Sau ba lượt, điều phối chốt chọn lượt 1 cho hướng s: `s.png` giống nguyên byte `s-v1.png`, prompt tương ứng ở `s.prompt.txt`. Hạn chế được chấp nhận như mẫu #1326: **đỉnh đòn muộn hơn ô 12–13**. Không sinh lượt 4. Lượt 2 và 3 không chọn. Chưa nhập game, các hướng còn lại đang thực hiện.
+Điều phối đã chấp nhận RAW vuông native 1254×1254, giữ nguyên byte, cắt bằng cutter chuẩn. Sau ba lượt, điều phối chốt chọn lượt 1 cho hướng s: `s.png` giống nguyên byte `s-v1.png`, prompt tương ứng ở `s.prompt.txt`. Hạn chế được chấp nhận như mẫu #1326: **đỉnh đòn muộn hơn ô 12–13**. Không sinh lượt 4. Lượt 2 và 3 không chọn. Đã nhập đủ năm hướng cùng glow; xem mục kiểm trong game bên dưới.
 
 ## Kích thước native và SHA256
 
