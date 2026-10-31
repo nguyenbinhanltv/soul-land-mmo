@@ -1,0 +1,32 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF magenta background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+SPIRIT: U Minh Linh Mieu, a colossal netherworld black panther, a silent assassin larger than a person, not a house cat. Low crouching quadruped panther, raised angular shoulders, solid curved spring-like back, long tapering tail, long claws. Complete SOLID fully drawn anatomical chest, belly and haunches, NO human-shaped hole. Near-black charcoal violet shadow, deep violet #3e2266 base, mandatory crisp violet #b06bff rim and small bright violet eyes, dark rose accents at claw tips. Motifs only: attached angular netherworld shadow tufts from its body, a few violet dao-rune claw marks etched on its shoulders, a tail tapering into attached hard-edged shadow tufts. No detached smoke or FX. The old attached sheets are ONLY shape/color/motif reference; never copy their human-shaped gap or composition.
+
+SHEET: One square 1024x1024 image, exactly 4 columns x 4 rows =16 equal 256x256 square cells, no visible grid, no cell numbers, no text.
+Every cell is flat solid #FF00FF. Exactly ONE COMPLETE panther per cell, same body scale and baseline. EACH complete pose including tail and fully extended attack must fit in a centered 170x175px box with at least 38px empty magenta on all sides. Keep tail compact within its cell.
+View: isometric view from above, SOUTH, facing straight toward the viewer. Both front paws visible, panther head centered at front, shoulders and curved back behind its head. ALL sixteen poses face SOUTH throughout; no turning to another direction.
+Rows1-2: eight gentle breathing frames, almost identical silhouette, 1-2 pixel bob, frame8 flows into frame1.
+Rows3-4: eight attack frames: 9-11 crouch and pull back, 12 AND13 same maximal forward claw-pounce pose held,14-16 recover. Whole body remains complete; claws do not cross cell boundary.
+Solid opaque body, hard-edged color clusters, 3 tones per region, #1a1020 outline; no ground, no shadow, no human, no mannequin, no frames, no letters, no detached particles.
