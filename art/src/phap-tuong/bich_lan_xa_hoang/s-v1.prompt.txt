@@ -1,0 +1,32 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF magenta background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+
+SPIRIT: Emerald Scale Serpent Emperor, an ancient lethal emerald-green serpent. A thick complete snake body coiled into layered loops, SOLID continuous scales through center, raised crested head with jade horns and long fangs. No humanoid hollow, no mannequin. Dark green body #145a38, emerald accents #3ad98a, lemon-gold eyes and small dull gold crest accents, violet-black fang cavity. Motifs only poison dao-rune engraved jade-leaf scales; no separate effects. All coils have true snake anatomy and connect to neck and tail.
+
+SHEET: Square 1024x1024 PNG on solid flat #FF00FF, exactly 4 columns and 4 rows, sixteen equal square cells, invisible grid. ONLY ONE complete serpent per cell. Each serpent is SMALL, maximum width AND height 55% of its cell even in attack poses; broad empty magenta margins on all sides. Same body scale, center and baseline for all sixteen poses. No lettering, numbers, cell borders, human, mannequin, human face, floor, shadows or separate effects.
+VIEW: SOUTH, facing directly toward viewer, head centered, both fangs visible.
+Rows1-2: eight idle breathing frames left-to-right, top-to-bottom, subtle1-2pixel breathing, stable silhouette, final returns to first.
+Rows3-4: eight attack frames: first three coil neck back; fourth and fifth make one short forward fang strike with jaws open and hold; final three return to neutral. Neck stays bent and compact even in strongest pose. Never extend outside central 55% of cell. No poison projectile or mist.
+Solid opaque complete figure, dark #1a1020 outline, three flat tones per color region, hard pixel edges. The attached old sheets are SHAPE/COLOR/MOTIF references only: never reproduce the empty humanoid gap or layout. Thick body fills its anatomy naturally. Keep coherent same serpent in all cells.
