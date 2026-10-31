@@ -71,9 +71,9 @@ function renderChat() {
   chatPlaceholder();
 }
 
-/** Thêm một dòng vào lịch sử ô chat (chỉ trong phiên, không lưu). Tab khác có tin mới thì hiện chấm. */
-export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, act?: ChatLine["act"], imp = false) {
-  const l: ChatLine = { ch, text, col, who, at: Date.now(), act, imp: ch === "sys" ? imp || sysImportant(col, !!act) : undefined };
+/** Thêm dòng trong phiên. `imp` tường minh thắng màu; bỏ trống thì suy từ màu / nút. Tab khác có tin mới thì hiện chấm. */
+export function chatLine(ch: ChatCh, text: string, col?: string, who?: string, act?: ChatLine["act"], imp?: boolean) {
+  const l: ChatLine = { ch, text, col, who, at: Date.now(), act, imp: ch === "sys" ? (imp ?? sysImportant(col, !!act)) : undefined };
   if (ch === "sys") { // gộp dòng hệ thống lặp ("×n") thay vì xếp thêm
     let last: ChatLine | undefined; for (let i = chatHist.length - 1; i >= 0 && !last; i--) if (chatHist[i].ch === "sys") last = chatHist[i];
     if (last && !last.lootKey && !last.act && !act && !!last.imp === !!l.imp && canMerge(last, l)) { last.n = (last.n ?? 1) + 1; last.at = l.at; renderChat(); return; }

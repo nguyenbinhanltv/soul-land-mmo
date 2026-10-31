@@ -26,7 +26,7 @@ import { fog } from "../fog.ts";
 import { toast, lootToasts, lootGained, onToastNew } from "../feedback.ts";
 import { planPickup, xpDelta, XpBatch, xpText, COIN_COL, XP_COL, type PickupLine } from "../pickupFx.ts";
 import { chatLoot } from "../chat.ts";
-import { legacyLootReceipt, lootLogText, sysImportant } from "../chatRoute.ts";
+import { legacyLootReceipt, lootLogText, logToastEligible } from "../chatRoute.ts";
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
 import { onboardEvent } from "../onboard.ts";
 import { pingSent, pingAck, pingTick, pingReset } from "../pingMeter.ts";
@@ -1401,8 +1401,9 @@ export class GameScene extends Phaser.Scene {
       // Tên / số lượng / độ hiếm lấy từ tin túi; biên nhận cũ không tạo dòng trùng.
       if (!legacyLootReceipt(m.text)) {
         const text = lootLogText(m.text);
-        hud.log(text, m.col);
-        if (sysImportant(m.col)) toast("info", text, "", m.col);
+        const warning = logToastEligible(m.text, m.col);
+        hud.chatLine("sys", text, m.col, undefined, undefined, warning);
+        if (warning) toast("info", text, "", m.col);
       }
       charLog(m.text, m.col); hud.worldNote(m.text);
     }); // charLog: kết quả / lý do từ chối lệnh gắn, tháo gửi từ bảng nhân vật

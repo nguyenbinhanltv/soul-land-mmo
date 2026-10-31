@@ -165,16 +165,18 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       const text = await page.locator("#log").innerText();
       assert.match(text, /Nhận kiểm gộp ×5\nNhận kiểm gộp(?:\n|$)/, "cộng lượng qua dòng xen kẽ, hết hai giây tách dòng");
       await page.evaluate(() => {
-        const scene = window.__lootScene;
-        scene.room.dispatchMessage("log", { text:"Hạ U Minh Lang (10 năm), nhận 1 kim 25 ngân Hồn Tệ. Hồn hoàn rơi xuống đất.", col:"#86e0b0" });
+        const scene = window.__lootScene, { d } = window.__lootTest;
+        scene.room.dispatchMessage("log", { text:"Hạ U Minh Lang (100.000 năm), nhận 1 kim 25 ngân Hồn Tệ. Hồn hoàn rơi xuống đất.", col:d.TIERS[d.tierOfYears(100000)].glow });
+        scene.room.dispatchMessage("log", { text:"Nhận 1 rương vào túi đồ (lượt 1/3 hôm nay).", col:"#ffb35c" });
         scene.pickupBag({honTe:0}, {honTe:6250});
         scene.pickupBag({honTe:6250}, {honTe:12500});
       });
       const coins = await page.locator("#log").innerText();
-      assert.match(coins, /Hạ U Minh Lang \(10 năm\)\. Hồn hoàn rơi xuống đất\./);
+      assert.match(coins, /Hạ U Minh Lang \(100\.000 năm\)\. Hồn hoàn rơi xuống đất\./);
       assert.match(coins, /Nhận 1 kim 25 ngân Hồn Tệ/);
       assert.equal((coins.match(/Hồn Tệ/g) ?? []).length, 1, "tiền chỉ xuất hiện một lần, qua tổng đã định dạng");
       assert.doesNotMatch(coins, /Hồn Tệ ×/);
+      assert.equal(await page.locator('.toast[data-title^="Hạ"],.toast[data-title^="Nhận"]').count(), 0, "log thưởng / nhận thành công màu cảnh báo cũng không có thanh nổi");
       await page.locator("#chat-expand").dispatchEvent("pointerdown");
       assert.equal(await page.locator("#chat-expand").getAttribute("aria-expanded"), "true");
       await page.locator("#chat-expand").dispatchEvent("pointerdown");
@@ -190,6 +192,7 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       assert.equal(await page.locator("#chat-system-filter").getAttribute("aria-pressed"), "false");
       assert.match(await page.locator("#log").innerText(), /Túi đồ đã đầy/);
       assert.doesNotMatch(await page.locator("#log").innerText(), /Nhận Mảnh/);
+      assert.doesNotMatch(await page.locator("#log").innerText(), /Nhận 1 rương/, "lọc tắt cũng ẩn biên nhận thành công màu cảnh báo");
       await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).waitFor();
       await page.locator("#chat-system-filter").dispatchEvent("pointerdown");
     }

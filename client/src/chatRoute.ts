@@ -28,6 +28,13 @@ export function legacyLootReceipt(text: string): boolean {
   return /^Nhặt .+ vào túi đồ(?:[. (]|$)/u.test(text) || /^Nhận \d+ (?:Mảnh |Đá Cường Hóa )/u.test(text);
 }
 
+/** Màu vật phẩm / hồn thú có thể trùng màu cảnh báo: log nhận thành công và thưởng hạ quái chỉ vào chat. */
+export function logToastEligible(text: string, col?: string): boolean {
+  const reward = /^Hạ .+(?:, nhận .+ Hồn Tệ\.|! Đóng góp [\d.,]+%\.)/u.test(text);
+  return sysImportant(col) && !legacyLootReceipt(text) && !reward
+    && !/^Nhận .+ vào túi đồ(?:[. (]|$)/u.test(text);
+}
+
 const COIN_AMOUNT = String.raw`\d[\d.]* (?:kim|ngân|đồng)(?: \d[\d.]* (?:kim|ngân|đồng))*`;
 /** Log hạ quái vẫn giữ tên / đóng góp / đồ rơi; tiền đã có dòng cộng tổng từ túi riêng. Không đụng lỗi hay nhiệm vụ. */
 export function lootLogText(text: string): string {
