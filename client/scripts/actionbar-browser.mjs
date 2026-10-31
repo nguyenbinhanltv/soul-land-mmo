@@ -22,6 +22,7 @@ const children = [], samples = [], nameSamples = [], nameFailures = [];
 const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
 if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true], [390, 844, true]);   // ngang + dọc (điện thoại)
 const namesOnly = process.env.C8_NAMES_ONLY === "1";
+const bossOnly = process.env.C8_BOSS_ONLY === "1";
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = () => new Promise((done, reject) => {
@@ -102,6 +103,32 @@ try {
     await page.goto(`${web}/choi/`);
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
+    if (bossOnly) {
+      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      for (const fs of [0,1,2]) {
+        await page.evaluate(async fs => {
+          document.body.classList.remove("a11y-fs-1","a11y-fs-2"); if(fs) document.body.classList.add(`a11y-fs-${fs}`);
+          document.querySelectorAll("#toasts .toast").forEach(e=>e.remove());
+          const {showBoss}=await import("/src/hudBoss.ts");
+          clearInterval(window.__bossFixture);
+          const b={name:"Huyết Nguyệt Lang Vương",hp:700-fs,maxHp:1000,parts:5,phase:2,title:"Tà hóa",col:"var(--son-l)"};
+          showBoss(b); window.__bossFixture=setInterval(()=>showBoss(b),20);
+        },fs);
+        await page.mouse.move(1,1); await page.waitForTimeout(300);
+        const boxes=await page.evaluate(()=>{
+          const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
+          return {boss:rect("bossbar"),menu:rect("hubBtn"),left:rect("lcol"),right:rect("rcol")};
+        });
+        samples.push({size,fs,boxes});
+        if(!before) for(const key of ["menu","left","right"]) {
+          const a=boxes.boss,b=boxes[key];
+          assert.ok(!(a.left<b.right && a.right>b.left && a.top<b.bottom && a.bottom>b.top),`Dải boss che ${key}: ${size} fs${fs} ${JSON.stringify(boxes)}`);
+        }
+        await screenshot(page,`boss-fs${fs}`,size);
+      }
+      await page.evaluate(async()=>{clearInterval(window.__bossFixture);(await import("/src/hudBoss.ts")).showBoss(null);});
+      await context.close(); console.log(`✓ Boss ${phase} ${size}: ba cỡ chữ`); continue;
+    }
     for (const vohon of ["cuu_tinh_that_sat_kiem", "thien_can_bach_ngoc_dinh"]) await hook(page, "grant", { vohon });
     await page.waitForFunction(() => window.__c8Scene.owned.list.length === 4);
     const list = await page.evaluate(() => window.__c8Scene.owned.list);
@@ -377,7 +404,7 @@ try {
   await writeFile(resolve(out, `${phase}-metrics.json`), JSON.stringify(samples, null, 2));
   await writeFile(resolve(out, `${phase}-names.json`), JSON.stringify(nameSamples, null, 2));
   assert.deepEqual(nameFailures, [], "Tên hồn kỹ phải hiển thị đầy đủ bằng pixel, không clamp/overflow/che chữ");
-  if (!before && !namesOnly) {
+  if (!before && !namesOnly && !bossOnly) {
     const images = new Set(await readdir(out));
     const sections = viewports.map(([w, h, touch]) => {
       const size = `${w}x${h}`, state = touch ? "san-sang" : "ten-day-du";
