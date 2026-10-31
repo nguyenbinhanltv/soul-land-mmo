@@ -639,7 +639,8 @@
   },
   "lo_lua_dong": {
    "key": "prop_lo_lua_dong",
-   "foot": [24, 62]
+   "foot": [24, 62],
+   "clip": { "key": "prop_lo_lua_dong_clip", "frames": 16, "ms": 100 }
   },
   "gia_vu_khi": {
    "key": "prop_gia_vu_khi",

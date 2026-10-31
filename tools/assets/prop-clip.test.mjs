@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { ROOT, readPng } from "./lib.mjs";
 
 const tiles = JSON.parse(readFileSync(`${ROOT}/shared/assets/iso/tiles.json`, "utf8"));
-const feet = { lua_trai: [40,46], dai_phun_nuoc: [40,62], lo_ren_lang: [56,91] };
+const feet = { lua_trai: [40,46], dai_phun_nuoc: [40,62], lo_ren_lang: [56,91], lo_lua_dong: [24,62] };
 for (const name of Object.keys(feet)) test(`${name}: thân tĩnh, chân và hồ sơ SHA256`, () => {
   const dir = `${ROOT}/art/src/prop-clip/${name}`, source = JSON.parse(readFileSync(`${dir}/nguon.json`, "utf8"));
   const originalFile = `${ROOT}/shared/assets/sprites/iso/props/${name}.png`, clipFile = originalFile.replace(".png", "_clip.png");
@@ -31,6 +31,24 @@ for (const name of Object.keys(feet)) test(`${name}: thân tĩnh, chân và hồ
   assert.ok(variations.size >= 8, "Clip phải có chuyển động thật");
   assert.deepEqual(tiles.props[name].foot, feet[name]);
 });
-test("Lò lửa đồng để nhóm tiếp theo", () => {
-  assert.equal(tiles.props.lo_lua_dong.clip, undefined);
+test("Chỉ bốn loại đã duyệt kỹ thuật có clip", () => {
+  assert.deepEqual(Object.keys(tiles.props).filter(name => tiles.props[name].clip).sort(), Object.keys(feet).sort());
+});
+
+test("Lò đồng: lớp thân không còn lửa cũ hoặc viền lửa trên miệng bát", () => {
+  const dir = `${ROOT}/art/src/prop-clip/lo_lua_dong`, base = readPng(`${dir}/than-tinh.png`);
+  for (let y = 0; y < 25; y++) for (let x = 0; x < base.w; x++) assert.equal(base.alpha(x, y), 0, `Viền/lửa cũ tại ${x},${y}`);
+  const source = JSON.parse(readFileSync(`${dir}/nguon.json`, "utf8"));
+  assert.deepEqual(source.clearZone, [8,5,32,20]);
+});
+
+test("Lò đồng: miệng bát luôn đặc ở lớp thân và cả 16 khung", () => {
+  const dir = `${ROOT}/art/src/prop-clip/lo_lua_dong`, base = readPng(`${dir}/than-tinh.png`);
+  const original = readPng(`${ROOT}/shared/assets/sprites/iso/props/lo_lua_dong.png`), clip = readPng(`${ROOT}/shared/assets/sprites/iso/props/lo_lua_dong_clip.png`);
+  for (let y = 25; y <= 28; y++) for (let x = 0; x < original.w; x++) if (original.alpha(x, y) === 255) {
+    assert.equal(base.alpha(x, y), 255, `Thân thủng tại ${x},${y}`);
+    for (let n = 0; n < 16; n++) assert.equal(clip.alpha(n * original.w + x, y), 255, `Khung ${n} thủng tại ${x},${y}`);
+  }
+  const source = JSON.parse(readFileSync(`${dir}/nguon.json`, "utf8"));
+  assert.deepEqual(source.solidZone, [8,25,32,4]);
 });

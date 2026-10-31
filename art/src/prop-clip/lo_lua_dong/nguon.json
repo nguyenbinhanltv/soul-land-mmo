@@ -1,0 +1,28 @@
+{
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-01",
+  "license": "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có",
+  "rawSHA256": "6707d5e2c72f0611040d353e08f5b4ecb7fe7fc44cd2a720122c6445adc51930",
+  "originalSHA256": "c8fb2e2d676475ac405ff11bba6cca929b30c4ebf268694bd20fb077ffcc6e2f",
+  "clipSHA256": "44e03b771fad6992e7f4b6d7037224384dbe26847bbc2e90369d20c25a56e4c5",
+  "region": [
+    8,
+    5,
+    32,
+    24
+  ],
+  "clearZone": [
+    8,
+    5,
+    32,
+    20
+  ],
+  "solidZone": [
+    8,
+    25,
+    32,
+    4
+  ],
+  "frames": 16,
+  "ms": 100
+}
