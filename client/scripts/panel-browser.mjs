@@ -208,7 +208,10 @@ GameScene.prototype.create = function(...a) {
     });
     await page.keyboard.press("KeyW"); await page.keyboard.press("Enter");
     // Hủy đóng hộp đồng bộ và không gọi onYes; chờ DOM thay vì đua timer browser với sleep Node (#1488).
-    await page.locator(".cfm").waitFor({ state: "detached" });
+    await page.locator(".cfm").waitFor({ state: "detached", timeout: 5000 }).catch((error) => {
+      if (error.name !== "TimeoutError") throw error;
+      // Vẫn đọc trạng thái để check bên dưới báo đủ chẩn đoán và giữ PANEL_SOFT.
+    });
     return page.evaluate((cls) => ({ cls, leak: window.__askLeak, yesCalls: window.__askYesCalls, chat: document.activeElement?.id === "chat", open: !!document.querySelector(".cfm") }), r);
   })();
   check(res.askKeys.cls.includes("cfm-no") && res.askKeys.yesCalls === 0 && !res.askKeys.chat && !res.askKeys.open && res.askKeys.leak === 0, `hộp xác nhận chặn phím: ${JSON.stringify(res.askKeys)}`);
