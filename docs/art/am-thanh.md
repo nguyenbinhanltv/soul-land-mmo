@@ -17,6 +17,10 @@
 - **Mức hiệu ứng mặc định và Giảm chuyển động:** mặc định Vừa (`FX_DEFAULT_LEVEL`, cả bản lưu hỏng); máy yếu tự hạ về Thấp bằng bộ điều tốc H8. "Giảm chuyển động" (mặc định theo `prefers-reduced-motion` của hệ điều hành) gắn lớp `reduce-motion` lên `<html>` (`combatFx.ts`): ngoài rung / chớp / zoom / hitstop của cảnh, CSS cuối `style.css` tắt các hoạt ảnh nhấp nháy vô hạn của giao diện (nút dung hợp / Chân Thân, ô sẵn sàng, cảnh báo boss, hiệu ứng cường hóa, toast).
 - Trang nghe thử `?thu=am` (không cần đăng nhập, `client/src/audioTest.ts`): mọi nhóm, từng biến thể, thanh trộn từng kênh, hồn hoàn theo niên hạn, gầm boss hạ nhạc, chồng 40 tiếng, bảng nguồn và giấy phép.
 
+### Môi trường Luyện Hồn Cảnh
+
+`luyen_hon_canh` dùng lớp gió thưa trong `AMBIENT_PROFILES`, tận dụng bốn mẫu `amb-wind` CC0 đã duyệt (Mild Wind Background Noise, Bashar; URL và SHA256 giữ trong catalog / ghi công). Gió có fade đầu / cuối của mẫu, dùng mức cân nhóm hiện có và kênh Môi trường nên chịu thanh âm lượng, tắt tiếng và hạ nền lúc đông tiếng. Sảnh thí luyện không thêm chim, côn trùng, chuông hoặc nền vòng lặp; đổi bản đồ đặt lại lịch gió. Nhạc đang dùng chung bài Đại Đấu Hồn Trường giữ nguyên. Kiểm tự động bằng lịch phát và phép đo giải mã, không phát âm thanh thật; nghe đối chiếu trong game để chủ repo duyệt.
+
 ### Hồn thú biển (#1497)
 
 Nhóm `beast-bien` có ba mẫu CC0 bọt/quẫy nước. `beastFamilyOf` chọn tường minh mười loài dưới nước ở Hải Thần Đảo trước token; Hải Ưng giữ nhóm chim. Tinh anh/thú vương lấy loài nền qua `beastSpeciesId`; sự kiện `roar` vẫn chỉ dùng `beast-boss`. Nguồn, giấy phép và SHA256 từng mẫu ở `art/CREDITS.md` và catalog. Chủ repo nghe A/B `?thu=am` và Hải Thần Đảo trước merge.

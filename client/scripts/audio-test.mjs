@@ -507,6 +507,23 @@ noListenerAudio.dispose();
     played.length = 0;
     step(400_000, 500_000, { mapId: "ban_do_la", night: 0, fireDist: null });
     assert.equal(played.length, 0, "bản đồ không có hồ sơ môi trường thì im");
+    // Bí cảnh dùng gió đã duyệt; đổi phòng phải bỏ lịch cũ, không nhân số lần phát khi quay lại.
+    for (const nightness of [0, 1]) {
+      const gusts = [];
+      let now = 0;
+      const trial = new amb.AmbientLayers((kind) => gusts.push({ kind, at: now }), () => 0.5);
+      const input = { mapId: "luyen_hon_canh", night: nightness, fireDist: 0 };
+      for (let visit = 0; visit < 3; visit++) {
+        const entered = now;
+        for (; now <= entered + 40_000; now += 250) trial.update(now, input);
+        const recent = gusts.filter((g) => g.at >= entered);
+        assert.deepEqual(recent.map((g) => g.kind), ["wind", "wind"], "bí cảnh ngày / đêm chỉ có gió, kể cả gần lửa");
+        assert.deepEqual(recent.map((g) => g.at - entered), [4500, 22500], "mỗi lần vào chỉ có một lịch gió, không chồng lịch cũ");
+        const count = gusts.length, left = now;
+        for (; now <= left + 30_000; now += 250) trial.update(now, { ...input, mapId: "ban_do_la" });
+        assert.equal(gusts.length, count, "rời bí cảnh thì không phát tiếp gió theo lịch cũ");
+      }
+    }
     for (const id of ["thanh_hon_thon", "nac_dinh_thanh", "thien_dau_thanh", "tinh_dau_ngoai_vi", "tinh_dau_noi_dia", "lac_nhat_sam_lam", "cuc_bac_chi_dia", "hai_than_dao", "loi_tinh_dau", "dai_dau_hon_truong"]) {
       assert.ok(amb.AMBIENT_PROFILES[id], `bản đồ ${id} có hồ sơ môi trường`);
     }
