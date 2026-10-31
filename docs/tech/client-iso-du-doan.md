@@ -13,7 +13,7 @@ Vật đứng có `clip` trong `iso/tiles.json` dùng dải khung ghép cùng th
 
 Sau khi chủ repo duyệt thí điểm, `lo_ren_lang` dùng cùng đường clip, không tăng số Image/Sprite cho công trình; chỉ vùng lửa miệng lò thay đổi, kết cấu trong và ngoài vùng được khóa theo ảnh gốc. Nguồn và kiểm bất biến ở `art/src/prop-clip/lo_ren_lang/`, `tools/assets/prop-clip.test.mjs`.
 
-`lo_lua_dong` dùng cùng cơ chế; chỉ lửa phía trên bát chuyển động, thân và chân đế giữ nguyên qua từng khung. Dải 768×64 dùng chung trong atlas; các instance mới không thêm texture hoặc Sprite riêng.
+`lo_lua_dong` dùng cùng cơ chế; chỉ lửa phía trên bát chuyển động, thân và chân đế giữ nguyên qua từng khung. Lớp thân xóa cả viền lửa cũ và giữ nền than đục ở miệng bát để không có viền đứng yên hoặc lỗ nhìn xuyên nền. Dải 768×64 dùng chung trong atlas; các instance mới không thêm texture hoặc Sprite riêng.
 
 **Dự đoán chuyển động phía client**
 - Va chạm ô và bước đi dùng chung `shared/move.ts` (`solidGrid`, `hits`, `moveEnt`) ở cả `server/src/map.ts` và client. Bước đi của hồn sư có lách góc (`MOVE_NUDGE`, tham số `nudge` của `moveEnt`): vướng góc ô chỉ vài pixel thì tự đẩy sang phía trống, server và dự đoán cùng gọi nên không lệch. Client vẫn chỉ gửi hướng; server tự tính vị trí trong `tick()`.
