@@ -31,7 +31,7 @@
 .ui2-screen{position:fixed;left:50%;top:calc(50% - 56px);transform:translate(-50%,-50%);z-index:4;width:min(880px,calc(100vw - var(--sp-6) * 2));max-height:calc(100vh - 210px);display:flex}   /* chừa dải hồn kỹ / đội hình ở đáy */
 .ui2-screen[hidden]{display:none}
 /* Mobile ngang thấp: ưu tiên cửa sổ đang đọc, không trừ cố định chiều cao HUD. */
-body.touch.ui-h460:not(.ui-portrait) .ui2-screen{inset:var(--sp-3);transform:none;width:auto;max-height:none;z-index:7}
+body.touch.ui-h460:not(.ui-portrait) .ui2-screen{inset:var(--sp-3);transform:none;width:auto;max-height:none}
 body.touch.ui-h460:not(.ui-portrait) .ui2-screen .p2-man{max-height:100%;height:100%}
 body.touch.ui-h460:not(.ui-portrait) .ui2-screen .p2-nav{overflow-y:auto;overscroll-behavior:contain}
 body.touch .ui2-screen :is(.scr-x,.p2-nav-i){min-height:44px;min-width:44px}
