@@ -8,7 +8,7 @@ import { TIERS, TILE, ITEMS, BONE_ITEM, CORE_ITEM, RING_ITEM, PICKUP_RANGE, BEAS
   AUTO_HZ, AUTO_DAILY_SECS, AUTO_CLAIM_SECS, AUTO_MOVE, AUTO_SUM_LOOT, AUTO_RADIUS, AUTO_PACE, AUTO_STATUS, AUTO_BOSS, AUTO_LOOT_RADIUS, AUTO_LOOT_WAIT,
   AUTO_BOSS_DETOUR, AUTO_TARGET, AUTO_PARTY, AUTO_STUCK, AUTO_CLUSTER, AUTO_AOE_MIN, AUTO_SPAWN, AUTO_REST, BEASTS, STATUS, VOHON, offlineFight, loadoutOf, ringSkill,
   chanThanOf, autoTimeText, itemDef, xpNeed, formatYears, vohonIndex, isCcStatus, teleHits, teleSafe,
-  type AutoSettings, type AutoSummary, type AutoWhy, type AutoRate, type OfflinePower, type SkillDef, ATTACK_REACH, type ItemDef, type He } from "../../../shared/data.ts";
+  type AutoSettings, type AutoSummary, type AutoWhy, type AutoRate, type OfflinePower, type SkillDef, ATTACK_REACH, type ItemDef, type He, BEAST_HALF } from "../../../shared/data.ts";
 import { MOVE_DEAD, type SolidGrid } from "../../../shared/move.ts";
 import { findPath, findLongPath, clearLine, buildNav, navNode, type Pt, type Nav } from "../../../shared/path.ts";
 import type { GameMap } from "../map.ts";
@@ -19,8 +19,6 @@ import { AutoFeed } from "./autoStatus.ts";
 
 /** Đan theo thứ tự ITEMS (đan thường trước đan lớn): uống loại có trong túi đầu tiên. */
 const HP_POTS = ITEMS.filter((d) => d.hp), MP_POTS = ITEMS.filter((d) => d.mp);
-/** Nửa cỡ hồn thú lớn nhất: cộng vào bán kính khi lấy ứng viên từ lưới không gian (như BEAST_HALF của MapRoom). */
-const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 /** Dạng hồn kỹ đánh diện rộng quanh thân / trước mặt (AUTO_AOE_MIN, B1 #610). */
 const AOE_AREAS: string[] = ["around", "front"];
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
