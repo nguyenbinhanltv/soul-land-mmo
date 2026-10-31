@@ -129,12 +129,17 @@ try {
           if (touch) assert.ok(body.height >= 44, `Thân tổ đội bị ép ${size} fs${fs}`);
           assert.ok(stats.height > 44, `Thông tin nhân vật bị ép ${size}`);
           if (touch) {
-            const combat = await page.evaluate(() => {
+            const combat = await page.evaluate(async () => {
+              const hud = await import("/src/hud.ts");
               const chat = document.getElementById("chatbox"), hidden = () => getComputedStyle(chat).visibility === "hidden";
-              const frames = ["target", "bossbar", "bossCd", "bossRank"].map(id => document.getElementById(id));
+              const checks = [!hidden()]; // HUD sạch phải hiện chat trước mọi fixture.
+              hud.showTarget('<div class="tn">Mục tiêu thử</div><div class="ui-bar thp"><i style="width:80%"></i><span>80 / 100</span></div>');
+              checks.push(hidden() && !document.getElementById("target").hidden);
+              hud.showTarget(null); checks.push(!hidden() && document.getElementById("target").hidden);
+              const frames = ["bossbar", "bossCd", "bossRank"].map(id => document.getElementById(id));
               const saved = frames.map(e => e.hidden), wasBoss = document.body.classList.contains("boss");
               frames.forEach(e => e.hidden = true); document.body.classList.remove("boss");
-              const checks = frames.map(e => { e.hidden = false; const ok = hidden(); e.hidden = true; return ok; });
+              checks.push(...frames.map(e => { e.hidden = false; const ok = hidden(); e.hidden = true; return ok; }));
               document.body.classList.add("boss"); checks.push(hidden()); document.body.classList.remove("boss");
               checks.push(!hidden());
               frames.forEach((e, i) => e.hidden = saved[i]); document.body.classList.toggle("boss", wasBoss);
