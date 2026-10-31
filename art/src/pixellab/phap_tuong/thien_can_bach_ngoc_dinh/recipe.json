@@ -14,9 +14,9 @@
     "nhuom": 0.65
   },
   "display": {
-    "scale": 1,
+    "scale": 1.2,
     "dx": 0,
-    "dy": -6,
+    "dy": -22,
     "back": [
       "s",
       "se",
@@ -185,5 +185,11 @@
         "s": 2
       }
     ]
+  },
+  "dongGoi": {
+    "cong_cu": "tools/assets/phuthe-to-phaptuong.mjs",
+    "nguon": "vhanim_thien_can_bach_ngoc_dinh_b/_f (phụ thể mới nhất, clip idle / attack)",
+    "ngay": "2026-10-31",
+    "issue": 1306
   }
 }

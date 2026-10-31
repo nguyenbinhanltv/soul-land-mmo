@@ -9476,7 +9476,7 @@
       "pt": {
         "scale": 1,
         "dx": 0,
-        "dy": -2,
+        "dy": -20,
         "back": [
           "s",
           "se",
@@ -9761,9 +9761,9 @@
       "key": "pt_pha_hon_thuong",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.4,
         "dx": 12,
-        "dy": -2,
+        "dy": -16,
         "back": [
           "s",
           "se",
@@ -9834,9 +9834,9 @@
       "key": "pt_thien_can_bach_ngoc_dinh",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.2,
         "dx": 0,
-        "dy": -6,
+        "dy": -22,
         "back": [
           "s",
           "se",
