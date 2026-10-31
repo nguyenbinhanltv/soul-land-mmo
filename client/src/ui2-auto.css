@@ -81,7 +81,7 @@
 .asum b{color:var(--text)}
 #autoSum [data-a=why],#autoSum>small.anote{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border:var(--bd-fine) solid var(--paper3);border-left:var(--bd) solid var(--bad);color:var(--text);font:var(--fs-m)/1.3 var(--f12)}   /* lý do dừng: vạch trái dày + chữ "Đã dừng", không chỉ màu */
 
-/* (11) Ủy thác trở về: tiêu đề, các dòng số liệu thành hàng kẻ nét đứt, thưởng nổi bật, vật phẩm trong ô giấy, "Dừng sớm" có vạch trái; nút Nhận là nút chính. */
+/* (11) Ủy thác trở về: tiêu đề, các dòng số liệu thành hàng kẻ nét đứt, thưởng nổi bật, vật phẩm trong ô giấy, "Dừng sớm" có vạch trái; nút Đã rõ là nút chính. */
 #offline h2{margin:0 0 var(--sp-3);padding-bottom:var(--sp-3);border-bottom:var(--bd) solid var(--ink2);font:var(--fs-l)/1.2 var(--f12);font-weight:normal;color:var(--text);text-shadow:none}
 #offline .oline{margin:0;padding:var(--sp-3) 0;border-bottom:var(--bd-fine) dashed var(--paper3);font:var(--fs-m)/1.4 var(--f12);color:var(--text)}
 #offline .omuted{color:var(--muted);text-align:left}
@@ -89,7 +89,7 @@
 #offline .ostop{padding:var(--sp-3) var(--sp-4);background:var(--paper2);border-left:var(--bd) solid var(--bad);color:var(--text)}
 #offline .oitems{margin:var(--sp-3) 0;padding:var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-6);background:var(--paper);border:var(--bd-fine) solid var(--paper3);font:var(--fs-m)/1.5 var(--f12);max-height:120px}
 #offline .rnote{display:block;margin-top:var(--sp-3);font:var(--fs-s)/1.4 var(--f10);color:var(--muted)}
-#offline .brow{display:flex;justify-content:flex-end;position:sticky;bottom:calc(var(--sp-4) * -1);margin:var(--sp-4) calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-4);background:var(--paper2);border-top:var(--bd-fine) solid var(--paper3)}   /* nút Nhận luôn thấy, dù danh sách dài phải cuộn */
+#offline .brow{display:flex;justify-content:flex-end;position:sticky;bottom:calc(var(--sp-4) * -1);margin:var(--sp-4) calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-4);background:var(--paper2);border-top:var(--bd-fine) solid var(--paper3)}   /* nút Đã rõ luôn thấy, dù danh sách dài phải cuộn */
 #offline .buse{min-height:44px;min-width:120px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12)}
 
 /* (12) Chữ phím tắt trên thanh kỹ năng (.key, z-index 4) từng nổi lên trên mọi bảng giữa màn hình (cùng z-index 4, #bottombar đứng sau trong DOM): cho #bottombar
