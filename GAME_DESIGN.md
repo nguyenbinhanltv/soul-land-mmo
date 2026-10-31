@@ -55,6 +55,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.15 | Trang bị hồn sư | [docs/tech/trang-bi-cai-dat.md](docs/tech/trang-bi-cai-dat.md) | 5 | Hướng dẫn làm E1–E4 |
 | 5.16 | Giao diện Nhân vật + Túi (hai cửa sổ, búp bê 4 tab; theo dõi #453) | [docs/design/giao-dien.md](docs/design/giao-dien.md) | 7 | Giao diện Nhân vật + Túi |
 | 5.16 | Thông báo nhặt đồ vào chat (#1462) | [docs/design/thong-bao-nhat-do.md](docs/design/thong-bao-nhat-do.md) | 1 |  |
+| 5.16 | Đọc lịch sử chat (#1509) | [docs/design/chat-lich-su.md](docs/design/chat-lich-su.md) | 1 |  |
 | 5.16 | Túi đồ gọn và Hồn sư | [docs/design/tui-do-gon.md](docs/design/tui-do-gon.md) | 1 | Túi riêng; hai bảng; cảm ứng |
 | 5.17 | Radar và bản đồ khu vực | [docs/design/ban-do-khu-vuc.md](docs/design/ban-do-khu-vuc.md) | 5 |  |
 | 5.17 | Tranh bản đồ thế giới M và tọa độ lớp phủ | [docs/art/ban-do-the-gioi.md](docs/art/ban-do-the-gioi.md) | 1 | Tệp bàn giao; Hợp đồng bố cục; Lề và màn dọc; Dữ liệu đối chiếu |

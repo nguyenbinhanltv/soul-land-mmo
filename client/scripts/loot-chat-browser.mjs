@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+import { checkChatScroll } from "./chat-scroll-browser.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const out = resolve(process.env.LOOT_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "loot-chat-")));
@@ -71,7 +72,7 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
   await page.goto(`${web}/choi/`);
   await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
   await page.waitForFunction(() => window.__lootScene?.players.size > 0, null, { timeout:60000 });
-  await page.waitForTimeout(1500);
+  await page.locator(".g-skip").waitFor();
   await page.locator(".g-skip").click();
   await page.locator(".ob-skip").click();
   const shot = async (name) => {
@@ -81,7 +82,8 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
     });
     return page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${name}.png`) });
   };
-  for (const [width, height, touch] of [[960,540,false],[1280,720,false],[640,360,true]].filter(([w]) => !process.env.LOOT_SIZE || w === Number(process.env.LOOT_SIZE))) {
+  if (process.env.CHAT_SCROLL_ONLY) await checkChatScroll(page, out, tag);
+  for (const [width, height, touch] of (process.env.CHAT_SCROLL_ONLY ? [] : [[960,540,false],[1280,720,false],[640,360,true]]).filter(([w]) => !process.env.LOOT_SIZE || w === Number(process.env.LOOT_SIZE))) {
     await page.reload();
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     await page.waitForFunction(() => window.__lootScene?.players.size > 0, null, { timeout:60000 });
@@ -210,7 +212,7 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
       assert.ok(box && box.y >= 0 && box.y + box.height <= height, "hai dòng chat nằm trong màn cảm ứng");
       assert.ok(await page.locator("#chat-expand").isVisible(), "chạm mở chat từ trạng thái thu nhỏ");
       const joy = await page.locator("#joy").boundingBox();
-      for (const control of await page.locator("#chat-controls button").all()) {
+      for (const control of await page.locator("#chat-controls button:visible").all()) {
         const r = await control.boundingBox();
         assert.ok(joy && r && (r.x >= joy.x + joy.width || r.y + r.height <= joy.y || r.y >= joy.y + joy.height), "nút chat không chồng vùng joystick");
       }
