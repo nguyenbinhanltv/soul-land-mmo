@@ -156,13 +156,13 @@ Lớp mỏng `client/src/panelStack.ts` (không khung mới, không đọc state
 - Nhật ký từng bước: `docs/lich-su.md`.
 
 ## Thanh kỹ năng và đội hình trong trận (C8; gọn từ tối ưu HUD PR1)
-Chủ repo duyệt 2026-10-31. Chỉ client (`hudBar.ts`, `ui2-hud-act.css`, `client/choi/index.html`), không đổi server / luật; phím tắt, luật điều khiển, chip trạng thái giữ nguyên.
-- **Ba nhóm không nhãn:** Hồn cốt (Z / X / C), Hồn kỹ (J, U / I / O / P, R, G nếu có), Vật phẩm (E nhặt; B mở túi, nút Tiêu hao mở nhóm tiêu hao). Nhãn "Hồn cốt / Hồn kỹ / Vật phẩm" đã bỏ (nhóm vẫn có `aria-label`); nhóm cách nhau bằng khoảng trống + vạch dọc.
-- **Ô vuông 44 px chỉ biểu tượng** (không tên kỹ năng trên ô): phím tắt nhỏ ở góc trên trái, vòng hồi chiêu quét tròn `.ui-cd` + số giây `.cdn`, **chấm niên hạn** ở chân ô (bậc N = N chấm vuông + vạch màu, nên không chỉ bằng màu). Ô **khóa** (vòng chưa mở, Chân Thân / Dung hợp chưa đủ vòng) vẽ biểu tượng ổ khóa bằng CSS thay chữ "Khóa" cộng kẻ chéo; ô **trống** (chưa chọn hồn kỹ / chưa gắn hồn cốt) chỉ còn viền nét đứt mờ; thiếu hồn lực = huy hiệu "!" (lý do ở dòng cuối chú thích).
-- **Tên kỹ năng** hiện ở chú thích một khối (`tooltip.ts`: rê chuột sau 250 ms, máy cảm ứng chạm giữ 400 ms) và `aria-label` của nút; phần tử `.sk-name` vẫn có trong DOM nhưng `display:none`.
-- **Hàng đội hình (4 ô 44 × 52):** avatar tròn (ảnh `portrait_<mã>`, thiếu ảnh thì màu võ hồn), số cấp, thanh sinh lực mỏng (và vạch năng lượng tiên cơ 2 px), không tên. Ô ra trận viền sáng; gục kẻ chéo + avatar xám; đủ tiên cơ có sao ★ ở góc (hình, không chỉ viền nhấp nháy); hồi chiêu đổi võ hồn phủ tròn + số giây. Tooltip vẫn có tên đầy đủ, cấp, trạng thái ra trận / gục / tiên cơ, phím đổi.
-- Guide và thông báo nổi nằm phía trên thanh hành động (thấp hơn trước vì thanh gọn hơn); chat ở 960 px giữ đủ bảy tab (sáu kênh + Tin).
-- Kiểm tra game thật: `npm run test:actionbar-browser --prefix client` (vùng chạm ≥ 44 px, phím trong ô, không tên trên ô, tooltip hiện tên, ô đội hình có avatar + cấp + thanh sinh lực, tương phản chữ ≥ 4,5 : 1, thiếu hồn lực, hồi chiêu); ảnh ghi ngoài repo qua `C8_OUTPUT`. CI `actionbar-preview` chạy hồi quy AFTER ở 960×540, 1280×720, 1920×1080; `C8_TOUCH=1` thêm lượt cảm ứng 844×390. Dùng lại ảnh có trong manifest; không đổi key, frame, origin.
+Chủ repo duyệt 2026-10-31. Chỉ client (`hudBar.ts`, `ui2-hud-act.css`, `client/choi/index.html`); không đổi server, phím tắt, luật điều khiển, chip trạng thái.
+- **Ba nhóm không nhãn** (vẫn có `aria-label`, cách nhau khoảng trống + vạch dọc): Hồn cốt (Z / X / C), Hồn kỹ (J, U / I / O / P, R, G nếu có), Vật phẩm (E nhặt; B mở túi, nút Tiêu hao mở nhóm tiêu hao).
+- **Ô vuông 44 px chỉ biểu tượng:** phím ở góc trên trái, hồi chiêu quét tròn `.ui-cd` + số giây `.cdn`, **chấm niên hạn** ở chân ô (bậc N = N chấm + vạch màu, không chỉ bằng màu). Ô **khóa** vẽ ổ khóa bằng CSS; ô **trống** chỉ viền nét đứt mờ; thiếu hồn lực = huy hiệu "!" (lý do ở dòng cuối chú thích).
+- **Tên kỹ năng** ở chú thích (`tooltip.ts`) và `aria-label`; `.sk-name` còn trong DOM nhưng `display:none`.
+- **Hàng đội hình (4 ô 44 × 52):** avatar tròn (`portrait_<mã>`, thiếu thì màu võ hồn), số cấp, thanh sinh lực mỏng + vạch tiên cơ 2 px, không tên. Ô ra trận viền sáng; gục kẻ chéo + xám; đủ tiên cơ có ★; hồi chiêu đổi võ hồn phủ tròn + số giây. Tooltip có tên đầy đủ, cấp, trạng thái, phím đổi.
+- Guide và thông báo nổi nằm phía trên thanh hành động; chat ở 960 px giữ đủ bảy tab.
+- Kiểm tra: `npm run test:actionbar-browser --prefix client` (vùng chạm, phím, tooltip, avatar + cấp, tương phản, hồi chiêu); ảnh ngoài repo qua `C8_OUTPUT`. CI `actionbar-preview` chạy ở 960×540, 1280×720, 1920×1080; `C8_TOUCH=1` thêm lượt cảm ứng 844×390.
 
 ## Menu hub và màn hệ thống (UI gốc; #877)
 
