@@ -5,9 +5,10 @@ import path from "node:path";
 import { ROOT, Img, readPng, encodePng, allowedColors, accentColors, hex } from "./lib.mjs";
 
 const [name, rawFile, sourceDate = new Date().toLocaleDateString("sv-SE")] = process.argv.slice(2);
-const specs = { cot_co_do_vang: { region: [10, 19, 18, 35], cloth: true }, lua_trai: { region: [31, 2, 18, 23] }, dai_phun_nuoc: { region: [34, 0, 13, 12] }, lo_ren_lang: { region: [66, 52, 13, 13], inset: true }, lo_lua_dong: { region: [8, 5, 32, 24], clearFlame: true, coalY: 25 } };
+const lanterns = [[7,22,9,8], [7,30,10,10], [7,40,10,13], [33,17,10,11], [33,29,10,8], [33,37,10,10], [33,48,10,12]];
+const specs = { cot_den_do: { region: [6,17,38,43], lanterns }, cot_co_do_vang: { region: [10, 19, 18, 35], cloth: true }, lua_trai: { region: [31, 2, 18, 23] }, dai_phun_nuoc: { region: [34, 0, 13, 12] }, lo_ren_lang: { region: [66, 52, 13, 13], inset: true }, lo_lua_dong: { region: [8, 5, 32, 24], clearFlame: true, coalY: 25 } };
 const spec = specs[name];
-if (!spec || !rawFile || !/^\d{4}-\d{2}-\d{2}$/.test(sourceDate)) throw new Error("prop-clip.mjs lua_trai|dai_phun_nuoc|lo_ren_lang|lo_lua_dong|cot_co_do_vang <tờ Codex 4×2.png> [ngày nguồn YYYY-MM-DD]");
+if (!spec || !rawFile || !/^\d{4}-\d{2}-\d{2}$/.test(sourceDate)) throw new Error("prop-clip.mjs lua_trai|dai_phun_nuoc|lo_ren_lang|lo_lua_dong|cot_co_do_vang|cot_den_do <tờ Codex 4×2.png> [ngày nguồn YYYY-MM-DD]");
 const fire = name !== "dai_phun_nuoc", dir = path.join(ROOT, "art/src/prop-clip", name);
 mkdirSync(dir, { recursive: true });
 const raw = readPng(rawFile), originalFile = path.join(ROOT, `shared/assets/sprites/iso/props/${name}.png`), original = readPng(originalFile);
@@ -16,15 +17,24 @@ const base = new Img(original.w, original.h, original.data.slice());
 const region = spec.region;
 const [rx, ry, rw, rh] = region;
 const warm = ([r, , b, a]) => a && r > 125 && r > b * 1.35;
-const protectedAt = (x, y) => spec.cloth ? x >= 26 || y <= 21 : spec.inset && !warm(original.get(x, y));
+const protectedAt = (x, y) => {
+  if (spec.lanterns) {
+    const box = lanterns.find(([l,t,w,h]) => x >= l && x < l+w && y >= t && y < t+h);
+    if (!box || y < box[1]+2) return true;
+    const [r,g,b,a] = original.get(x,y);
+    // Tay treo, dây và kết cấu vàng/nâu cũ bất động; chỉ đèn đỏ/viền và khoảng trống trong hộp được thay.
+    return a && r > 40 && g > r * 0.48 && r > b * 1.3;
+  }
+  return spec.cloth ? x >= 26 || y <= 21 : spec.inset && !warm(original.get(x, y));
+};
 for (let y = ry; y < ry + rh; y++) for (let x = rx; x < rx + rw; x++) {
   const [r, g, b, a] = base.get(x, y);
-  if (spec.cloth) { if (!protectedAt(x, y)) base.set(x, y, [0, 0, 0, 0]); continue; }
+  if (spec.cloth || spec.lanterns) { if (!protectedAt(x, y)) base.set(x, y, [0, 0, 0, 0]); continue; }
   // Lò đồng: bỏ cả viền lửa cũ; miệng bát có lớp than đục nên lửa rút không nhìn xuyên nền.
   if (spec.clearFlame) { base.set(x, y, y >= spec.coalY && a ? [42, 27, 20, 255] : [0, 0, 0, 0]); continue; }
   if (a && (fire ? warm([r, g, b, a]) : b > r * 1.08 && b > g * 0.95)) base.set(x, y, spec.inset ? [26, 16, 32, 255] : [0, 0, 0, 0]);
 }
-const palette = spec.cloth ? [...new Map(Array.from({length: original.w * original.h}, (_, i) => original.get(i % original.w, Math.floor(i / original.w))).filter(c => c[3]).map(c => [c.slice(0,3).join(), c.slice(0,3)])).values()] : [...new Set([...allowedColors(), ...accentColors()])].map(hex);
+const palette = spec.cloth || spec.lanterns ? [...new Map(Array.from({length: original.w * original.h}, (_, i) => original.get(i % original.w, Math.floor(i / original.w))).filter(c => c[3]).map(c => [c.slice(0,3).join(), c.slice(0,3)])).values()] : [...new Set([...allowedColors(), ...accentColors()])].map(hex);
 const nearest = (c) => palette.reduce((best, p) => {
   const d = (q) => q.reduce((s, v, i) => s + (v - c[i]) ** 2, 0);
   return d(p) < d(best) ? p : best;
@@ -41,6 +51,20 @@ for (let n = 0; n < 8; n++) {
 const scale = Math.min(rw / Math.max(...boxes.map(([l,,r]) => r - l + 1)), rh / Math.max(...boxes.map(([,t,,b]) => b - t + 1)));
 const layers = boxes.map(([l,t,r,b]) => {
   const out = new Img(original.w, original.h), cx = (l + r) / 2;
+  if (spec.lanterns) {
+    for (const [tx,ty,tw,th] of lanterns) {
+      // Cùng tỉ lệ ở mọi pha; hai hàng neo trên lấy nguyên pixel gốc qua protectedAt.
+      const k = Math.min((tw-2) / Math.max(...boxes.map(([l,,r]) => r-l+1)), th / Math.max(...boxes.map(([,t,,b]) => b-t+1)));
+      for(let y=2;y<th;y++) for(let x=0;x<tw;x++) {
+        if(protectedAt(tx+x,ty+y)) continue;
+        const sx=Math.round(cx+(x-(tw-1)/2)/k), sy=Math.round(t+y/k);
+        if(sx<l||sx>r||sy<t||sy>b) continue;
+        const c=raw.get(sx,sy);
+        if(c[3]>=160) out.set(tx+x,ty+y,[...nearest(c),255]);
+      }
+    }
+    return out;
+  }
   for (let y = 0; y < rh; y++) for (let x = 0; x < rw; x++) {
     const sx = Math.round(spec.cloth ? r - (rw - 1 - x) / scale : cx + (x - (rw - 1) / 2) / scale), sy = Math.round(spec.cloth ? t + y / scale : b - (rh - 1 - y) / scale);
     if (sx < l || sx > r || sy < t || sy > b) continue;
@@ -69,5 +93,5 @@ writeFileSync(path.join(dir, "chuyen-dong.png"), encodePng(motion));
 const out = path.join(ROOT, `shared/assets/sprites/iso/props/${name}_clip.png`);
 writeFileSync(out, encodePng(sheet));
 const sha = (f) => createHash("sha256").update(readFileSync(f)).digest("hex");
-writeFileSync(path.join(dir, "nguon.json"), JSON.stringify({ tool: "Codex builtin OpenAI image_gen.imagegen", date: sourceDate, license: "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có", rawSHA256: sha(rawFile), originalSHA256: sha(originalFile), clipSHA256: sha(out), region, ...(spec.cloth ? { mask: "cloth-seam", rawFile: "RAW.png", nativeSize: [raw.w, raw.h] } : {}), ...(spec.inset ? { mask: "warm-interior" } : {}), ...(spec.clearFlame ? { clearZone: [rx, ry, rw, spec.coalY - ry], solidZone: [rx, spec.coalY, rw, ry + rh - spec.coalY] } : {}), frames: 16, ms: 100 }, null, 2) + "\n");
+writeFileSync(path.join(dir, "nguon.json"), JSON.stringify({ tool: "Codex builtin OpenAI image_gen.imagegen", date: sourceDate, license: "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có", rawSHA256: sha(rawFile), originalSHA256: sha(originalFile), clipSHA256: sha(out), region, ...(spec.lanterns ? { mask: "lantern-seams", lanterns, rawFile: "RAW.png", nativeSize: [raw.w,raw.h] } : {}), ...(spec.cloth ? { mask: "cloth-seam", rawFile: "RAW.png", nativeSize: [raw.w, raw.h] } : {}), ...(spec.inset ? { mask: "warm-interior" } : {}), ...(spec.clearFlame ? { clearZone: [rx, ry, rw, spec.coalY - ry], solidZone: [rx, spec.coalY, rw, ry + rh - spec.coalY] } : {}), frames: 16, ms: 100 }, null, 2) + "\n");
 console.log(out);

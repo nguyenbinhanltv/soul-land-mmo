@@ -41,3 +41,5 @@ Mọi khóa đều là tùy chọn riêng của trình duyệt, không phải d�
 | `shh-gtest` | Mã đăng nhập Google giả (chỉ khi server `GAME_TEST`) | `client/src/google.ts` |
 
 Thêm khóa mới: đặt hằng khóa cạnh mô-đun sở hữu nó và thêm một dòng vào bảng này; tùy chọn dùng chung nhiều chỗ thì gom đọc / ghi vào một mô-đun như `fxSettings.ts`.
+
+Đèn lồng đỏ `cot_den_do` (#1537) dùng cùng hợp đồng clip vật thể: 16 khung × 100 ms, chân `[24,94]`, chỉ phần đèn/tua thay đổi. Không thêm Image/Sprite/timer theo vật; dừng khung 0 ở Thấp/Giảm chuyển động, gỡ đăng ký khi chunk ngoài camera. Không đổi collision, depth, ánh sáng hoặc bản đồ.
