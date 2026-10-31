@@ -347,3 +347,83 @@ LỖI: to-e — hình dính / hình ở ô trống — H3 (e), H4 (e) C5 — d�
 LỖI: to-e — hướng e — đầu và ngực còn chếch trước ở idle và die; đủ ba lượt, giữ dự phòng, không nhập (mắt)
 ```
 
+
+
+## Phiên 884 — ảnh dẫn bố cục riêng, ba lượt e mới (#1423)
+
+Hồ sơ bên dưới ghép từ beast-nguon.mjs của từng lượt; giữ lịch sử phía trên. Lượt 3 đã nhập hướng e bằng beast:import, đủ năm hướng. Chuẩn cỡ = sheet đã nhập (s 82, se 74, ne 78, n 78 → 78); khớp e ×1.13, còn lệch 0.0%. Hướng s/se/ne/n và normal giữ nguyên pixel. Nhẹ: hurt nhấc chân ngắn. Chrome --mute-audio đã xem các sprite QA trong GameScene bằng hàm chọn khung thật: idle/walk/attack/hurt/die, không mô phỏng server combat.
+
+### Nguồn ảnh dẫn (hash đọc từ file)
+
+- candidates/884-guide1/guide.png: SHA256 a55e7869b8c451cc55d5e6bc21d4a38570992fbe89f51c4955dd4317def1d767; prompt guide.prompt.txt SHA256 fa4acf183b3bb2387396bea94156bb62e13a519a4f526a0f6d599de1e81d9dd7; đầu vào SHA256 352f50712f20f4a2c3531b3fa4ec52ca3eed484717434695ebf4cf6221aebca6. Chặn: thừa đuôi rủ cạnh chân sau; không dùng làm tham chiếu tờ hướng.
+- candidates/884-guide2/guide.png: SHA256 1d5d46cae3404194f9b46ccdb1b8ae21c026e34cf213721e44efee3e915c8816; prompt guide.prompt.txt SHA256 6ef80bb0e221c539c1d2db7d458e75a7a14f53d9fd9cfd5c2de12904e77f87fd; đầu vào SHA256 a55e7869b8c451cc55d5e6bc21d4a38570992fbe89f51c4955dd4317def1d767. Ảnh dẫn: còn một đuôi, mắt khuất sau tai; bốn chân giải phẫu với chân xa khuất một phần.
+
+### Lượt mới 1/3 — candidates/884-attempt1
+
+#### Băng Nguyên Cự Tượng — RAW hoạt ảnh (#1423)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species bang_nguyen_cu_tuong`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung game 128×128. Mức kiểm chung: **chặn**.
+
+##### to-e
+
+- File: `to-e.png`, **1536×1024**, 2324519 byte, SHA256 `07363d6b731aaced3bfe014c0cd2d9767db7ebe4a191a4a3d32c9b9741da0e97`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-884.
+- Prompt: `to-e.prompt.txt` (SHA256 `92cc3a7db84a06e3669771026e8dddf8737617e30aa7cf5ed24d970bbf5538db`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: e chặn).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+##### Lỗi
+
+```text
+LỖI: to-e — hình dính / hình ở ô trống / sai số hình — H2 (e), H3 (e), H4 (e) C5, H4 (e) — dải có 1 hình, cần 6: hình dính nhau; dải có 3 hình, cần 6: hình dính nhau; ô trống có hình (1.02% diện tích ô): hình tràn từ ô bên; dải có 3 hình, cần 4: thiếu khung.
+```
+
+
+### Lượt mới 2/3 — candidates/884-attempt2
+
+#### Băng Nguyên Cự Tượng — RAW hoạt ảnh (#1423)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species bang_nguyen_cu_tuong`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung game 128×128. Mức kiểm chung: **chặn**.
+
+##### to-e
+
+- File: `to-e.png`, **1536×1024**, 2282967 byte, SHA256 `98a7e0b8530d426a3d40cc613c1c694991214f0af6798c4257aeb94232c3be17`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-884.
+- Prompt: `to-e.prompt.txt` (SHA256 `c0202fcf81445398920560fdc95057148023995b3c0cc31f85e474bb32c3c145`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: e chặn).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+##### Lỗi
+
+```text
+LỖI: to-e — hình dính — H4 (e) — dải có 3 hình, cần 4: hình dính nhau.
+```
+
+
+### Lượt mới 3/3 — candidates/884-attempt3
+
+#### Băng Nguyên Cự Tượng — RAW hoạt ảnh (#1423)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species bang_nguyen_cu_tuong`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `bang_nguyen_cu_tuong` (Băng Nguyên Cự Tượng), họ `quad`, khung game 128×128. Mức kiểm chung: **pass**.
+
+##### to-e
+
+- File: `to-e.png`, **1536×1024**, 2308768 byte, SHA256 `b9a5917372291eff014faf6d603df80648f7782503cc941797f7770795a328f0`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 3; phiên: soul_land_game-884.
+- Prompt: `to-e.prompt.txt` (SHA256 `afc6b7a47c0cbd7bc37eedab58802e0f424a390cdca7da4f2209fc88f296691e`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: e pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+##### Lỗi
+
+Không có dòng `LỖI:`.
+

@@ -1,0 +1,14 @@
+{
+    "tool":  "image_gen.imagegen",
+    "model":  "unknown",
+    "seed":  "unknown",
+    "agent":  "soul_land_game-884",
+    "attempts":  3,
+    "round":  "mới theo ảnh dẫn",
+    "issue":  1423,
+    "rawSha256":  "b9a5917372291eff014faf6d603df80648f7782503cc941797f7770795a328f0",
+    "promptSha256":  "afc6b7a47c0cbd7bc37eedab58802e0f424a390cdca7da4f2209fc88f296691e",
+    "reference":  "candidates/884-guide2/guide.png",
+    "referenceSha256":  "1d5d46cae3404194f9b46ccdb1b8ae21c026e34cf213721e44efee3e915c8816",
+    "verdict":  "Đạt kỹ thuật; mắt che, e nhìn phải, bốn chân với chân xa khuất; nhẹ: hurt nhấc chân ngắn."
+}
