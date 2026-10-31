@@ -126,6 +126,8 @@ body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox.open{left:10px;top:10px
 body.touch.ui-h460:not(.ui-portrait) #chattabs{flex:none;overflow-x:auto;touch-action:pan-x}
 body.touch.ui-h460:not(.ui-portrait) #chattabs button{flex:none}
 body.touch.ui-h460:not(.ui-portrait) #chat{box-sizing:border-box;min-width:0;width:100%}
+/* Toast ngắn phải đọc được trên radar (mapbox cũng mang lớp panel); không dời xuống vùng hồn kỹ. */
+body.touch.ui-h460:not(.ui-portrait) #hud #toasts{z-index:4}
 /* Hàng kỹ năng phụ mở lên vùng chat: ưu tiên thao tác, đóng hàng thì chat hiện lại. */
 body.touch.ui-h460:not(.ui-portrait) #hud:has(#actrow.more) #chatbox.open{visibility:hidden}
 /* Mục tiêu / boss dùng vùng giữa trên: nhường chỗ trong lúc giao chiến. */

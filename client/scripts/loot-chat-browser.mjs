@@ -179,6 +179,11 @@ GameScene.prototype.create = function(...a) { window.__lootScene = this; return 
     }
     await page.screenshot({ animations:"disabled", path: resolve(out, `${tag}-${width}x${height}-loi.png`) });
     if (tag !== "truoc" && touch) {
+      const uncovered = await page.locator('.toast[data-k="info"]:not(.out)').filter({ hasText:"Không có hồn hoàn hay vật phẩm nào ở gần" }).evaluate((e) => {
+        const r = e.getBoundingClientRect();
+        return e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+      });
+      assert.ok(uncovered, "thanh lỗi phải nằm trên radar, không chỉ có trong DOM");
       const box = await page.locator("#log").boundingBox();
       assert.ok(box && box.y >= 0 && box.y + box.height <= height, "hai dòng chat nằm trong màn cảm ứng");
       assert.ok(await page.locator("#chat-expand").isVisible(), "chạm mở chat từ trạng thái thu nhỏ");
