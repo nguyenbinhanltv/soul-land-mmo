@@ -693,7 +693,16 @@ export async function autoTest(){
       let mD=null; for(let k=0;k<16;k++){ const an=k*Math.PI/8; await test(B,"goto",{x:Math.round(fe0.x+AUTO_PARTY.leash/2*Math.cos(an)),y:Math.round(fe0.y+AUTO_PARTY.leash/2*Math.sin(an))}); mD=(await infoA({bid:fr})).beast?.mateD?.[0]; if(Number.isFinite(mD)&&mD<=AUTO_PARTY.leash-16) break; }
       let pc=null; for(let t=0;t<3000&&pc!==fr;t+=100){ await test(A,"clear",{all:true,keep:true,but:fr}); pc=await pk(A); if(pc!==fr) await sleep(100); }
       ok(pc===fr,`AH4 tổ đội: đối chứng, đồng đội đứng trong leash (cách con ${mD} pixel) thì người kia chọn con đó (chọn ${pc}, fr ${fr})`);
-      await test(B,"goto",B0); await test(A,"auto",{pace:0}); await test(B,"auto",{pace:0});
+      // keep(): A đã chọn con khi B trong leash, rồi B ra xa hơn leash (đọc ở server) thì sau ≥ 2 nhịp quyết định (clock) A phải bỏ con (trừ khi đã
+      // đánh trúng nó / nó đang đánh A, khi đó keep() miễn leash). B vẫn đứng yên (nợ nhịp) nên chỉ có A thả nợ và tự chọn.
+      await test(A,"auto",{pace:0});
+      let sk=null; for(let t=0;t<3000&&sk?.target!==fr;t+=100){ await test(A,"clear",{all:true,keep:true,but:fr}); sk=await infoA({bid:fr}); if(sk.target!==fr) await sleep(100); }
+      await test(B,"goto",B0);
+      const mD2=(await infoA({bid:fr})).beast?.mateD?.[0], c0=(await infoA()).clock; let sk2=null;
+      for(let t=0;t<4000;t+=100){ await test(A,"clear",{all:true,keep:true,but:fr}); /* con tự nhiên hồi sinh gần hơn thì A đổi sang nó, không phải do leash */ sk2=await infoA({bid:fr}); if(sk2.clock>=c0+2/AUTO_HZ+0.25) break; await sleep(100); }
+      const exempt=!!sk2?.beast&&(sk2.beast.hit||sk2.beast.target===A.room.sessionId);
+      ok(sk?.target===fr&&Number.isFinite(mD2)&&mD2>AUTO_PARTY.leash&&(sk2?.target!==fr||exempt),`AH4 tổ đội: keep(): A đã chọn con khi đồng đội trong leash, đồng đội ra xa (${mD2} pixel) thì sau 2 nhịp A bỏ con (đã chọn ${sk?.target===fr}, còn nhắm ${sk2?.target}, fr ${fr}, miễn leash ${exempt})`);
+      await test(B,"auto",{pace:0});
       // Đầu-cuối: hai người tự đi. Vi phạm = giữ con (chưa đánh trúng, nó không đánh mình) khi MỌI đồng đội (vị trí ở server) ngoài leash suốt
       // ít nhất ba lần đọc liên tiếp và hai nhịp quyết định (đo bằng `clock` của tự săn, không theo giờ thật: máy tải thì nhịp chậm theo). keep() bỏ con ngoài leash ở
       // nhịp kế tiếp, nên một lần đọc có thể trúng đúng khoảnh khắc đồng đội vừa bước ra khỏi leash (chọn lúc đó vẫn hợp lệ).
