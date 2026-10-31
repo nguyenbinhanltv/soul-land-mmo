@@ -9448,9 +9448,9 @@
       "key": "pt_can_khon_hon_nguyen_toa",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.3,
         "dx": 0,
-        "dy": -4,
+        "dy": -26,
         "back": [
           "s",
           "se",
@@ -9500,9 +9500,9 @@
       "key": "pt_cuu_tinh_that_sat_kiem",
       "iso": true,
       "pt": {
-        "scale": 1,
-        "dx": 10,
-        "dy": -4,
+        "scale": 1.4,
+        "dx": 14,
+        "dy": -26,
         "back": [
           "s",
           "se",
@@ -9714,9 +9714,9 @@
       "key": "pt_nguyet_nhan",
       "iso": true,
       "pt": {
-        "scale": 1.2,
+        "scale": 1.3,
         "dx": 0,
-        "dy": -6,
+        "dy": -22,
         "back": [
           "s",
           "se",
