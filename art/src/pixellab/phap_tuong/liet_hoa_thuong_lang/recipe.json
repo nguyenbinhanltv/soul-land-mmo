@@ -5,9 +5,9 @@
   "code": [],
   "lo": "P2 (#487)",
   "display": {
-    "scale": 1.0,
+    "scale": 1.6,
     "dx": 0,
-    "dy": 0,
+    "dy": -24,
     "back": [
       "s",
       "se",
@@ -19,7 +19,7 @@
     ],
     "frontAlpha": 0.7,
     "ghost": 0.88,
-    "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+    "ghiChu": "Display sheet Codex #1435: thân sói lớn và cao hơn để đọc rõ sau vai hồn sư."
   },
   "concept": {
     "endpoint": "/v2/create-image-pixflux",

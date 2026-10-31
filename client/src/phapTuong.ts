@@ -266,7 +266,8 @@ export class PhapTuongSystem {
       }
       s.body.setAlpha(clamp01(alpha));
       const flashHit = stopT && flashOn();
-      if (flashHit) s.body.setTintFill(0xffffff); else s.body.clearTint();
+      // Giữ màu và chi tiết thân ở đỉnh đòn; chớp tại chỗ dùng lớp sáng phía dưới.
+      s.body.clearTint();
       const pulse = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
       s.glow.setVisible(mine || lv !== "low"); // H8: Thấp, pháp tướng người khác bỏ lớp cộng sáng (một lượt vẽ thay vì hai)
       (s.own ? s.glow.clearTint() : s.glow.setTint(s.col)).setAlpha(clamp01((0.25 + 0.3 * m.pulse * pulse * 2 + (flashHit ? 0.6 : 0) + sc * 0.2 + 0.4 * bur) * stG * k * vis * v.alpha * (lv === "low" ? 0.5 : 1)));

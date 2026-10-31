@@ -9677,9 +9677,9 @@
       "key": "pt_liet_hoa_thuong_lang",
       "iso": true,
       "pt": {
-        "scale": 1,
+        "scale": 1.6,
         "dx": 0,
-        "dy": 0,
+        "dy": -24,
         "back": [
           "s",
           "se",
@@ -9691,7 +9691,7 @@
         ],
         "frontAlpha": 0.7,
         "ghost": 0.88,
-        "ghiChu": "chưa chỉnh: bước 2 (hoạt ảnh) chốt scale / dx / dy"
+        "ghiChu": "Display sheet Codex #1435: thân sói lớn và cao hơn để đọc rõ sau vai hồn sư."
       }
     },
     {
