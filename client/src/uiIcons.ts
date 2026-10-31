@@ -2,7 +2,7 @@ import { artUrl } from "./uiArt.ts";
 import { pingOnline } from "./pingMeter.ts";
 
 export const MENU_ICON_KEYS = ["char", "roster", "bag", "reso", "settings", "auto", "channel", "area", "world", "friends", "rank", "quest", "chat", "arena", "shop", "forge"].map((key) => `gi_menu_${key}`);
-const MENU: Record<string, string> = { autoChip: "auto", chanBtn: "channel", areaBtn: "area", worldBtn: "world" };
+const MENU: Record<string, string> = { autoChip: "auto", chanBtn: "channel", worldBtn: "world" };
 
 /** Nạp ảnh trước khi đổi icon; thiếu key/tải lỗi thì giữ nguyên chữ và ký tự cũ. */
 function decorate(el: HTMLElement, key: string) {

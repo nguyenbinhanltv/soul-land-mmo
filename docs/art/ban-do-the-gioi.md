@@ -9,7 +9,7 @@ Chủ repo duyệt ngày 31/10/2026: bản đồ thế giới mở bằng M dùn
 - [Xem trước lớp phủ](../../art/src/world-map/xem-truoc.html): bật/tắt nhãn trận, xem toàn tranh hoặc khung dọc có cuộn ngang.
 - [Nguồn / giấy phép](../../art/src/world-map/NGUON.md), [prompt thật](../../art/src/world-map/nen-the-gioi.prompt.txt), [hash và nguồn dữ liệu](../../art/src/world-map/source.json).
 
-Asset nằm ở `art/src/world-map/` để PR chỉ bàn giao mỹ thuật; phía client chưa tải ảnh hay JSON này. Khi nhập game cần dùng quy trình asset-gen để đăng ký đường dẫn runtime, không tự coi key trong ghi công là key manifest.
+Asset gốc nằm ở `art/src/world-map/`. **Đã nhập client (2026-10-31):** bản chép nguyên byte của tranh ở `shared/assets/ui/ban-do-the-gioi/nen-the-gioi.png` (URL tĩnh, không qua manifest; chỉ tải khi mở bản đồ lớn chế độ Thế giới lần đầu), `bo-cuc.json` cũng chép sang đó để client import (`client/src/worldmap.ts`; Docker chỉ copy `shared/`, không copy `art/`). Tranh hoặc bố cục đổi thì chép lại nguyên byte vào cả hai chỗ.
 
 Trang xem trước dùng `fetch` để đọc JSON, cần mở qua HTTP, ví dụ `ao preview art/src/world-map/xem-truoc.html`; không mở trực tiếp bằng `file://`.
 

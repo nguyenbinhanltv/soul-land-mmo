@@ -684,10 +684,8 @@ export class GameScene extends Phaser.Scene {
       }
     }
   }
-  /** Mở / đóng bản đồ thế giới; mở thì xin server tin `world` mới (trận đã mở, phí, đang đứng trên trận nào). */
-  openWorld(open?: boolean) {
-    if (hud.toggleWorld(open)) this.room.send("wp", { op: "list" });
-  }
+  /** Mở / đóng bản đồ thế giới (chế độ Thế giới của bản đồ lớn); khi hiện ra, `onWorldShow` xin server tin `world` mới (trận đã mở, phí, đang đứng trên trận nào). */
+  openWorld(open?: boolean) { hud.toggleWorld(open); }
 
   /**
    * NPC (object `npc`, bước 6.1): NPC có sheet LPC `lpc_<mã>` (mục 5.11 "NPC phụ và dân thường") vẽ bằng sheet đó, không thì NPC có
@@ -827,9 +825,9 @@ export class GameScene extends Phaser.Scene {
       if (e.code === "KeyB" && !e.repeat) { this.clearForPanel(); hud.toggleBag(); return; }
       if (e.code === "KeyK" && !e.repeat) { this.clearForPanel(); hud.toggleReso(); return; } // cộng minh (8.2)
       if (e.code === "KeyL" && !e.repeat) { this.clearForPanel(); hud.toggleFriends(); return; } // bạn bè và chặn (#195)
-      if (e.code === "KeyM" && !e.repeat) { this.clearForPanel(); this.openWorld(); return; } // bản đồ thế giới (11.2): chỉ xem nếu không đứng trên trận
+      if (e.code === "KeyM" && !e.repeat) { if (hud.worldOpen()) { this.openWorld(false); return; } closeAudioPanel(); closeAutoPanel(); this.openWorld(true); return; } // bản đồ lớn, chế độ Thế giới (11.2); mở lúc đang xem Khu vực thì chuyển tab
       if (e.code === "KeyY" && !e.repeat) { if (getFlag()?.on) this.flagStop("Đã dừng tự đi"); else this.flagGo(); return; } // tự đi tới cờ (R4)
-      if (e.code === "KeyN" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); mapview().toggle(); return; } // bản đồ khu vực (R3): lớp phủ, không dừng game
+      if (e.code === "KeyN" && !e.repeat) { closeAudioPanel(); closeAutoPanel(); mapview().toggleMode("area"); return; } // bản đồ lớn, chế độ Khu vực (R3): lớp phủ, không dừng game
       if (e.code === "Escape" && mapview().isOpen) { mapview().close(); return; }
       if (e.code === "Escape" && hud.chatClose()) return; // khung chat đang mở (chọn tab): Esc đóng nó trước
       // Esc (U1 #754): đóng đúng MỘT bảng trên cùng (lần nhấn kế đóng bảng kế); hết bảng mới bỏ khoá mục tiêu (M3). Thứ tự: bản đồ vùng → chat → bảng → khoá.
@@ -863,8 +861,7 @@ export class GameScene extends Phaser.Scene {
     hud.buildChatTabs(); // tab kênh chat (#188); lịch sử giữ qua đổi bản đồ trong phiên
     addEventListener("focusin", (e) => { if (field(e.target) || hud.looksOpen()) this.keys = {}; }, on); // phím đang giữ lúc vào ô nhập thì nhả
     initDualWindows();
-    mapview().beforeOpen = () => { closeAudioPanel(); closeAutoPanel(); }; // nút Vùng do mapview.ts gắn một lần (cảm ứng chạy ngay lúc chạm)
-    radar().onOpen = () => mapview().open();
+    radar().onOpen = () => { closeAudioPanel(); closeAutoPanel(); mapview().open("area"); };
     mapview().onFlag = (t) => this.mapFlag(t);
     mapview().onRally = (t) => this.rallyPlace(t.tx, t.ty);
     mapview().canRally = () => this.inParty();
@@ -874,7 +871,8 @@ export class GameScene extends Phaser.Scene {
     bindCmdChip((c) => this.stopCmd(c, null));
     bindFlagBar(() => this.flagGo(), () => this.flagStop("Đã dừng tự đi"), () => this.flagClear());
     hud.onWorldAuto((map) => this.flagToMap(map));
-    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); this.openWorld(); }, on);
+    hud.onWorldShow(() => this.room.send("wp", { op: "list" }));
+    document.getElementById("worldBtn")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); this.clearForPanel(); this.openWorld(true); }, on);
     hud.onBeforeBagFromBar(() => this.clearForPanel());
     // Chip "Tự động" (chỉ hiện khi đang tự săn) và chip hồn hoàn ở khung chỉ số: mở bảng Tự động / Hồn Cốt. Các nút menu cũ đã bỏ, hub (huy hiệu giữa trên / Esc) mở mọi bảng.
     document.getElementById("autoChip")!.addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); closeAudioPanel(); mapview().close(); toggleAutoPanel(); }, on);
@@ -942,7 +940,7 @@ export class GameScene extends Phaser.Scene {
     bindWelfare((type, payload) => this.room.send(type, payload), (n) => setBadge("welfare", n ? "new" : null, n)); // chấm đỏ "chưa điểm danh" + mốc ký bù được (kho badges)
     initPanelStack([
       { id: "char", close: () => toggleChar(false) }, { id: "bag", close: () => hud.toggleBag(false) }, { id: "roster", close: () => hud.toggleRoster(false) },
-      { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) }, { id: "world", close: () => hud.toggleWorld(false) },
+      { id: "reso", close: () => hud.toggleReso(false) }, { id: "friends", close: () => hud.toggleFriends(false) },
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
@@ -3819,7 +3817,6 @@ export class GameScene extends Phaser.Scene {
       else if (area && this.safes.includes(area)) toast("info", area.name, area.hint); // chỉ vùng an toàn; vùng săn đi qua liên tục thì không báo
       this.lastZone = zname;
     }
-    document.getElementById("online")!.textContent = `${st.online || st.players.size} người ở ${mapName}`; // 11.4: players chỉ còn người ở gần
     hud.setChannel(st.channel ?? 0);
 
     let tb: any = null, td = 90;

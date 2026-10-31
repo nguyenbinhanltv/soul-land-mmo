@@ -15,7 +15,8 @@ import {
 import { drawRadarIcon, strokeRoute, radar, ls, DARK, type DotSink } from "./radar.ts";
 import { getFlag } from "./autowalk.ts";
 import { fog } from "./fog.ts";
-import { screenFrame, addCloseButton, searchField, filterByQuery, type Frame } from "./uiParts.ts";
+import { screenFrame, addCloseButton, searchField, filterByQuery, tabs, type Frame } from "./uiParts.ts";
+import { worldMap } from "./worldmap.ts";
 import "./ui2-map.css";
 
 void _TILE;
@@ -29,8 +30,11 @@ const LABEL_PRIO: Record<MapLabel["k"], number> = { gate: 0, wp: 1, npc: 2, lair
 const FONT = '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif';
 /** Lề (pixel) chừa quanh bản đồ khi vừa khung. */
 const FIT_MARGIN = 20;
-/** Lý do nút chính (khung ui2) đang khoá: chưa có cờ để đi tới. */
+/** Lý do nút chính (khung ui2) đang khoá ở chế độ Khu vực: chưa có cờ để đi tới. */
 const NO_FLAG_WHY = "Chưa đặt cờ: bấm vào bản đồ";
+/** Hai chế độ của bản đồ lớn (M = Thế giới, N = Khu vực); nhớ chế độ lần trước ở localStorage. */
+export type MapMode = "world" | "area";
+const LS_MODE = "soul.map.mode";
 
 /** Nhãn tĩnh của bản đồ (GameScene dựng từ object Tiled): `x`, `y` là tâm (ô); vùng (`zone`, `safe`, `lair`) có thêm `w`, `h` (ô). */
 export interface MapLabel {
@@ -102,6 +106,9 @@ class MapViewUi implements DotSink {
 
   /** Khung màn chuẩn. */
   private frame: Frame | null = null;
+  /** Chế độ đang xem của bản đồ lớn. */
+  mode: MapMode = ls.get(LS_MODE) === "world" ? "world" : "area";
+  private areaPane = document.createElement("div"); private modeTabs: ReturnType<typeof tabs> | null = null;
 
   constructor() {
     this.buildBar();
@@ -116,7 +123,6 @@ class MapViewUi implements DotSink {
     cv.addEventListener("pointerup", (e) => this.up(e));
     cv.addEventListener("pointercancel", (e) => { this.ptrs.delete(e.pointerId); this.drag = null; this.pinch = 0; });
     cv.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") this.tip.hidden = true; });
-    const area = document.getElementById("areaBtn"); if (area) press(area, () => { area.blur(); this.beforeOpen?.(); this.toggle(); });
     press(el("mapviewClose"), () => this.close());
     press(el("mapviewIn"), () => this.zoomAt(MAPVIEW.zoomStep, 0, 0));
     press(el("mapviewOut"), () => this.zoomAt(1 / MAPVIEW.zoomStep, 0, 0));
@@ -132,14 +138,28 @@ class MapViewUi implements DotSink {
 
   /** Đi tới cờ / dừng tự đi (nút trên thanh công cụ và nút chính của khung ui2 dùng chung). */
   private goFlag() { const f = getFlag(); if (!f) return; if (f.on) this.flagActs?.stop(); else { this.close(); this.flagActs?.go(); } this.syncFlag(); }
-  /** Bọc canvas, thanh công cụ, chú thích vào khung màn chuẩn (Mực); nút "Đi tới cờ" thành nút chính, khoá kèm lý do khi chưa có cờ. */
+  /** Nút chính của khung theo chế độ: Khu vực = "Đi tới cờ" (khoá kèm lý do khi chưa có cờ); Thế giới = nút của bản đồ thế giới. */
+  private onPrimary() { if (this.mode === "world") worldMap().runPrimary(); else this.goFlag(); }
+  /**
+   * Bọc canvas, thanh công cụ, chú thích vào khung màn chuẩn (Giấy, toàn màn): tab chế độ Thế giới | Khu vực ở đầu, nút ✕ lớn, một nút chính.
+   * Thân có hai ngăn chồng nhau: Khu vực (canvas bản đồ đang đứng) và Thế giới (#world, tranh thủy mặc); chỉ một ngăn hiện.
+   */
   private mountFrame() {
-    const f = screenFrame({ material: "muc", title: "Bản đồ khu vực", badge: "圖", info: el("mapviewHelp").textContent ?? "",
-      primary: { label: "Đi tới cờ", disabled: true, reason: NO_FLAG_WHY }, onPrimary: () => this.goFlag() });
+    const f = screenFrame({ material: "giay", title: "Bản đồ", badge: "圖", info: "Kéo để di chuyển, lăn chuột hoặc chụm hai ngón để phóng. M: Thế giới · N: Khu vực · Esc: đóng. Bản đồ không làm game dừng.",
+      primary: { label: "Đi tới cờ", disabled: true, reason: NO_FLAG_WHY }, onPrimary: () => this.onPrimary() });
     this.frame = f; f.root.classList.add("mv-frame"); f.body.classList.add("mv-body");
-    f.body.append(this.cv, el("mapviewBar"), el("mapviewHelp"), this.tip, this.menu);
+    this.areaPane.className = "mv-area"; this.areaPane.id = "mapviewArea";
+    this.areaPane.append(this.cv, el("mapviewBar"), el("mapviewHelp"), this.tip, this.menu);
+    f.body.append(worldMap().root, this.areaPane);
     this.root.prepend(f.root); this.root.classList.add("mv-ui2");
+    this.modeTabs = tabs({ label: "Chế độ bản đồ", tabs: [{ id: "world", label: "Thế giới (M)", active: this.mode === "world" }, { id: "area", label: "Khu vực (N)", active: this.mode === "area" }],
+      onSelect: (id) => this.setMode(id as MapMode) });
+    const wrap = document.createElement("div"); wrap.className = "mv-tabs"; wrap.append(this.modeTabs.root);
+    f.root.querySelector(".p2-id")!.after(wrap);
     addCloseButton(f.root, () => this.close());
+    const w = worldMap(); w.onChange = () => this.syncPrimary();
+    w.host = { show: (open) => { if (!open) { if (this.isOpen && this.mode === "world") this.close(); return false; } this.open("world"); return true; }, isOpen: () => this.isOpen && this.mode === "world" };
+    this.applyMode();
   }
 
   // ---------- API cho GameScene và các bước sau ----------
@@ -155,30 +175,54 @@ class MapViewUi implements DotSink {
     const f = getFlag(), go = el("mapviewGo");
     go.hidden = !f; el("mapviewClear").hidden = !f;
     if (f) go.textContent = f.on ? "Dừng tự đi" : "Đi tới cờ";
+    this.syncPrimary();
+  }
+  /** Nút chính của khung (một nút mỗi màn): nhãn, khoá và lý do theo chế độ đang xem. */
+  syncPrimary() {
     const p = this.frame?.primary; if (!p) return;
-    p.disabled = !f; p.textContent = f?.on ? "Dừng tự đi" : "Đi tới cờ";
+    const f = getFlag(), s = this.mode === "world" ? worldMap().primary() : { label: f?.on ? "Dừng tự đi" : "Đi tới cờ", disabled: !f, reason: f ? "" : NO_FLAG_WHY };
+    p.disabled = s.disabled; p.textContent = s.label;
     const why = p.parentElement!.querySelector(".p2-why");
-    if (f) why?.remove(); else if (!why) { const w = document.createElement("span"); w.className = "p2-why"; w.textContent = NO_FLAG_WHY; p.before(w); }
+    if (!s.disabled || !s.reason) why?.remove(); else if (why) why.textContent = s.reason; else { const w = document.createElement("span"); w.className = "p2-why"; w.textContent = s.reason; p.before(w); }
   }
   /** Chèn lớp vẽ (sương mù…); trả hàm gỡ. */
   addOverlay(at: "fog" | "top", fn: MapOverlay) { const o = { at, fn }; this.overlays.push(o); return () => { this.overlays = this.overlays.filter((x) => x !== o); }; }
   /** Đổi bản đồ / cảnh: gỡ lớp vẽ của cảnh cũ. */
   reset() { this.overlays.length = 0; this.markers.clear(); this.onTap = null; }
 
-  open() {
-    if (this.isOpen) return;
-    this.root.hidden = false; this.last = 0; this.n = 0; this.nb = 0; this.syncUi(); this.syncFlag(); this.needCenter = true; this.mx = this.my = NaN;
-    document.getElementById("areaBtn")?.setAttribute("aria-expanded", "true");
+  /** Mở bản đồ lớn ở chế độ `mode` (mặc định chế độ lần trước); đang mở thì chỉ đổi chế độ. */
+  open(mode: MapMode = this.mode) {
+    if (!this.isOpen) {
+      this.root.hidden = false; this.last = 0; this.n = 0; this.nb = 0; this.needCenter = true; this.mx = this.my = NaN;
+      document.getElementById("worldBtn")?.setAttribute("aria-expanded", "true");
+    }
+    this.setMode(mode, true);
   }
   close() {
     if (!this.root.hidden) this.root.hidden = true;
     this.tip.hidden = true; this.menu.hidden = true; this.ptrs.clear(); this.drag = null; this.pinch = 0; window.clearTimeout(this.hold);
-    document.getElementById("areaBtn")?.setAttribute("aria-expanded", "false");
+    worldMap().hide();
+    document.getElementById("worldBtn")?.setAttribute("aria-expanded", "false");
   }
   toggle() { if (this.isOpen) this.close(); else this.open(); }
+  /** Phím tắt từng chế độ (M: Thế giới, N: Khu vực): đang xem đúng chế độ đó thì đóng, đang mở chế độ kia thì chuyển sang. */
+  toggleMode(mode: MapMode) { if (this.isOpen && this.mode === mode) this.close(); else this.open(mode); }
+  /** Đổi chế độ xem (tab, phím M / N); nhớ lại cho lần mở sau. `force`: vẽ lại dù chế độ không đổi (vừa mở). */
+  setMode(mode: MapMode, force = false) {
+    if (!force && mode === this.mode) return;
+    this.mode = mode; ls.set(LS_MODE, mode); this.applyMode();
+    if (!this.isOpen) return;
+    if (mode === "world") worldMap().show(); else { worldMap().hide(); this.syncUi(); this.needCenter = true; this.last = 0; this.redraw(); }
+    this.syncFlag();
+  }
+  private applyMode() {
+    const world = this.mode === "world";
+    worldMap().root.hidden = !world; this.areaPane.hidden = world; this.modeTabs?.select(this.mode);
+    this.root.dataset.mode = this.mode;
+  }
 
-  /** Tới lượt gom chấm chưa (đang mở và đủ `RADAR.hz` lần mỗi giây). */
-  due(now: number) { return this.isOpen && now - this.last >= 1000 / RADAR.hz; }
+  /** Tới lượt gom chấm chưa (đang mở ở chế độ Khu vực và đủ `RADAR.hz` lần mỗi giây). */
+  due(now: number) { return this.isOpen && this.mode === "area" && now - this.last >= 1000 / RADAR.hz; }
   /** Bắt đầu một lượt gom: mình ở (tx, ty) ô, nhãn tĩnh của bản đồ, tiêu đề (tên bản đồ · toạ độ · kênh). */
   begin(tx: number, ty: number, now: number, labels: MapLabel[], title: string) {
     this.last = now; this.now = now; this.mx = tx; this.my = ty; this.n = 0; this.nb = 0; this.labels = labels; this.route = null;
@@ -308,8 +352,8 @@ class MapViewUi implements DotSink {
 
   // ---------- Vẽ ----------
   private redraw() {
-    if (!this.isOpen || this.raf) return;
-    this.raf = requestAnimationFrame(() => { this.raf = 0; if (this.isOpen) this.paint(); });
+    if (!this.isOpen || this.mode !== "area" || this.raf) return;
+    this.raf = requestAnimationFrame(() => { this.raf = 0; if (this.isOpen && this.mode === "area") this.paint(); });
   }
   private visible(layer: string) { return !layer || !this.hidden.has(layer); }
 

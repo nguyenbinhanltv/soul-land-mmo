@@ -24,7 +24,10 @@ export interface Me { character: Character | null; looks: AccountLooks; mapId: s
  */
 export interface WorldMsg {
   map: string; cur: string; honTe: number; links: [string, string][];
-  list: { key: string; map: string; label: string; open: boolean; fee: number | null }[];
+  /** Giây còn hồi của dịch chuyển từ xa (0 = dùng được) và tổng thời gian hồi; server cũ không gửi. */
+  remoteCd?: number; remoteCdMax?: number;
+  /** `fee`: phí khi đứng trên một trận; `feeRemote`: phí từ xa (đã gồm phụ phí), `null` = không tới được. */
+  list: { key: string; map: string; label: string; open: boolean; fee: number | null; feeRemote?: number | null }[];
 }
 /**
  * Tin riêng "auto" (mục 5.13): đang tự săn không, giây treo còn lại (phần còn của hôm nay cộng quỹ Ủy Thác Lệnh `bonus`), giây miễn

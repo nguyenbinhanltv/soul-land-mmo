@@ -1,20 +1,26 @@
 /* UI v2: radar, tên khu, nút kênh / vùng / thế giới và bản đồ khu vực N theo kit Mực (đợt 1b, Part of #877). Luật thường (đợt 5c-b: đã bỏ tiền tố body.ui2; luật cũ ở style.css gỡ ở đợt 5b). Cùng tông với HUD (ui2-hud.css) và hub (ui2-screens.css): token `--ink2` / `--plate` / `--track`,
    chữ 10 / 12 (Galmuri), vùng bấm tối thiểu 32 px. Khung bản đồ toàn màn là `screenFrame` (uiParts.ts) do mapview.ts dựng. */
 
-/* ---- cột radar: tên khu, người online, chú giải, nút ---- */
-#hud #zoneName{margin-top:var(--sp-3);font:var(--fs-m)/1.3 var(--f12);color:var(--ink-text);text-shadow:var(--stroke)}
-#hud #online{font:var(--fs-s)/1.3 var(--f10);color:var(--paper3)}
-#hud #radarInfo{color:var(--paper3)}
-#hud #mapLegend{color:var(--ink-text)}
+/* ---- cột radar gọn: radar nhỏ, một hàng "tên bản đồ + chip kênh", một nút Bản đồ (M) ---- */
+#hud .radarhead{display:flex;align-items:center;justify-content:center;gap:var(--sp-3);min-width:0;margin-top:var(--sp-3)}
+#hud .radarhead #zoneName{flex:1 1 auto;min-width:0;max-width:none;margin:0;text-align:left;font:var(--fs-m)/1.3 var(--f12);color:var(--ink-text);text-shadow:var(--stroke)}
+#hud #radarInfo{display:none}   /* dòng "tên · toạ độ · kênh" bỏ: tên đã ở trên, kênh là chip; GameScene vẫn đưa chữ vào cho trình đọc cũ */
 #hud #radarTip,#mapviewTip{color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2)}
 
-/* nút Kênh / Vùng / Thế giới: nút phụ kit (Vùng, Thế giới đã gắn f2-nut-phu), Kênh cùng tông bằng token; icon do uiIcons.ts đặt, chữ vẫn có (không chỉ icon). */
-#hud .radarbtns{gap:var(--sp-2)}
-#hud .radarbtns .minibtn{min-height:32px;font:var(--fs-s)/1.1 var(--f10);color:var(--ink-text)}
-#hud #chanBtn:not(.f2-nut-phu){box-sizing:border-box;color:var(--ink-text);background:var(--track);border:var(--bd) solid var(--ink2)}
+/* chip Kênh (mở danh sách kênh) và nút Bản đồ (mở bản đồ lớn): cùng tông mực; chip nhỏ vừa một hàng với tên, nút Bản đồ rộng bằng cột. Chữ vẫn có (không chỉ icon). */
+#hud #chanBtn,#hud #worldBtn{margin:0;white-space:nowrap;color:var(--ink-text)}
+#hud #chanBtn:not(.f2-nut-phu){flex:none;width:auto;box-sizing:border-box;min-height:24px;padding:0 var(--sp-3);font:var(--fs-s)/1 var(--f10);background:var(--track);border:var(--bd) solid var(--ink2);border-radius:var(--sp-5)}
 #hud #chanBtn:not(.f2-nut-phu):hover:not(:disabled){border-color:var(--plate-text)}
-#hud .radarbtns .minibtn[aria-expanded="true"]{box-shadow:inset 0 -3px 0 var(--accent)}   /* đang mở: vạch dưới chân (hình), không chỉ màu */
-#hud .radarbtns .minibtn:focus-visible,#hud #chans button:focus-visible,#hud #flagBar .minibtn:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+#hud #worldBtn{display:block;width:100%;min-height:32px;margin-top:var(--sp-3);font:var(--fs-m)/1.1 var(--f12)}
+#hud #worldBtn kbd{margin-left:var(--sp-3)}
+#hud :is(#chanBtn,#worldBtn).c12-with-icon::before{display:inline-block;width:12px;height:12px;margin:0 var(--sp-2) 0 0;vertical-align:-2px}
+#hud #worldBtn.c12-with-icon::before{width:16px;height:16px}
+#hud :is(#chanBtn,#worldBtn)[aria-expanded="true"]{box-shadow:inset 0 -3px 0 var(--accent)}   /* đang mở: vạch dưới chân (hình), không chỉ màu */
+#hud :is(#chanBtn,#worldBtn):focus-visible,#hud #chans button:focus-visible,#hud #flagBar .minibtn:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
+body.touch #hud :is(#chanBtn,#worldBtn){min-height:40px}
+/* màn thấp (điện thoại ngang): thanh kỹ năng phủ chỗ dưới radar, nên nút Bản đồ lên góc trên phải cạnh radar (44 px, vẫn bấm được) */
+:where(body.ui-h500) #hud #worldBtn{position:absolute;right:var(--sp-2);top:var(--sp-2);z-index:2;width:44px;min-height:44px;margin:0;padding:0;font:var(--fs-s)/1.1 var(--f10)}
+:where(body.ui-h500) #hud #worldBtn kbd{display:none}
 
 /* hộp chọn kênh và thanh cờ */
 #hud #chans{color:var(--ink-text);background:var(--plate);border:var(--bd) solid var(--ink2)}
@@ -48,3 +54,24 @@
 /* chú thích điều khiển ở đáy canvas */
 #mapview #mapviewHelp{font:var(--fs-s)/1.4 var(--f10);color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2)}
 @media (max-height:500px){#mapview.mv-ui2{padding:var(--sp-3)}#mapview .mvchip,#mapview .mvbtn{min-height:28px}}
+
+/* ---- bản đồ lớn (M / N): khung Giấy toàn màn, tab chế độ, hai ngăn (Thế giới = #world, Khu vực = canvas) ---- */
+#mapview .mv-tabs{flex:0 0 auto;display:flex;align-items:flex-end;margin-left:auto}   /* sát phải: chừa giữa màn cho huy hiệu menu 魂 (nằm trên lớp phủ) */
+#mapview .mv-tabs .p2-tab{min-height:44px;padding:0 var(--sp-6)}
+#mapview .mv-tabs .p2-tabs-h .p2-tab.sel{min-height:44px}
+#mapview .scr-x{width:44px;height:44px;font:var(--fs-l)/1 var(--f12)}
+#mapview .mv-body>:is(.mv-area,#world){position:absolute;inset:0}
+#mapview .mv-area[hidden]{display:none}
+#mapview .mv-area{background:var(--plate)}
+/* khung khu vực: viền giấy hai nét + tối dần ra mép, đè lên canvas nhưng không chặn bấm */
+#mapview .mv-area::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 var(--sp-6) var(--sp-5) color-mix(in srgb,var(--plate) 80%,transparent),inset 0 0 0 var(--bd) var(--paper3),inset 0 0 0 calc(var(--sp-3) + var(--bd)) color-mix(in srgb,var(--plate) 70%,transparent),inset 0 0 0 calc(var(--sp-3) + var(--bd) * 2) color-mix(in srgb,var(--paper3) 60%,transparent)}
+#mapview .mv-area :is(#mapviewBar,#mapviewHelp,#mapviewTip,#mapviewMenu){z-index:2}
+#mapview:not([hidden]) :is(.mv-area,#world):not([hidden]){animation:mv-in .2s ease-out}
+@keyframes mv-in{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+.reduce-motion #mapview :is(.mv-area,#world){animation:none!important}
+@media (prefers-reduced-motion:reduce){#mapview :is(.mv-area,#world){animation:none!important}}
+body.touch #mapview .mvchip,body.touch #mapview .mvbtn{min-height:44px;min-width:44px}
+:where(body.ui-h500) #mapview .p2-title,:where(body.ui-h500) #mapview .p2-badge,:where(body.ui-h500) #mapview .p2-info{display:none}
+/* bản đồ lớn mở thì huy hiệu menu 魂 (nằm trên lớp phủ) không che tab; Esc / ✕ vẫn đóng */
+body:has(#mapview:not([hidden])) #hubBtn{visibility:hidden}
+:where(body.ui-h500) #mapview :is(.p2-ft,.p2-hd){padding-top:var(--sp-2);padding-bottom:var(--sp-2)}

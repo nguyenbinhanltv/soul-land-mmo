@@ -1,6 +1,6 @@
 # Radar và bản đồ khu vực
 
-Radar góc màn hình, bản đồ khu vực toàn màn hình, tự đi tới cờ, sương mù khám phá và dấu "Tập trung ở đây" của tổ đội. Server vẫn quyết định mọi thứ; client chỉ hiển thị. Số liệu ở `shared/data.ts` (`RADAR`, `RADAR_ART`, `MAPVIEW`, `FOG`, `AUTOWALK`, `RALLY`), hàm thuần ở `shared/radar.ts`, kiểm thử `npm run test:radar --prefix server`. Số issue ở cuối file.
+Radar góc màn hình, bản đồ lớn toàn màn hình (hai chế độ Thế giới / Khu vực), tự đi tới cờ, sương mù khám phá và dấu "Tập trung ở đây" của tổ đội. Server vẫn quyết định mọi thứ; client chỉ hiển thị. Số liệu ở `shared/data.ts` (`RADAR`, `RADAR_ART`, `MAPVIEW`, `FOG`, `AUTOWALK`, `RALLY`), hàm thuần ở `shared/radar.ts`, kiểm thử `npm run test:radar --prefix server`. Số issue ở cuối file.
 
 ## 5.17 Radar và bản đồ khu vực
 Thay bản đồ nhỏ cũ (vẽ cả bản đồ ×8 dưới 1 px mỗi ô, nhìn thẳng trong khi màn chơi là isometric).
@@ -9,7 +9,7 @@ Thay bản đồ nhỏ cũ (vẽ cả bản đồ ×8 dưới 1 px mỗi ô, nh�
 - Tròn, khung gỗ sơn mài và la bàn, đường kính `RADAR.size`, **tâm là mình**.
 - Tầm mặc định `RADAR.r` ô; ba mức thu phóng `RADAR.zooms` (nút +/- hoặc lăn chuột; `radarZoomStep`). Vẽ lại `RADAR.hz` lần mỗi giây, không vẽ mỗi khung hình.
 - Nút ở góc radar: đổi hướng (◈ / ⬆), +, −. Hướng và mức phóng nhớ ở localStorage (`soul.radar.mode`, `soul.radar.zoom`).
-- Dưới radar: tên vùng, dòng "tên bản đồ · tọa độ ô · Kênh N", nút Kênh / Vùng (N) / Thế giới (M). Bấm vào radar (chuột, hoặc chạm chỗ không có chấm) mở bản đồ khu vực.
+- **Radar gọn** (chủ repo duyệt 2026-10-31): thu nhỏ bằng CSS (132 px, 104 px màn hẹp; số `RADAR.size` giữ nguyên làm tỉ lệ vẽ). Dưới radar chỉ còn **tên vùng + chip kênh** (một hàng; bấm chip mở danh sách kênh) và **một nút Bản đồ** (M). Đã bỏ dòng "tên bản đồ · tọa độ · Kênh N", chú giải chấm, số người ở bản đồ, nút Vùng và nút Thế giới riêng. Bấm radar (chuột, hoặc chạm chỗ không có chấm) mở bản đồ lớn ở chế độ Khu vực; nút Bản đồ và phím M mở chế độ Thế giới.
 - **Nền radar** là ảnh `shared/assets/mini/<mapId>.png` (`MINI_BASE`), quay + phóng, cắt tròn. Chưa có ảnh thì dùng nền vẽ bằng `MINI_COLORS`. Khung vùng hang thú vương và vùng săn nhiệm vụ vẽ trên nền.
 
 ### Hướng và la bàn
@@ -35,8 +35,16 @@ Thay bản đồ nhỏ cũ (vẽ cả bản đồ ×8 dưới 1 px mỗi ô, nh�
 - **Mũi tên ở mép:** mức có `arrow` (nhiệm vụ, đồng đội, boss / thú vương) nằm ngoài tầm thì có mũi tên trên viền kèm khoảng cách theo ô (`radarPlace`: `outside`, `tiles`, `angle`, kẹp vào mép lùi `RADAR.arrowInset`).
 - Rê chuột / chạm vào chấm hiện tên (`radarPick`: mức cao nhất, rồi gần nhất).
 
+### Bản đồ lớn (M / N)
+Một lớp phủ toàn màn hình, khung Giấy của kit, **hai chế độ** chọn bằng tab ở đầu khung (nhớ chế độ lần trước ở `soul.map.mode`):
+- **Thế giới (phím M, nút Bản đồ, F khi đứng trên trận):** `client/src/worldmap.ts`. Xem mục "Bản đồ thế giới" bên dưới.
+- **Khu vực (phím N, bấm radar):** bản đồ đang đứng, `client/src/mapview.ts`, mô tả ngay dưới.
+- Phím M / N: đang xem đúng chế độ đó thì đóng; đang mở chế độ kia thì chuyển sang; đang đóng thì mở. Esc và nút ✕ (44 px) đóng. Không dừng game.
+- Chạm: nút, tab, ô tìm ≥ 44 px; kéo một ngón, chụm hai ngón; mọi nút nằm trong khung (vùng an toàn). Chuyển chế độ có hiệu ứng mờ vào ngắn, tắt khi Giảm chuyển động.
+- Nút chính của khung (một nút): Khu vực = "Đi tới cờ" / "Dừng tự đi" (khoá kèm lý do khi chưa có cờ); Thế giới = "Tự đi tới <bản đồ>" cho mục đang chọn (khoá kèm lý do khi chưa chọn, đã ở đó, hoặc phòng riêng).
+
 ### Bản đồ khu vực
-`client/src/mapview.ts`. Mở bằng phím N, nút Vùng hoặc bấm radar; đóng bằng N / Esc / nút ✕ lớn.
+Chế độ Khu vực của bản đồ lớn (`client/src/mapview.ts`); thêm khung giấy hai nét và vùng tối dần ra mép, canvas giữ nguyên.
 
 - Lớp phủ toàn màn hình của bản đồ đang đứng, cùng ảnh nền và cùng hướng chiếu với radar (nút "Nhìn thẳng" đổi chung với radar). Che màn hình nhưng không dừng game; nút cảm ứng chạy ngay lúc chạm. Vẽ lại `RADAR.hz` lần mỗi giây khi đang mở.
 - **Thao tác:** kéo để di chuyển; lăn chuột hoặc chụm hai ngón để phóng trong `MAPVIEW.zoomMin`…`zoomMax` (phép chiếu, phóng quanh con trỏ, kéo: `mapviewToScreen` / `mapviewToTile` / `mapviewZoomAt` / `mapviewPan` ở `shared/radar.ts`); "Về tôi" đưa khung về chỗ đứng. Chạm / bấm vào chấm hoặc nhãn hiện tên.
@@ -48,12 +56,24 @@ Thay bản đồ nhỏ cũ (vẽ cả bản đồ ×8 dưới 1 px mỗi ô, nh�
 - **Dữ liệu:** chấm là đúng bộ chấm của radar (GameScene gom một lần cho cả hai, giao diện `DotSink`), nên chỉ có thứ server đã đồng bộ (state trong tầm + tin `mini`), không lộ thêm vị trí.
 - **Chỗ chèn thêm:** `mapview().onTap` nhận ô được bấm kèm chấm / nhãn dưới ngón tay; `setMarker(id, {tx, ty, name, col})` vẽ cờ / dấu trên cùng, luôn hiện; `addOverlay("fog" | "top", fn)` chèn lớp vẽ theo tọa độ ô (sương mù đã vẽ thẳng bằng `client/src/fog.ts`, không qua đây).
 
+### Bản đồ thế giới
+`client/src/worldmap.ts` (chế độ Thế giới), tin riêng `world` của server (không đổi giao thức). Chỉ client: mọi trạng thái (đã mở, phí, đang đứng ở đâu) đọc từ tin; luật dịch chuyển ở server (`docs/design/the-gioi-ban-do.md` mục "Truyền tống trận").
+- **Tranh và bố cục:** tranh thủy mặc đã duyệt (`docs/art/ban-do-the-gioi.md`; bản chạy ở `shared/assets/ui/ban-do-the-gioi/nen-the-gioi.png`, chỉ tải khi mở chế độ lần đầu) và `art/src/world-map/bo-cuc.json` (toạ độ 0..1 của tranh, chỉ để vẽ, **không gửi lên server**). Tranh và nét nối cùng phép biến đổi; nút giữ cỡ kit (≥ 44 px) nên không co theo tranh.
+- **Vẽ đè bằng code:**
+  - Đường nối cổng: nét đứt; đi thuyền (Thiên Đấu Thành ↔ Hải Thần Đảo) nét chấm; nét nối của bản đồ đang chọn sáng son.
+  - Nút bản đồ: sáng + quầng ngọc = có trận đã mở, xám + viền đứt = chưa mở, vuông viền đứt = phòng riêng (chỉ xem, không có cổng / trận).
+  - Truyền tống trận (hình thoi): chỉ hiện khi chọn bản đồ đó, phóng tới mức nhìn rõ, hoặc bật chip "Hiện mọi trận"; chip "Chỉ trận đã mở" ẩn trận chưa mở.
+  - Dấu "Bạn ở đây" (hình + chữ) ở trận đang đứng, không thì ở tâm bản đồ đang ở.
+- **Chọn:** bấm nút bản đồ (tự phóng tới bản đồ đó) hoặc trận; bấm nền trống bỏ chọn. Thẻ chi tiết (cột phải): loại, **cấp đề xuất** (`MAPS[].level`), danh sách trận của bản đồ; với trận: tên, bản đồ, trạng thái (√ Đã mở khoá / Chưa mở khoá + hướng dẫn bước lên trận), **phí** (`fee` khi đứng trên trận; `feeRemote` đã gồm phụ phí khi không đứng trên trận; "Không tới được" khi `null`; "Không đủ Hồn Tệ"), và Hồn Tệ hiện có.
+- **Tìm và lọc:** ô tìm không dấu (bản đồ và trận), chọn kết quả thì căn tranh vào đó; "Về chỗ tôi", "⟲ Vừa khung", + / −; kéo, lăn chuột, chụm. Màn dọc ban đầu phóng gấp đôi mức vừa khung, tâm (0,5; 0,5), kéo ngang để xem nhánh khác.
+- **Trạng thái:** chưa có tin `world` thì báo đang tải; quá 8 giây báo lỗi + Thử lại (xin lại tin). Tranh lỗi tải thì báo + Thử lại, các nút vẫn dùng được trên nền giấy.
+
 ### Tự đi tới cờ
 `client/src/autowalk.ts`, `shared/autowalk.ts`, `GameScene.flagTick`. Server không có lệnh dịch chuyển; client chỉ lái hướng đi bằng `input` như khi bấm chuột, nên server vẫn tính vị trí, va chạm, cổng.
 
 **Đặt cờ**
 - Bấm chuột lên bản đồ khu vực (điện thoại: chạm giữ `AUTOWALK.holdMs` ms, chạm ngắn chỉ hiện tên). Ô chặn không đặt được.
-- Bấm một cổng thì đích là bản đồ bên kia cổng. Bảng bản đồ thế giới (M) có nút "Tự đi tới" ở mỗi bản đồ khác.
+- Bấm một cổng thì đích là bản đồ bên kia cổng. Bản đồ thế giới (M) có nút chính "Tự đi tới" cho bản đồ đang chọn (khác bản đồ đang đứng).
 - Cờ có thanh dưới radar (Đi / Dừng / ✕, phím Y; bản đồ khu vực cũng có nút Đi tới cờ / Dừng / Xóa cờ), vòng cam trên mặt đất, chấm nhiệm vụ màu `RADAR.flagCol` có mũi tên ở mép radar và đường đi nét đứt trên radar lẫn bản đồ khu vực.
 
 **Đường đi**
