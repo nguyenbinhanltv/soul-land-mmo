@@ -1,0 +1,33 @@
+STYLE (apply to every image):
+Dark-xianxia pixel art, isometric RPG, overbearing and dominant "heaven-defying" presence.
+The spirit (martial soul) is a colossal, menacing power towering behind or beside a small figure.
+Angular, jagged, ASYMMETRIC silhouette; large readable shape that stays recognizable when shrunk to 32x32.
+Muted dark-ink (shuimo) palette: deep shadow regions, desaturated dark base colors, and only a FEW small
+high-contrast glowing accents (eyes, core, blade edge, talisman lines). 3 tones per color region
+(shadow, base, highlight), one extra bright tone only for metal and glow. Dark outline #1a1020, 1 px,
+no anti-aliasing, hard pixel edges. Light comes from the upper left.
+Cultivation (xianxia) flavor: use ONLY the motifs listed in the SPIRIT section below (typically 2-3);
+do not add any other motif (no extra halos, storm clouds, formation circles or lightning unless listed).
+Materials shown by texture, never by glossy shine: broken scales, chipped metal, jade with cloudy core.
+Calm, cold, lethal expression. Heavy, ancient, sacred-and-dangerous mood.
+Flat solid #FF00FF magenta background. No UI frame. Do not draw the glow as a soft blur: paint only hard-edged pixels
+(glow, particles and motion are added in code).
+
+NEGATIVE (forbidden):
+cute, kawaii, chibi, adorable, baby, big round shiny eyes, rosy cheeks, smiling, friendly, mascot, cartoon,
+Saturday-morning cartoon, toy, plastic, rubber, figurine, glossy, soft rounded bubble shapes,
+pastel, candy colors, rainbow gradient, neon-bright flat color over the whole body,
+flat plain featureless weapon, anime sparkle stars, hearts, bubbles, emoji, sticker, game-mobile gacha look,
+readable text, letters, logo, watermark, signature, UI frame, card border, human character in the spirit image,
+3D render, photorealistic, blurry, smooth gradients, soft shadows, noise, dithering haze,
+anti-aliasing, painterly brush texture, drawing a copy of existing sprite.
+
+
+SPIRIT: Ice Phoenix, absolute frozen majesty. A complete independent bird apparition with solid central chest, angular ice-crystal wings, sharp frozen crown, compact long ribbon-like frozen tail curved under body. Dark blue #2a5a8a base, icy blue #a8e8ff highlights, white crystal tips and one small violet core. Motifs: cracked ice veins like dao runes; formation ring and cold mist added in code, not painted. Calm lethal expression. NO HUMAN OR MANNEQUIN, NO EMPTY HUMAN GAP. Bird has a fully drawn continuous solid torso.
+
+SHEET: One square 1:1 image, EXACTLY FOUR columns by FOUR rows of sixteen equal square cells, no visible grid, no labels, no numbers. Flat solid #FF00FF magenta background in every cell. One SAME complete ice phoenix in EVERY cell, fully contained within central 55% of its cell with a broad magenta margin, same scale and lowest tail-tip baseline in all cells. Isometric 3/4 view from above. DIRECTION: NORTH-EAST, turned right-and-away, mostly BACK visible.
+Rows 1-2 (eight cells, read left to right): gentle idle breathing, 1-2 pixel bob, no silhouette change; cell 8 returns to cell 1.
+Row 3: col1 wings pull back slightly, col2 gather wings, col3 prepare short downward wing strike, col4 strike toward facing direction.
+Row 4: col1 HOLD same peak wing strike as previous cell, col2 recover, col3 relax, col4 neutral. Keep all wings compact and tail curled inward so NO part touches any cell edge, identical central size in every pose. No glow blur, no particles, no smoke, no ground, no cast shadow, no detached ice effects. Solid opaque body, dark outline #1a1020, 3 tones per region, hard edges. References are shape/color only, never copy humanoid hollow or composition.
+
+CRITICAL CAMERA: BACK THREE-QUARTER view, facing diagonally RIGHT AND AWAY. Broad back between wings visible, back of neck and head. Chest and purple chest core hidden from camera, beak tiny silhouette at right edge, not a frontal bird. Wings point away. All 16 cells same rear three-quarter camera.

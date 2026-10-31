@@ -1,0 +1,40 @@
+{
+  "id": "bang_phuong_hoang",
+  "cut": "node tools/assets/phaptuong-sheet-cut.mjs art/src/phap-tuong/bang_phuong_hoang shared/assets/sprites/phaptuong/bang_phuong_hoang.png",
+  "glow": {
+    "function": "buildGlow",
+    "module": "tools/assets/phuthe-to-phaptuong-lib.mjs",
+    "color": "#a8e8ff"
+  },
+  "frame": 160,
+  "origin": [
+    80,
+    124
+  ],
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "colors": 48,
+  "scale": 0.9864,
+  "attemptsUsed": {
+    "s": 1,
+    "se": 2,
+    "e": 2,
+    "ne": 2,
+    "n": 2
+  },
+  "selectedAttempts": {
+    "s": 1,
+    "se": 2,
+    "e": 2,
+    "ne": 2,
+    "n": 2
+  },
+  "sheetSha256": "93fc0d652c9930f155e82c4b5c336c8544b64392d6438a087400d7186a05bd5c",
+  "glowSha256": "ff28f9ab7360c635a553ac4c2f25c7aad2567be455728b28d18a3a1a9f5fd0aa"
+}
