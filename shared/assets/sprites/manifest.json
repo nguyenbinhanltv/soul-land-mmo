@@ -45909,6 +45909,10 @@
       "key": "pt_u_minh_linh_mieu_glow",
       "iso": true
     },
+    {
+      "key": "pt_bang_phuong_hoang_glow",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
