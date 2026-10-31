@@ -1,0 +1,66 @@
+/* UI v2: thanh kỹ năng dưới gọn, KHÔNG tên kỹ năng (HUD tối ưu, PR1). Ô vuông 44 px chỉ biểu tượng; phím tắt nhỏ ở góc; vòng hồi chiêu `.ui-cd` + số giây `.cdn`;
+   chấm niên hạn (số chấm = bậc, hình chứ không chỉ màu) ở chân ô; ô khóa vẽ ổ khóa (CSS) thay chữ "Khóa"; ô trống chỉ còn viền mờ; thiếu hồn lực = huy hiệu "!".
+   Nhóm Hồn cốt / Hồn kỹ / Vật phẩm cách nhau bằng khoảng trống + vạch dọc (không nhãn). Tên kỹ năng nằm ở chú thích (tooltip.ts: rê chuột / chạm giữ).
+   Hàng đội hình: avatar tròn + số cấp + thanh sinh lực mỏng, không tên; ô ra trận có viền sáng. Khung ô do lớp `f2-o` (ui2-hud.css) lo. */
+
+#hud #actbar{gap:var(--sp-3);flex-shrink:0}
+#hud #actrow{display:flex;align-items:flex-end;gap:0}
+#hud #actrow .action-group{display:flex}
+#hud #actrow .action-group+.action-group{margin-left:var(--sp-5);padding-left:var(--sp-5);border-left:var(--bd) solid var(--paper3)}
+#hud #actbar :is(#skills,#bskills,#itemActions){display:flex;flex-direction:row;flex-wrap:nowrap;gap:var(--sp-2);width:auto}
+
+/* Ô hồn kỹ / hồn cốt / vật phẩm: 44 × 44, chỉ biểu tượng. */
+#hud #actbar .sk.ui-cell.f2-o{width:44px;height:44px;min-height:0;padding:0;gap:0;justify-content:center;align-items:center;overflow:visible}
+#hud #actbar .sk.ui-cell .ico{width:28px;height:28px;min-height:0;margin:0;box-sizing:border-box;flex-shrink:0}
+#hud #actbar .sk.ui-cell .ico.skart{border:0;box-shadow:none;border-radius:0}
+#hud #actbar .sk.ui-cell .ico svg{width:22px;height:22px}
+#hud #actbar .sk.ui-cell .sk-name,#hud #actbar .sk.bsk>i{display:none}   /* tên: chỉ ở chú thích và aria-label của nút */
+#hud #actbar .sk.ui-cell .key,#hud #actbar .tm.ui-cell .key{left:0;top:0;min-width:10px;padding:0 2px;z-index:4;background:var(--paper);color:var(--ink);border:0;font:var(--fs-s)/11px var(--f10)}
+#hud #actbar .sk.ui-cell .ui-cd{inset:0;left:0;top:0;width:auto;height:auto;transform:none;border-radius:50%;z-index:2}
+#hud #actbar .sk.ui-cell .cdn{top:50%;margin-top:-7px;color:var(--plate-text);font:var(--fs-s)/14px var(--f10)}
+#hud #actbar .sk.ui-cell[data-tier]{outline:none}
+
+/* Chấm niên hạn: bậc N = N chấm, hình vuông 4 px (xem .ui-cell[data-tier] ở style.css); đặt giữa chân ô. */
+#hud #actbar .sk.ui-cell[data-tier]::before{display:block;left:50%;bottom:var(--sp-2);transform:translateX(-50%);margin-left:-2px}
+#hud #actbar .sk.ui-cell[data-tier="1"]::before{margin-left:-5px}
+#hud #actbar .sk.ui-cell[data-tier="2"]::before{margin-left:-8px}
+#hud #actbar .sk.ui-cell[data-tier="3"]::before{margin-left:-11px}
+#hud #actbar .sk.ui-cell[data-tier="4"]::before{margin-left:-14px}
+#hud #actbar .sk.ui-cell[data-tier]{box-shadow:none}
+#hud #actbar .sk.ui-cell .ico{margin-bottom:var(--sp-2)}
+
+/* Ô khóa: biểu tượng ổ khóa vẽ bằng CSS (thân + quai); ô trống: chỉ viền mờ. */
+#hud #actbar .sk-state{display:none}
+#hud #actbar .sk.locked:not(.empty,.passive) .sk-state{display:block;position:absolute;left:50%;top:50%;z-index:3;width:14px;height:10px;margin:0 0 0 -7px;
+  background:var(--paper);border:var(--bd-fine) solid var(--ink2);font-size:0;line-height:0;text-shadow:none}
+#hud #actbar .sk.locked:not(.empty,.passive) .sk-state::before{content:"";position:absolute;left:0;top:-9px;width:6px;height:7px;border:2px solid var(--paper);border-bottom:0;box-shadow:0 0 0 var(--bd-fine) var(--ink2)}
+#hud #actbar .sk.locked:not(.empty,.passive) .ico{opacity:.35}
+#hud #actbar .sk.passive :is(.cdn,.ui-cd){display:none}   /* hồn cốt bị động đang đeo: giữ viền niên hạn, không ổ khóa, không hồi chiêu */
+#hud #actbar .sk.passive .ico{opacity:.6}
+#hud #actbar .sk.empty{opacity:.5;background:none;border-image:none;border:var(--bd) dashed var(--paper3)}
+#hud #actbar .sk.empty :is(.sk-state,.cdn,.ui-cd){display:none}
+#hud #actbar .sk.empty:not(.bsk) .ico{display:none}   /* ô hồn cốt trống vẫn mờ biểu tượng vị trí (đầu / tay trái / tay phải) */
+#hud #actbar .sk.nomp::after{right:2px;top:2px}
+
+/* Hàng đội hình: ô 44 × 52, avatar tròn 28 px, số cấp, thanh sinh lực mỏng; tên và trạng thái ở chú thích. */
+#hud #actbar #team{gap:var(--sp-2)}
+#hud #actbar .tm.ui-cell.f2-o{width:44px;height:52px;padding:0;gap:0;justify-content:flex-start;align-items:center;overflow:visible}
+#hud #actbar .tm.ui-cell .av{display:block;position:relative;width:24px;height:24px;border-radius:50%;overflow:hidden;background:var(--c,var(--track));border:var(--bd) solid var(--c,var(--paper3));flex-shrink:0}
+#hud #actbar .tm.ui-cell .av img{position:absolute;left:50%;top:-4px;width:34px;max-width:none;height:34px;margin-left:-17px;object-fit:cover;image-rendering:pixelated}
+#hud #actbar .tm.ui-cell .lv{position:static;margin-top:var(--bd);font:var(--fs-s)/10px var(--f10);color:var(--plate-text);text-shadow:var(--stroke)}
+#hud #actbar .tm.ui-cell small{display:none}
+#hud #actbar .tm.ui-cell .hpb{position:absolute;left:0;right:0;bottom:2px;width:auto;height:3px;margin:0;background:var(--track)}
+#hud #actbar .tm.ui-cell .enb{position:absolute;left:0;right:0;bottom:0;width:auto;height:2px;margin:0;background:var(--track)}
+#hud #actbar .tm.ui-cell .ui-cd{inset:0;border-radius:50%}
+#hud #actbar .tm.ui-cell .cdn{top:14px;margin:0;font:var(--fs-s)/12px var(--f10)}
+#hud #actbar .tm.ui-cell.on{box-shadow:0 0 0 var(--bd) var(--accent),0 0 8px var(--accent)}
+#hud #actbar .tm.ui-cell.on .lv{color:var(--qgold)}
+#hud #actbar .tm.ui-cell.empty{opacity:.35}
+#hud #actbar .tm.ui-cell.empty :is(.av,.lv,.hpb,.enb){display:none}
+/* Gục: kẻ chéo (ui2-hud-stats.css) + avatar xám; sẵn sàng tiên cơ: sao ở góc (hình, không chỉ màu viền nhấp nháy). */
+#hud #actbar .tm.ui-cell.down .av{filter:grayscale(1)}
+#hud #actbar .tm.ui-cell.full::after{content:"★";position:absolute;right:1px;top:-3px;z-index:4;font:var(--fs-s)/12px var(--f10);color:var(--qgold);text-shadow:var(--stroke)}
+
+/* Chạm / màn hẹp (tạm tới PR2 cụm ngón cái): hàng ô xuống dòng, chừa cần điều khiển (130 px + lề) bên trái; bỏ vạch phân nhóm vì nhóm có thể ngắt dòng. */
+:where(body.touch, body.ui-w640) #hud #actrow{flex-wrap:wrap;justify-content:flex-end;gap:var(--sp-2);max-width:calc(100vw - 170px)}
+:where(body.touch, body.ui-w640) #hud #actrow .action-group+.action-group{margin-left:0;padding-left:0;border-left:0}
