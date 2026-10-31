@@ -2252,7 +2252,7 @@ export class MapRoom extends Room<MapState> {
 
   // ---------- Trang bị hồn sư (mục 5.15, bước E1) ----------
   /** Trang bị / Thợ rèn: logic ở `equip.ts` (#702), các hàm dưới chỉ chuyển tiếp để `onMessage`, `tick` và hook test gọi như cũ. */
-  sendGear(id: string) { return equip.sendGear(this, id); }
+  sendGear(id: string, full = false) { return equip.sendGear(this, id, full); }
   equipGear(id: string, rawItem: unknown) { return equip.equipGear(this, id, rawItem); }
   unequipGear(id: string, rawSlot: unknown) { return equip.unequipGear(this, id, rawSlot); }
   equipEnhancePreview(id: string, rawId: unknown) { return equip.equipEnhancePreview(this, id, rawId); }

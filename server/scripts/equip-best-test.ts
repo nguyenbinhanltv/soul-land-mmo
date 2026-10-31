@@ -1,5 +1,6 @@
 // #1465: bộ chọn và chốt server; không cần DB / phòng chạy thật.
 import assert from "node:assert/strict";
+import { sendGear } from "../src/rooms/equip.ts";
 import { chooseBest, equipBest } from "../src/rooms/equipBest.ts";
 import { EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_SLOTS, rollEquip, equipSlotIndex } from "../../shared/data.ts";
 import type { Item } from "../src/db.ts";
@@ -50,4 +51,18 @@ function fixture() {
   assert.equal(f.sent.length, 0); assert.equal(f.d.gear[0].id, "old", "Payload sai không đổi đồ");
   equipBest(f.room, "me", {}); equipBest(f.room, "me", {}); assert.equal(f.sent.length, 1, "Giới hạn nhịp xem trước");
 }
-console.log("✓ Mặc tốt nhất: mọi kiểm tra đều qua");
+{
+  const f = fixture(); let scored = 0;
+  Object.assign(f.d, { team: [], owned: [], res: { bonus: {} }, gearSt: { bonus: {}, weapon: null, red: 0, luck: 0 } });
+  f.room.teamPowerOf = (d) => { scored++; return score(d.gear); };
+  sendGear(f.room, "me"); const n = scored;
+  assert.ok(n > 0); assert.equal(f.sent.length, 1);
+  f.d.bag.push({ ...mk("dan", 0), code: "hoi_huyet_dan" });
+  sendGear(f.room, "me"); assert.equal(scored, n, "Đồ tiêu hao không làm tính lại điểm");
+  assert.equal(f.sent.length, 1, "Không gửi lại gear khi nội dung không đổi");
+  sendGear(f.room, "me", true); assert.equal(scored, n, "Xin cả túi dùng cache điểm");
+  assert.equal(f.sent.length, 2, "Xin cả túi vẫn nhận gear");
+  f.d.bag[0].locked = true; sendGear(f.room, "me");
+  assert.ok(scored > n); assert.equal(f.sent.length, 3, "Khóa trang bị cập nhật danh sách tăng điểm");
+}
+console.log("✓ Mặc tốt nhất: mọi kiểm tra đều qua, gồm cache điểm / tin gear");

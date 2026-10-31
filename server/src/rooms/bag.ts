@@ -29,7 +29,7 @@ export function bagSnapshot(room: MapRoom, d: PData): Bag {
  */
 export function sendBag(room: MapRoom, id: string, full = false) {
   const d = room.pdata.get(id), c = room.clients.getById(id); if (!d || !c) return;
-  room.sendGear(id);
+  room.sendGear(id, full || !d.bagSent);
   const items = d.bag.map((i) => ({ id: i.id, kind: i.kind, code: i.code, qty: i.qty, years: i.years, stars: i.stars, enhance: i.enhance, stats: i.stats, vohon: i.vohonId,
     ...(i.locked ? { lock: true } : {}) }));
   // Đồ vừa bán cho thương nhân, mua lại được (9.8): `price` là giá mỗi món đã nhận lúc bán.

@@ -52,4 +52,4 @@ Phạm vi soát bổ sung theo `anti-cheat-audit`: không đổi luật cũ củ
 | `gear`, `equipbestp`, `bag` / `bagd` | Đã đọc, ổn: chỉ gửi chính chủ; `upgrades` do server tính, không thêm state công khai. |
 | ArenaRoom / BiCanhRoom | Đã đọc, ổn: `equipbest` nằm trong `BLOCKED` dùng chung. |
 
-Kiểm thực tế: unit cho hòa điểm, thiếu món, món khóa, giao chiến khi xác nhận, đang chờ ghi DB, payload sai kiểu, token cũ và nhịp xem trước. Bot `equipbest` RAM và PostgreSQL đều đạt 39 kiểm tra, gồm món / điểm giả, xác nhận lặp, giao chiến, khóa và vào lại giữ đúng trang bị. Không có API REST mới, SQL mới hoặc số cân bằng mới.
+Kiểm thực tế: unit cho hòa điểm, thiếu món, món khóa, giao chiến khi xác nhận, đang chờ ghi DB, payload sai kiểu, token cũ và nhịp xem trước. Bot `equipbest` RAM và PostgreSQL đều đạt 39 kiểm tra, gồm món / điểm giả, xác nhận lặp, giao chiến, khóa và vào lại giữ đúng trang bị. Unit bổ sung cache: đổi đồ tiêu hao không chấm lại / gửi lại `gear`, khóa trang bị làm cập nhật, xin cả túi dùng cache điểm nhưng vẫn nhận tin. Không có API REST mới, SQL mới hoặc số cân bằng mới.

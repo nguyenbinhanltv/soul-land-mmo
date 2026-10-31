@@ -60,7 +60,8 @@ Client nghe ở `GameScene.ts` (`room.onMessage`, buffer lúc vào ở `roomBuff
 | `elite`, `boss` | phòng / riêng | tinh anh xuất hiện / hạ; thú vương, boss thế giới (đếm ngược, nổi giận, điểm yếu, người vào giữa chừng) | `MapRoom.ts` |
 | `bag`, `bagd` | riêng | cả túi khi xin; thay đổi túi (`bagSync.ts`) | `bag.ts` |
 | `gear` | riêng | các món đang mặc + chỉ số tổng + `upgrades` (ID món trong túi tăng Sức mạnh đội hình, server tính) | `equip.ts` |
-| `equipbestp`, `equipenhp`, `equipenhd`, `equipluckp`, `equipluckd`, `equipsynd`, `equipsalvd` | riêng | xem trước / kết quả cường hóa, khắc may mắn, hợp thành, phân giải trang bị | `equip.ts` |
+| `equipbestp` | riêng | xem trước số món đổi và mức tăng Sức mạnh đội hình | `equipBest.ts` |
+| `equipenhp`, `equipenhd`, `equipluckp`, `equipluckd`, `equipsynd`, `equipsalvd` | riêng | xem trước / kết quả cường hóa, khắc may mắn, hợp thành, phân giải trang bị | `equip.ts` |
 | `enhanced`, `enhancedcore` | riêng | kết quả cường hóa hồn cốt / hồn hạch | `bones.ts` |
 | `autosold` | riêng | tổng kết bán tự động | `shop.ts` |
 | `shardinfo`, `looksinfo` | riêng | mảnh võ hồn đã đổi hôm nay; số lần đổi ngoại hình / lỗi | `shop.ts`, `MapRoom.ts` |
