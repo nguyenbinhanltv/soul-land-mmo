@@ -7,7 +7,8 @@ import { MAPS, TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, WAYPOINT_COOLDOWN_S, waypo
 import { mapHops, mapLinks, allWaypoints, nearestTown, type Portal } from "../map.ts";
 import { presenceBackend, bg } from "../presence.ts";
 import type { PlayerState } from "./schema.ts";
-import { pickChannel, type MapRoom, type PData, type RecallCast } from "./MapRoom.ts";
+import { type MapRoom, type PData, type RecallCast } from "./MapRoom.ts";
+import { pickChannel } from "./channel.ts";
 import { leftRoom } from "./procState.ts";
 import { channelLeftKey, strIn } from "./common.ts";
 
