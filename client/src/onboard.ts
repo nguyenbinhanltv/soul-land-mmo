@@ -35,7 +35,7 @@ export const OB_STEPS: readonly ObStep[] = [
   { id: "hub", title: "Mở menu", body: "Nút 魂 (hoặc Esc) mở menu: Nhiệm Vụ, Tông Môn, Cửa Hàng, Cẩm Nang đều ở đây.",
     target: ["#hubBtn"], open: ["#hub"] },
 ];
-export const OB_DONE_TEXT = { title: "Xong phần làm quen", body: "Chúc bạn săn hồn vui vẻ. Cần xem lại thì mở Cẩm Nang trong menu (nút 魂 hoặc Esc)." };
+export const OB_DONE_TEXT = { title: "Xong phần làm quen", body: "Xem mục tiêu và các bài hiện có trong khung Nhiệm vụ. Cần xem lại hướng dẫn thì mở Cẩm Nang trong menu (nút 魂 hoặc Esc)." };
 
 /** localStorage an toàn (không import net.ts để test bằng node được). */
 const storage = {
@@ -68,7 +68,14 @@ export const firstShown = (sels: readonly string[], root: ParentNode = document)
 // ---- phần DOM ----
 let who = "", saved: ObSaved | null = null, step = 0, running = false;
 let reviewing = false;
-let card: HTMLElement | null = null, spot: HTMLElement | null = null, timer = 0, doneTimer = 0, tapEl: HTMLElement | null = null;
+let card: HTMLElement | null = null, spot: HTMLElement | null = null, timer = 0, tapEl: HTMLElement | null = null;
+let openQuests: (() => void) | null = null;
+
+/** Dùng đúng đường mở Nhiệm vụ hiện hành; bỏ tham chiếu cảnh khi đổi bản đồ. */
+export function onboardQuestLink(open: () => void, signal: AbortSignal) {
+  openQuests = open;
+  signal.addEventListener("abort", () => { if (openQuests === open) openQuests = null; }, { once: true });
+}
 
 const q = (c: HTMLElement, sel: string) => c.querySelector(sel) as HTMLElement;
 const persist = () => { if (who && saved) storage.set(obKey(who), JSON.stringify(saved)); };
@@ -77,8 +84,15 @@ function root(): HTMLElement {
   if (card?.isConnected) return card;
   card = document.createElement("section"); card.id = "onboard"; card.className = "ob f2-giay-nho"; card.hidden = true;
   card.setAttribute("role", "dialog"); card.setAttribute("aria-label", "Làm quen"); card.setAttribute("aria-live", "polite");
+  // Chỉ phím điều hướng / kích hoạt nút thuộc về thẻ; phím chơi vẫn tới cảnh.
+  card.addEventListener("keydown", (e) => {
+    if (["Tab", "Enter", "Space"].includes(e.code)) e.stopPropagation();
+    if (e.code === "Escape" && !running) hide();
+  });
+  card.addEventListener("mousedown", (e) => e.stopPropagation());
   card.innerHTML = `<div class="ob-main"><div class="ob-head"><b></b><span class="ob-dots" aria-hidden="true"></span></div><h4></h4><p></p></div>
-    <div class="ob-foot"><button type="button" class="ob-next"></button><button type="button" class="ob-skip">Bỏ qua</button></div>`;
+    <div class="ob-foot"><button type="button" class="ob-quest" hidden>Xem nhiệm vụ</button><button type="button" class="ob-next"></button><button type="button" class="ob-skip">Bỏ qua</button></div>`;
+  q(card, ".ob-quest").addEventListener("click", () => { if (openQuests) { hide(); openQuests(); } });
   q(card, ".ob-skip").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); finish("skip"); });
   q(card, ".ob-next").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); if (!running) hide(); else advance(); });
   (document.getElementById("hud") ?? document.body).appendChild(card);
@@ -108,6 +122,7 @@ function paint() {
   q(c, "h4").textContent = s.title; q(c, "p").textContent = s.body;
   q(c, ".ob-next").textContent = reviewing ? (step === OB_STEPS.length - 1 ? "Xong" : "Tiếp") : s.id === "ring" ? "Làm sau" : "Bỏ bước";
   q(c, ".ob-skip").hidden = false;
+  q(c, ".ob-quest").hidden = true;
 }
 
 /** Nhịp kiểm tra (4 lần / giây): bước đang chờ đã xong chưa, nút cần sáng nằm ở đâu. */
@@ -129,7 +144,7 @@ function advance() {
   step++; if (saved && !reviewing) { saved.s = step; persist(); }
   paint(); tick();
 }
-function hide() { if (card) card.hidden = true; place(null); clearTimeout(doneTimer); }
+function hide() { if (card) card.hidden = true; place(null); }
 function stop() { running = false; window.clearInterval(timer); timer = 0; tapEl?.removeEventListener("pointerdown", onTap); tapEl = null; place(null); }
 function finish(st: "done" | "skip") {
   stop();
@@ -140,12 +155,13 @@ function finish(st: "done" | "skip") {
   }
   saved = { s: step, st }; persist();
   if (st === "skip") return hide();
-  // Hoàn thành: thẻ cảm ơn, tự tắt sau ít giây.
-  const c = root(); c.hidden = false; c.dataset.mode = "done";
+  // Hoàn thành: đường tiếp tục tùy chọn, giữ thẻ để người dùng bàn phím có thời gian đọc / chọn.
+  const c = root(); c.hidden = false; c.dataset.mode = "done"; c.dataset.dock = "";
   q(c, ".ob-head b").textContent = "Làm quen · xong"; q(c, ".ob-dots").textContent = OB_STEPS.map(() => "●").join(" ");
   q(c, "h4").textContent = OB_DONE_TEXT.title; q(c, "p").textContent = OB_DONE_TEXT.body;
   q(c, ".ob-next").textContent = "Đóng"; q(c, ".ob-skip").hidden = true;
-  clearTimeout(doneTimer); doneTimer = window.setTimeout(hide, 9000);
+  q(c, ".ob-quest").hidden = false;
+  q(c, ".ob-quest").focus();
 }
 function run() {
   if (running) return;

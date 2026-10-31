@@ -41,7 +41,8 @@
     "test:rank-browser": "node scripts/rank-browser.mjs",
     "test:uiscreens": "node --experimental-strip-types scripts/ui-screens-test.mjs",
     "test:confirm": "node --experimental-strip-types scripts/confirm-test.mjs",
-    "test:onboard": "node --experimental-strip-types scripts/onboard-test.mjs"
+    "test:onboard": "node --experimental-strip-types scripts/onboard-test.mjs",
+    "test:onboard-browser": "node --experimental-strip-types scripts/onboard-browser.mjs"
   },
   "dependencies": {
     "colyseus.js": "0.16.22",

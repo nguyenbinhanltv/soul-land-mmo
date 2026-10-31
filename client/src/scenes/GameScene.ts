@@ -28,7 +28,7 @@ import { planPickup, xpDelta, XpBatch, xpText, COIN_COL, XP_COL, type PickupLine
 import { chatLoot } from "../chat.ts";
 import { legacyLootReceipt, lootLogText, logToastEligible } from "../chatRoute.ts";
 import { guideStart, guideEvent, guideHint, guideReview } from "../guide.ts";
-import { onboardEvent } from "../onboard.ts";
+import { onboardEvent, onboardQuestLink } from "../onboard.ts";
 import { pingSent, pingAck, pingTick, pingReset } from "../pingMeter.ts";
 import { pickArrow, setQuestArrow, clearQuestArrow, type QPoint } from "../questArrow.ts";
 import { initDualWindows } from "../dualWindow.ts";
@@ -976,6 +976,13 @@ export class GameScene extends Phaser.Scene {
   /** Menu hub ngăn kéo (UI v2): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
   setupHub() {
     resetBadges(); // kho chấm tính lại từ tin server gửi lúc vào phòng
+    const openQuests = () => {
+      setHubOpen(false);
+      const n = hud.revealQuestTracker();
+      toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc trái, dưới thông tin nhân vật; gặp NPC có dấu trên đầu để nhận / trả");
+      document.querySelector<HTMLElement>('#sideBox .sb-tab[data-tab="quest"]')?.focus();
+    };
+    onboardQuestLink(openQuests, this.ac.signal);
     initHub({
       vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
       reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },
@@ -984,7 +991,7 @@ export class GameScene extends Phaser.Scene {
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
       welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, mail: () => { this.clearForPanel(); openMail(); },
       bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },
-      quest: () => { const n = hud.revealQuestTracker(); toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc trái, dưới thông tin nhân vật; gặp NPC có dấu trên đầu để nhận / trả"); }, // thẻ Nhiệm Vụ của hub: mở khung theo dõi, nhận / trả vẫn ở NPC
+      quest: openQuests, // chỉ mở khung theo dõi; nhận / trả vẫn ở NPC
       notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
     }, this.ac.signal);
   }

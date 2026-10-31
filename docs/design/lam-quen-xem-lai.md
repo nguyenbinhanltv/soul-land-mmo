@@ -6,4 +6,8 @@ Lần xem lại chỉ giữ trạng thái trong bộ nhớ, không ghi hay xóa 
 
 Thẻ dùng cỡ chữ trợ năng và vòng sáng giảm chuyển động hiện có. Cẩm Nang và Làm quen cuộn được trên màn thấp / hẹp.
 
-Issue: #1522.
+Hoàn tất Làm quen lần đầu hiện thẻ có nút tùy chọn **Xem nhiệm vụ** và **Đóng**, chờ người chơi chọn. Xem nhiệm vụ mở khung Nhiệm vụ hiện hành, mở rộng các mục và chuyển tiêu điểm bàn phím tới tab Nhiệm vụ; khi không có bài thì dùng nội dung rỗng hiện có. Thẻ không khẳng định đã hoàn thành nhiệm vụ. Không tự nhận / trả bài, tạo tiến độ hoặc di chuyển nhân vật. Bỏ qua và xem lại không hiện thẻ kết thúc này; bản ghi done vẫn ngăn tự hiện lại.
+
+Thẻ xong nhường chỗ cho gợi ý tình huống, không chặn gợi ý khi người chơi tiếp tục săn. Esc đóng thẻ xong và vẫn tới cảnh để đóng menu đang mở; phím di chuyển / kỹ năng vẫn hoạt động khi nút trên thẻ giữ tiêu điểm. Tab, Enter và Space thao tác nút trên thẻ.
+
+Issue: #1522, #1540.
