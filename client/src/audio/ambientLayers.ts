@@ -17,6 +17,8 @@ export const AMBIENT_PROFILES: Readonly<Record<string, AmbientProfile>> = {
   hai_than_dao: { wave: 6, wind: 15, bird: 10, cricket: 8, fire: 4 },
   loi_tinh_dau: { wind: 25, wave: 12, cricket: 10 },
   dai_dau_hon_truong: { wind: 30, fire: 4 },
+  // Sảnh thí luyện: gió nhẹ CC0 đã duyệt, không chim / côn trùng / chuông hay thêm nền vòng lặp.
+  luyen_hon_canh: { wind: 18 },
 };
 
 /**
