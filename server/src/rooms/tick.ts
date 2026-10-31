@@ -6,7 +6,8 @@ import { TIERS, STATUS, ARENA, BEAST_REGEN, BEAST_LEASH, BEAST_GAIT, BEAST_AGGRO
   RUN_MULT, dir4, TEAM_COMBAT_SECS, PLAYER_CHARM, SYNC_VIEW, FOG, moveNudge, atkRoll, beastMelee, RESPAWN_INVULN_SECS } from "../../../shared/data.ts";
 import { MOVE_DEAD, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { PRESENCE_HEARTBEAT_MS, PRESENCE_TTL_MS, presenceBackend, accountLeaseKey } from "../presence.ts";
-import { touchChannel, type MapRoom } from "./MapRoom.ts";
+import { type MapRoom } from "./MapRoom.ts";
+import { touchChannel } from "./channel.ts";
 import * as party from "../party.ts";
 import { gcIn, cpuMs, clock } from "../perf.ts";
 import { setLock, tickLock } from "./lock.ts";

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createPresenceBackend, presenceBackend, isRedisFailure } from "../src/presence.ts";
-import { claimBuyback, editBuyback } from "../src/rooms/MapRoom.ts";
+import { claimBuyback, editBuyback } from "../src/rooms/presenceState.ts";
 import { arenaDeliver, arenaEnqueue, arenaQueued, arenaLiveOpen, arenaLivePhase, arenaLiveHold, arenaLiveHeld, arenaLiveWatch, arenaLiveUnwatch, arenaLiveOpenList, arenaLiveRelease, arenaLiveClose } from "../src/rooms/arenaQueue.ts";
 import { FriendHub, friends } from "../src/friends.ts";
 
