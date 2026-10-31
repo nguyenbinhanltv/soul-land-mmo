@@ -905,7 +905,7 @@ Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normali
 | `shared/assets/sprites/phaptuong/nhu_cot_tho_glow.png` | `pt_nhu_cot_tho_glow` | Codex + phuthe-to-phaptuong buildGlow | Lớp sáng dựng từ sheet Nhu Cốt Thố vẽ lại, màu võ hồn #ffc2e2 | 2026-10-31 | Sinh bằng công cụ, #1456 |
 | `shared/assets/sprites/phaptuong/bich_lan_xa_hoang_glow.png` | `pt_bich_lan_xa_hoang_glow` | Codex / OpenAI image_gen + buildGlow | art/src/phap-tuong/bich_lan_xa_hoang/*.prompt.txt | 2026-10-31 | RAW nguyên byte, cutter chuẩn; buildGlow màu #3ad98a |
 | `shared/assets/sprites/iso/props/cot_co_do_vang_clip.png` | `prop_cot_co_do_vang_clip` | Codex builtin OpenAI image_gen.imagegen | Hoạt ảnh phần vải cờ đỏ viền vàng; prompt đầy đủ và RAW tại art/src/prop-clip/cot_co_do_vang/NGUON.md | 2026-11-01 | 16 khung 48x80, 100 ms; cột/chân cố định, chỉ phần vải đổi |
-| `shared/assets/sprites/iso/props/cot_den_do_clip.png` | `prop_cot_den_do_clip` | Codex builtin OpenAI image_gen.imagegen | Đèn lồng đỏ 8 pha 4x2, điểm treo cố định; prompt thực tế đầy đủ ở art/src/prop-clip/cot_den_do/NGUON.md | 2026-11-01 | Chỉ đèn/tua, giữ cột và chân [24,94]; RAW nguyên byte, palette gốc |
+| `shared/assets/sprites/iso/props/cot_den_do_clip.png` | `prop_cot_den_do_clip` | Codex builtin OpenAI image_gen.imagegen | Đèn lồng đỏ 8 pha 4x2, điểm treo cố định; prompt thực tế đầy đủ ở art/src/prop-clip/cot_den_do/NGUON.md | 2026-11-01 | Pha tua Codex; giữ pixel/dáng đèn gốc, nghiêng tối đa 1px, khung0 trùng gốc, chân [24,94]; RAW nguyên byte |
 
 ## Asset tạo bằng AI (Gemini)
 

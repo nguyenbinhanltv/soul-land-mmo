@@ -23,8 +23,8 @@ for (const name of Object.keys(feet)) test(`${name}: thân tĩnh, chân và hồ
       const c = clip.get(n * original.w + x, y);
       assert.ok(c[3] === 0 || c[3] === 255);
       const [r, g, b, a] = original.get(x, y);
-      const box = source.lanterns?.find(([l,t,w,h]) => x>=l && x<l+w && y>=t && y<t+h);
-      const protectedPixel = (source.mask === "lantern-seams" && (!box || y<box[1]+2 || (a && r>40 && g>r*0.48 && r>b*1.3))) || (source.mask === "cloth-seam" && (x >= 26 || y <= 21)) || (source.mask === "warm-interior" && !(a && r > 125 && r > b * 1.35));
+      const box = source.lanterns?.find(([l,t,w,h]) => x>=l-1 && x<l+w+1 && y>=t && y<t+h);
+      const protectedPixel = (source.mask === "lantern-seams" && (!box || y<box[1]+2)) || (source.mask === "cloth-seam" && (x >= 26 || y <= 21)) || (source.mask === "warm-interior" && !(a && r > 125 && r > b * 1.35));
       if (x < rx || x >= rx + rw || y < ry || y >= ry + rh || protectedPixel) assert.deepEqual(c, original.get(x, y), `Khung ${n}, điểm ${x},${y}`);
       else pixels.push(...c);
     }
@@ -75,4 +75,17 @@ test("Đèn lồng: bước nối vòng không lớn hơn bước chuyển pha t
     return changed;
   });
   assert.ok(steps[15] <= Math.max(...steps.slice(0, 15)), `Bước nối vòng: ${steps}`);
+});
+
+test("Đèn lồng: khung tĩnh 0 trùng nguyên pixel ảnh gốc đã duyệt", () => {
+  const original = readPng(`${ROOT}/shared/assets/sprites/iso/props/cot_den_do.png`), clip = readPng(`${ROOT}/shared/assets/sprites/iso/props/cot_den_do_clip.png`);
+  for (let y = 0; y < original.h; y++) for (let x = 0; x < original.w; x++) assert.deepEqual(clip.get(x,y), original.get(x,y));
+});
+
+test("Đèn lồng: đường biên không rời dáng gốc quá một pixel ngang", () => {
+  const a = readPng(`${ROOT}/shared/assets/sprites/iso/props/cot_den_do.png`), b = readPng(`${ROOT}/shared/assets/sprites/iso/props/cot_den_do_clip.png`);
+  for (let n=0;n<16;n++) for (let y=0;y<a.h;y++) for (let x=0;x<a.w;x++) {
+    if (b.alpha(n*a.w+x,y)) assert.ok([-1,0,1].some(dx => x+dx>=0 && x+dx<a.w && a.alpha(x+dx,y)), `Khung ${n}: biên mới ${x},${y}`);
+    if (a.alpha(x,y)) assert.ok([-1,0,1].some(dx => x+dx>=0 && x+dx<a.w && b.alpha(n*a.w+x+dx,y)), `Khung ${n}: mất biên ${x},${y}`);
+  }
 });

@@ -19,12 +19,11 @@ const [rx, ry, rw, rh] = region;
 const warm = ([r, , b, a]) => a && r > 125 && r > b * 1.35;
 const protectedAt = (x, y) => {
   if (spec.lanterns) {
-    const box = lanterns.find(([l,t,w,h]) => x >= l && x < l+w && y >= t && y < t+h);
-    if (!box || y < box[1]+2) return true;
-    const [r,g,b,a] = original.get(x,y);
-    // Tay treo, dây và kết cấu vàng/nâu cũ bất động; chỉ đèn đỏ/viền và khoảng trống trong hộp được thay.
-    return a && r > 40 && g > r * 0.48 && r > b * 1.3;
+    const box = lanterns.find(([l,t,w,h]) => x >= l-1 && x < l+w+1 && y >= t && y < t+h);
+    // Mặt nạ theo vị trí: không giữ sót màu cam/vàng thuộc thân đèn cũ.
+    return !box || y < box[1]+2;
   }
+
   return spec.cloth ? x >= 26 || y <= 21 : spec.inset && !warm(original.get(x, y));
 };
 for (let y = ry; y < ry + rh; y++) for (let x = rx; x < rx + rw; x++) {
@@ -49,18 +48,23 @@ for (let n = 0; n < 8; n++) {
   boxes.push([l, t, r, b]);
 }
 const scale = Math.min(rw / Math.max(...boxes.map(([l,,r]) => r - l + 1)), rh / Math.max(...boxes.map(([,t,,b]) => b - t + 1)));
-const layers = boxes.map(([l,t,r,b]) => {
+// Tờ Codex dẫn pha nghiêng của tua; giữ nguyên pixel/màu và dáng đèn đã duyệt.
+const sway = spec.lanterns ? boxes.map(([l,t,r,b]) => {
+  let sum = 0, count = 0;
+  for (let y = Math.floor(t + (b-t)*0.8); y <= b; y++) for (let x = l; x <= r; x++) if (raw.alpha(x,y) >= 160) { sum += x - (l+r)/2; count++; }
+  return count ? sum/count : 0;
+}) : [];
+const amplitude = Math.max(1, ...sway.map(v => Math.abs(v)));
+const layers = boxes.map(([l,t,r,b], phase) => {
   const out = new Img(original.w, original.h), cx = (l + r) / 2;
   if (spec.lanterns) {
-    for (const [tx,ty,tw,th] of lanterns) {
-      // Cùng tỉ lệ ở mọi pha; hai hàng neo trên lấy nguyên pixel gốc qua protectedAt.
-      const k = Math.min((tw-2) / Math.max(...boxes.map(([l,,r]) => r-l+1)), th / Math.max(...boxes.map(([,t,,b]) => b-t+1)));
-      for(let y=2;y<th;y++) for(let x=0;x<tw;x++) {
-        if(protectedAt(tx+x,ty+y)) continue;
-        const sx=Math.round(cx+(x-(tw-1)/2)/k), sy=Math.round(t+y/k);
-        if(sx<l||sx>r||sy<t||sy>b) continue;
-        const c=raw.get(sx,sy);
-        if(c[3]>=160) out.set(tx+x,ty+y,[...nearest(c),255]);
+    for (const [i, [tx,ty,tw,th]] of lanterns.entries()) {
+      const start = i % 8;
+      const dx = Math.max(-1, Math.min(1, (sway[(phase+start)%8] - sway[start]) / amplitude));
+      for (let y = 2; y < th; y++) for (let x = -1; x <= tw; x++) {
+        const shift = Math.round(dx * (y-1)/(th-2));
+        const c = original.get(tx+x,ty+y);
+        if (c[3] && x+shift >= -1 && x+shift <= tw) out.set(tx+x+shift,ty+y,c);
       }
     }
     return out;
@@ -80,7 +84,7 @@ for (let n = 0; n < 16; n++) {
     let c = a.get(x, y);
     if (n % 2) {
       const d = b.get(x, y), alpha = (c[3] + d[3]) / 2;
-      c = alpha >= 128 ? [...nearest(c.slice(0, 3).map((v, i) => (v * c[3] + d[i] * d[3]) / (c[3] + d[3]))), 255] : [0,0,0,0];
+      c = alpha >= (spec.lanterns ? 127.5 : 128) ? [...nearest(c.slice(0, 3).map((v, i) => (v * c[3] + d[i] * d[3]) / (c[3] + d[3]))), 255] : [0,0,0,0];
     }
     motion.set(n * original.w + x, y, c);
     const under = base.get(x, y), k = c[3] / 255;
@@ -93,5 +97,5 @@ writeFileSync(path.join(dir, "chuyen-dong.png"), encodePng(motion));
 const out = path.join(ROOT, `shared/assets/sprites/iso/props/${name}_clip.png`);
 writeFileSync(out, encodePng(sheet));
 const sha = (f) => createHash("sha256").update(readFileSync(f)).digest("hex");
-writeFileSync(path.join(dir, "nguon.json"), JSON.stringify({ tool: "Codex builtin OpenAI image_gen.imagegen", date: sourceDate, license: "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có", rawSHA256: sha(rawFile), originalSHA256: sha(originalFile), clipSHA256: sha(out), region, ...(spec.lanterns ? { mask: "lantern-seams", lanterns, rawFile: "RAW.png", nativeSize: [raw.w,raw.h] } : {}), ...(spec.cloth ? { mask: "cloth-seam", rawFile: "RAW.png", nativeSize: [raw.w, raw.h] } : {}), ...(spec.inset ? { mask: "warm-interior" } : {}), ...(spec.clearFlame ? { clearZone: [rx, ry, rw, spec.coalY - ry], solidZone: [rx, spec.coalY, rw, ry + rh - spec.coalY] } : {}), frames: 16, ms: 100 }, null, 2) + "\n");
+writeFileSync(path.join(dir, "nguon.json"), JSON.stringify({ tool: "Codex builtin OpenAI image_gen.imagegen", date: sourceDate, license: "Đầu ra OpenAI, không gán CC0; thân gốc giữ giấy phép/nguồn hiện có", rawSHA256: sha(rawFile), originalSHA256: sha(originalFile), clipSHA256: sha(out), region, ...(spec.lanterns ? { mask: "lantern-seams", lanterns, motion: "Codex tassel centroid; original pixels; horizontal shear <= 1px", sway, rawFile: "RAW.png", nativeSize: [raw.w,raw.h] } : {}), ...(spec.cloth ? { mask: "cloth-seam", rawFile: "RAW.png", nativeSize: [raw.w, raw.h] } : {}), ...(spec.inset ? { mask: "warm-interior" } : {}), ...(spec.clearFlame ? { clearZone: [rx, ry, rw, spec.coalY - ry], solidZone: [rx, spec.coalY, rw, ry + rh - spec.coalY] } : {}), frames: 16, ms: 100 }, null, 2) + "\n");
 console.log(out);
