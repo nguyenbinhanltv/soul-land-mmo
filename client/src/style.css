@@ -1615,87 +1615,19 @@ body.ui-h500 #credits .cr-head small{display:none}
 #audio .audio-credits{min-height:40px;padding:8px 12px;border:2px solid var(--line);background:var(--wash);color:var(--text);font:inherit;font-size:12px;font-family:var(--f12);cursor:pointer}
 @media (max-height:520px){#overlay .c6-credits{margin-top:4px;min-height:36px}}
 
-/* C8: chữ, phím và hồi chiêu có vùng riêng; chỉ áp dụng thanh hành động trong trận. */
-#actbar{gap:6px;flex-shrink:0}
-#actrow{gap:8px;align-items:flex-end}
-#actrow .action-group{display:flex;flex-direction:column;gap:3px}
-#actrow .action-label{align-self:flex-start;padding:2px 5px;background:#211b29;color:#f4ead5;font:10px/12px var(--f10);border-left:2px solid #c4aa78}
-#actbar :is(#skills,#bskills,#itemActions){display:flex;gap:4px;width:auto;flex-wrap:nowrap}
-#actbar #itemActions{flex-direction:row}
-#actbar .sk.ui-cell{width:56px;height:78px;box-sizing:border-box;padding:14px 3px 10px;gap:2px;justify-content:flex-start;
-  border:2px solid #a99370;border-image:none;background:#211b29;color:#f4ead5;overflow:hidden;opacity:1;filter:none;box-shadow:inset 0 0 0 1px #3d3348}
-#actbar .sk.ui-cell[data-tier]{border-color:var(--c);outline:none}
-#actbar .sk.ui-cell:hover:not(.locked){background:#332a3e;border-color:#f4d99c}
-#actbar .sk.ui-cell:focus-visible,#actbar .tm:focus-visible{outline:2px solid #f4d99c;outline-offset:2px}
-#actbar .sk.ui-cell .ico{width:24px;height:24px;min-height:24px;box-sizing:border-box;margin:0;flex-shrink:0}
-#actbar .sk.ui-cell .ico.skart{border:0;box-shadow:none;border-radius:0}
-#actbar .sk.ui-cell .ico svg{width:22px;height:22px}
-#actbar .sk.ui-cell .sk-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%;overflow:hidden;
-  color:#f4ead5;font:10px/11px var(--f10);text-shadow:none}
-/* Desktop: tên đầy đủ tự tăng chiều cao ô; bố cục chạm giữ nguyên theo Q40. */
-body:not(.touch) #actbar .sk.ui-cell{height:auto;min-height:90px}
-body:not(.touch) #actbar .sk.ui-cell .sk-name{display:block;-webkit-line-clamp:unset;white-space:normal;overflow-wrap:anywhere;overflow:visible;flex-shrink:0}
-#actbar .sk.ui-cell .key,#actbar .tm.ui-cell .key{left:2px;top:2px;min-width:12px;padding:0 2px;z-index:4;background:#f4ead5;color:#211b29;border:0;font:10px/12px var(--f10)}
-#actbar .sk.ui-cell .ui-cd{inset:auto;left:50%;top:14px;width:28px;height:28px;transform:translateX(-50%);border-radius:50%;z-index:2}
-#actbar .sk.ui-cell .cdn{top:22px;margin:0;z-index:3;color:#fff4d8;font:12px/14px var(--f12);text-shadow:1px 1px #211b29,-1px -1px #211b29}
-#actbar .sk-state{position:absolute;bottom:1px;left:1px;right:1px;z-index:3;font:normal 10px/12px var(--f10);color:#f4ead5;background:#211b29}
-#actbar .sk-state:empty{display:none}
-#actbar .sk.ui-cell.locked{border-style:dashed;border-color:#908697}
-#actbar .sk.ui-cell.locked .ico{filter:grayscale(1);opacity:.65}
-#actbar .sk.ui-cell.nomp{border-color:#8fcaff}
-#actbar .sk.ui-cell.nomp::after{display:none}
-#actbar .sk.ui-cell.nomp .sk-state{color:#b9dfff;background:#192e45}
-#actbar .sk.bsk>i{display:none}
-#actbar #team{gap:4px}
-#actbar .tm.ui-cell{width:94px;height:70px;box-sizing:border-box;padding:16px 4px 4px;border:2px solid #a99370;border-image:none;background:#211b29;color:#f4ead5;opacity:1;gap:2px;overflow:hidden;box-shadow:none}
-#actbar .tm.ui-cell>span{flex:1;display:flex;align-items:center;justify-content:center;white-space:normal;overflow:hidden;line-height:11px;color:#f4ead5;text-shadow:none;max-width:100%}
-#actbar .tm.ui-cell small{color:#d8cdbb;white-space:nowrap;font:10px/11px var(--f10)}
-#actbar .tm.ui-cell.on{border-color:#f4d99c;box-shadow:inset 0 0 0 1px #f4d99c}
-#actbar .tm.ui-cell.on small,#actbar .tm.ui-cell.full small{color:#f4d99c}
-#actbar .tm.ui-cell.down small{color:#ffc0b6}
-#actbar .tm.ui-cell.paused small{opacity:1}
-#actbar .tm.ui-cell .hpb,#actbar .tm.ui-cell .enb{flex-shrink:0;margin:0;background:#494052}
-#actbar .tm.ui-cell .ui-cd{inset:16px 2px 24px}
-#actbar .tm.ui-cell .cdn{top:26px;margin:0}
-#actbar .tm.ui-cell .dot{right:5px;top:4px}
-body.touch #actbar .sk.ui-cell{width:52px;height:78px}
-body.touch #actbar #itemActions{flex-direction:column}
-body.touch #actbar #skills{display:grid;grid-template-columns:repeat(4,52px);width:auto;gap:4px}
-body.touch #actbar #bskills{flex-direction:column}
-body.touch #actbar .sk.bsk{width:56px;height:52px;padding:17px 2px 2px}
-body.touch #actbar .sk.bsk .ico{width:22px;height:22px;min-height:22px;align-self:flex-start}
-body.touch #actbar .sk.bsk .sk-name{display:none}
-body.touch #actbar .sk.bsk .sk-state{top:18px;bottom:auto;left:25px;right:1px;font-size:10px;line-height:11px}
-body.touch #actbar .sk.bsk .cdn{top:21px;left:2px;right:auto;width:24px}
-body.touch #actbar .sk.bsk .ui-cd{left:3px;top:16px;transform:none;width:24px;height:24px}
-body.touch #actbar .tm.ui-cell{width:86px}
-body.ui-h460 #actbar{gap:4px}
-body.ui-h460 #actbar .tm.ui-cell{height:72px}
-body.ui-w640 #actbar .tm.ui-cell{width:74px}
-body.ui-w640 #actbar .tm.ui-cell>span{font-size:10px;line-height:11px}
-body.ui-w640.ui-portrait #actrow{flex-wrap:wrap;flex-direction:row;justify-content:flex-end;max-width:100%}
 
 body:not(.touch) #bottombar #chatbox{flex:1;min-width:0;width:auto;max-width:380px}
 /* C8 ở 960px: giữ đủ sáu tab chat, thu nhóm phụ thay vì cắt tên hồn kỹ. */
 body.ui-w1000:not(.touch) #bottombar #chatbox{flex:0 0 270px;min-width:270px}
-body.ui-w1000:not(.touch) #actrow{gap:6px}
-body.ui-w1000:not(.touch) #actbar :is(#bskills,#itemActions) .sk.ui-cell{width:44px}
 /* Guide tránh đội hình cao hơn và chừa vùng báo trước quanh nhân vật giữa màn hình. */
-body:not(.touch) #hud>.guide{bottom:max(206px,calc(50% + 44px))}
+body:not(.touch) #hud>.guide{bottom:max(130px,calc(50% + 44px))}
 /* Cảm ứng: ô kỹ năng thành lưới hai hàng (cao hơn 132px mặc định của guide) nên guide nằm trên thanh hành động, không che nút Đánh thường. */
 body.touch #hud>.guide{bottom:196px}
 
-body.touch.ui-h460:not(.ui-portrait) #actbar{flex-direction:row;align-items:flex-end;gap:8px}
-body.touch.ui-h460:not(.ui-portrait) #actbar .tm.ui-cell{width:78px}
-#actbar .tm.ui-cell.down>span{opacity:1;color:#d8cdbb}
-body.playing #toasts{bottom:190px}
+body.playing #toasts{bottom:130px}
 body.playing.touch #toasts{bottom:200px}
 body.touch.ui-h460:not(.ui-portrait) #bottombar{justify-content:flex-end}
 body.touch.ui-h460:not(.ui-portrait) #bottombar #chatbox{position:absolute;left:0;bottom:184px;width:min(380px,46vw);margin:0}
-body.touch.ui-h460.ui-w640:not(.ui-portrait) #actbar{flex-direction:column}
-#actbar .sk.ui-cell:is(.ct,.on,.ask){border-color:#f4d99c;box-shadow:inset 0 0 0 1px #f4d99c}
-
-#actbar .cdn:not(:empty){background:#211b29;width:30px;left:calc(50% - 15px);right:auto;border-radius:2px}
 /* C16 (#595): bảng Nhân vật = một khung C2 ngoài, nội dung trên tấm mực; không đổi token toàn cục hay bố cục HUD. */
 .thuymac #char{
   --text:#ece2c8;--muted:#d8caa8;--accent:#97e6bd;--good:#97e6bd;--bad:#ff9b8a;--warn:#ffbf8a;--xp-t:#ffe08a;

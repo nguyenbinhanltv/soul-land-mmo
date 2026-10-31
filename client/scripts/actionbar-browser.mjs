@@ -60,33 +60,6 @@ async function screenshot(page, name, size) {
   await page.screenshot({ path: resolve(out, `${phase}-${size}-${name}.png`) });
 }
 
-async function skillNameBounds(page) {
-  return page.locator("#skills .sk-name").evaluateAll((els) => els.map((el) => {
-    const r = el.getBoundingClientRect(), css = getComputedStyle(el), cell = el.closest("button");
-    const clip = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
-    for (let p = el.parentElement; p; p = p.parentElement) {
-      const s = getComputedStyle(p), b = p.getBoundingClientRect();
-      if (s.overflowX !== "visible") { clip.left = Math.max(clip.left, b.left); clip.right = Math.min(clip.right, b.right); }
-      if (s.overflowY !== "visible") { clip.top = Math.max(clip.top, b.top); clip.bottom = Math.min(clip.bottom, b.bottom); }
-    }
-    const glyphs = [], text = el.firstChild;
-    if (text?.nodeType === Node.TEXT_NODE) for (let i = 0; i < text.length; i++) {
-      if (!text.textContent[i].trim()) continue;
-      const range = document.createRange(); range.setStart(text, i); range.setEnd(text, i + 1);
-      const b = range.getBoundingClientRect(); glyphs.push({ char: text.textContent[i], left: b.left, top: b.top, right: b.right, bottom: b.bottom });
-    }
-    const overlays = [...document.querySelectorAll("#cmdChip, #guide, .sk-state")].filter((e) => {
-      const s = getComputedStyle(e); return e.textContent && !e.hidden && s.display !== "none" && s.visibility !== "hidden";
-    }).map((e) => e.getBoundingClientRect());
-    const clipped = glyphs.filter((g) => g.left < clip.left - 1 || g.right > clip.right + 1 || g.top < clip.top - 1 || g.bottom > clip.bottom + 1);
-    const covered = glyphs.some((g) => overlays.some((o) => g.left < o.right && g.right > o.left && g.top < o.bottom && g.bottom > o.top));
-    const lineCount = new Set(glyphs.map((g) => Math.round(g.top))).size;
-    return { name: el.textContent, width: r.width, height: r.height, fontSize: parseFloat(css.fontSize), lineClamp: css.webkitLineClamp,
-      lineCount, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, scrollHeight: el.scrollHeight, clientHeight: el.clientHeight,
-      clipped, covered, visible: r.width > 0 && r.height > 0 && css.visibility !== "hidden", cell: cell.getAttribute("aria-label") };
-  }));
-}
-
 async function layoutBounds(page) {
   return page.evaluate(() => {
     const guide = document.querySelector("#guide"), g = guide.getBoundingClientRect();
@@ -150,7 +123,8 @@ try {
       await second.click();
       await page.waitForFunction((id) => window.__c8Scene.owned.active === id, team[1]);
       await page.waitForFunction(() => [...document.querySelectorAll("#skills .sk-name")].some((e) => e.textContent === "Chu Võng Thúc Phược"));
-      const labels = await skillNameBounds(page);
+      // Thanh gọn: tên hồn kỹ không hiện trên ô (display:none), chỉ ở chú thích và aria-label.
+      const labels = await page.locator("#skills .sk-name").evaluateAll((els) => els.map((el) => ({ name: el.textContent, shown: getComputedStyle(el).display !== "none" })));
       const clearance = await page.evaluate(() => {
         const a = document.querySelector("#actrow").getBoundingClientRect();
         return [...document.querySelectorAll("#guide, #cmdChip")].filter((e) => !e.hidden && getComputedStyle(e).display !== "none").map((e) => {
@@ -163,13 +137,12 @@ try {
       if (!before && (layout.team.some((e) => e.overlappingGuide || !e.reachable) || layout.tabs.some((e) => e.scroll > e.width))) nameFailures.push({ size, layout });
       await screenshot(page, "ten-day-du", size);
       if (!before && clearance.some((e) => e.overlapping)) nameFailures.push({ size, clearance });
-      for (const name of ["Lam Ngân Tù Lung", "Chu Võng Thúc Phược"]) {
-        const label = labels.find((e) => e.name === name);
-        assert.ok(label, `Thiếu tên hồn kỹ thật: ${name}`);
-        if (before) { assert.ok(label.clipped.length, `Baseline phải tái hiện tên bị cắt: ${name} ở ${size}`); continue; }
-        const clamp = Number(label.lineClamp);
-        if (!label.visible || label.fontSize < 10 || label.clipped.length || label.covered || label.scrollWidth > label.clientWidth + 1 ||
-          label.scrollHeight > label.clientHeight + 1 || (clamp > 0 && label.lineCount > clamp)) nameFailures.push({ size, ...label });
+      if (!before) {
+        assert.ok(labels.every((l) => !l.shown), `Tên hồn kỹ không được hiện trên ô: ${JSON.stringify(labels)}`);
+        const ring = page.locator('#skills .sk[data-i="0"]');
+        await ring.hover(); await page.waitForFunction(() => !document.querySelector("#tip").hidden);
+        assert.ok((await page.locator("#tip").innerText()).includes(await ring.locator(".sk-name").textContent()), "Rê chuột phải hiện tên hồn kỹ ở chú thích");
+        await page.mouse.move(0, 0);
       }
       if (namesOnly) { await context.close(); console.log(`Tên hồn kỹ ${phase} ${size}: ${JSON.stringify(labels)}`); continue; }
       if (await page.locator("#guide").isVisible()) await page.getByRole("button", { name: "Bỏ qua", exact: true }).click();
@@ -204,14 +177,18 @@ try {
         assert.ok(b.reachable, `Nút bị che: ${b.label} (${b.covering})`);
         assert.ok(!b.centered, `Nút che vùng cảnh báo giữa màn: ${b.label}`);
       }
-      const names = await page.locator("#team button>span").evaluateAll((els) => els.map((e) => ({ name: e.textContent, clipped: e.scrollHeight > e.clientHeight + 1 || e.scrollWidth > e.clientWidth + 1 })));
-      assert.ok(names.every((n) => !n.clipped), `Tên bị cắt: ${JSON.stringify(names)}`);
+      // Ô đội hình: avatar tròn + số cấp + thanh sinh lực, không tên.
+      const names = await page.locator("#team button").evaluateAll((els) => els.map((e) => {
+        const av = e.querySelector(".av")?.getBoundingClientRect(), lv = e.querySelector(".lv"), hp = e.querySelector(".hpb")?.getBoundingClientRect();
+        return { avatar: !!av && av.width > 0 && Math.abs(av.width - av.height) < 1, level: lv?.textContent ?? "", hp: !!hp && hp.height > 0, hasName: [...e.children].some((c) => c.matches("span:not(.av)") && c.textContent) };
+      }));
+      assert.ok(names.every((n) => n.avatar && /^\d+$/.test(n.level) && n.hp && !n.hasName), `Ô đội hình sai: ${JSON.stringify(names)}`);
       const contrast = await page.evaluate(() => {
         const luminance = (color) => {
           const rgb = color.match(/[\d.]+/g).slice(0, 3).map((n) => Number(n) / 255).map((v) => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
           return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
         };
-        return [...document.querySelectorAll("#actbar .key,#actbar .sk-name,#actbar .sk-state,#actbar .action-label,#team button>span,#team small")].filter((e) => e.textContent && e.getBoundingClientRect().height).map((e) => {
+        return [...document.querySelectorAll("#actbar .key,#team .lv")].filter((e) => e.textContent && e.getBoundingClientRect().height).map((e) => {
           let parent = e, bg = getComputedStyle(parent).backgroundColor;
           while (bg === "rgba(0, 0, 0, 0)" && parent.parentElement) { parent = parent.parentElement; bg = getComputedStyle(parent).backgroundColor; }
           const a = luminance(getComputedStyle(e).color), b = luminance(bg);
@@ -277,7 +254,8 @@ try {
       await page.waitForFunction(() => document.querySelectorAll(".sk.nomp").length >= 4);
       await screenshot(page, "thieu-hon-luc", size);
       if (!before) {
-        assert.ok((await page.locator(".sk.nomp .sk-state").allTextContents()).every((text) => text === "Thiếu lực"));
+        // Thiếu hồn lực: huy hiệu "!" (hình, không chỉ màu); lý do ở dòng cuối chú thích.
+        assert.ok((await page.locator(".sk.nomp").evaluateAll((els) => els.map((e) => getComputedStyle(e, "::after").content))).every((c) => c === '"!"'));
         assert.equal(await page.locator(".sk.ava").getAttribute("aria-disabled"), "true");
       }
     });
@@ -312,10 +290,32 @@ try {
       const avatar = page.locator(".sk.ava");
       if (touch) await avatar.tap(); else await avatar.click();
       await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
+      // Hồn kỹ Chân Thân phải thấy biểu tượng, không mang lớp `empty` (ô P trống trước khi biến hình thì lớp này được gỡ).
+      assert.ok(await page.locator('.sk[data-i="3"].ct').evaluate((e) => !e.classList.contains("empty") && e.querySelector(".ico").getBoundingClientRect().width > 0), "Ô Chân Thân phải hiện biểu tượng");
       await screenshot(page, "chan-than", size);
       assert.equal(await avatar.getAttribute("aria-disabled"), "false");
       await hook(page, "rest", { s: 120 });
       await page.waitForFunction(() => !document.querySelector('.sk[data-i="3"].ct'));
+      // Hồi quy #1418: ô P loadout = -1 (ô trống) vẫn phải hiện hồn kỹ Chân Thân (biểu tượng + hồi chiêu) khi biến hình, và trở lại trống khi hết.
+      // Server từ chối xếp ô khi đang giao chiến (boneLock): dọn hồn thú của cảnh thử rồi cho hết giao chiến trước khi xếp.
+      await hook(page, "clear", { all: true });
+      await hook(page, "rest", { s: 120 });
+      // Tin `loadout` có giới hạn tần suất (nhóm social): gửi lại tới khi server nhận.
+      for (let tries = 0; tries < 6; tries++) {
+        await page.evaluate((rowId) => window.__c8Scene.room.send("loadout", { rowId, skills: [0, 1, 2, -1] }), active);
+        if (await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty'), null, { timeout: 2500 }).then(() => true, () => false)) break;
+      }
+      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty'), null, { timeout: 1000 });
+      await hook(page, "ready");
+      await page.waitForFunction(() => document.querySelector(".sk.ava:not(.locked)"));
+      if (touch) await avatar.tap(); else await avatar.click();
+      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].ct'));
+      const ctCell = await page.locator('.sk[data-i="3"]').evaluate((e) => ({ empty: e.classList.contains("empty"), ico: e.querySelector(".ico").getBoundingClientRect().width,
+        opacity: getComputedStyle(e).opacity, cd: getComputedStyle(e.querySelector(".ui-cd")).display, border: getComputedStyle(e).borderStyle }));
+      assert.ok(!ctCell.empty && ctCell.ico > 0 && ctCell.opacity === "1" && ctCell.cd !== "none" && ctCell.border !== "dashed", `Ô P trống phải hiện hồn kỹ Chân Thân: ${JSON.stringify(ctCell)}`);
+      await screenshot(page, "chan-than-p-trong", size);
+      await hook(page, "rest", { s: 120 });
+      await page.waitForFunction(() => document.querySelector('.sk[data-i="3"].empty:not(.ct)'));
     }
     const unexpected = errors.filter((e) => !e.includes("Unexpected token '<'"));
     assert.deepEqual(unexpected, [], "Lỗi trình duyệt mới");
