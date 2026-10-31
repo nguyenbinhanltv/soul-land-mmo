@@ -339,3 +339,85 @@ Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mứ
 LỖI: guide — Chặn ảnh dẫn: đỉnh sọ đã thu nhỏ nhưng chấm sáng trong hốc tối cạnh đầu-vai vẫn hiện khi phóng lớn; dừng, không dùng để sinh tờ ne. (mắt)
 ```
 
+
+
+## Phiên 887 — ảnh dẫn đã xóa vùng mắt (#1425)
+
+Hai lượt ảnh dẫn mới: lượt 1 còn mắt; lượt 2 thay toàn bộ đầu/cổ trước bằng mảng vảy xanh mờ, đã duyệt ảnh dẫn bằng mắt. Đây là ảnh dẫn một tư thế, không kiểm lưới 22 khung. RAW nguyên byte; không --scale, không nới ngưỡng/checker. Ảnh dẫn lỗi chỉ là đích sửa, không là tham chiếu tờ hoạt ảnh.
+
+### Ảnh dẫn 1/2 — candidates/887-guide1
+
+## Thanh Lân Ngạc — RAW hoạt ảnh (#1425)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thanh_lan_ngac`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mức kiểm chung: **chặn**.
+
+### guide
+
+- File: `guide.png`, **1536×1024**, 1330991 byte, SHA256 `f196c131bc587f5854f6e9e1f432c49b6693ac8006ab2f81189e5aba931e763b`.
+- Công cụ: image_gen.imagegen (ảnh dẫn một tư thế, không phải tờ hoạt ảnh); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-887.
+- Prompt: `guide.prompt.txt` (SHA256 `f7ed5f33bbd62d89ef745123af86dd4d5ab203aa841a9322cefcc43c96ac3013`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **chặn** (khối hướng: ne chặn).
+- Duyệt bằng mắt: 1 mục lỗi (dòng `LỖI:` bên dưới).
+
+### Lỗi
+
+```text
+LỖI: guide — Chặn: còn chấm sáng trong hốc tối cạnh đầu và đốm tối phía trước; không dùng để sinh tờ. (mắt)
+```
+
+
+### Ảnh dẫn 2/2 — candidates/887-guide2
+
+## Thanh Lân Ngạc — RAW hoạt ảnh (#1425)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thanh_lan_ngac`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mức kiểm chung: **pass**.
+
+### guide
+
+- File: `guide.png`, **1536×1024**, 1355297 byte, SHA256 `870bb723f5ee477c3ba3a1ce3526907f6440cdfba83954b348f3e3a897594dce`.
+- Công cụ: image_gen.imagegen (ảnh dẫn một tư thế, không phải tờ hoạt ảnh); model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 2; phiên: soul_land_game-887.
+- Prompt: `guide.prompt.txt` (SHA256 `6d54a9b7c55a5a4344a2511fb2d8c3b4f330cb06bdd6398a92bb3b276ed2f884`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+### Lỗi
+
+Không có dòng `LỖI:`.
+
+
+### Tờ ne mới — lượt 1/3
+
+Ảnh dẫn 2 đã duyệt là tham chiếu duy nhất, thay góc mặt ảnh tĩnh/turnaround theo chỉ định và cách #1438. Bố cục/chuyển động/bài học sinh bằng beast-sheet-prompt; dòng REFERENCES khớp ảnh dẫn thực sự gửi. Dừng sau lượt đầu đạt.
+
+## Thanh Lân Ngạc — RAW hoạt ảnh (#1425)
+
+File này **tự sinh** bằng `node tools/assets/beast-nguon.mjs --species thanh_lan_ngac`; không sửa tay (sửa khai báo rồi sinh lại). Dòng `LỖI:` đến từ `beast-sheet-check.mjs` (cỡ, nền, lưới, số hình, chân, khung chết) và từ khai báo `--eye` (mắt người); không có nguồn nào khác. Cỡ thân lệch KHÔNG phải lỗi (quyết định chủ repo 2026-10-26 mục 4): ghi thành dòng `Ghi chú kỹ thuật` ở từng tờ. Nộp ảnh không phải đã duyệt hay đã nhập game.
+
+Loài `thanh_lan_ngac` (Thanh Lân Ngạc), họ `quad`, khung game 96×96. Mức kiểm chung: **pass**.
+
+### to-ne
+
+- File: `to-ne.png`, **1536×1024**, 2014941 byte, SHA256 `2000cd2d42e6360402850bab665d9217c5772e366399e87a5394da7d1d6ebb28`.
+- Công cụ: image_gen.imagegen; model: unknown (công cụ sinh ảnh không công bố); seed: unknown (công cụ sinh ảnh không công bố); số lượt: 1; phiên: soul_land_game-887.
+- Prompt: `to-ne.prompt.txt` (SHA256 `001da70017dd7c3f8f4da232e1469721bd7a6808cd3df12f3b92a562a4ead732`).
+- Ảnh gốc giữ nguyên byte; không resize / sửa pixel.
+- Mức kiểm: **pass** (khối hướng: ne pass).
+- Duyệt bằng mắt: đã xem, không thấy lỗi.
+
+### Lỗi
+
+Không có dòng `LỖI:`.
+
+
+### Nhập và phiếu hướng ne
+
+- ne: đạt — đầu quay đi, không mắt/chấm sáng trong đủ 22 khung; bốn chân và đuôi dài, die hạ đúng trục. Nhẹ: hurt biên độ nhỏ; đầu dùng mảng vảy rộng ít chi tiết để tránh tái xuất mắt.
+- Nhập bằng beast:import --species thanh_lan_ngac --dirs-ok thanh_lan_ngac=s,se,e,ne,n --force; không --scale, không nới ngưỡng/checker. Đủ năm hướng, manifest bỏ dirsOk.
+- Chuẩn cỡ = sheet đã nhập (s 36, se 39.5, e 33, n 36.5 → 36.3); khớp ne ×0.60 (còn lệch 0.0%). Sau nhập: s 36 / se 39.5 / e 33 / ne 36.5 / n 36.5.
+- QA Chrome --mute-audio, âm thanh game mute=true, server RAM riêng; GameScene thật tại Thánh Hồn Thôn. animFrame của client chạy đủ idle 4 / walk 6 / attack 6 / hurt 2 / die 4 trên sheet đã nhập. Đây là kiểm renderer/khung, không mô phỏng giao chiến server. Ảnh: review-887-game.png. Local thiếu JSON kho riêng như #1437/#1438; texture công khai Ngạc và toàn bộ khung tải được.

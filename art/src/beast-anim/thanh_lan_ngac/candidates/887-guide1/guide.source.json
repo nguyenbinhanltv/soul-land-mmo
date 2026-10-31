@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-887",
+  "stage": "ảnh dẫn từ n đã đạt",
+  "attempts": 1,
+  "rawSha256": "f196c131bc587f5854f6e9e1f432c49b6693ac8006ab2f81189e5aba931e763b",
+  "promptSha256": "f7ed5f33bbd62d89ef745123af86dd4d5ab203aa841a9322cefcc43c96ac3013",
+  "reference": "to-n.png",
+  "inputSha256": "b5ec1255bf8952b865d6a1e508bc8e3c74a63d4accf13cbb6a759656533d3dc8",
+  "verdict": "Chặn: còn chấm sáng trong hốc tối cạnh đầu và đốm tối phía trước; không dùng để sinh tờ."
+}

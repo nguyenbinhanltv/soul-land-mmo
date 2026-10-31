@@ -1,0 +1,13 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "agent": "soul_land_game-887",
+  "stage": "sửa toàn vùng mắt ảnh dẫn",
+  "attempts": 2,
+  "rawSha256": "870bb723f5ee477c3ba3a1ce3526907f6440cdfba83954b348f3e3a897594dce",
+  "promptSha256": "6d54a9b7c55a5a4344a2511fb2d8c3b4f330cb06bdd6398a92bb3b276ed2f884",
+  "editTarget": "candidates/887-guide1/guide.png",
+  "inputSha256": "f196c131bc587f5854f6e9e1f432c49b6693ac8006ab2f81189e5aba931e763b",
+  "verdict": "Đạt ảnh dẫn: toàn vùng đầu là mảng vảy xanh mờ, không còn hốc mắt/chấm sáng; đủ bốn chân, đuôi dài, hướng sau-bên ne."
+}

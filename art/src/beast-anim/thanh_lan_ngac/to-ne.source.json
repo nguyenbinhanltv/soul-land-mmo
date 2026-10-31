@@ -1,0 +1,15 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "unknown",
+  "seed": "unknown",
+  "attempts": 1,
+  "agent": "soul_land_game-887",
+  "stage": "direction ne",
+  "rawSha256": "2000cd2d42e6360402850bab665d9217c5772e366399e87a5394da7d1d6ebb28",
+  "promptSha256": "001da70017dd7c3f8f4da232e1469721bd7a6808cd3df12f3b92a562a4ead732",
+  "reference": "candidates/887-guide2/guide.png",
+  "referenceSha256": "870bb723f5ee477c3ba3a1ce3526907f6440cdfba83954b348f3e3a897594dce",
+  "promptGenerator": "beast-sheet-prompt.mjs --species thanh_lan_ngac --stage direction --dir ne",
+  "referenceOverride": "Theo chỉ định #1425 và phương pháp #1438: chỉ ảnh dẫn sạch mắt thay static/turnaround cũ; giữ bố cục/chuyển động/bài học do công cụ sinh.",
+  "verdict": "Đạt ne: đủ 22 khung, không mắt/chấm sáng; nhẹ hurt biên độ nhỏ. Nhập đủ 5 hướng, giữ pixel bốn hướng cũ."
+}
