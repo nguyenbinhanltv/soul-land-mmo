@@ -93,15 +93,15 @@ console.log("onboard: ok");
 
 // Vòng đời DOM: xem lại không ghi tiến độ, gắn lại cùng tên giữ bước, đổi tên dừng lần xem cũ.
 {
-  const { onboardAttach, onboardBegin, onboardReview, onboardActive } = await import('../src/onboard.ts');
+  const { onboardAttach, onboardBegin, onboardReview, onboardActive, onboardQuestLink } = await import('../src/onboard.ts');
   const values = new Map(), elements = new Map();
   class El {
     hidden = true; isConnected = true; dataset = {}; style = {}; textContent = ''; listeners = new Map(); children = new Map();
-    set innerHTML(_) { for (const s of ['.ob-skip', '.ob-next', '.ob-head b', '.ob-dots', 'h4', 'p']) this.children.set(s, new El()); }
+    set innerHTML(_) { for (const s of ['.ob-quest', '.ob-skip', '.ob-next', '.ob-head b', '.ob-dots', 'h4', 'p']) this.children.set(s, new El()); }
     querySelector(s) { return this.children.get(s) ?? null; }
     setAttribute() {} appendChild(e) { elements.set(e.id, e); } remove() { this.isConnected = false; }
     addEventListener(s, f) { this.listeners.set(s, f); } removeEventListener(s) { this.listeners.delete(s); }
-    getClientRects() { return []; } blur() {}
+    getClientRects() { return []; } blur() {} focus() {}
     click(s) { const e = this.children.get(s); e.listeners.get('click')({ currentTarget: e }); }
   }
   const hud = new El(); elements.set('hud', hud);
@@ -128,5 +128,30 @@ console.log("onboard: ok");
   onboardBegin(); assert.equal(parseSaved(values.get(obKey('Moi'))).st, 'run');
   elements.get('onboard').click('.ob-skip');
   assert.equal(parseSaved(values.get(obKey('Moi'))).st, 'skip');
+  let opened = 0;
+  const ac = new AbortController();
+  onboardQuestLink(() => opened++, ac.signal);
+  onboardAttach('Lan dau'); onboardBegin();
+  const card = elements.get('onboard');
+  assert.equal(card.children.get('.ob-quest').hidden, true, 'CTA chỉ ở thẻ xong');
+  for (let i = 0; i < 6; i++) card.click('.ob-next');
+  assert.equal(card.dataset.mode, 'done');
+  assert.equal(card.children.get('.ob-quest').hidden, false);
+  const done = values.get(obKey('Lan dau'));
+  assert.equal(parseSaved(done).st, 'done');
+  card.click('.ob-quest');
+  assert.equal(opened, 1); assert.equal(card.hidden, true);
+  assert.equal(values.get(obKey('Lan dau')), done, 'CTA không sửa tiến độ Làm quen');
+  onboardAttach('Lan dau'); onboardBegin();
+  assert.equal(card.hidden, true, 'không spam lại thẻ xong');
+  onboardReview();
+  for (let i = 0; i < 6; i++) card.click('.ob-next');
+  assert.equal(card.hidden, true, 'xem lại không mở thẻ xong hoặc nhiệm vụ');
+  assert.equal(opened, 1);
+  ac.abort();
+  onboardAttach('Canh moi'); onboardBegin();
+  for (let i = 0; i < 6; i++) card.click('.ob-next');
+  card.click('.ob-quest'); assert.equal(opened, 1, 'không gọi cảnh đã hủy');
+  card.click('.ob-next'); assert.equal(card.hidden, true, 'vẫn đóng được thẻ');
   console.log('onboard: vòng đời run/skip/done/review và đổi hồn sư đạt');
 }

@@ -14,7 +14,7 @@
 #onboard p{margin:0;color:var(--ink)}
 #onboard .ob-foot{display:flex;flex-direction:column;gap:var(--sp-2)}
 #onboard button{min-height:44px;min-width:72px;padding:0 var(--sp-5);font:var(--fs-m)/1.2 var(--f12);cursor:pointer;color:var(--ink);background:var(--paper2);border:var(--bd) solid var(--wood)}
-#onboard .ob-next{background:var(--son);color:var(--plate-text);border-color:var(--son-d)}
+#onboard .ob-quest,#onboard[data-mode="step"] .ob-next{background:var(--son);color:var(--plate-text);border-color:var(--son-d)}
 #onboard button:focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd-fine)}
 #hud:has(#onboard:not([hidden])) .guide[data-mode="hint"],#hud:has(.guide[data-mode="review"]:not([hidden])) #onboard,#hud:has(#npc:not([hidden])) #onboard,body.arena #onboard{display:none}   /* gợi ý theo tình huống nhường; xem lại hướng dẫn điều khiển thì thẻ làm quen tạm ẩn */
 
