@@ -1,0 +1,44 @@
+{
+  "id": "yeu_ho",
+  "raw": "art/src/phap-tuong/yeu_ho",
+  "glow": "#ff9ad5",
+  "despill": false,
+  "selectedAttempts": {
+    "s": 3,
+    "se": 1,
+    "e": 1,
+    "ne": 1,
+    "n": 1
+  },
+  "attempts": {
+    "s": 3,
+    "se": 1,
+    "e": 1,
+    "ne": 1,
+    "n": 1
+  },
+  "display": {
+    "scale": 1,
+    "dx": 0,
+    "dy": 0,
+    "bob": 0
+  },
+  "cutter": {
+    "gitBlob": "e9189290c797aa640347b7a0229d745ab4f69075"
+  },
+  "frame": 160,
+  "origin": [
+    80,
+    124
+  ],
+  "cols": 16,
+  "dirs": [
+    "s",
+    "se",
+    "e",
+    "ne",
+    "n"
+  ],
+  "sheetSha256": "992d04e96161d2f7275af1d6a7e57c164088de69cb4690ca7c62784a7c100a60",
+  "glowSha256": "ec6052c7c36275e2c3209ad0b5f84554d220502c4306c3c56e6157c3b2c9ea0e"
+}

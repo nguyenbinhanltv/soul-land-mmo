@@ -45881,6 +45881,10 @@
       "iso": true
     },
     {"key":"ui_bicanh_luyen_hon","iso":true},
+    {
+      "key": "pt_yeu_ho_glow",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

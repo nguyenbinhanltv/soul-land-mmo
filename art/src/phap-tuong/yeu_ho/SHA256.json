@@ -1,0 +1,37 @@
+{
+  "e.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "c3bcdf9d8cef2744d8982b82b1c8dc8df6d1cc639a2c681449785bacf3ab844f"
+  },
+  "n.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "8d5a56aa61995707753bb3ba715570cf198c233f28678e2e8731666e4857f179"
+  },
+  "ne.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "386df27f93bac446e07da657da82142d9f169663fded7694bed72841210f3a3d"
+  },
+  "s-v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "91b2ea49f9dce90c7fd0e8a64fc73b45ed860c78cadfc76f318ac8d26af098a0"
+  },
+  "s-v2.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "01580229aaac4cb5473b28709cde27a1ed13b6c3198d2a13a464eb324be154c2"
+  },
+  "s.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "0e0748873dcac309b3767abb904cfb5b936d8bc8065584e818fb0c66d5d70428"
+  },
+  "se.png": {
+    "width": 1254,
+    "height": 1254,
+    "sha256": "ca5ed7977a60b8bc4a37d46b2ab4cc031338e66a57188396b79b9c56f07d58ac"
+  }
+}
