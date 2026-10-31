@@ -80,6 +80,9 @@ Hệ trang bị phỏng theo Mir2 / Sabuk (10 ô, 6 bậc, cường hóa +15 có
 - Mỗi lệnh là **một transaction PostgreSQL**: khóa dòng item theo id tăng dần, kiểm cột `ver` (đếm phiên bản, chống ghi chồng), chủ sở hữu, khóa, đang mặc; tung ngẫu nhiên ở server; commit một lần, lỗi thì hoàn tác và gửi lại `bagd`.
 - Khóa Redis theo item khi nhiều tiến trình: xem "Cài đặt khóa Redis" dưới.
 
+### Mặc tốt nhất
+Server chọn theo đúng Sức mạnh đội hình (`teamPowerScore`), cho một ô hoặc cả bộ. Mỗi bước chọn món tăng điểm nhiều nhất; hòa điểm giữ món đang mặc, giữa ứng viên hòa điểm chọn ID tăng dần. Bỏ qua món khóa và ô đang mặc món khóa. Xem trước số món đổi và mức tăng, chỉ mặc sau xác nhận; nếu phương án thay đổi phải xem trước lại. Giữ nguyên luật ngoài giao chiến và lưu túi / trang bị.
+
 ## Hiển thị
 - Tab Trang bị ở bảng nhân vật: `docs/design/giao-dien.md` (mục 5.16).
 - **Túi:**

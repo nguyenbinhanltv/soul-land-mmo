@@ -295,7 +295,8 @@ export function renderBag(bag: BagMsg, act: BagActions) {
   // UI-1: lọc theo nhóm và xếp thứ tự hiển thị chỉ ở client (nút "Sắp xếp" gộp / xếp thật vẫn do server). `view` = cả túi đã xếp, `shown` = sau lọc.
   noteSeen(items);
   // Đồ đang mặc chỉ dẫn sang Hồn sư, không chiếm dung lượng Túi.
-  const wornItems: BagItem[] = [...bag.items.filter((i) => i.vohon !== null), ...(act.gear()?.items ?? []).map((g) => ({ ...g, kind: "trang_bi", qty: 1, years: null, stars: null, vohon: null }))];
+  const gear = act.gear();
+  const wornItems: BagItem[] = [...bag.items.filter((i) => i.vohon !== null), ...(gear?.items ?? []).map((g) => ({ ...g, kind: "trang_bi", qty: 1, years: null, stars: null, vohon: null }))];
   const wornIds = new Set(wornItems.map((i) => i.id));
   const group = document.body.classList.contains("dual-win") && !bagFocus ? "all" : bagGroup;
   const view = sortView([...items, ...wornItems], bagSortMode), filtered = group !== "all" || bagQuery !== "", active = act.active();
@@ -384,6 +385,19 @@ export function renderBag(bag: BagMsg, act: BagActions) {
       const core = coreOf(it), corner = hasYears(it) ? yearsShort(it.years) : core ? `${it.stars ?? 1}★` : eq?.luck ? `M${eq.luck}` : it.qty > 1 ? String(it.qty) : "";
       const bone = boneOf(it), icon = itemArt(it) || (bone ? boneIcon(bone.slot, itemColor(it)) : core ? coreIcon(core.set) : `<i class="ico ${def?.kind ?? "unknown"}"></i>`);
       b.innerHTML = `${icon}${etpl ? artImg(equipFrameKey(etpl.tier), "efr") : ""}${corner ? `<small>${corner}</small>` : ""}${(bone || core || etpl) && it.enhance ? `<b class="enh">+${it.enhance}</b>` : ""}${it.lock ? `<i class="lk" aria-hidden="true"></i>` : ""}${isNew(it.id) ? `<i class="nw" aria-hidden="true"></i>` : ""}<div class="cd"></div>`;
+      if (etpl && !wornIds.has(it.id) && gear?.upgrades?.includes(it.id)) {
+        const up = document.createElement("span"); up.className = "gear-up"; up.textContent = "↑";
+        up.setAttribute("aria-label", "Tăng Sức mạnh đội hình"); b.appendChild(up);
+      }
+      if (etpl && !wornIds.has(it.id) && it.id === bagSel) {
+        const wear = document.createElement("span"); wear.className = "gear-wear f2-nut-phu"; wear.textContent = "Mặc";
+        wear.setAttribute("role", "button"); wear.tabIndex = 0; wear.setAttribute("aria-label", `Mặc ${itemName(it)}`);
+        const equip = (e: Event) => { e.preventDefault(); e.stopPropagation(); act.equipGear(it.id); };
+        wear.addEventListener("pointerdown", equip);
+        wear.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
+        wear.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") equip(e); });
+        b.appendChild(wear);
+      }
       if (wornIds.has(it.id)) {
         const mark = document.createElement("i"); mark.className = "bworn"; mark.setAttribute("aria-hidden", "true"); b.appendChild(mark);
       }
