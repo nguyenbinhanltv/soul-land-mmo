@@ -137,7 +137,7 @@ noListenerAudio.dispose();
 
 // ---------- G2 (#393): tiếng mẫu CC0, kênh trộn, ánh xạ sự kiện ----------
 {
-  const { BEASTS, VOHON } = await import("../../shared/data.ts");
+  const { BEASTS, BOSSES, VOHON } = await import("../../shared/data.ts");
   const map = await import("../src/audio/soundMap.ts");
   const { packOfGroup } = await import("../src/audio/sfxBank.ts");
   const { readFileSync } = await import("node:fs");
@@ -162,6 +162,15 @@ noListenerAudio.dispose();
   assert.equal(map.beastFamilyOf("doc_cham_phong"), "trung");
   assert.equal(map.beastFamilyOf("kim_linh_ung"), "chim");
   assert.equal(map.beastFamilyOf("bang_phong_bach_hung"), "hung", "bạch hùng không bị nhận nhầm là côn trùng vì chứa từ phong");
+  const aquatic = ["thiet_giap_cu_giai", "lam_lan_hai_xa", "kiem_ngu", "quy_dien_hai_yeu", "tham_hai_ma_chuong", "loi_quang_hai_dieu", "kim_lan_long_quy", "huyet_nha_cu_sa", "tham_hai_ma_kinh", "u_linh_hai_mau"];
+  for (const id of aquatic) assert.equal(map.beastFamilyOf(id), "bien", `loài dưới nước ${id}`);
+  for (const id of ["ma_chuong_vuong", "hac_uyen_ma_kinh", "tham_hai_ma_kinh_vuong"]) {
+    const i = BOSSES.findIndex((b) => b.id === id);
+    assert.ok(i >= 0);
+    assert.equal(map.beastFamilyOf(map.beastSpeciesId(i, BOSSES[i].rank)), "bien", `loài nền của ${id}`);
+  }
+  assert.equal(map.beastFamilyOf("loi_van_hai_ung"), "chim");
+  assert.equal(map.beastFamilyOf("doc_giac_thiem_thu"), "thiem", "cóc trên cạn giữ họ cũ");
   assert.equal(map.materialOfBeast("tuyet_lang"), "bang");
   assert.equal(map.materialOfBeast("quy_dang"), "go");
   assert.equal(map.materialOfBeast("thiet_giap_te_nguu"), "giap");

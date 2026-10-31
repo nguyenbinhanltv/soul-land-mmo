@@ -8,7 +8,7 @@ export type Element = "fire" | "ice" | "lightning" | "poison" | "light" | "dark"
 export type SkillPhase = "start" | "fly" | "boom";
 export type Material = "thit" | "giap" | "bang" | "go" | "da" | "linh_the";
 export type Surface = "co" | "dat" | "da" | "tuyet" | "go" | "nuoc";
-export type BeastFamily = "lang" | "hung" | "bao" | "xa" | "chim" | "trung" | "thiem" | "thuc";
+export type BeastFamily = "lang" | "hung" | "bao" | "xa" | "chim" | "trung" | "thiem" | "thuc" | "bien";
 
 export const WEAPONS: readonly Weapon[] = ["kiem", "chuy", "thuong", "trao", "quyen"];
 export const ELEMENTS: readonly Element[] = ["fire", "ice", "lightning", "poison", "light", "dark", "wood", "wind"];
@@ -18,7 +18,7 @@ export const MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go"];
 /** Sáu chất liệu visual C1; `da` / `linh_the` dùng fallback tiếng va chạm chung nếu chưa có mẫu riêng. */
 export const COMBAT_MATERIALS: readonly Material[] = ["thit", "giap", "bang", "go", "da", "linh_the"];
 export const SURFACES: readonly Surface[] = ["co", "dat", "da", "tuyet", "go", "nuoc"];
-export const BEAST_FAMILIES: readonly BeastFamily[] = ["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc"];
+export const BEAST_FAMILIES: readonly BeastFamily[] = ["lang", "hung", "bao", "xa", "chim", "trung", "thiem", "thuc", "bien"];
 
 /** Võ hồn dùng vũ khí / đòn nào (theo hình võ hồn); mặc định quyền. */
 const WEAPON_OF: Readonly<Record<string, Weapon>> = {
@@ -80,8 +80,14 @@ const BEAST_FAMILY_TOKENS: ReadonlyArray<[BeastFamily, readonly string[]]> = [
   ["trung", ["chu", "cham", "hat"]],
   ["bao", ["bao", "ho", "mieu", "tho", "thu", "hau", "vien"]],
 ];
-/** Họ tiếng của một loài hồn thú theo mã loài (BEASTS / `species` của boss); mặc định họ nặng (gấu, tê, tượng, giáp). */
+/** Loài dưới nước ở Hải Thần Đảo; khai rõ để không lẫn mã chứa chương / ngư / sa với cóc / rắn. Hải Ưng vẫn là chim. */
+const AQUATIC_SPECIES: ReadonlySet<string> = new Set([
+  "thiet_giap_cu_giai", "lam_lan_hai_xa", "kiem_ngu", "quy_dien_hai_yeu", "tham_hai_ma_chuong",
+  "loi_quang_hai_dieu", "kim_lan_long_quy", "huyet_nha_cu_sa", "tham_hai_ma_kinh", "u_linh_hai_mau",
+]);
+/** Họ tiếng theo loài nền (BEASTS / `species` của tinh anh, thú vương); gầm boss vẫn dùng nhóm riêng. */
 export function beastFamilyOf(speciesId: string): BeastFamily {
+  if (AQUATIC_SPECIES.has(speciesId)) return "bien";
   const tokens = speciesId.split("_");
   for (const [family, words] of BEAST_FAMILY_TOKENS) if (tokens.some((t) => words.includes(t))) return family;
   return "hung";
@@ -145,6 +151,7 @@ export function ringGlowMix(tier: number): { rate: number; wet: number; gain: nu
 /** Chỉnh độ to (dB) từng nhóm tiếng mẫu về cùng mức mục tiêu của loại (vung / va chạm / hồn kỹ / T3 / thú / bước chân…). Bảng SINH bằng `node tools/audio/measure-sfx.mjs`
  * (đo RMS thật của clip, đã chừa đỉnh); chạy lại và dán khi thêm / thay clip. Khóa: nhóm, riêng hồn kỹ theo hệ gộp ba pha (`skill-fire`), T3 theo kiểu + pha. Thiếu khóa = 0 dB. */
 export const GROUP_TRIM_DB: Readonly<Record<string, number>> = {
+  "beast-bien": 5.5,
   "swing-kiem": 3.5, "swing-chuy": -4, "swing-thuong": -4.5, "swing-trao": 0.5, "swing-quyen": -4.5, "hit-thit": -4, "hit-giap": 4, "hit-bang": 3, "hit-go": 3,
   "skill-fire": -1, "skill-ice": 1, "skill-lightning": -0.5, "skill-poison": 1.5, "skill-light": 2, "skill-dark": -1, "skill-wood": -2.5, "skill-wind": -6,
   "beast-lang": -3, "beast-hung": -2.5, "beast-bao": -4.5, "beast-xa": 3.5, "beast-chim": 3.5, "beast-trung": 3, "beast-thiem": 5.5, "beast-thuc": -1, "beast-boss": -3, "beast-die": -3.5,

@@ -4771,6 +4771,48 @@
       "sourceId": "kenney-interface-sounds",
       "input": "kenney-interface-sounds/select_002.ogg",
       "inputSha256": "4cc6ac5341b9b2c86fef80c347de028e9ab9f2e037586ac7d9fa59a403a1c012"
+    },
+    {
+      "id": "beast-bien-1",
+      "group": "beast-bien",
+      "pack": "beast",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/bien-quay-1.ogg",
+      "inputSha256": "8d48e8da680fbdfd3c885aa2f69d8e83ad16717bae43d178861d7af08d142849",
+      "gainDb": -4,
+      "pitch": 0.75,
+      "lowpass": 2600,
+      "highpass": 70,
+      "maxSeconds": 0.65,
+      "fadeOut": 0.04
+    },
+    {
+      "id": "beast-bien-2",
+      "group": "beast-bien",
+      "pack": "beast",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/bien-quay-2.ogg",
+      "inputSha256": "e515b7da00b2a268263824dbea9b7bc0c2e972fbd189fe3c02576d2e29af3aa5",
+      "gainDb": -4,
+      "pitch": 0.68,
+      "lowpass": 2600,
+      "highpass": 70,
+      "maxSeconds": 0.65,
+      "fadeOut": 0.04
+    },
+    {
+      "id": "beast-bien-3",
+      "group": "beast-bien",
+      "pack": "beast",
+      "sourceId": "oga-100-cc0-sfx",
+      "input": "oga-100-cc0-sfx/bien-bot-3.ogg",
+      "inputSha256": "b4cbe7e0c49ad1caf2dc02dc218897bdf9b5bce2e5d11b3b87861dd5269c1749",
+      "gainDb": -9.5,
+      "pitch": 0.6,
+      "lowpass": 2600,
+      "highpass": 70,
+      "maxSeconds": 0.65,
+      "fadeOut": 0.04
     }
   ]
 }
