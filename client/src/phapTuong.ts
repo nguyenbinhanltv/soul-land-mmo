@@ -15,6 +15,8 @@ import { wantPhapTuong } from "./vohonLazy.ts";
 import { DIRV, ptRow, ptIsBack, ptStrikeFrame, ptStrikeCurve, clamp01 } from "./phapTuongMath.ts";
 
 const hexN = (c: string) => parseInt(c.replace("#", ""), 16);
+// Sheet Codex Liệt Hỏa cần lớn và cao hơn để thân sói đọc được sau vai hồn sư (#1435).
+const LIET_HOA_DISPLAY = { scale: 1.6, dx: 0, dy: -24 };
 
 // ---------- ảnh tạm bằng code ----------
 
@@ -149,7 +151,8 @@ export class PhapTuongSystem {
   get active() { return this.rigs.size; }
 
   private makeSlot(id: string): Slot | null {
-    const def = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
+    const base = PHAP_TUONG[id], vh = VOHON.find((v) => v.id === id);
+    const def = base?.sheet === "pt_liet_hoa_thuong_lang" ? { ...base, ...LIET_HOA_DISPLAY } : base;
     if (!def || !vh || !ensurePtSheet(this.scene, id)) return null;
     // Có sheet lớp sáng riêng `pt_<mã>_glow` (cùng bố cục, màu đã nướng sẵn) thì lớp cộng sáng dùng nó, không tô màu; chưa có thì dùng lại sheet thân.
     const gk = `${def.sheet}_glow`, own = this.scene.textures.exists(gk);
@@ -266,7 +269,8 @@ export class PhapTuongSystem {
       }
       s.body.setAlpha(clamp01(alpha));
       const flashHit = stopT && flashOn();
-      if (flashHit) s.body.setTintFill(0xffffff); else s.body.clearTint();
+      // Giữ màu và chi tiết thân ở đỉnh đòn; chớp tại chỗ dùng lớp sáng phía dưới.
+      s.body.clearTint();
       const pulse = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
       s.glow.setVisible(mine || lv !== "low"); // H8: Thấp, pháp tướng người khác bỏ lớp cộng sáng (một lượt vẽ thay vì hai)
       (s.own ? s.glow.clearTint() : s.glow.setTint(s.col)).setAlpha(clamp01((0.25 + 0.3 * m.pulse * pulse * 2 + (flashHit ? 0.6 : 0) + sc * 0.2 + 0.4 * bur) * stG * k * vis * v.alpha * (lv === "low" ? 0.5 : 1)));
