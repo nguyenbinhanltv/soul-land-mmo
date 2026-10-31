@@ -54,6 +54,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.15 | Trang bị hồn sư | [docs/design/trang-bi.md](docs/design/trang-bi.md) | 5 |  |
 | 5.15 | Trang bị hồn sư | [docs/tech/trang-bi-cai-dat.md](docs/tech/trang-bi-cai-dat.md) | 5 | Hướng dẫn làm E1–E4 |
 | 5.16 | Giao diện Nhân vật + Túi (hai cửa sổ, búp bê 4 tab; theo dõi #453) | [docs/design/giao-dien.md](docs/design/giao-dien.md) | 7 | Giao diện Nhân vật + Túi |
+| 5.16 | Xem lại Làm quen trong Cẩm Nang | [docs/design/lam-quen-xem-lai.md](docs/design/lam-quen-xem-lai.md) | 1 | |
 | 5.16 | Thông báo nhặt đồ vào chat (#1462) | [docs/design/thong-bao-nhat-do.md](docs/design/thong-bao-nhat-do.md) | 1 |  |
 | 5.16 | Đọc lịch sử chat (#1509) | [docs/design/chat-lich-su.md](docs/design/chat-lich-su.md) | 1 |  |
 | 5.16 | Túi đồ gọn và Hồn sư | [docs/design/tui-do-gon.md](docs/design/tui-do-gon.md) | 1 | Túi riêng; hai bảng; cảm ứng |

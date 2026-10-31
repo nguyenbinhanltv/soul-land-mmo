@@ -159,6 +159,76 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   await guide.waitFor({ state: "hidden" });
   step("hướng dẫn lần đầu: bước theo phím, Bỏ qua, mục Cẩm Nang của hub xem lại");
 
+  // #1522: xem lại sáu bước qua Cẩm Nang, không ghi đè tiến độ riêng của hồn sư.
+  const onboard = page.locator("#onboard"), obKey = `soul-onboard-v1:${name}`;
+  const openReview = async () => {
+    await page.locator("#hubBtn").click();
+    await page.locator('#hub [data-hub="guide"]').click();
+    await guide.getByRole("button", { name: "Xem lại hướng dẫn", exact: true }).click();
+    await onboard.waitFor({ state: "visible" });
+    assert.match(await onboard.locator(".ob-head b").textContent(), /bước 1\/6/);
+  };
+  const readOb = () => page.evaluate((key) => localStorage.getItem(key), obKey);
+  // Bỏ qua thật trước khi xem lại, không cần thao tác DevTools của người chơi.
+  await onboard.getByRole("button", { name: "Bỏ qua", exact: true }).click();
+  const skipped = await readOb();
+  await openReview();
+  await shot("lam-quen-xem-lai-skip");
+  for (let i = 1; i <= 6; i++) {
+    assert.match(await onboard.locator(".ob-head b").textContent(), new RegExp(`bước ${i}/6`));
+    await onboard.locator(".ob-next").click();
+  }
+  assert.equal(await readOb(), skipped, "xem đủ sáu bước không thay skip");
+  await onboard.waitFor({ state: "hidden" });
+
+  // Các trạng thái bền qua tải lại; tài khoản cũ không có bản ghi không tự bật.
+  for (const saved of [{ s: 5, st: "done" }, { s: 3, st: "run" }, null]) {
+    const raw = saved ? JSON.stringify(saved) : null;
+    const initial = saved?.st === "done" ? JSON.stringify({ s: 3, st: "run" }) : raw;
+    await page.evaluate(({ key, raw }) => { if (raw) localStorage.setItem(key, raw); else localStorage.removeItem(key); }, { key: obKey, raw: initial });
+    await page.reload();
+    await page.locator("#go").click();
+    await page.locator("#hubBtn").waitFor({ state: "visible" });
+    // Đợi guideStart nạp tiến độ sau tin quest.
+    await page.waitForFunction(() => window.__scene?.guideOn);
+    if (saved?.st === "done") {
+      await onboard.waitFor({ state: "visible" });
+      for (let i = 0; i < 3; i++) await onboard.locator(".ob-next").click();
+      assert.equal(await readOb(), raw, "hoàn tất Làm quen bằng UI ghi done");
+      await onboard.getByRole("button", { name: "Đóng", exact: true }).click();
+    }
+    if (saved?.st === "run") await onboard.waitFor({ state: "visible" });
+    else assert.equal(await onboard.isVisible(), false, "done / tài khoản cũ không tự hiện");
+    await openReview();
+    for (const [width, height, touch] of [[960, 540, false], [640, 360, true]]) {
+      await page.setViewportSize({ width, height });
+      for (let fs = 0; fs < 3; fs++) {
+        await page.evaluate(({ fs, touch }) => {
+          document.body.classList.remove("a11y-fs-0", "a11y-fs-1", "a11y-fs-2");
+          document.body.classList.add(`a11y-fs-${fs}`, "reduce-motion");
+          document.body.classList.toggle("touch", touch);
+        }, { fs, touch });
+        await sleep(100);
+        const box = await onboard.boundingBox();
+        assert.ok(box && box.x >= 0 && box.y >= 0 && box.x + box.width <= width + 1 && box.y + box.height <= height + 1, `thẻ tràn ${width}×${height}, chữ ${fs}: ${JSON.stringify(box)}`);
+        await onboard.locator(".ob-skip").scrollIntoViewIfNeeded();
+        assert.ok(await onboard.locator(".ob-skip").isVisible());
+        if (saved?.st === "done") await shot(`lam-quen-${width}-chu-${fs}`);
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.evaluate(() => { document.body.classList.remove("a11y-fs-2", "touch", "reduce-motion"); });
+    await onboard.locator(".ob-next").click();
+    assert.match(await onboard.locator(".ob-head b").textContent(), /bước 2\/6/);
+    await onboard.locator(".ob-skip").click();
+    assert.equal(await readOb(), raw, "đóng xem lại giữ nguyên bản ghi");
+    if (saved?.st === "run") {
+      assert.match(await onboard.locator(".ob-head b").textContent(), /bước 4\/6/, "khôi phục bước làm dở");
+      await onboard.locator(".ob-skip").click();
+    }
+  }
+  step("Làm quen: skip/done/run/tài khoản cũ, đủ sáu bước, ba cỡ chữ và 640×360");
+
   // 5a'. Bí Cảnh (#877 P5): hub có thẻ Bí Cảnh; mở ra thấy phụ bản Luyện Hồn Cảnh, lượt n/m, đếm ngược làm mới 05:00 và nút Khiêu Chiến; Esc đóng.
   await page.locator("#hubBtn").click();
   await page.locator('#hub [data-hub="bicanh"]').click();

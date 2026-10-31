@@ -67,6 +67,7 @@ export const firstShown = (sels: readonly string[], root: ParentNode = document)
 
 // ---- phần DOM ----
 let who = "", saved: ObSaved | null = null, step = 0, running = false;
+let reviewing = false;
 let card: HTMLElement | null = null, spot: HTMLElement | null = null, timer = 0, doneTimer = 0, tapEl: HTMLElement | null = null;
 
 const q = (c: HTMLElement, sel: string) => c.querySelector(sel) as HTMLElement;
@@ -102,10 +103,10 @@ function place(target: HTMLElement | null) {
 function paint() {
   const c = root(), s = OB_STEPS[step];
   c.hidden = false; c.dataset.mode = "step"; c.dataset.dock = s.dock ?? "";
-  q(c, ".ob-head b").textContent = `Làm quen · bước ${step + 1}/${OB_STEPS.length}`;
+  q(c, ".ob-head b").textContent = `${reviewing ? "Xem lại Làm quen" : "Làm quen"} · bước ${step + 1}/${OB_STEPS.length}`;
   q(c, ".ob-dots").textContent = OB_STEPS.map((_, i) => (i < step ? "●" : i === step ? "◉" : "○")).join(" ");
   q(c, "h4").textContent = s.title; q(c, "p").textContent = s.body;
-  q(c, ".ob-next").textContent = s.id === "ring" ? "Làm sau" : "Bỏ bước";
+  q(c, ".ob-next").textContent = reviewing ? (step === OB_STEPS.length - 1 ? "Xong" : "Tiếp") : s.id === "ring" ? "Làm sau" : "Bỏ bước";
   q(c, ".ob-skip").hidden = false;
 }
 
@@ -113,9 +114,9 @@ function paint() {
 function tick() {
   if (!running) return;
   const s = OB_STEPS[step];
-  if (s.open && firstShown(s.open)) return advance();
+  if (!reviewing && s.open && firstShown(s.open)) return advance();
   place(firstShown(s.target));
-  if (s.tap) {
+  if (!reviewing && s.tap) {
     const e = document.querySelector<HTMLElement>(s.tap);
     if (e && e !== tapEl) { tapEl?.removeEventListener("pointerdown", onTap); tapEl = e; e.addEventListener("pointerdown", onTap); }
   }
@@ -125,13 +126,18 @@ function onTap() { if (running && OB_STEPS[step].tap) advance(); }
 function advance() {
   tapEl?.removeEventListener("pointerdown", onTap); tapEl = null;
   if (step >= OB_STEPS.length - 1) return finish("done");
-  step++; if (saved) { saved.s = step; persist(); }
+  step++; if (saved && !reviewing) { saved.s = step; persist(); }
   paint(); tick();
 }
 function hide() { if (card) card.hidden = true; place(null); clearTimeout(doneTimer); }
 function stop() { running = false; window.clearInterval(timer); timer = 0; tapEl?.removeEventListener("pointerdown", onTap); tapEl = null; place(null); }
 function finish(st: "done" | "skip") {
   stop();
+  if (reviewing) {
+    reviewing = false; step = saved?.s ?? 0; hide();
+    if (saved?.st === "run") run();
+    return;
+  }
   saved = { s: step, st }; persist();
   if (st === "skip") return hide();
   // Hoàn thành: thẻ cảm ơn, tự tắt sau ít giây.
@@ -149,17 +155,22 @@ function run() {
 
 /** Gắn vào một hồn sư (guide.ts gọi mỗi lần vào bản đồ): nạp tiến độ; đang làm dở thì tiếp tục (giữ bước khi GameScene dựng lại cảnh). */
 export function onboardAttach(name: string) {
-  if (name !== who) { stop(); hide(); who = name; saved = parseSaved(storage.get(obKey(name))); step = saved?.s ?? 0; }
+  if (name !== who) { stop(); hide(); reviewing = false; who = name; saved = parseSaved(storage.get(obKey(name))); step = saved?.s ?? 0; }
   if (saved?.st === "run") run();
 }
 /** Người chơi vừa xong / bỏ qua hướng dẫn điều khiển: bắt đầu làm quen một lần (đã có bản ghi thì không bắt đầu lại). */
 export function onboardBegin() {
-  if (!who || saved) return;
+  if (!who || saved || reviewing) return;
   saved = { s: 0, st: "run" }; step = 0; persist(); run();
+}
+/** Xem lại từ bước đầu, không ghi đè tiến độ; cùng hồn sư đổi bản đồ vẫn giữ bước xem lại. */
+export function onboardReview() {
+  if (!who) return;
+  stop(); hide(); reviewing = true; step = 0; run();
 }
 /** GameScene báo việc đã gửi (đang chờ đúng việc này thì tiến lên). */
 export function onboardEvent(ev: ObEvent) {
-  if (running && OB_STEPS[step].event === ev) advance();
+  if (running && !reviewing && OB_STEPS[step].event === ev) advance();
 }
 /** Đang chạy (guide.ts nhường chỗ gợi ý theo tình huống). */
 export const onboardActive = () => running;

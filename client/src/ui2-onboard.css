@@ -46,3 +46,7 @@
 #qarrow .qa-pt[data-y="b"]{transform:translate(-50%,-100%)}
 #qarrow .qa-pt[data-y="b"][data-x="r"]{transform:translate(-100%,-100%)}
 #qarrow .qa-pt[data-y="b"][data-x="l"]{transform:translate(0,-100%)}
+
+/* Cẩm Nang và Làm quen cuộn được ở màn thấp, kể cả cỡ chữ rất lớn. */
+body:where(.ui-w640,.ui-h460) #hud > :is(#guide[data-mode="review"],#onboard),body.ui-h560 #hud > #guide[data-mode="review"]{bottom:var(--sp-5);width:min(500px,calc(100% - 2 * var(--sp-5)));min-width:0;max-height:calc(100% - 2 * var(--sp-5));overflow:auto}
+body:where(.ui-w640,.ui-h460) #hud > #guide .g-foot{max-width:160px}
