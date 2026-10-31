@@ -103,3 +103,10 @@ body.touch.ui-h500 .wm-search{flex:1 1 140px;max-width:none;min-width:0}
 body.touch.ui-h500 .wm-tools{flex:1 1 320px;min-width:0;margin-left:0;flex-wrap:wrap;white-space:normal}
 .a11y-fs-1 .wm-card{width:300px}
 .a11y-fs-2 .wm-card{width:340px}
+
+/* Dịch chuyển: phản hồi của server (lý do từ chối), đang chờ, nút phụ Tự đi tới */
+.wm-reply{margin:0;padding:var(--sp-3) var(--sp-4);font:var(--fs-m)/1.4 var(--f12);color:var(--ink);background:var(--paper2);border:var(--bd) solid var(--son);border-left-width:var(--sp-3)}
+.wm-reply::before{content:"Server: ";color:var(--son)}
+.wm-wait{color:var(--xp-t)}
+.wm-walk{min-height:44px;box-sizing:border-box;margin-top:auto;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-m)/1.2 var(--f12)}
+.wm-node{z-index:1}   /* nút bản đồ nằm trên nút trận gần nó: tâm nút bản đồ luôn bấm được */

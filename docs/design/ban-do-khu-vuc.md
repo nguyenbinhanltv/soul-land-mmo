@@ -41,7 +41,7 @@ Một lớp phủ toàn màn hình, khung Giấy của kit, **hai chế độ** 
 - **Khu vực (phím N, bấm radar):** bản đồ đang đứng, `client/src/mapview.ts`, mô tả ngay dưới.
 - Phím M / N: đang xem đúng chế độ đó thì đóng; đang mở chế độ kia thì chuyển sang; đang đóng thì mở. Esc và nút ✕ (44 px) đóng. Không dừng game.
 - Chạm: nút, tab, ô tìm ≥ 44 px; kéo một ngón, chụm hai ngón; mọi nút nằm trong khung (vùng an toàn). Chuyển chế độ có hiệu ứng mờ vào ngắn, tắt khi Giảm chuyển động.
-- Nút chính của khung (một nút): Khu vực = "Đi tới cờ" / "Dừng tự đi" (khoá kèm lý do khi chưa có cờ); Thế giới = "Tự đi tới <bản đồ>" cho mục đang chọn (khoá kèm lý do khi chưa chọn, đã ở đó, hoặc phòng riêng).
+- Nút chính của khung (một nút): Khu vực = "Đi tới cờ" / "Dừng tự đi" (khoá kèm lý do khi chưa có cờ); Thế giới = "Dịch chuyển · <phí>" cho trận đang chọn (khoá kèm lý do, xem "Nút Dịch chuyển"); "Tự đi tới <bản đồ>" là nút phụ trong thẻ chi tiết.
 
 ### Bản đồ khu vực
 Chế độ Khu vực của bản đồ lớn (`client/src/mapview.ts`); thêm khung giấy hai nét và vùng tối dần ra mép, canvas giữ nguyên.
@@ -66,6 +66,12 @@ Chế độ Khu vực của bản đồ lớn (`client/src/mapview.ts`); thêm k
   - Dấu "Bạn ở đây" (hình + chữ) ở trận đang đứng, không thì ở tâm bản đồ đang ở.
 - **Chọn:** bấm nút bản đồ (tự phóng tới bản đồ đó) hoặc trận; bấm nền trống bỏ chọn. Thẻ chi tiết (cột phải): loại, **cấp đề xuất** (`MAPS[].level`), danh sách trận của bản đồ; với trận: tên, bản đồ, trạng thái (√ Đã mở khoá / Chưa mở khoá + hướng dẫn bước lên trận), **phí** (`fee` khi đứng trên trận; `feeRemote` đã gồm phụ phí khi không đứng trên trận; "Không tới được" khi `null`; "Không đủ Hồn Tệ"), và Hồn Tệ hiện có.
 - **Tìm và lọc:** ô tìm không dấu (bản đồ và trận), chọn kết quả thì căn tranh vào đó; "Về chỗ tôi", "⟲ Vừa khung", + / −; kéo, lăn chuột, chụm. Màn dọc ban đầu phóng gấp đôi mức vừa khung, tâm (0,5; 0,5), kéo ngang để xem nhánh khác.
+- **Nút Dịch chuyển** (nút chính của khung ở chế độ Thế giới): chọn một truyền tống trận **đã mở** rồi bấm; client chỉ gửi ý định `wp {op: "go", key}` (`hooks.go`), server kiểm mọi điều kiện và quyết định (luật: `docs/design/the-gioi-ban-do.md` mục "Truyền tống trận", giao thức: `docs/tech/giao-thuc-server.md`). Client **không tự tính luật**, chỉ hiển thị số server gửi trong tin `world`:
+  - Đứng trên một trận (`cur` khác rỗng): phí `fee`, không hồi. Không đứng trên trận (từ xa): phí `feeRemote` (đã gồm phụ phí), hồi `remoteCd` giây còn lại trên `remoteCdMax` (đếm lùi mỗi giây ở thẻ và nút chỉ để hiển thị), hộp xác nhận (`confirmDialog`) nêu phí, thời gian niệm (`WAYPOINT_CAST`) và thời gian hồi trước khi gửi.
+  - Nút khoá kèm lý do ngay trên khung (số liệu server đã báo): chưa chọn trận, chưa mở khoá, đang đứng trên trận đó, không tới được (`null`), không đủ Hồn Tệ, đang hồi (còn bao nhiêu giây).
+  - **Lý do bị chặn khác** (giao chiến, gục, hấp thụ, đang đi cổng, bị khống chế, tự săn, sân đấu, Bí Cảnh…) do server trả bằng dòng `log`: trong `REPLY_MS` sau khi bấm, dòng đầu tiên hiện ở thẻ chi tiết ("Server: …") thay vì lỗi chung chung.
+  - Server bắt đầu niệm (tin `recall`) thì bản đồ tự đóng để thấy thanh niệm; hủy niệm thì server báo bằng `log`.
+  - Server chưa gửi phí từ xa (`feeRemote` / `remoteCdMax` vắng) thì khi không đứng trên trận nút khoá với lý do "Chỉ dùng khi đứng trên trận", các phần còn lại vẫn dùng bình thường.
 - **Trạng thái:** chưa có tin `world` thì báo đang tải; quá 8 giây báo lỗi + Thử lại (xin lại tin). Tranh lỗi tải thì báo + Thử lại, các nút vẫn dùng được trên nền giấy.
 
 ### Tự đi tới cờ
@@ -73,7 +79,7 @@ Chế độ Khu vực của bản đồ lớn (`client/src/mapview.ts`); thêm k
 
 **Đặt cờ**
 - Bấm chuột lên bản đồ khu vực (điện thoại: chạm giữ `AUTOWALK.holdMs` ms, chạm ngắn chỉ hiện tên). Ô chặn không đặt được.
-- Bấm một cổng thì đích là bản đồ bên kia cổng. Bản đồ thế giới (M) có nút chính "Tự đi tới" cho bản đồ đang chọn (khác bản đồ đang đứng).
+- Bấm một cổng thì đích là bản đồ bên kia cổng. Bản đồ thế giới (M) có nút phụ "Tự đi tới" cho bản đồ đang chọn (khác bản đồ đang đứng).
 - Cờ có thanh dưới radar (Đi / Dừng / ✕, phím Y; bản đồ khu vực cũng có nút Đi tới cờ / Dừng / Xóa cờ), vòng cam trên mặt đất, chấm nhiệm vụ màu `RADAR.flagCol` có mũi tên ở mép radar và đường đi nét đứt trên radar lẫn bản đồ khu vực.
 
 **Đường đi**
