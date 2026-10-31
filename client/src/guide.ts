@@ -6,7 +6,7 @@ import "./guide.css";
 import { storage } from "./net.ts";
 import { SKILL_KEYS } from "./hud.ts";
 import { GUIDE_BAG_FREE } from "../../shared/data.ts";
-import { onboardAttach, onboardBegin } from "./onboard.ts";
+import { onboardAttach, onboardBegin, onboardReview } from "./onboard.ts";
 
 /** Đoạn chữ: chuỗi thường hoặc phím (vẽ thành <kbd>). */
 type Seg = string | { k: string };
@@ -53,7 +53,8 @@ function root(): HTMLElement {
   card = document.createElement("section"); card.id = "guide"; card.className = "panel guide"; card.hidden = true;
   card.setAttribute("role", "dialog"); card.setAttribute("aria-label", "Hướng dẫn điều khiển"); card.setAttribute("aria-live", "polite");
   card.innerHTML = `<div class="g-main"><div class="g-head"><b></b><span class="g-dots" aria-hidden="true"></span></div><h4></h4><p></p></div>
-    <div class="g-foot"><button type="button" class="g-next"></button><button type="button" class="g-skip"></button></div>`;
+    <div class="g-foot"><button type="button" class="g-next"></button><button type="button" class="g-skip"></button><button type="button" class="g-onboard" hidden>Xem lại hướng dẫn</button></div>`;
+  q(card, ".g-onboard").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); close(); onboardReview(); });
   q(card, ".g-skip").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); close(mode === "tour" ? "skip" : ""); });
   q(card, ".g-next").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); if (mode === "hint") close(); else next(); });
   (document.getElementById("hud") ?? document.body).appendChild(card);
@@ -69,6 +70,8 @@ function render() {
   fill(q(c, "p"), s.body);
   q(c, ".g-skip").hidden = false; q(c, ".g-skip").textContent = mode === "tour" ? "Bỏ qua" : "Đóng";
   q(c, ".g-next").textContent = step === STEPS.length - 1 ? "Xong" : "Tiếp";
+  q(c, ".g-onboard").hidden = mode !== "review";
+  q(c, ".g-onboard").title = "Xem lại 6 bước Làm quen: võ hồn, nhiệm vụ, Túi đồ, hồn hoàn, bản đồ và menu.";
 }
 
 function close(result: "" | "skip" | "done" = "") {
@@ -119,6 +122,7 @@ export function guideHint(h: GuideHint) {
   q(c, "h4").textContent = t.title;
   fill(q(c, "p"), t.body);
   q(c, ".g-skip").hidden = true;
+  q(c, ".g-onboard").hidden = true;
   q(c, ".g-next").textContent = "Đã hiểu";
   hintTimer = window.setTimeout(() => close(), HINT_MS);
 }

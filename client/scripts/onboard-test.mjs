@@ -90,3 +90,43 @@ assert.ok(src("main.ts").includes('import "./ui2-onboard.css"'));
 // đợt 5c: đã gỡ cờ ui2, các tệp này không còn đọc isUi2
 for (const f of ["onboard.ts", "pingMeter.ts", "questArrow.ts"]) assert.ok(!src(f).includes("isUi2"), `${f}: không còn nhánh theo cờ`);
 console.log("onboard: ok");
+
+// Vòng đời DOM: xem lại không ghi tiến độ, gắn lại cùng tên giữ bước, đổi tên dừng lần xem cũ.
+{
+  const { onboardAttach, onboardBegin, onboardReview, onboardActive } = await import('../src/onboard.ts');
+  const values = new Map(), elements = new Map();
+  class El {
+    hidden = true; isConnected = true; dataset = {}; style = {}; textContent = ''; listeners = new Map(); children = new Map();
+    set innerHTML(_) { for (const s of ['.ob-skip', '.ob-next', '.ob-head b', '.ob-dots', 'h4', 'p']) this.children.set(s, new El()); }
+    querySelector(s) { return this.children.get(s) ?? null; }
+    setAttribute() {} appendChild(e) { elements.set(e.id, e); } remove() { this.isConnected = false; }
+    addEventListener(s, f) { this.listeners.set(s, f); } removeEventListener(s) { this.listeners.delete(s); }
+    getClientRects() { return []; } blur() {}
+    click(s) { const e = this.children.get(s); e.listeners.get('click')({ currentTarget: e }); }
+  }
+  const hud = new El(); elements.set('hud', hud);
+  globalThis.document = { createElement: () => new El(), getElementById: (id) => elements.get(id), querySelector: () => null, body: hud };
+  globalThis.localStorage = { getItem: (k) => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) };
+  globalThis.window = { setInterval: () => 1, clearInterval() {}, setTimeout: () => 1 };
+  for (const st of ['skip', 'done', 'run']) {
+    const name = `Thu ${st}`, raw = JSON.stringify({ s: 3, st }); values.set(obKey(name), raw);
+    onboardAttach(name); onboardReview();
+    const card = elements.get('onboard');
+    assert.match(card.children.get('.ob-head b').textContent, /bước 1\/6/);
+    card.click('.ob-next'); onboardAttach(name);
+    assert.match(card.children.get('.ob-head b').textContent, /bước 2\/6/, 'đổi bản đồ giữ bước xem lại');
+    card.click('.ob-skip');
+    assert.equal(values.get(obKey(name)), raw, 'Bỏ qua xem lại giữ bản ghi');
+    assert.equal(onboardActive(), st === 'run');
+    if (st === 'run') assert.match(card.children.get('.ob-head b').textContent, /bước 4\/6/);
+    onboardReview();
+    for (let i = 0; i < 6; i++) card.click('.ob-next');
+    assert.equal(values.get(obKey(name)), raw, 'Xong xem lại giữ bản ghi');
+  }
+  onboardAttach('Cu'); assert.equal(onboardActive(), false, 'tài khoản cũ không tự hiện');
+  onboardReview(); onboardAttach('Moi'); assert.equal(onboardActive(), false, 'đổi hồn sư dừng xem lại');
+  onboardBegin(); assert.equal(parseSaved(values.get(obKey('Moi'))).st, 'run');
+  elements.get('onboard').click('.ob-skip');
+  assert.equal(parseSaved(values.get(obKey('Moi'))).st, 'skip');
+  console.log('onboard: vòng đời run/skip/done/review và đổi hồn sư đạt');
+}
