@@ -75,7 +75,9 @@
 :where(.ui-h560) #hud #bossbar .bhead{flex-wrap:wrap;gap:0 var(--sp-4);white-space:normal}
 :where(.ui-h560) #hud #bossbar .bhead .bn{margin-left:0}
 /* Cỡ lớn: huy hiệu hub (44 px, cách mép trên 12 px) đứng đúng giữa-trên nên dải boss / mục tiêu / đếm ngược bắt đầu dưới huy hiệu (12 + 44 + 6). */
-body:not(.ui-h560) #hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,#bossCd){top:calc(var(--sp-5) + 44px + var(--sp-3))}
+#hud #bossbar,body:not(.ui-h560):not(.boss) #hud :is(#target,#bossCd){top:calc(var(--sp-5) + 44px + var(--sp-3))}
+/* Desktop thấp: dùng mép cột thực do showBoss đo; không để tên boss lấn chỉ số / radar. */
+body.ui-h560:not(.touch):not(.ui-w640) #hud #bossbar{left:calc(var(--boss-left-edge) + var(--sp-4));right:calc(var(--boss-right-inset) + var(--sp-4));width:auto;transform:none}
 
 /* Khung gộp Nhiệm vụ | Tổ đội (#sideBox, sideBox.ts): hàng tab + nút Gọn, thân cuộn riêng. Tab đang chọn có vạch dưới chân (hình), chấm đỏ tròn khi tab có việc
    (kèm aria-label); thu gọn thì cả khung là một chip. Phần trong (#quest / #party) bỏ khung riêng, khung do .f2-muc-nho của #sideBox. */

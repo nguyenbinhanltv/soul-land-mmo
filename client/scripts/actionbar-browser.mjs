@@ -18,6 +18,8 @@ const installed = fileURLToPath(new URL("../../", import.meta.url));
 const root = await realpath(resolve(process.env.C8_SOURCE_ROOT ?? installed));
 const out = resolve(process.env.C8_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "c8-preview-")));
 const before = process.env.C8_PHASE === "before", phase = before ? "before" : "after";
+const bossOnly = process.env.C8_BOSS_ONLY === "1";
+if (bossOnly) process.env.C8_NAMES_ONLY = "1";
 const children = [], samples = [], nameSamples = [], nameFailures = [];
 const viewports = [[960, 540, false], [1280, 720, false], [1920, 1080, false]];
 if (process.env.C8_TOUCH === "1") viewports.push([844, 390, true], [390, 844, true]);   // ngang + dọc (điện thoại)
@@ -104,6 +106,33 @@ try {
     });
     await page.goto(`${web}/choi/`);
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
+    if (bossOnly) {
+      await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
+      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      for (const fs of [0,1,2]) {
+        await page.evaluate(async fs => {
+          document.body.classList.remove("a11y-fs-1","a11y-fs-2"); if(fs) document.body.classList.add(`a11y-fs-${fs}`);
+          document.querySelectorAll("#toasts .toast").forEach(e=>e.remove());
+          const {showBoss}=await import("/src/hudBoss.ts");
+          clearInterval(window.__bossFixture);
+          const b={name:"Huyết Nguyệt Lang Vương",hp:700-fs,maxHp:1000,parts:5,phase:2,title:"Tà hóa",col:"var(--son-l)"};
+          showBoss(b); window.__bossFixture=setInterval(()=>showBoss(b),20);
+        },fs);
+        await page.mouse.move(1,1); await page.waitForTimeout(300);
+        const boxes=await page.evaluate(()=>{
+          const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
+          return {boss:rect("bossbar"),menu:rect("hubBtn"),left:rect("lcol"),right:rect("rcol")};
+        });
+        samples.push({size,fs,boxes});
+        if(!before) for(const key of ["menu","left","right"]) {
+          const a=boxes.boss,b=boxes[key];
+          assert.ok(!(a.left<b.right && a.right>b.left && a.top<b.bottom && a.bottom>b.top),`Dải boss che ${key}: ${size} fs${fs} ${JSON.stringify(boxes)}`);
+        }
+        await screenshot(page,`boss-fs${fs}`,size);
+      }
+      await page.evaluate(async()=>{clearInterval(window.__bossFixture);(await import("/src/hudBoss.ts")).showBoss(null);});
+      await context.close(); console.log(`✓ Boss ${phase} ${size}: ba cỡ chữ`); continue;
+    }
     await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
     if (toastOnly) {
       await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
