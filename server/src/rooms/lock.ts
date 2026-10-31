@@ -2,13 +2,10 @@
 // trong tầm thì tự quay mặt và đánh thường theo hồi chiêu, ngoài tầm thì client lái A* tới (shared/clickgoal.ts). Bị đánh / choáng / đẩy
 // lùi KHÔNG huỷ khoá; chỉ huỷ khi hồn thú chết / biến mất / quá xa, hồn sư gục / vào vùng an toàn / tự đi / tự săn. Mọi lần đánh vẫn đi
 // qua MapRoom.attack nên hồi chiêu, Choáng, vùng an toàn, tàng hình… áp như khi tự bấm. Client chỉ gửi ý định `target {id}`.
-import { ATTACK_REACH, TIERS, dir4 } from "../../../shared/data.ts";
+import { ATTACK_REACH, BEAST_HALF, dir4 } from "../../../shared/data.ts";
 import { reachGap } from "../../../shared/clickgoal.ts";
 import type { MapRoom, PData } from "./MapRoom.ts";
 import type { BeastState, PlayerState } from "./schema.ts";
-
-/** Nửa cỡ hồn thú lớn nhất: bán kính lấy ứng viên từ lưới không gian. */
-const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
 
 /** Hồn thú `b` nằm trong tầm đòn thường của hồn sư `p` (quay mặt về nó thì đòn trúng). */
 export const inReach = (p: PlayerState, b: BeastState) => { const g = reachGap(p, b); return g.dist < g.max; };

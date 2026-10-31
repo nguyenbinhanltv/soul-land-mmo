@@ -20,6 +20,9 @@ export const TIERS: TierDef[] = [
   { years: 100000, age: "100.000 năm", color: "Đỏ",    col: "#e0303a", glow: "#ff6a5a", hp: 4200, dmg: 95, xp: 2500, spd: 40, atkb: 85, hpb: 700, size: 22, body: "#8f1f2a" },
 ];
 
+/** Nửa cỡ hồn thú lớn nhất (TIERS.size): cộng vào bán kính khi lấy ứng viên từ lưới không gian (beastsNear, 11.4). */
+export const BEAST_HALF = Math.max(...TIERS.map((t) => t.size)) / 2;
+
 export const TIER_MULT = [1, 1.35, 1.9, 2.8, 4.5];
 
 /** Bậc (chỉ số trong TIERS) của một hồn hoàn theo số năm. */

@@ -3,10 +3,10 @@
 // Hàm nhận phòng (`room: MapRoom`) như skill.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick. MapRoom chỉ chuyển tiếp 6 hàm
 // (`onMessage`, `tick`, `skill.ts`, `boss.ts`, `autoHunt.ts`, `gm.ts`, `ArenaRoom` gọi như cũ).
 // Còn ở MapRoom: `killBeast`, `applyStatus` / `applyPStatus`, `chanThan` / `endAva` / `tickAva`, `selfEffect` / `partyShare`, tiên cơ (`tienCo`, `gainEnergy`), `buffV` / `atkOf`.
-import { TIERS, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
+import { TIERS, BEAST_HALF, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
   STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult, HIT_INVULN_SECS } from "../../../shared/data.ts";
 import type { Character } from "../db.ts";
-import { BEAST_HALF, type MapRoom, type Hit, type DmgOpt } from "./MapRoom.ts";
+import type { MapRoom, Hit, DmgOpt } from "./MapRoom.ts";
 
 /**
  * Hồn thú gây `dmg` cho hồn sư `id`. Trả về true nếu đòn trúng (kể cả khiên đỡ hết), false nếu bị bỏ qua (vừa bị đánh, bất tử,

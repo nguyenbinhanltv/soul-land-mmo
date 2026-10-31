@@ -4,12 +4,12 @@
 // MapRoom chỉ chuyển tiếp (`tick.ts`, `join.ts`, `persist.ts`, `travel.ts`, `gm.ts` và các miền gọi `room.beastsNear` / `room.fogLoad` / `room.fogFlush` như cũ).
 
 import type { BeastState } from "./schema.ts";
-import { FOG, RADAR, TILE } from "../../../shared/data.ts";
+import { FOG, RADAR, TILE, BEAST_HALF } from "../../../shared/data.ts";
 import { fogDims as sharedFogDims, fogEmpty, fogReveal, fogValid, fogOn as fogMapOn } from "../../../shared/fog.ts";
 import { mapFile } from "../map.ts";
 import { store } from "../db.ts";
 import * as party from "../party.ts";
-import { BEAST_HALF, type MapRoom, type PData } from "./MapRoom.ts";
+import type { MapRoom, PData } from "./MapRoom.ts";
 
 /**
  * Hồn thú có thể nằm trong bán kính r quanh (x, y): ứng viên theo lưới không gian (đã cộng nửa cỡ hồn thú lớn nhất), thay cho quét cả
