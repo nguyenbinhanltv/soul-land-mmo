@@ -159,8 +159,20 @@ export async function autoBossTest(){
     await test(A,"pregen",{s:0,hp:100,mp:100});
     ok(await until(async()=>{ ai=await info(); return !ai.away&&ai.target===KB; },10000),"hồi đủ sinh lực: quay lại đánh");
     await cfg({years:[0,0],elite:false,world:false});
+    // Gốc chập chờn (#1549): thú vương về chỗ và hồi đầy (spawn.eliteReset: không ai trong hang KING.idleSecs giây, xóa đóng góp) nếu máu hạ xuống
+    // còn 200 mà tự săn chưa vào hang đánh (vừa lùi / vừa quay lại, runner chậm); khi đó 30 giây không hạ nổi và không có rương. Chờ theo state:
+    // tự săn đang đánh thú vương (đích, không lùi, trong hang, đã ghi đóng góp, thú vương vừa bị trúng) rồi mới hạ máu.
+    const bq=async()=>(await test(A,"auto",{bid:KB}))?.beast;
+    const kDiag=async()=>{ const x=await info().catch(()=>({})), k=kb(), q=await test(A,"king").catch(()=>({})), c=await bq().catch(()=>null);
+      const aid=[...A.room.state.beasts.values()].filter(b=>b!==k&&Math.hypot(b.x-me().x,b.y-me().y)<400).length;
+      return `[thú vương ${k?`hp ${k.hp}/${k.maxHp} ${k.x.toFixed(0)},${k.y.toFixed(0)}`:"đã hạ"}, calm ${c?.calm?.toFixed(1)} mục tiêu ${c?.target===sid?"A":c?.target}; A ${me().x?.toFixed(0)},${me().y?.toFixed(0)} ${inL(me().x,me().y)?"trong":"ngoài"} hang ${me().hp}/${me().maxHp} `
+        +`tự săn ${JSON.stringify({target:x.target===KB?"thú vương":x.target,boss:x.boss,away:x.away,pace:x.pace,secs:x.secs,anchor:x.anchor})}; đóng góp ${JSON.stringify(q.dmgBy)}; ${aid} hồn thú quanh]`; };
+    let engaged=false; for(let t=Date.now();Date.now()-t<30000&&!engaged;){ ai=await info(); ki=await test(A,"king"); const c=await bq();
+      engaged=ai.target===KB&&!ai.away&&inL(me().x,me().y)&&ki.dmgBy?.[sid]>0&&c?.calm<1.5; if(!engaged) await sleep(200); }
+    ok(engaged,"tự săn đang giao chiến thú vương (trong hang, đã trúng) trước khi hạ máu"+(engaged?"":" "+await kDiag()));
     await lowHp(KB);
-    ok(await waitFor(()=>!kb(),30000),"tự săn hạ thú vương");
+    const kDone=await waitFor(()=>!kb(),30000);
+    ok(kDone,"tự săn hạ thú vương"+(kDone?"":" "+await kDiag()));
     const cl=await test(A,"claims");
     ok(cl?.n===1&&cl.db===1&&A.logs.some(t=>/^Nhận .*Rương/i.test(t)||/Nhận .*rương/i.test(t)),`đóng góp đủ: nhận rương, lượt ${cl?.n}/${KING.daily} hôm nay (DB ${cl?.db})`);
     await autoOp("off");
