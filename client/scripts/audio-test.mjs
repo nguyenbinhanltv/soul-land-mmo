@@ -530,6 +530,45 @@ noListenerAudio.dispose();
     const spread = new Set(), ls = new amb.AmbientLayers((k, v, p) => spread.add(p), Math.random);
     for (let t = 0; t < 600_000; t += 250) ls.update(t, { mapId: "cuc_bac_chi_dia", night: 0, fireDist: null });
     assert.ok(spread.size > 3, "lệch trái / phải ngẫu nhiên");
+
+    // Tiếng nước đài phun (#1573): chỉ hai thành, chỉ khi đứng gần (đài gần nhất), càng gần càng to; gói riêng tải lười.
+    {
+      assert.deepEqual(Object.keys(amb.AMBIENT_PROFILES).filter((id) => amb.AMBIENT_PROFILES[id].fountain), ["nac_dinh_thanh", "thien_dau_thanh"], "chỉ hai thành có đài phun");
+      assert.ok(amb.AMBIENT_FOUNTAIN_PROPS.has("dai_phun_nuoc") && amb.AMBIENT_FOUNTAIN_RANGE > 0);
+      const run = (mapId, fountainDist, ms = 120_000) => {
+        const got = [];
+        const l = new amb.AmbientLayers((kind, volume) => got.push({ kind, volume }), () => 0.5);
+        for (let t = 0; t < ms; t += 250) l.update(t, { mapId, night: 0.5, fireDist: null, fountainDist });
+        return got.filter((g) => g.kind === "fountain");
+      };
+      assert.equal(run("nac_dinh_thanh", amb.AMBIENT_FOUNTAIN_RANGE).length, 0, "ngoài tầm: im");
+      assert.equal(run("nac_dinh_thanh", null).length, 0, "không có đài trong khung: im");
+      assert.equal(run("thien_dau_thanh", undefined).length, 0, "thiếu fountainDist: im");
+      for (const id of ["thanh_hon_thon", "hai_than_dao", "luyen_hon_canh", "cuc_bac_chi_dia"]) assert.equal(run(id, 0).length, 0, `${id} không có đài: im`);
+      const near = run("nac_dinh_thanh", 10), far = run("thien_dau_thanh", amb.AMBIENT_FOUNTAIN_RANGE * 0.8);
+      assert.ok(near.length > 0 && far.length > 0, "trong tầm thì phát");
+      assert.ok(near[0].volume > far[0].volume && near[0].volume > 0.9 && far[0].volume < 0.25, "càng gần càng to");
+      // Số lần phát chỉ theo nhịp hồ sơ, không nhân theo số đài (GameScene chỉ gửi khoảng cách gần nhất).
+      assert.ok(near.length <= Math.ceil(120 / amb.AMBIENT_PROFILES.nac_dinh_thanh.fountain / 0.6) + 1, "không nhân tiếng");
+      // Đổi bản đồ / rời đài: không phát tiếp theo lịch cũ.
+      const got = [];
+      const l = new amb.AmbientLayers((kind) => got.push(kind), () => 0.5);
+      let now = 0;
+      for (; now < 30_000; now += 250) l.update(now, { mapId: "nac_dinh_thanh", night: 0, fireDist: null, fountainDist: 20 });
+      const before = got.filter((k) => k === "fountain").length;
+      for (; now < 90_000; now += 250) l.update(now, { mapId: "nac_dinh_thanh", night: 0, fireDist: null, fountainDist: null });
+      assert.equal(got.filter((k) => k === "fountain").length, before, "rời đài thì hết tiếng");
+      for (; now < 150_000; now += 250) l.update(now, { mapId: "ban_do_la", night: 0, fireDist: null, fountainDist: 20 });
+      assert.equal(got.filter((k) => k === "fountain").length, before, "đổi map thì hết tiếng");
+      assert.equal(packOfGroup("amb-fountain"), "amb-nuoc", "nước nằm gói riêng, tải lười");
+      assert.ok(have.get("amb-fountain") >= 3 && real.packs["amb-nuoc"], "manifest thật có gói amb-nuoc với ≥ 3 biến thể");
+      assert.equal(voiceClassOf("amb-fountain"), "amb", "chịu trần tiếng môi trường như gió");
+      const { audio: fa } = make();
+      const seen = [];
+      fa.playGroup = (g, s, o) => { seen.push([g, o]); return true; };
+      fa.playAmbient("fountain", 0.6, 0.2);
+      assert.deepEqual([seen[0][0], seen[0][1].channel, seen[0][1].gain, seen[0][1].pan], ["amb-fountain", "ambient", 0.6, 0.2], "kênh Môi trường, độ to theo khoảng cách");
+    }
   }
 
   // Nền môi trường vòng lặp (#622): tải lười theo bản đồ, vòng lặp, chuyển chéo khi đổi bản đồ, im ở bản đồ không có nền.

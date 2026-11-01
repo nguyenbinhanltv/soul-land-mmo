@@ -15,6 +15,7 @@ import { TILE } from "../../shared/data.ts";
 import { TILE_W, TILE_H, TOPDOWN, worldToScreen, screenToWorld, depthAt } from "./iso.ts";
 import { Buf, rgba, shade, buildHouse, buildFence, frontDepth, type RGBA, type BuildStyle } from "./isoBuild.ts";
 import { GLOW_PROPS, attachNormal, lightingOn } from "./lighting.ts";
+import { AMBIENT_FOUNTAIN_PROPS } from "./audio/ambientLayers.ts";
 import { IsoAtlas } from "./isoAtlas.ts";
 import { touchTexture } from "./textureLru.ts";
 import { PRIV_OFF } from "./privateAssets.ts";
@@ -236,6 +237,8 @@ export class IsoMap {
   /** Điểm phát sáng của các ô đang hiện (theo chỉ số ô), cộng ánh cửa từng ngôi nhà (cố định, dựng khi vào bản đồ). */
   private glowAt = new Map<number, Glow[]>();
   private houseGlow: Glow[] = [];
+  /** Đài phun đang hiện (theo chỉ số ô, chân trên màn hình) để GameScene tính tiếng nước gần nhất; lấy từ prop thật, không qua `glows`. */
+  private fountainAt = new Map<number, Glow>();
   /** Đỉnh mái từng ngôi nhà (khói bếp). */
   private roofs: { x: number; y: number }[] = [];
   /** Atlas ảnh bản đồ khi ánh sáng bật (Light2D chỉ gom được ảnh cùng texture, isoAtlas.ts). */
@@ -480,6 +483,12 @@ export class IsoMap {
 
   // ---------- Ánh sáng và không khí vùng (10.7) ----------
   /** Điểm phát sáng: vật phát sáng và mặt nước của các ô đang hiện, cộng ánh cửa mọi ngôi nhà (Lighting lọc theo khung camera). */
+  /** Các đài phun của khối đang hiện (tiếng nước cục bộ, ambientLayers.ts). */
+  fountains(): ReadonlyArray<Glow> { return [...this.fountainAt.values()]; }
+  private markFountain(i: number, key: string, x: number, y: number) {
+    const name = key.replace(/^prop_/, "").split("~")[0];
+    if (AMBIENT_FOUNTAIN_PROPS.has(name)) this.fountainAt.set(i, { x, y, kind: name });
+  }
   glows(): Glow[] { return (this.glowList ??= [...this.houseGlow, ...[...this.glowAt.values()].flat()]); }
   /** Chỗ khói bay lên (màn hình): đỉnh mái nhà và lửa đang hiện. */
   chimneys(): { x: number; y: number }[] {
@@ -702,7 +711,7 @@ export class IsoMap {
     for (const [k, c] of this.live) if (!want.has(k)) {
       for (const im of c.ims) { this.clips.delete(im); im.setVisible(false); this.free.push(im); }
       for (const g of c.tall) this.faded.delete(g);
-      for (const i of c.tiles) this.glowAt.delete(i);
+      for (const i of c.tiles) { this.glowAt.delete(i); this.fountainAt.delete(i); }
       this.live.delete(k); changed = true;
     }
     for (const k of want) if (!this.live.has(k)) {
@@ -844,7 +853,7 @@ export class IsoMap {
       let im: Phaser.GameObjects.Image;
       if (cp.obj === "wall") { const f = this.fenceKey(); im = this.img(s.x, s.y, f.key).setOrigin(f.ox, f.oy); }
       else { const tex = this.scene.textures.get(cp.obj.key).getSourceImage(); im = this.img(s.x, s.y, cp.obj.key).setOrigin(cp.obj.def.foot[0] / tex.width, cp.obj.def.foot[1] / tex.height); }
-      if (cp.obj !== "wall") this.playProp(im, cp.obj);
+      if (cp.obj !== "wall") { this.playProp(im, cp.obj); this.markFountain(i, cp.obj.key, s.x, s.y); }
       im.setDepth(depthAt(cx, cy)); out.push(im);
       tall.push({ ims: [im] });
     }
@@ -856,6 +865,7 @@ export class IsoMap {
         const h = hash(tx, ty, 1), p = props[h % props.length], tex = this.scene.textures.get(p.key).getSourceImage();
         im = this.img(s.x, s.y, p.key).setOrigin(p.def.foot[0] / tex.width, p.def.foot[1] / tex.height).setFlipX(p.def.flip === true || (p.def.flip !== false && !!(h & 0x100)));
         this.playProp(im, p);
+        this.markFountain(i, p.key, s.x, s.y);
         const name = p.key.replace(/^prop_/, "").split("~")[0];
         if (GLOW_PROPS[name]) this.glowAt.set(i, [...(this.glowAt.get(i) ?? []), { x: s.x, y: s.y, kind: name }]);
       } else if (!TOPDOWN && t === WALL && this.build) {

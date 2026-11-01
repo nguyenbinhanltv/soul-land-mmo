@@ -3677,7 +3677,7 @@ export class GameScene extends Phaser.Scene {
   worldBossHere() { return !!MAPS[this.room.state.mapId]?.world?.length; }
 
   private ambientAt = 0;
-  /** Môi trường lớp chồng (G5, #396): mỗi ~250 ms báo bản đồ, mức đêm, khoảng cách tới vật cháy gần nhất; ambientLayers.ts tự hẹn giờ. */
+  /** Môi trường lớp chồng (G5, #396): mỗi ~250 ms báo bản đồ, mức đêm, khoảng cách tới vật cháy và đài phun gần nhất; ambientLayers.ts tự hẹn giờ. */
   private ambientSound(time: number, mv: { root: { x: number; y: number } } | undefined, glows: ReadonlyArray<{ x: number; y: number; kind: string }>) {
     if (time < this.ambientAt) return;
     this.ambientAt = time + 250;
@@ -3687,7 +3687,12 @@ export class GameScene extends Phaser.Scene {
       const d = Math.hypot(g.x - mv.root.x, g.y - mv.root.y);
       if (fireDist === null || d < fireDist) fireDist = d;
     }
-    this.audio.updateAmbient(time, { mapId: this.room.state.mapId || this.mapId, night: this.light.nightness(), fireDist });
+    let fountainDist: number | null = null;
+    if (mv) for (const f of this.isoMap.fountains()) {
+      const d = Math.hypot(f.x - mv.root.x, f.y - mv.root.y);
+      if (fountainDist === null || d < fountainDist) fountainDist = d;
+    }
+    this.audio.updateAmbient(time, { mapId: this.room.state.mapId || this.mapId, night: this.light.nightness(), fireDist, fountainDist });
   }
 
   /**
