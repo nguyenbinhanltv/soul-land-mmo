@@ -77,6 +77,7 @@ GameScene.prototype.create = function(...a) {
   await test({ op: "give", code: "hon_cot", qty: 4 });
   await test({ op: "give", code: "hon_hach", qty: 4 });
   await test({ op: "give", code: "hon_hoan", qty: 4 });
+  await test({ op: "give", code: "y_la_uat_kim_huong", qty: 4 });
   await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3, enhance: 5 });
   await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
   if (!soft) {
@@ -152,6 +153,90 @@ GameScene.prototype.create = function(...a) {
     if (touch) { await page.locator('#dualTabs [data-p="char"]').click(); check(await page.locator('#char').isVisible(), "chuyển tab Hồn sư"); }
     await cdp.detach();
   }
+  // #1602: ô "Xếp" và dòng gợi ý chân bảng (Túi, Đội hình) nằm trọn trong bảng, bấm / đọc được; cỡ chữ mặc định và lớn, 1280×720 và 960×540.
+  await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3, enhance: 1 }); // món đang mặc không nằm trong túi: thêm một món rời để đủ 8 tab lọc
+  await sleep(300);
+  const fit = [];
+  // Chân Túi thấy ngay ở scrollTop = 0 (không cuộn trước khi đo) với 3 / 5 / 8 tab lọc, 2 cỡ màn × 2 cỡ chữ.
+  const variants = [{ n: 3, keep: ["hon_hoan", "tieu_hao"] }, { n: 5, keep: ["hon_hoan", "hon_cot", "tieu_hao"] }, { n: 8, keep: null }];
+  for (const [width, height] of [[1280,720],[960,540]]) for (const fs of [0, 2]) for (const v of variants) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate((n) => { document.body.classList.remove("touch", "a11y-fs-1", "a11y-fs-2"); if (n) document.body.classList.add(`a11y-fs-${n}`); }, fs);
+    await page.evaluate(async () => { const { setPanel } = await import("/src/charPanel.ts"); setPanel("char", false); setPanel("bag", true); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(false); });
+    const saved = await page.evaluate(async (keep) => {
+      const { inGroup } = await import("/src/bag.ts"), sc = window.__u1, b = sc.bag;
+      window.__u1saved = b; if (keep) sc.bag = { ...b, items: b.items.filter((i) => keep.some((g) => inGroup(i, g))) };
+      sc.renderBag(); return sc.bag.items.length;
+    }, v.keep);
+    await sleep(400);
+    const m = await page.evaluate(() => {
+      const p = document.querySelector("#bag"); p.scrollTop = 0; p.querySelector(".bfilter").scrollLeft = 0;
+      const pr = p.getBoundingClientRect(), n = p.querySelector(".rnote"), r = n.getBoundingClientRect(), tabs = p.querySelectorAll(".bfilter .ui-tab").length;
+      const hit = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && n.contains(t); };
+      const t = n.querySelector(".rn-t"), mb = n.querySelector(".rn-more").getBoundingClientRect();
+      const bottom = document.querySelector("#hotbar, #skillbar, .hotbar");
+      return { tabs, inside: r.top >= pr.top && r.bottom <= pr.bottom + 0.5, clear: [[.1,.5],[.5,.5]].every(([a, c]) => hit(r.left + r.width * a, r.top + r.height * c)), moreOk: mb.bottom <= pr.bottom + 0.5 && mb.top >= pr.top, box: [r.x, r.y, r.width, r.height].map(Math.round), panel: [pr.x, pr.y, pr.width, pr.height].map(Math.round) };
+    });
+    await page.screenshot({ path: resolve(out, `${tag}-chan-${v.n}tab-${width}x${height}-fs${fs}.png`) });
+    check(m.inside && m.clear && m.moreOk, `chân Túi thấy ngay với ${v.n} tab (${width}x${height} fs${fs}, ${m.tabs} tab thật): ${JSON.stringify(m)}`);
+    await page.evaluate(() => { const sc = window.__u1; sc.bag = window.__u1saved; sc.renderBag(); });
+  }
+  for (const [width, height] of [[1280,720],[960,540]]) for (const fs of [0, 2]) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate((n) => { document.body.classList.remove("touch", "a11y-fs-1", "a11y-fs-2"); if (n) document.body.classList.add(`a11y-fs-${n}`); }, fs);
+    await page.evaluate(async () => { const { setPanel } = await import("/src/charPanel.ts"); setPanel("char", false); setPanel("bag", true); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(false); });
+    await sleep(500);
+    const probe = (sel, panel, endSel, scroll = true) => page.evaluate(({ sel, panel, endSel, scroll }) => {
+      const p = document.querySelector(panel), el = [...p.querySelectorAll(sel)].pop();
+      if (!el) return { missing: true };
+      if (scroll) el.scrollIntoView({ block: "end", inline: "nearest" }); else { p.scrollTop = 0; p.querySelectorAll(".bfilter").forEach((f) => { f.scrollLeft = 0; }); }
+      const pr = p.getBoundingClientRect(), r = el.getBoundingClientRect();
+      const bf = el.closest(".bfilter"), cr = bf ? bf.getBoundingClientRect() : pr;
+      const inside = r.left >= pr.left && r.right <= pr.right && r.top >= pr.top && r.bottom <= pr.bottom && r.left >= cr.left - 0.5 && r.right <= cr.right + 0.5;
+      const hit = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && (t === el || el.contains(t)); };
+      const pts = [[.1,.2],[.9,.2],[.1,.8],[.9,.8],[.5,.5]];
+      const clear = pts.every(([a, b]) => hit(r.left + r.width * a, r.top + r.height * b));
+      const strip = (() => { const f = p.querySelector(endSel); return f ? Math.max(0, r.bottom - f.getBoundingClientRect().top) : 0; })();
+      return { inside, clear, textCut: el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1, tabs: [...p.querySelectorAll(".bfilter .ui-tab")].map((t) => t.textContent), box: [r.x, r.y, r.width, r.height].map(Math.round), panel: [pr.x, pr.y, pr.width, pr.height].map(Math.round), strip };
+    }, { sel, panel, endSel, scroll });
+    const tag2 = `${tag}-${width}x${height}-fs${fs}`;
+    const sortM = await probe(".bsortsel", "#bag", ".nope", false);
+    await page.screenshot({ path: resolve(out, `${tag2}-tui.png`) });
+    const noteM = await probe(".rnote", "#bag", ".nope", false); // scrollTop = 0: chân phải thấy ngay, không cuộn
+    await page.screenshot({ path: resolve(out, `${tag2}-tui-chan.png`) });
+    // Đủ 8 tab lọc: mọi tab nằm trong bảng, bấm trúng (hit-test), ô Xếp không đè tab nào.
+    const tabsM = await page.evaluate(() => {
+      const p = document.querySelector("#bag"); p.scrollTop = 0; const pr = p.getBoundingClientRect(), tabs = [...p.querySelectorAll(".bfilter .ui-tab")], sel = p.querySelector(".bsortsel"), sr = sel.getBoundingClientRect();
+      const hit = (el) => { const r = el.getBoundingClientRect(); return [[.15,.5],[.85,.5],[.5,.5]].every(([a, b]) => { const t = document.elementFromPoint(r.left + r.width * a, r.top + r.height * b); return !!t && (t === el || el.contains(t)); }); };
+      const ov = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      return { labels: tabs.map((t) => t.textContent), n: tabs.length, inside: tabs.every((t) => { const r = t.getBoundingClientRect(); return r.left >= pr.left && r.right <= pr.right && r.top >= pr.top && r.bottom <= pr.bottom; }), hit: tabs.every(hit) && hit(sel), selOverlap: tabs.some((t) => ov(t.getBoundingClientRect(), sr)), rows: new Set(tabs.map((t) => Math.round(t.getBoundingClientRect().top))).size };
+    });
+    globalThis.__tabsM = tabsM;
+    check(tabsM.n === 8 && tabsM.inside && tabsM.hit && !tabsM.selOverlap, `đủ 8 tab lọc thấy và bấm được, ô Xếp không đè tab (${tag2}): ${JSON.stringify(tabsM)}`);
+    await page.evaluate(async () => { const { setPanel } = await import("/src/charPanel.ts"); setPanel("bag", false); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(true); });
+    await sleep(500);
+    const rosM = await probe(".rnote", "#roster", ".rtabs");
+    await page.screenshot({ path: resolve(out, `${tag2}-doihinh.png`) });
+    fit.push({ width, height, fs, tabs: globalThis.__tabsM, sort: sortM, bagNote: noteM, rosterNote: rosM });
+    check(sortM.inside && sortM.clear, `ô Xếp trọn trong bảng và bấm được (${tag2}): ${JSON.stringify(sortM)}`);
+    check(!noteM.textCut && noteM.inside && noteM.clear, `chân Túi đọc đủ (${tag2}): ${JSON.stringify(noteM)}`);
+    check(!rosM.missing && (!rosM.textCut && rosM.inside && rosM.clear && rosM.strip === 0), `chân Đội hình đọc đủ, không bị tab đè (${tag2}): ${JSON.stringify(rosM)}`);
+  }
+  // Bấm thật (chuột): ô Xếp nhận chuột ở 960×540 chữ lớn; "Xem thêm" mở / thu gọn chân Túi.
+  await page.setViewportSize({ width: 960, height: 540 });
+  await page.evaluate(async () => { document.body.classList.add("a11y-fs-2"); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(false); const { setPanel } = await import("/src/charPanel.ts"); setPanel("bag", true); });
+  await sleep(400);
+  if (!soft) {
+    await page.locator("#bag .bsortsel").click({ trial: true, timeout: 3000 });
+    await page.locator("#bag .rn-more").scrollIntoViewIfNeeded();
+    await page.locator("#bag .rn-more").click();
+    check(await page.locator("#bag .rnote.fold.open").count() === 1, "Xem thêm mở chân Túi");
+    check((await page.locator("#bag .rn-t").evaluate((e) => e.scrollHeight <= e.clientHeight + 1)), "chân Túi mở thì đọc đủ chữ");
+    await page.locator("#bag .rn-more").click();
+    check(await page.locator("#bag .rnote.fold.open").count() === 0, "Thu gọn chân Túi");
+  }
+  await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2"));
+  await writeFile(resolve(out, `${tag}-vua.json`), JSON.stringify(fit, null, 2));
   await writeFile(resolve(out, `${tag}-do.json`), JSON.stringify(measures, null, 2));
   console.log(JSON.stringify({ output:out, measures }, null, 2));
 } finally {

@@ -19,7 +19,7 @@ import { EQUIP_ITEM, equipFrameKey, equipIconChain, EQUIP_SLOTS, EQUIP_TIERS, EQ
 import type { GearMsg } from "./net.ts";
 import type { BagMsg, BagItem } from "./net.ts";
 import { ringColor, boneSkillText } from "./hudBar.ts";
-import { stateBox, searchField, matchQuery } from "./uiParts.ts";
+import { stateBox, searchField, matchQuery, foldNote } from "./uiParts.ts";
 import { itemInfoLines, shiftPart } from "./itemTip.ts";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 document.getElementById("bag")?.classList.add("f2-muc-lon");
@@ -665,6 +665,7 @@ function sellBox(bag: BagMsg, cfg: SellSettings, act: BagActions) {
 function finishBag(el: HTMLElement) {
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Kéo thả (điện thoại: giữ một chút rồi kéo) để đổi chỗ ô hoặc gắn vào búp bê / dải "Gắn nhanh"; bấm một lần mở thẻ thao tác, bấm đúp (hoặc Shift+Enter) để mặc nhanh; chọn nhóm và cách xếp ở đầu túi. Đồ cùng loại tự gộp vào một ô; mỗi hồn hoàn, hồn cốt, hồn hạch một ô (góc ô: số năm hoặc số sao). Mỗi trang ${BAG_PAGE} ô, mở rộng túi ở thương nhân trong thành. Hồi Huyết Đan và Hồi Hồn Đan dùng chung hồi chiêu. Phím B mở / đóng, Esc đóng.`;
+  foldNote(note, "bag");
   el.appendChild(note);
   updateBag();
 }
