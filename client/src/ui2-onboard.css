@@ -19,6 +19,15 @@
 #onboard button:focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd-fine)}
 #hud:has(#onboard[data-mode="step"]:not([hidden])) .guide[data-mode="hint"],#hud:has(.guide[data-mode="hint"]:not([hidden])) #onboard[data-mode="done"],#hud:has(.guide[data-mode="review"]:not([hidden])) #onboard,#hud:has(#npc:not([hidden])) #onboard,body.arena #onboard{display:none}   /* đang học thì gợi ý nhường; thẻ xong nhường gợi ý, Cẩm Nang và hộp NPC */
 
+/* Bảng toàn màn đang mở (onboard.ts fit): thẻ thu về một dòng sát đáy (chỉ tiêu đề + hai nút, bước và nút vẫn đọc / bấm được bằng chuột, chạm, bàn phím);
+   không còn chỗ trống ngoài bảng thì ẩn tạm, đóng bảng là hiện đủ lại. Đặt sau luật (1) và cao hơn luật màn thấp ở cuối file nhờ #hud > . */
+#hud > #onboard[data-fold="bar"]{bottom:var(--sp-3);width:min(560px,calc(100% - 2 * var(--sp-5)));min-width:0;max-height:none;overflow:visible;padding:var(--sp-2) var(--sp-4);align-items:center}
+#hud > #onboard[data-fold="bar"] :is(p,.ob-dots){display:none}
+#hud > #onboard[data-fold="bar"] .ob-head{justify-content:flex-start}
+#hud > #onboard[data-fold="bar"] h4{margin:0}
+#hud > #onboard[data-fold="bar"] .ob-foot{flex-direction:row}
+#hud > #onboard[data-fold="hide"]{display:none}
+
 /* (2) Vòng sáng + mũi nhấn bám theo nút cần bấm (onboard.ts đặt left / top / width / height theo nút). Mũi nhấn là ▼ nằm trên nút (hoặc ▲ dưới nút khi sát mép trên). */
 #obSpot{position:absolute;z-index:6;pointer-events:none;box-sizing:border-box}
 #obSpot .ob-ring{position:absolute;inset:calc(var(--sp-2) * -1);border:var(--bd) solid var(--son-l);box-shadow:0 0 0 var(--bd-fine) var(--plate),inset 0 0 0 var(--bd-fine) var(--plate);animation:obPulse 1.2s steps(4,end) infinite}

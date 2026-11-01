@@ -65,6 +65,12 @@ export const firstShown = (sels: readonly string[], root: ParentNode = document)
   return null;
 };
 
+/** Bảng toàn màn của người chơi (nhóm z 4 ở style.css + màn đầy khung Thư / Thành Tựu): đang mở thì thẻ Làm quen không được che nội dung. */
+export const OB_PANELS = ["#char", "#bag", "#reso", "#friends", "#audio", "#autoPanel", "#autoSum", "#arenaEnd", ".ui2-screen"] as const;
+/** Hai hộp (x, y, rộng, cao) có phần chung không. Hàm thuần. */
+export const boxesOverlap = (a: DOMRectReadOnly | { left: number; top: number; right: number; bottom: number }, b: typeof a) =>
+  Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0;
+
 // ---- phần DOM ----
 let who = "", saved: ObSaved | null = null, step = 0, running = false;
 let reviewing = false;
@@ -114,8 +120,21 @@ function place(target: HTMLElement | null) {
   spot.dataset.side = y < 28 ? "below" : "above";
 }
 
+/** Bảng toàn màn đang mở thì thẻ thu về một dòng sát đáy (data-fold="bar"); không còn chỗ trống ngoài bảng thì tạm ẩn (data-fold="hide"), đóng bảng là hiện đủ lại.
+ *  Thẻ đặt thấp riêng cho bước Gắn hồn hoàn (dock) và thẻ xong không thu. Chỉ đổi hiển thị, không đổi bước. */
+function fit() {
+  if (!card?.isConnected || card.hidden) return;
+  const panels = card.dataset.mode === "step" && !card.dataset.dock
+    ? OB_PANELS.flatMap((sel) => [...document.querySelectorAll<HTMLElement>(sel)].filter((e) => shown(e))) : [];
+  if (!panels.length) { delete card.dataset.fold; return; }
+  card.dataset.fold = "bar";
+  const bar = card.getBoundingClientRect();
+  if (panels.some((e) => boxesOverlap(bar, e.getBoundingClientRect()))) card.dataset.fold = "hide";
+}
+
 function paint() {
   const c = root(), s = OB_STEPS[step];
+  delete c.dataset.fold;
   c.hidden = false; c.dataset.mode = "step"; c.dataset.dock = s.dock ?? "";
   q(c, ".ob-head b").textContent = `${reviewing ? "Xem lại Làm quen" : "Làm quen"} · bước ${step + 1}/${OB_STEPS.length}`;
   q(c, ".ob-dots").textContent = OB_STEPS.map((_, i) => (i < step ? "●" : i === step ? "◉" : "○")).join(" ");
@@ -131,6 +150,7 @@ function tick() {
   const s = OB_STEPS[step];
   if (!reviewing && s.open && firstShown(s.open)) return advance();
   place(firstShown(s.target));
+  fit();
   if (!reviewing && s.tap) {
     const e = document.querySelector<HTMLElement>(s.tap);
     if (e && e !== tapEl) { tapEl?.removeEventListener("pointerdown", onTap); tapEl = e; e.addEventListener("pointerdown", onTap); }
@@ -144,7 +164,7 @@ function advance() {
   step++; if (saved && !reviewing) { saved.s = step; persist(); }
   paint(); tick();
 }
-function hide() { if (card) card.hidden = true; place(null); }
+function hide() { if (card) { card.hidden = true; delete card.dataset.fold; } place(null); }
 function stop() { running = false; window.clearInterval(timer); timer = 0; tapEl?.removeEventListener("pointerdown", onTap); tapEl = null; place(null); }
 function finish(st: "done" | "skip") {
   stop();
@@ -156,7 +176,7 @@ function finish(st: "done" | "skip") {
   saved = { s: step, st }; persist();
   if (st === "skip") return hide();
   // Hoàn thành: đường tiếp tục tùy chọn, giữ thẻ để người dùng bàn phím có thời gian đọc / chọn.
-  const c = root(); c.hidden = false; c.dataset.mode = "done"; c.dataset.dock = "";
+  const c = root(); delete c.dataset.fold; c.hidden = false; c.dataset.mode = "done"; c.dataset.dock = "";
   q(c, ".ob-head b").textContent = "Làm quen · xong"; q(c, ".ob-dots").textContent = OB_STEPS.map(() => "●").join(" ");
   q(c, "h4").textContent = OB_DONE_TEXT.title; q(c, "p").textContent = OB_DONE_TEXT.body;
   q(c, ".ob-next").textContent = "Đóng"; q(c, ".ob-skip").hidden = true;

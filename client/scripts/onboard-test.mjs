@@ -2,7 +2,7 @@
 // Chạy: node --experimental-strip-types client/scripts/onboard-test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { OB_STEPS, parseSaved, obKey } from "../src/onboard.ts";
+import { OB_STEPS, parseSaved, obKey, boxesOverlap, OB_PANELS } from "../src/onboard.ts";
 import { PING_BAD_MS, PING_MARK, PING_STALE_MS, PING_TEXT, PING_WARN_MS, RttMeter, pingLevel, pingText } from "../src/pingMeter.ts";
 import { arrowText, inView, pickArrow, rimPoint } from "../src/questArrow.ts";
 
@@ -101,11 +101,11 @@ console.log("onboard: ok");
     querySelector(s) { return this.children.get(s) ?? null; }
     setAttribute() {} appendChild(e) { elements.set(e.id, e); } remove() { this.isConnected = false; }
     addEventListener(s, f) { this.listeners.set(s, f); } removeEventListener(s) { this.listeners.delete(s); }
-    getClientRects() { return []; } blur() {} focus() {}
+    getClientRects() { return this.rects ?? []; } getBoundingClientRect() { return this.rect ?? { left: 0, top: 0, right: 0, bottom: 0 }; } blur() {} focus() {}
     click(s) { const e = this.children.get(s); e.listeners.get('click')({ currentTarget: e }); }
   }
   const hud = new El(); elements.set('hud', hud);
-  globalThis.document = { createElement: () => new El(), getElementById: (id) => elements.get(id), querySelector: () => null, body: hud };
+  globalThis.document = { createElement: () => new El(), getElementById: (id) => elements.get(id), querySelector: () => null, querySelectorAll: () => globalThis.__panels ?? [], body: hud };
   globalThis.localStorage = { getItem: (k) => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) };
   globalThis.window = { setInterval: () => 1, clearInterval() {}, setTimeout: () => 1 };
   for (const st of ['skip', 'done', 'run']) {
@@ -162,4 +162,27 @@ console.log("onboard: ok");
   assert.equal(blocked, false, 'Esc vẫn tới cảnh');
   assert.equal(card.hidden, true, 'Esc đóng thẻ xong');
   console.log('onboard: vòng đời run/skip/done/review và đổi hồn sư đạt');
+
+  // #1601: bảng toàn màn mở thì thẻ thu một dòng; hết chỗ thì ẩn tạm; đóng bảng hiện đủ; thẻ thấp (dock) và thẻ xong không thu.
+  const box = (l, t, r, b) => ({ left: l, top: t, right: r, bottom: b });
+  assert.equal(boxesOverlap(box(0, 0, 10, 10), box(10, 0, 20, 10)), false, 'chạm cạnh không tính chồng');
+  assert.equal(boxesOverlap(box(0, 0, 10, 10), box(9, 9, 20, 20)), true);
+  assert.ok(OB_PANELS.includes('#char') && OB_PANELS.includes('#bag') && OB_PANELS.includes('.ui2-screen'), 'Hồn sư, Túi, Thư / Thành Tựu (màn đầy khung)');
+  onboardAttach('Gap bang'); onboardBegin();
+  const folded = elements.get('onboard'); folded.rect = box(100, 600, 500, 660);
+  const panel = new El(); panel.hidden = false; panel.rects = [1];
+  const tickOnce = () => { onboardReview(); };
+  globalThis.__panels = [panel]; panel.rect = box(50, 10, 600, 500); tickOnce();
+  assert.equal(folded.dataset.fold, 'bar', 'bảng mở, còn chỗ dưới bảng: thu một dòng');
+  panel.rect = box(50, 10, 600, 640); tickOnce();
+  assert.equal(folded.dataset.fold, 'hide', 'bảng phủ cả chỗ thanh: ẩn tạm');
+  globalThis.__panels = []; tickOnce();
+  assert.equal(folded.dataset.fold, undefined, 'đóng bảng: hiện đủ lại');
+  assert.equal(folded.hidden, false);
+  onboardAttach('Xong gap bang'); onboardBegin();
+  globalThis.__panels = [panel]; panel.rect = box(50, 10, 600, 500);
+  for (let i = 0; i < 6; i++) folded.click('.ob-next');
+  assert.equal(folded.dataset.mode, 'done');
+  assert.equal(folded.dataset.fold, undefined, 'thẻ xong không thu dù bảng đang mở');
+  globalThis.__panels = [];
 }
