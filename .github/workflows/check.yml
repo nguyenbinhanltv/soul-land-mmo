@@ -358,6 +358,12 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      # Hộp thoại NPC ở màn thấp: nút chính thấy ngay, nút × luôn bấm được (#1648).
+      - run: npm run test:npc-low-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          NPC_LOW_OUTPUT: ${{ runner.temp }}/browser-regress/npc-low
       # Mã mua thật sự gửi khi lọc cửa hàng, Túi cập nhật từ server, đổi NPC (#1520).
       - run: npm run test:shop-search-browser --prefix client
         if: ${{ !cancelled() }}
