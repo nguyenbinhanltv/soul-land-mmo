@@ -7,11 +7,11 @@ import { TICK_RATE,
   AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
   MAPS, parseNewLooks, encodeLpc,
   TILE,
-  itemDef, formatHonTe, type ItemDef,
-  RING_ITEM,
-  BONE_ITEM,
-  CORE_ITEM, type CoreData,
-  type CoreStat, EQUIP_ITEM, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
+  formatHonTe, type ItemDef,
+
+
+  type CoreData,
+  type CoreStat, type EquipData,
   loadoutOf, type BondKey, type SkillDef, type StatusApply, type BuffId,
   type BeastSkillDef, type Tele,
   BOSSES, bossIndex, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
@@ -42,7 +42,7 @@ import { ColdStacks } from "./cold.ts";
 import { _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
-import { newItem, bagUsed, itemLabel, shardCount } from "./items.ts";
+import { itemLabel, shardCount } from "./items.ts";
 import { questBump } from "./questBump.ts";
 import { beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
@@ -687,69 +687,20 @@ export class MapRoom extends Room<MapState> {
 
 
 
-  /** Thêm một hồn hoàn `years` năm vào túi (mỗi chiếc một ô, không gộp). Túi đầy thì false. Không tự gửi tin "bag". */
-  addRing(d: PData, years: number) {
-    const def = itemDef(RING_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return false;
-    d.bag.push(newItem(def, 1, years)); d.bagDirty = true;
-    return true;
-  }
+  /** Thêm hồn hoàn / hồn cốt / hồn hạch / trang bị vào túi và phần trang bị của rương: logic ở `bag.ts` (`addRing` / `addBone` / `addCore` / `addEquip`) và `loot.ts` (`equipRng` / `chestEquip`) (#702, E6b), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  addRing(d: PData, years: number) { return bag.addRing(d, years); }
 
-  /**
-   * Thêm một hồn cốt vào túi (bước 4.1, mỗi món một ô): số năm `years`, loài `beast` (mã trong BEASTS), vị trí `slot` (mã trong
-   * BONE_SLOTS), cường hóa +0, chưa gắn. Túi đầy thì null. Không tự gửi tin "bag".
-   */
-  addBone(d: PData, years: number, beast: string, slot: string) {
-    const def = itemDef(BONE_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return null;
-    const it = newItem(def, 1, years); it.stats = { beast, slot };
-    d.bag.push(it); d.bagDirty = true;
-    return it;
-  }
+  addBone(d: PData, years: number, beast: string, slot: string) { return bag.addBone(d, years, beast, slot); }
 
-  /**
-   * Thêm một hồn hạch vào túi (bước 5.1, mỗi món một ô): `stars` sao, bộ / chỉ số chính / dòng phụ `data` (đã tung), nâng cấp +0,
-   * chưa gắn. Túi đầy thì null. Không tự gửi tin "bag".
-   */
-  addCore(d: PData, stars: number, data: CoreData) {
-    const def = itemDef(CORE_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return null;
-    const it = newItem(def, 1); it.stars = stars; it.stats = { set: data.set, main: data.main, subs: data.subs.map(([k, v]) => [k, v]) };
-    d.bag.push(it); d.bagDirty = true;
-    return it;
-  }
+  addCore(d: PData, stars: number, data: CoreData) { return bag.addCore(d, stars, data); }
 
-  /** Thêm một món trang bị hồn sư (E2, mỗi món một ô, `stats` = EquipData). Túi đầy thì null, trừ `force` (ô tạm vượt túi, như rương). Không tự gửi tin "bag". */
-  addEquip(d: PData, data: EquipData, force = false) {
-    const def = itemDef(EQUIP_ITEM); if (!def || (!force && bagUsed(d.bag) >= d.bagSlots)) return null;
-    const it = newItem(def, 1); it.stats = { tpl: data.tpl, ilvl: data.ilvl, roll: data.roll, affixes: data.affixes.map(([k, v]) => [k, v]), luck: data.luck };
-    d.bag.push(it); d.bagDirty = true;
-    return it;
-  }
+  addEquip(d: PData, data: EquipData, force = false) { return bag.addEquip(d, data, force); }
 
-  /** RNG cho rơi trang bị của `d`: hook test `edrop` đặt RNG có hạt, thường là Math.random. */
-  equipRng(d: PData) { return d.testEquip ?? Math.random; }
+  equipRng(d: PData) { return loot.equipRng(d); }
 
   rollEquipGround(id: string, owner: string, rank: number, x: number, y: number, why?: string) { loot.rollEquipGround(this, id, owner, rank, x, y, why); }
 
-  /**
-   * Phần trang bị của rương thú vương / boss thế giới (E2): tung rollEquipDrop(bậc, bản đồ) và cộng Bùa Hộ Mệnh (rollEquipCharm) ngay
-   * lúc mở. Vào thẳng túi, vượt số ô túi nếu cần (cần KING_CHEST.slots / WORLD_CHEST.slots ô trống từ trước nên thường không vượt;
-   * nhiều hơn chỉ khi `rate` > 0). Thêm mô tả vào `got`.
-   */
-  chestEquip(d: PData, rank: number, mapId: string, got: string[]) {
-    const rng = this.equipRng(d), drops: EquipDrop[] = rollEquipDrop(rank, mapId, rng, 0), charm = rollEquipCharm(rank, rng);
-    const stones = new Map<string, number>();
-    for (const e of drops) {
-      if (e.kind === "stone") { stones.set(e.code, (stones.get(e.code) ?? 0) + e.qty); continue; }
-      if (this.addEquip(d, e.item, true)) got.push(equipName(e.item.tpl));
-    }
-    const give = (code: string, qty: number) => {
-      const def = itemDef(code); if (!def) return;
-      const n = this.addItem(d, code, qty);
-      if (n < qty) { let left = qty - n; while (left > 0) { const q = Math.min(left, def.stack); d.bag.push(newItem(def, q)); left -= q; d.bagDirty = true; } } // vượt ô túi, không mất thưởng
-      got.push(`${qty} ${def.name}`);
-    };
-    for (const [code, qty] of stones) give(code, qty);
-    if (charm) give(EQUIP_CHARM, charm);
-  }
+  chestEquip(d: PData, rank: number, mapId: string, got: string[]) { return loot.chestEquip(this, d, rank, mapId, got); }
 
   /** Tên một ô để báo trong log: "Hồn hoàn 437 năm", "3 Hồi Huyết Đan", "hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". */
   itemLabel(it: Item) { return itemLabel(it); }
