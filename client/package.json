@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test:hub-icon-browser": "node scripts/hub-icon-browser.mjs",
+    "test:hub-ten-browser": "node scripts/hub-ten-browser.mjs",
     "test:gift-browser": "node scripts/gift-browser.mjs",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
