@@ -85,6 +85,11 @@ export function hudSub(h: RoomHud): string {
 }
 
 // ---- bảng kết quả (thuần) ----
+/** Khúc ngắn khi hết phòng (tái dùng khúc Đấu Hồn Trường): thắng / thua có khúc; hoàn lượt (`refunded`), lỗi (`err`) hay thiếu `win` thì im lặng. */
+export function endJingle(m: Pick<BiCanhRoomMsg, "k" | "win" | "refunded" | "err">): "arena_win" | "arena_lose" | null {
+  if (m.k !== "end" || m.refunded || m.err) return null;
+  return m.win === true ? "arena_win" : m.win === false ? "arena_lose" : null;
+}
 export interface EndView { win: boolean; title: string; lines: { text: string; cls: string }[] }
 /** Bảng kết quả từ tin `end`: thắng / thua + lý do, số sóng đã hạ, thưởng quyển (trần ngày / túi đầy), hoàn lượt khi lỗi hệ thống. */
 export function endView(m: BiCanhRoomMsg): EndView {

@@ -91,6 +91,15 @@
       "retrievedAt": "2026-11-01"
     },
     {
+      "id": "oga-waterflow",
+      "title": "Waterflow Sound",
+      "author": "TyberiusGames",
+      "url": "https://opengameart.org/content/waterflow-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92",
+      "retrievedAt": "2026-11-01"
+    },
+    {
       "id": "oga-wave-01",
       "title": "Beach Ocean Waves (wave 01)",
       "author": "jasinski (freesound 18363), đăng lại bởi qubodup",
@@ -1310,6 +1319,48 @@
       "fadeIn": 0.4,
       "fadeOut": 0.8,
       "gainDb": -3
+    },
+    {
+      "id": "amb-fountain-1",
+      "group": "amb-fountain",
+      "pack": "amb-nuoc",
+      "sourceId": "oga-waterflow",
+      "input": "oga-waterflow/waterflow.mp3",
+      "inputSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92",
+      "startSeconds": 0,
+      "maxSeconds": 3.2,
+      "highpass": 120,
+      "fadeIn": 0.5,
+      "fadeOut": 0.9,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-fountain-2",
+      "group": "amb-fountain",
+      "pack": "amb-nuoc",
+      "sourceId": "oga-waterflow",
+      "input": "oga-waterflow/waterflow.mp3",
+      "inputSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92",
+      "startSeconds": 1.2,
+      "maxSeconds": 3.2,
+      "highpass": 120,
+      "fadeIn": 0.5,
+      "fadeOut": 0.9,
+      "gainDb": -4
+    },
+    {
+      "id": "amb-fountain-3",
+      "group": "amb-fountain",
+      "pack": "amb-nuoc",
+      "sourceId": "oga-waterflow",
+      "input": "oga-waterflow/waterflow.mp3",
+      "inputSha256": "5a053719d5b06a8e5005dbe81b66e020f10312635a823d66883702568c971e92",
+      "startSeconds": 2.4,
+      "maxSeconds": 3.2,
+      "highpass": 120,
+      "fadeIn": 0.5,
+      "fadeOut": 0.9,
+      "gainDb": -4
     },
     {
       "id": "amb-wave-1",

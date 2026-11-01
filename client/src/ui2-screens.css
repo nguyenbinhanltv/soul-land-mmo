@@ -16,12 +16,12 @@
 .hub-x{width:32px;height:32px;box-sizing:border-box;cursor:pointer;font:var(--fs-l)/1 var(--f12);color:var(--ink-text);background:var(--track);border:var(--bd) solid var(--ink2)}
 .hub-main{grid-area:main;display:flex;flex-direction:column;gap:var(--sp-4);min-width:0}
 .hub-big,.hub-mid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
-.hub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3)}
+.hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3)}   /* 3 cột: ngăn kéo 360 px chỉ chừa ~250 px cho lưới; 4 cột để chữ ~30 px và tên vỡ giữa từ (#1600) */
 .hub-c-big{min-height:88px}
 .hub-c-mid{min-height:56px}
 .hub-c-grid{min-width:0;min-height:56px;padding-left:var(--sp-3);padding-right:var(--sp-3)}
 .hub-c-grid .p2-card-s{display:none}
-.hub-c-grid .p2-card-t{font:var(--fs-m)/1.2 var(--f12)}
+.hub-c-grid .p2-card-t{font:var(--fs-m)/1.2 var(--f12);overflow-wrap:break-word}   /* không dùng `anywhere` của .p2-card-t: nó hạ cả bề rộng tối thiểu nên cột co và từ bị bẻ chữ */
 .hub-rail{grid-area:rail;display:flex;flex-direction:column;gap:var(--sp-3);padding-left:var(--sp-4);border-left:var(--bd-fine) solid var(--ink2)}
 .hub-r{min-height:32px;min-width:64px;box-sizing:border-box;padding:0 var(--sp-3);cursor:pointer;font:var(--fs-s)/1.2 var(--f10);color:var(--ink-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
 .hub-r:hover{border-color:var(--plate-text)}
