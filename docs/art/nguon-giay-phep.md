@@ -6,7 +6,7 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 
 ## Nguồn ảnh được phép (hiện hành)
 
-Hồn Kinh Quyển (#1595, PR nháp #1608): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; RAW nguyên byte native 1254×1254, prompt thật và SHA256 tại `art/src/item-hon-kinh-quyen-1595/NGUON.md`. Điều khoản đầu ra OpenAI, không CC0. Tham chiếu phong cách hai icon vật phẩm hiện có, nguồn/giấy phép cũ giữ trong hồ sơ. **Mẫu 32px/24px chờ chủ repo duyệt mỹ thuật trong artifacts, chưa nhập manifest/client.**
+Hồn Kinh Quyển (#1595, PR #1608): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; RAW nguyên byte native 1254×1254, prompt thật và SHA256 tại `art/src/item-hon-kinh-quyen-1595/NGUON.md`. Điều khoản đầu ra OpenAI, không CC0. Tham chiếu phong cách hai icon vật phẩm hiện có, nguồn/giấy phép cũ giữ trong hồ sơ. **Chủ repo đã duyệt mẫu và vị trí; đã nhập đúng byte bản 32px, đăng ký `item_hon_kinh_quyen`, hiện ở Túi/Thư và dòng thưởng Bí Cảnh (24px).** Bản duyệt và ảnh sau nhập nằm trong artifacts phiên soul_land_game-969.
 
 Bảy icon Hub (#1580, PR nháp #1585): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; tham chiếu duy nhất tờ menu đã duyệt `art/src/ui-kit/toI-2.png`. RAW nguyên byte native 1254×1254, prompt thật, SHA256 và ánh xạ bảy ô ở `art/src/ui-kit/hub-1580/NGUON.md`, `nguon.json`. Điều khoản đầu ra OpenAI, không CC0. **Chủ repo đã duyệt cả 7 mẫu**, đã nhập `gi_menu_{achv,welfare,bicanh,mail,calendar,guide,notice}` và bản `_1x` 24px bằng `menu-icon-import.mjs`, nối Hub sau #1587; chín ô cuối chỉ đối chiếu phong cách.
 

@@ -1,7 +1,7 @@
 {
   "issue": 1595,
   "pr": 1608,
-  "status": "cho-duyet-my-thuat-chua-nhap",
+  "status": "da-duyet-da-nhap",
   "tool": "Codex builtin OpenAI image_gen.imagegen",
   "date": "2026-11-01",
   "attempt": 1,
@@ -52,5 +52,16 @@
       "sha256": "720ca699972660f705109eae2905cf6c29dea2211afa23ddb2e6c013a5d9f5fe"
     }
   ],
-  "license": "Điều khoản đầu ra OpenAI, không CC0; giấy phép tham chiếu giữ nguyên trong NGUON.md/art/CREDITS.md"
+  "license": "Điều khoản đầu ra OpenAI, không CC0; giấy phép tham chiếu giữ nguyên trong NGUON.md/art/CREDITS.md",
+  "approval": {
+    "date": "2026-11-01",
+    "via": "Chủ repo, điều phối soul_land_game-815",
+    "scope": "Mẫu icon và vị trí thưởng đã duyệt"
+  },
+  "imported": {
+    "file": "shared/assets/sprites/iso/item/hon_kinh_quyen.png",
+    "sha256": "baa0249b56e8b72195535236d55451c04314ab00d45a7709da585f81e16d3bfa",
+    "manifestKey": "item_hon_kinh_quyen",
+    "bicanhDisplaySize": 24
+  }
 }

@@ -45968,6 +45968,10 @@
       ],
       "iso": true
     },
+    {
+      "key": "item_hon_kinh_quyen",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
