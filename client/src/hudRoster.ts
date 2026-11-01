@@ -7,7 +7,7 @@ import { vohonCard } from "./cards.ts";
 import { artUrl, chanThanImg, shardImg, skillImg } from "./uiArt.ts";
 import { toggleChar } from "./charPanel.ts";
 import { rarityOf } from "./bag.ts";
-import { stateBox } from "./uiParts.ts";
+import { stateBox, foldNote } from "./uiParts.ts";
 import { confirmDialog } from "./confirmDialog.ts";
 
 
@@ -52,7 +52,7 @@ export interface RosterActions {
  * kế tiếp (x/STAR_COST), nút Mở / Lên sao (server kiểm tra lại số mảnh).
  */
 export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<string, number>, items: BagItem[] = []) {
-  const el = $("#roster"); el.innerHTML = "";
+  const el = $("#roster"), keepTop = el.querySelector(".rbody")?.scrollTop ?? 0; el.innerHTML = "";
   el.classList.add("f2-muc-lon");
   const members = data.team.filter((r) => r > 0).length;
   const head = document.createElement("div"); head.className = "rhead";
@@ -132,13 +132,15 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   }
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
-  if (doi) el.appendChild(note);
+  if (doi) { foldNote(note, "roster"); el.appendChild(note); }
   rosterAgain = () => renderRoster(data, act, shards, items);
   if (showTab("ky")) renderLoadout(el, data, act, rosterAgain);
   if (showTab("bone")) renderBones(el, data, act, items, rosterAgain);
   if (showTab("core")) renderCores(el, data, act, items, rosterAgain);
   if (showTab("manh")) renderShards(el, data, act, shards);
-  el.appendChild(rosterTabs(members, rosterAgain));
+  // #1602: nội dung cuộn trong `.rbody`, tab dưới nằm ngoài vùng cuộn (không đè dòng cuối).
+  const body = document.createElement("div"); body.className = "rbody"; body.append(...el.children);
+  el.append(body, rosterTabs(members, rosterAgain)); body.scrollTop = keepTop; // vẽ lại (chọn thẻ, tin server) giữ nguyên chỗ đang cuộn
 }
 
 /** Tab dưới của bảng (UI v2): 5 mục, mục đang xem có vạch dưới chân; cuộn về đầu khi đổi mục. Chỉ đổi cách hiện, không gửi gì lên server. */
@@ -148,7 +150,7 @@ function rosterTabs(members: number, again: () => void) {
     const b = document.createElement("button"); b.type = "button"; b.className = "ui-tab f2-tab"; b.dataset.tab = t.id;
     b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(rosterTab === t.id));
     b.textContent = t.name; if (t.id === "doi") b.title = `Đội hình ${members}/${TEAM_SIZE}`;
-    b.addEventListener("click", () => { b.blur(); if (rosterTab === t.id) return; rosterTab = t.id; rosterSel = null; again(); $("#roster").scrollTop = 0; });
+    b.addEventListener("click", () => { b.blur(); if (rosterTab === t.id) return; rosterTab = t.id; rosterSel = null; again(); $("#roster .rbody").scrollTop = 0; });
     nav.appendChild(b);
   }
   return nav;

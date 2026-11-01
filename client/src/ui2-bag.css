@@ -107,3 +107,15 @@ body.dual-win:is(.ui-w640,.touch)[data-pick=char] #bag,body.dual-win:is(.ui-w640
 body.dual-win:is(.ui-w640,.touch) #dualTabs:not([hidden]){display:flex;position:absolute;left:2%;right:2%;top:4px;height:40px;z-index:6;pointer-events:auto;gap:var(--sp-2)}
 body.touch #bag :is(.rhead button,.bq){min-width:40px;min-height:40px}
 body.touch #bag .bgrid{grid-template-columns:repeat(5,minmax(40px,52px))}
+
+/* #1602: hàng lọc xuống dòng (đủ mọi tab đều thấy, chuột / chạm / phím như nhau); ô "Xếp" cuối hàng, dồn phải. Chân hướng dẫn (Túi, Đội hình) thu về 2 dòng + "Xem thêm". */
+#bag .bfilter{flex-wrap:wrap;overflow:visible}
+:is(#bag,#roster) .rnote.fold{display:flex;align-items:flex-start;gap:var(--sp-3);flex-shrink:0}
+:is(#bag,#roster) .rnote.fold .rn-t{flex:1 1 auto;min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+:is(#bag,#roster) .rnote.fold.open .rn-t{display:block;-webkit-line-clamp:unset}
+:is(#bag,#roster) .rn-more{flex:none;min-height:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-s)/1.2 var(--f10);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
+:is(#bag,#roster) .rn-more:hover{border-color:var(--plate-text)}
+body.touch :is(#bag,#roster) .rn-more{min-height:40px}
+/* Chân Túi ghim đáy vùng cuộn: luôn thấy dù hàng lọc 1–3 hàng; lưới cuộn bên dưới. Mở "Xem thêm" thì tối đa 35% cao màn, dài hơn thì cuộn trong chân. */
+#bag .rnote.fold{position:sticky;bottom:calc(var(--sp-4) * -1);z-index:2;margin:0 calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-3) var(--sp-4);background:var(--plate);border-top:var(--bd-fine) solid var(--ink2)}
+#bag .rnote.fold.open .rn-t{max-height:35vh;overflow-y:auto}

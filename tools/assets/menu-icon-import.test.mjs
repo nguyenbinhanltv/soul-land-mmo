@@ -4,7 +4,15 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { buildIcons, spliceManifest, BUDGET, FRAMES } from "./menu-icon-import.mjs";
-import { decodePng } from "./lib.mjs";
+import { decodePng, sheetSpec } from "./lib.mjs";
+
+test("sáu icon Lịch: quy cách chính xác 24px cho _1x và 32px cho bản chính", () => {
+  for (const type of ["king", "world", "arena", "auto", "daily", "weekly"]) {
+    assert.deepEqual(sheetSpec(`gi_calendar_${type}_1x`, undefined, true).size, [24, 24]);
+    assert.deepEqual(sheetSpec(`gi_calendar_${type}`, undefined, true).size, [32, 32]);
+  }
+  assert.deepEqual(sheetSpec("gi_calendar_la_1x", undefined, true).size, [32, 32], "không mở quy cách24px cho mã Lịch lạ");
+});
 
 test("23 icon menu × 2 bản, đúng khung, trong ngân sách, khóa đúng danh sách client", () => {
   const { files, keys } = buildIcons();
@@ -35,4 +43,8 @@ test("manifest: đăng ký đủ cặp menu mới, chạy lại không đổi v�
 
 test("--check: ảnh và manifest trong repo khớp kết quả cắt", () => {
   execFileSync(process.execPath, [fileURLToPath(new URL("./menu-icon-import.mjs", import.meta.url)), "--check"], { stdio: "pipe" });
+});
+
+test("Lịch --check: 12 PNG và manifest trùng mẫu chủ repo đã duyệt", () => {
+  execFileSync(process.execPath, [fileURLToPath(new URL("./calendar-icon-import.mjs", import.meta.url)), "--check"], { stdio: "pipe" });
 });

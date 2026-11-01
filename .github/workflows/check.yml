@@ -289,6 +289,11 @@ jobs:
         timeout-minutes: 2
         env:
           HON_KINH_OUTPUT: ${{ runner.temp }}/flow-browser/hon-kinh
+      - run: npm run test:calendar-icon-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 2
+        env:
+          CALENDAR_OUTPUT: ${{ runner.temp }}/flow-browser/calendar-icon
       # Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình (#1601): đo hộp chồng nhau, 4 cỡ màn × 3 cỡ chữ; cùng job.
       - run: npm run test:onboard-cover-browser --prefix client
         if: ${{ !cancelled() }}
@@ -784,6 +789,27 @@ jobs:
         env:
           REDIS_PREFIX: test:presence-kill
         run: npm run test:presence-kill --prefix server
+      # #1621: bài thử cần binary redis-server (tự bật Redis riêng ở cổng trống rồi tắt / bật lại giữa lúc 2 server có người chơi); service
+      # container ở trên chỉ là cổng 6379, không có binary trong PATH. apt-get cài kèm sẵn một redis-server tự chạy ở 6379 (đụng service)
+      # nên tắt hẳn bằng systemctl disable --now để không có tiến trình thứ hai / systemd khởi động lại tranh cổng với service; bài thử không dùng cổng đó. PostgreSQL chung là BOT_PG_URL của job (bài tự tạo / xoá database riêng).
+      - name: cài redis-server (binary cho test:presence-outage)
+        if: ${{ !cancelled() }}
+        timeout-minutes: 3
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends redis-server
+          sudo systemctl disable --now redis-server || true
+          redis-server --version
+      - name: test:presence-outage (Redis mất rồi có lại, #561)
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        shell: bash # pipefail: tee không che mã thoát của bài thử
+        env:
+          OUTAGE_SECS: "8"
+          BOT_REDIS_BIN: redis-server
+        run: |
+          mkdir -p ci-logs
+          npm run test:presence-outage --prefix server 2>&1 | tee ci-logs/presence-outage.log
       - name: bot arena hai tiến trình (--procs 2)
         if: ${{ !cancelled() }}
         timeout-minutes: 8
