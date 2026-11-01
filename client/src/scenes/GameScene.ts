@@ -37,7 +37,7 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
 import { setBadge, badgeOf, resetBadges, starReadyCount, ringReady, questActionable } from "../badges.ts";
 import { openNotice, closeNotice } from "../noticeScreen.ts";
-import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
+import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, endJingle, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScreen.ts";
 import { bindMail, openMail, closeMail, onMail, type MailMsg } from "../mailScreen.ts";
@@ -1674,7 +1674,10 @@ export class GameScene extends Phaser.Scene {
     // Bí Cảnh (mục 5.22, P5): `{runs, resetIn}` = trạng thái lượt (màn danh sách, chấm đỏ); `{k}` = vòng phòng (found = vào phòng riêng, ready / fight / wave / clear / end).
     this.room.onMessage("bicanh", (m: BiCanhMsg & BiCanhRoomMsg) => {
       if (m?.k === "found" && typeof m.roomId === "string") { closeBiCanh(); hud.closeNpc(); hud.log(`Vào ${m.name ?? "Bí Cảnh"}…`, "#ff9a8a"); this.onArena(m.roomId, false, "bicanh"); }
-      else if (m?.k) onBiCanhRoom(m as BiCanhRoomMsg);
+      else if (m?.k) {
+        onBiCanhRoom(m as BiCanhRoomMsg);
+        const j = endJingle(m); if (j) this.audio.music?.jingle(j); // hết phòng: khúc thắng / thua (tái dùng, #1578)
+      }
       else onBiCanh(m);
     });
     this.room.onMessage("mail", (m: MailMsg) => { if (onMail(m)) this.audio.playUi("reward"); }); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
