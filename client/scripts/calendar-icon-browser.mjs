@@ -16,6 +16,22 @@ let log = "", browser;
 for (const stream of [vite.stdout, vite.stderr]) stream.on("data", (d) => { log = (log + d).slice(-4000); });
 const types = ["king", "world", "arena", "auto", "daily", "weekly"];
 const dataPath = fileURLToPath(new URL("../../shared/data.ts", import.meta.url)).replaceAll("\\", "/");
+const setupCalendar = async (page) => {
+  await page.goto(`http://127.0.0.1:${port}/choi/`);
+  await page.clock.install();
+  await page.evaluate(async (dataPath) => {
+    await (await import("/src/uiArt.ts")).loadUiArt();
+    document.querySelector("#overlay")?.remove();
+    document.querySelector("#hud").hidden = false; document.querySelector("#hud").style.display = "block";
+    const cal = await import("/src/calendarScreen.ts"), { EVENT_DEFS } = await import(`/@fs/${dataPath}`);
+    window.calendarTest = cal;
+    const now = Date.now(), start = now - 12 * 3_600_000;
+    const king = EVENT_DEFS.find((x) => x.id.startsWith("king:")), world = EVENT_DEFS.find((x) => x.id.startsWith("world:"));
+    const make = (def, s, e, d) => ({ id: def.id, name: def.name, kind: "slot", s, e, d, map: def.map, mapName: "Tinh Đấu Đại Sâm Lâm", boss: "Hồn thú thử nghiệm" });
+    window.calendarFixture = { now, weekStart: start, items: [make(king, now - 60_000, now + 900_000, 0), make(world, now + 1_800_000, now + 2_700_000, 0), make(king, now - 7_200_000, now - 6_000_000, 1)], fixed: EVENT_DEFS.filter((x) => x.kind !== "slot").map((x) => ({ ...x, at: x.kind === "reset" ? "00:00" : undefined, weekly: x.id === "reset:tong" })) };
+    cal.bindCalendar(() => {}); cal.openCalendar(); cal.onCalendar(window.calendarFixture);
+  }, dataPath);
+};
 try {
   const url = `http://127.0.0.1:${port}`;
   for (let i = 0; i < 100; i++) { if (await fetch(url).then((r) => r.ok).catch(() => false)) break; await new Promise((r) => setTimeout(r, 100)); if (i === 99) throw new Error(log); }
@@ -24,20 +40,7 @@ try {
     const context = await browser.newContext({ deviceScaleFactor: dpr });
     const page = await context.newPage(), errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto(url + "/choi/");
-    await page.clock.install();
-    await page.evaluate(async (dataPath) => {
-      await (await import("/src/uiArt.ts")).loadUiArt();
-      document.querySelector("#overlay")?.remove();
-      document.querySelector("#hud").hidden = false; document.querySelector("#hud").style.display = "block";
-      const cal = await import("/src/calendarScreen.ts"), { EVENT_DEFS } = await import(`/@fs/${dataPath}`);
-      window.calendarTest = cal;
-      const now = Date.now(), start = now - 12 * 3_600_000;
-      const king = EVENT_DEFS.find((x) => x.id.startsWith("king:")), world = EVENT_DEFS.find((x) => x.id.startsWith("world:"));
-      const make = (def, s, e, d) => ({ id: def.id, name: def.name, kind: "slot", s, e, d, map: def.map, mapName: "Tinh Đấu Đại Sâm Lâm", boss: "Hồn thú thử nghiệm" });
-      window.calendarFixture = { now, weekStart: start, items: [make(king, now - 60_000, now + 900_000, 0), make(world, now + 1_800_000, now + 2_700_000, 0), make(king, now - 7_200_000, now - 6_000_000, 1)], fixed: EVENT_DEFS.filter((x) => x.kind !== "slot").map((x) => ({ ...x, at: x.kind === "reset" ? "00:00" : undefined, weekly: x.id === "reset:tong" })) };
-      cal.bindCalendar(() => {}); cal.openCalendar(); cal.onCalendar(window.calendarFixture);
-    }, dataPath);
+    await setupCalendar(page);
     for (const [width, height] of [[1280, 720], [1920, 1080], [640, 360]]) for (const fs of [0, 1, 2]) {
       await page.setViewportSize({ width, height });
       await page.evaluate((fs) => { document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (fs) document.body.classList.add(`a11y-fs-${fs}`); }, fs);
@@ -52,6 +55,7 @@ try {
       assert.ok(state.icons.every((i) => i.width === (dpr === 1 ? 24 : 32) && !i.hidden && !i.alt && i.decorative === "true"));
       assert.match(state.live, /Đang mở/); assert.match(state.soon, /Sắp mở/); assert.match(state.past, /■/);
       assert.ok(await page.locator("#calendar .p2-body").evaluate((el) => el.clientHeight > 60), "vùng đọc Lịch còn đủ cao ở màn thấp/chữ lớn");
+      if (width >= 1280) assert.ok(await page.locator("#calendar .cal-grid").evaluate((el) => el.scrollWidth <= el.clientWidth + 1), "desktop hiện đủ bảy cột");
       if (dpr === 1) {
         await page.screenshot({ path: resolve(out, `lich-${width}x${height}-chu-${fs}.png`) });
         // Màn nhỏ vẫn cuộn được đến cuối, không mất các thẻ dưới khung nhìn.
@@ -63,6 +67,10 @@ try {
         }
       }
     }
+    await page.evaluate(() => { window.lateFixture = { ...calendarFixture, weekStart: Date.now() - 6.5 * 86_400_000 }; calendarTest.onCalendar(lateFixture); });
+    assert.ok(await page.locator("#calendar .cal-grid").evaluate((el) => { const g = el.getBoundingClientRect(), t = el.querySelector(".cal-today").getBoundingClientRect(); return t.left >= g.left - 1 && t.right <= g.right + 1; }), "hôm nay cuối tuần tự cuộn vào tầm nhìn");
+    await page.evaluate(() => { document.querySelector("#calendar .cal-grid").scrollLeft = 0; calendarTest.onCalendar(lateFixture); });
+    assert.equal(await page.locator("#calendar .cal-grid").evaluate((el) => el.scrollLeft), 0, "dựng lại cùng tuần giữ vị trí người chơi");
     await page.evaluate(() => {
       for (const img of document.querySelectorAll("#calendar .cal-icon")) img.dispatchEvent(new Event("error"));
     });
@@ -75,5 +83,11 @@ try {
     assert.deepEqual(errors, []);
     await context.close();
   }
+  const touch = await browser.newContext({ hasTouch: true, viewport: { width: 640, height: 360 } });
+  const touchPage = await touch.newPage(); await setupCalendar(touchPage);
+  await touchPage.evaluate(() => document.body.classList.add("touch", "ui-h460", "ui-h500", "ui-w640"));
+  const bounds = await touchPage.locator("#calendar").boundingBox();
+  assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= 361, "touch ngang: Lịch nằm trọn màn, không dồn xuống nửa dưới");
+  await touchPage.screenshot({ path: resolve(out, "lich-touch-640x360.png") }); await touch.close();
   console.log(`✓ Lịch: sáu loại, ba trạng thái, ba cỡ chữ × ba viewport, DPR1/2, fallback: ${out}`);
 } finally { await browser?.close(); vite.kill(); vite.stdout.destroy(); vite.stderr.destroy(); vite.unref(); }

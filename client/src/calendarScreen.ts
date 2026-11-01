@@ -128,6 +128,8 @@ function slotNode(it: CalItem, st: SlotState): PNode {
 
 function render() {
   const root = el(); if (!root || root.hidden) return;
+  const previousGrid = root.querySelector<HTMLElement>(".cal-grid");
+  const previousScroll = previousGrid ? { week: previousGrid.dataset.week, left: previousGrid.scrollLeft, top: previousGrid.scrollTop } : null;
   for (const s of stops) s(); stops = [];
   const f = screenFrame({ material: "giay", title: "Lịch Hoạt Động", badge: "曆", info: "Giờ theo giờ Việt Nam. Lịch chỉ đọc từ luật thời gian của máy chủ; mỗi ngày làm mới lúc 00:00." });
   const now = serverNow(), body: PNode[] = [];
@@ -147,7 +149,7 @@ function render() {
       h("span", "cal-resets", { kids: resets.map((r) => h("span", "cal-reset", { kids: [eventIcon(r.id), h("span", "", { text: `${r.name}: ${r.at ?? "00:00"}${r.weekly ? " thứ Hai" : ""}` })] })) }),
     ] }));
     if (!d.items.length) body.push(h("div", "cal-msg", { text: "Tuần này chưa có khung giờ." }));
-    else body.push(h("div", "cal-grid", { kids: cols.map((c, i) => h("div", `cal-col${today === i ? " cal-today" : ""}`, { kids: [
+    else body.push(h("div", "cal-grid", { attrs: { "data-week": String(d.weekStart) }, kids: cols.map((c, i) => h("div", `cal-col${today === i ? " cal-today" : ""}`, { kids: [
       h("div", "cal-dh", { kids: [h("span", "cal-dn", { text: DAY_LABELS[i] }), h("span", "cal-dd", { text: dayDate(d.weekStart, i) }), today === i ? h("span", "cal-now", { text: "Hôm nay" }) : null] }),
       ...(c.length ? c.map((it) => slotNode(it, slotState(it, now))) : [h("span", "cal-empty", { text: "—" })]),
     ] })) }));
@@ -182,4 +184,11 @@ function render() {
   });
   addCloseButton(f.root, closeCalendar);
   root.replaceChildren(f.root);
+  const grid = root.querySelector<HTMLElement>(".cal-grid"), today = grid?.querySelector<HTMLElement>(".cal-today");
+  if (grid && previousScroll && previousScroll.week === grid.dataset.week) {
+    grid.scrollLeft = previousScroll.left; grid.scrollTop = previousScroll.top;
+  } else if (grid && today) {
+    // Lưới hẹp cuộn ngang: mở đúng cột hôm nay; các lần dựng lại cùng tuần giữ vị trí người chơi đã cuộn.
+    grid.scrollLeft = Math.max(0, today.getBoundingClientRect().left - grid.getBoundingClientRect().left - (grid.clientWidth - today.offsetWidth) / 2);
+  }
 }

@@ -44,3 +44,7 @@ test("manifest: đăng ký đủ cặp menu mới, chạy lại không đổi v�
 test("--check: ảnh và manifest trong repo khớp kết quả cắt", () => {
   execFileSync(process.execPath, [fileURLToPath(new URL("./menu-icon-import.mjs", import.meta.url)), "--check"], { stdio: "pipe" });
 });
+
+test("Lịch --check: 12 PNG và manifest trùng mẫu chủ repo đã duyệt", () => {
+  execFileSync(process.execPath, [fileURLToPath(new URL("./calendar-icon-import.mjs", import.meta.url)), "--check"], { stdio: "pipe" });
+});
