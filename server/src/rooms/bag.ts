@@ -1,7 +1,7 @@
 // Túi đồ, vật phẩm và Hồn Tệ (GAME_DESIGN.md mục 5.7, bước 3.1): gửi túi (bag / bagd), thêm / bớt món, cộng đồng, sắp xếp, khoá / bỏ món, ảnh chụp túi để lưu, tách khỏi MapRoom.ts (#702, bước 11).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / travel.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`, `room.saveTrade`.
-// MapRoom chỉ chuyển tiếp (onMessage, tick, các miền khác gọi `room.sendBag` / `room.addItem` như cũ). `useItem` / `pickup` ở `item.ts`, `rewardFits` / `giveItems` ở `quest.ts`; `takeShards` / `shardNote` (E6a) cũng ở đây, MapRoom chuyển tiếp; `addRing` / `addBone` / `addEquip` còn ở MapRoom (E6b).
-import { itemDef, BEAST_COIN, STARTER_ITEMS, SHARD_UNLOCK, starCost } from "../../../shared/data.ts";
+// MapRoom chỉ chuyển tiếp (onMessage, tick, các miền khác gọi `room.sendBag` / `room.addItem` như cũ). `useItem` / `pickup` ở `item.ts`, `rewardFits` / `giveItems` ở `quest.ts`; `takeShards` / `shardNote` (E6a) cũng ở đây, MapRoom chuyển tiếp; `addRing` / `addBone` / `addCore` / `addEquip` (E6b) cũng ở đây (hàm thuần trên `PData`), MapRoom chuyển tiếp.
+import { itemDef, BEAST_COIN, STARTER_ITEMS, SHARD_UNLOCK, starCost, RING_ITEM, BONE_ITEM, CORE_ITEM, EQUIP_ITEM, type CoreData, type EquipData } from "../../../shared/data.ts";
 import { bagDiff } from "../../../shared/bagSync.ts";
 import type { Item, Bag } from "../db.ts";
 import { newItem, bagUsed, bumpItemClock, KIND_ORDER, ITEM_ORDER } from "./items.ts";
@@ -202,4 +202,41 @@ export function shardNote(room: MapRoom, d: PData, code: string) {
   if (!v) return ` (${n}/${SHARD_UNLOCK})`;
   const cost = starCost(v.stars);
   return cost === null ? "" : ` (${n}/${cost} lên ${v.stars + 1}★)`;
+}
+
+/** Thêm một hồn hoàn `years` năm vào túi (mỗi chiếc một ô, không gộp). Túi đầy thì false. Không tự gửi tin "bag". */
+export function addRing(d: PData, years: number) {
+  const def = itemDef(RING_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return false;
+  d.bag.push(newItem(def, 1, years)); d.bagDirty = true;
+  return true;
+}
+
+/**
+ * Thêm một hồn cốt vào túi (bước 4.1, mỗi món một ô): số năm `years`, loài `beast` (mã trong BEASTS), vị trí `slot` (mã trong
+ * BONE_SLOTS), cường hóa +0, chưa gắn. Túi đầy thì null. Không tự gửi tin "bag".
+ */
+export function addBone(d: PData, years: number, beast: string, slot: string) {
+  const def = itemDef(BONE_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return null;
+  const it = newItem(def, 1, years); it.stats = { beast, slot };
+  d.bag.push(it); d.bagDirty = true;
+  return it;
+}
+
+/**
+ * Thêm một hồn hạch vào túi (bước 5.1, mỗi món một ô): `stars` sao, bộ / chỉ số chính / dòng phụ `data` (đã tung), nâng cấp +0,
+ * chưa gắn. Túi đầy thì null. Không tự gửi tin "bag".
+ */
+export function addCore(d: PData, stars: number, data: CoreData) {
+  const def = itemDef(CORE_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return null;
+  const it = newItem(def, 1); it.stars = stars; it.stats = { set: data.set, main: data.main, subs: data.subs.map(([k, v]) => [k, v]) };
+  d.bag.push(it); d.bagDirty = true;
+  return it;
+}
+
+/** Thêm một món trang bị hồn sư (E2, mỗi món một ô, `stats` = EquipData). Túi đầy thì null, trừ `force` (ô tạm vượt túi, như rương). Không tự gửi tin "bag". */
+export function addEquip(d: PData, data: EquipData, force = false) {
+  const def = itemDef(EQUIP_ITEM); if (!def || (!force && bagUsed(d.bag) >= d.bagSlots)) return null;
+  const it = newItem(def, 1); it.stats = { tpl: data.tpl, ilvl: data.ilvl, roll: data.roll, affixes: data.affixes.map(([k, v]) => [k, v]), luck: data.luck };
+  d.bag.push(it); d.bagDirty = true;
+  return it;
 }
