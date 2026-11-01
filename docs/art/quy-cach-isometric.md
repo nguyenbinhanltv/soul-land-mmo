@@ -40,6 +40,7 @@ Pixel art **isometric** (ô thoi 2:1, 8 hướng, nhìn chéo từ trên xuống
 | Hải Thần Đảo | Ngọc lam, vàng | Nắng biển / sóng phát quang | Gió biển, mưa ở Ma Quỷ Hải Vực; bọt sóng | San hô, đá ngầm, cát vàng, đền Hải Thần |
 | Lõi Tinh Đấu | Tím than, lam hồ thần | Luôn đêm, hồ phát sáng | Sương mù; hạt hồn lực trôi lên | Hồ trung tâm, đá cổ, rễ khổng lồ |
 | Đại Đấu Hồn Trường | Đá xám, vàng kim, đỏ son | Luôn sáng đuốc | Quang; bụi cát, giấy hoa khi thắng | Sàn đấu, khán đài, khán đài vua (lưu ly) |
+| Luyện Hồn Cảnh | Xám lam, vàng nhạt | Sảnh đá kín | Quang; linh khí, tàn sáng rất thưa (tắt khi Thấp / Giảm chuyển động) | Sảnh đá, dấu sóng và tinh anh |
 
 **Độ tương phản**
 - **Nền:** độ sáng trung bình 25–55% (tuyết, cát tới 75%), bão hòa thấp; không điểm trắng hay màu bão hòa cao trên ô nền (dành cho hồn lực).
