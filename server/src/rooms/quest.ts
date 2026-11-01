@@ -1,12 +1,11 @@
 // Miền NPC / nhiệm vụ / khảo hạch hằng ngày (NPC 6.1, nhiệm vụ 6.2, khảo hạch hằng ngày mục 5.8): nói chuyện NPC, nhận / trả chuỗi nhiệm vụ, nhận / trả khảo hạch, tách khỏi MapRoom.ts (#702, bước 8).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / tong.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.saveTrade`, `room.save`.
 // MapRoom chỉ chuyển tiếp `talkNpc`, `questAction`, `dailyAction` (đăng ký `onMessage("talk")` / `onMessage("quest")` giữ nguyên thứ tự ở đó) và các hàm bộ đếm / tin riêng `sendQuest`, `fixedQuest`, `questOpen`, `questHave`, `questEvent`, `rewardFits`, `grantReward`, `dailyDay`, `dailyOf`, `dailyFresh`, `giveItems`, `dailyGive`, `sendDaily`, `dailyBag` (bước 28, nhiều miền gọi `room.questEvent` / `room.sendDaily` như cũ).
-import { itemDef, npcDef, questChain, questStart, questStatus, questRewardText, isDaily, DAILY, dailyIds, MAPS, QUEST_STARTER, QUEST_AFTER, BONE_SLOTS, vnDay,
-  type QuestGoal, type QuestReward, type QuestProgress, type QuestEvent } from "../../../shared/data.ts";
+import { itemDef, NPC_RANGE, npcDef, questChain, questStart, questStatus, questRewardText, isDaily, DAILY, dailyIds, MAPS, QUEST_STARTER, QUEST_AFTER, BONE_SLOTS, vnDay,
+  type QuestGoal, type QuestReward, type QuestProgress, type QuestEvent, type NpcRole } from "../../../shared/data.ts";
 import { mapRoute } from "../map.ts";
 import { bossNow } from "../schedule.ts";
 import { progressFor, giveCandidates } from "./calc.ts";
-import { NPC_RANGE, type NpcRole } from "../../../shared/data.ts";
 import type { NpcSpot } from "../map.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";

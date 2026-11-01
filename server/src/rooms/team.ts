@@ -4,11 +4,10 @@
 
 import type { Client } from "colyseus";
 import { store, type Character } from "../db.ts";
-import { VOHON, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX, parseTeam, loadoutOf, BONE_ITEM, CORE_ITEM, CORE_SETS, CORE_FX_RULE, coreFx, coreSetIndex,
+import { VOHON, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX, parseTeam, loadoutOf, BONE_ITEM, CORE_ITEM, CORE_SETS, CORE_FX_RULE, coreFx, coreSetIndex,
   SHARD_UNLOCK, MAX_STARS, starCost, shardCode,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText } from "../../../shared/data.ts";
 import { itemStacks } from "./items.ts";
-import { tierOfYears } from "../../../shared/data.ts";
 import type { PlayerState } from "./schema.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
