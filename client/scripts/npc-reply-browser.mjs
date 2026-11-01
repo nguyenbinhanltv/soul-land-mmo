@@ -65,7 +65,7 @@ try {
     await route.fulfill({ response, body: await response.text() + `
 const replyCreate = GameScene.prototype.create;
 GameScene.prototype.create = function(...a) {
-  window.__npcReplyScene = this; window.__npcReplyTarget = ${JSON.stringify(npcId)}; window.__npcLpcStr = npcLpcStr; return replyCreate.apply(this, a);
+  window.__npcReplyScene = this; window.__npcReplyTarget = ${JSON.stringify(npcId)}; window.__npcLpcStr = npcLpcStr; window.__npcReplySnapshot = ()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),a=s.npcReply.active;return {active:!!a,head: a?{flip:a.head.flipX,frame:a.head.frame.name,y:a.head.y}:null,flip:n.body.flipX,crop:n.body.isCropped,anim:n.body.anims.currentAnim?.key,x:n.body.parentContainer.x,y:n.body.parentContainer.y,bodyX:n.body.x,bodyY:n.body.y};}; return replyCreate.apply(this, a);
 };` });
   });
   await page.goto(`${web}/choi/`);
@@ -92,8 +92,13 @@ GameScene.prototype.create = function(...a) {
     await page.waitForFunction(({x,y}) => { const s=window.__npcReplyScene,p=s.room.state.players.get(s.me); return Math.hypot(p.x-x,p.y-y)<.1; },point);
   };
   const close = async () => { await page.evaluate(async()=> (await import('/src/hudNpc.ts')).closeNpc()); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===null); };
-  const talk = async () => { await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>!!window.__npcReplyScene.npcReply.active, null, {timeout:5000}).catch(async e=>{console.log(await page.evaluate(async()=>({id:(await import('/src/hudNpc.ts')).npcOpenId(), stamp:(await import('/src/hudNpc.ts')).npcOpenStamp(), sceneStamp:window.__npcReplyScene.talkingNpcStamp,reduce:(await import('/src/combatFx.ts')).fxPrefs.reduce,texture:window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.texture.key})));throw e;}); };
-  const state = () => page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),a=s.npcReply.active;return {active:!!a,head: a?{flip:a.head.flipX,frame:a.head.frame.name,y:a.head.y}:null,flip:n.body.flipX,crop:n.body.isCropped,anim:n.body.anims.currentAnim?.key,x:n.body.parentContainer.x,y:n.body.parentContainer.y,bodyX:n.body.x,bodyY:n.body.y};});
+  const talk = async () => {
+    await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget));
+    // Lấy mẫu nguyên tử khi cử chỉ còn chạy, tránh đọc sau hạn 480 ms trên máy bận.
+    const handle = await page.waitForFunction(()=>{const s=window.__npcReplySnapshot();return s.active?s:false;}, null, {timeout:5000});
+    try { return await handle.jsonValue(); } finally { await handle.dispose(); }
+  };
+  const state = () => page.evaluate(()=>window.__npcReplySnapshot());
   await move(24,24);
   await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),c=s.cameras.main;c.stopFollow(); c.setZoom(5);c.centerOn(n.body.parentContainer.x+65,n.body.parentContainer.y-20);});
   // Quay clip trong game thật: mở bằng tin talk được server xác nhận, chờ về idle rồi đóng.
@@ -107,7 +112,7 @@ GameScene.prototype.create = function(...a) {
   for (const [dx,dy] of dirs) {
     await move(dx,dy);
     const expected=await page.evaluate(async({dx,dy})=>{const {dir8}=await import('/src/iso.ts'),{honsuAnimKey}=await import('/src/sprites.ts'); return honsuAnimKey('lpc_'+window.__npcReplyTarget,'idle',dir8(dx,dy));},{dx,dy});
-    await talk(); const during=await state();
+    const during=await talk();
     assert.equal(during.anim,expected.key); assert.equal(during.flip,expected.flip); assert.equal(during.head.flip,expected.flip); assert.ok(during.crop);
     await page.waitForTimeout(560); const after=await state();
     assert.ok(!after.active&&!after.crop); assert.equal(after.anim,expected.key); assert.equal(after.x,during.x); assert.equal(after.y,during.y); assert.equal(after.bodyX,during.bodyX); assert.equal(after.bodyY,during.bodyY);
