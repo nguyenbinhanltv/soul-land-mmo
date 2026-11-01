@@ -80,6 +80,8 @@ Bản phác bố cục: `docs/art/ban-phac-nhan-vat-tui/index.html` (kèm ảnh 
 
 **Bàn phím:** Tab đi qua các ô (đều là nút); Enter mở thẻ (nút đầu được focus, Enter lần nữa chạy nút chính); Shift+Enter trên ô túi = mặc nhanh, trên ô đang gắn / mặc = tháo; Esc đóng thẻ / bảng so sánh.
 
+Menu (Hub, #1636): mở thì tiêu điểm vào thẻ mở khoá đầu, Tab xoay trong Menu, Esc đóng và trả tiêu điểm.
+
 ### Tab Trang bị
 `client/src/charPanel.ts`.
 - **Bố cục** theo `EQUIP_SLOTS`: cột trái Vũ khí, Vòng trái, Nhẫn trái, Đai; cột phải Mũ, Dây chuyền, Vòng phải, Nhẫn phải, Giày; giữa hình hồn sư, ô Áo đè lên thân.

@@ -2,7 +2,7 @@
 // đánh thường `attack`, hồn thú đánh hồn sư `hurtPlayer`, gục / hồi sinh `knockOut` / `revive`, hồn sư đánh hồn thú `damageBeast` và đánh đối thủ `damageFoe`.
 // Hàm nhận phòng (`room: MapRoom`) như skill.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý trong tick. MapRoom chỉ chuyển tiếp 6 hàm
 // (`onMessage`, `tick`, `skill.ts`, `boss.ts`, `autoHunt.ts`, `gm.ts`, `ArenaRoom` gọi như cũ).
-// Còn ở MapRoom: `killBeast`, `applyStatus` / `applyPStatus`, `chanThan` / `endAva` / `tickAva`, tiên cơ (`tienCo`, `gainEnergy`), `buffV` / `atkOf`. `selfEffect` / `partyShare` nay ở `support.ts`.
+// Còn ở MapRoom: `killBeast`, `applyStatus` / `applyPStatus`, `chanThan` / `endAva` / `tickAva`, tiên cơ (`tienCo`, `gainEnergy`), `buffV` / `atkOf`. `selfEffect` / `partyShare` nay ở `support.ts`. `foesNear` / `nearestFoe` (E5b) nay ở đây, MapRoom chuyển tiếp; `foesOf` ở lại MapRoom vì `ArenaRoom` override nên luôn gọi qua `room.foesOf`.
 import { TIERS, BEAST_HALF, VOHON, vohonIndex, TEAM_SIZE, REVIVE_SECS, RESPAWN_SECS, PHONG_LOI, ATTACK_CD, ATTACK_REACH, atkRoll, CORE_FX_RULE, CORE_SETS, coreSetIndex,
   STATUS, ARENA, ARENA_HE_DMG, WORLD, defMult, HIT_INVULN_SECS } from "../../../shared/data.ts";
 import type { Character } from "../db.ts";
@@ -220,4 +220,20 @@ export function damageFoe(room: MapRoom, fid: string, dmg: number, by: string, _
   const steal = (o.lifesteal ?? 0) + room.buffV(pd, "leech");
   if (steal && !p.dead && r.dealt > 0) { pd.hpF = Math.min(p.maxHp, pd.hpF + r.dealt * steal); p.hp = Math.ceil(pd.hpF); }
   return true;
+}
+
+/** Đối thủ chưa gục đứng trong bán kính `r` quanh (x, y) (tính tới chân), kể cả đang tàng hình (đòn diện rộng vẫn trúng). */
+export function foesNear(room: MapRoom, id: string, r: number, x: number, y: number) {
+  return room.foesOf(id).filter((f) => { const q = room.state.players.get(f); return !!q && !q.dead && Math.hypot(q.x - x, q.y - y) < r; });
+}
+
+/** Đối thủ gần `id` nhất trong bán kính `r` mà khóa mục tiêu được (chưa gục, không tàng hình). */
+export function nearestFoe(room: MapRoom, id: string, r: number) {
+  const p = room.state.players.get(id); if (!p) return undefined;
+  let best: string | undefined, bd = r;
+  for (const f of room.foesOf(id)) {
+    const q = room.state.players.get(f), dd = q ? Math.hypot(q.x - p.x, q.y - p.y) : Infinity;
+    if (q && !q.dead && !room.pdata.get(f)?.buffs.has("hide") && dd < bd) { bd = dd; best = f; }
+  }
+  return best;
 }

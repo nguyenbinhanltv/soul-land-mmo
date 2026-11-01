@@ -24,9 +24,11 @@
 #roster .bvh{display:flex;align-items:center;gap:var(--sp-4);font:var(--fs-m)/1.2 var(--f12)}
 #roster .bvh select{min-height:32px;flex:1;box-sizing:border-box;font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2);padding:0 var(--sp-3)}
 
-/* (3) Tab dưới: dính đáy vùng cuộn, đang chọn có vạch dày dưới chân (hình, không chỉ màu). */
-#roster .rtabs{position:sticky;bottom:calc(var(--sp-4) * -1);display:flex;gap:var(--sp-2);flex-wrap:nowrap;
-  margin:auto calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-3) var(--sp-4);background:var(--plate);border-top:var(--bd-fine) solid var(--ink2);z-index:1}
+/* (3) Tab dưới: nằm ngoài vùng cuộn `.rbody` (#1602: không đè dòng cuối), đang chọn có vạch dày dưới chân (hình, không chỉ màu). */
+#roster{overflow:hidden;gap:0}
+#roster .rbody{display:flex;flex-direction:column;gap:var(--sp-4);flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
+#roster .rtabs{flex:none;display:flex;gap:var(--sp-2);flex-wrap:nowrap;
+  margin:var(--sp-4) calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-3) var(--sp-4);background:var(--plate);border-top:var(--bd-fine) solid var(--ink2)}
 #roster .rtabs .ui-tab{flex:1 1 0;min-width:0;justify-content:center;white-space:nowrap;min-height:32px;box-sizing:border-box;padding:0 var(--sp-2);font:var(--fs-m)/1.2 var(--f12);color:var(--plate-text);text-shadow:none;cursor:pointer}
 #roster .rtabs .ui-tab::before{display:none}
 #roster .rtabs .ui-tab[aria-selected="true"]{box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--accent)}

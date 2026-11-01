@@ -172,9 +172,9 @@ async function runSize(W, H) {
       await key("KeyV", "v"); await tab("bone"); await sleep(400); await eq(2); await shot("40-hon-cot");
       await ev(`document.querySelector("#roster .bcell:not(.empty)")?.click(), true`); await sleep(500); await shot("41-hon-cot-chon");
       await ev(`[...document.querySelectorAll("#roster .buse")].find((b) => b.textContent.includes("Cường hóa"))?.click(), true`); await sleep(500);
-      await ev(`document.querySelector("#roster .aopt")?.click(), true`); await sleep(500); await ev(`(document.getElementById("roster").scrollTop = 1e5, true)`); await sleep(200); await shot("42-hon-cot-cuong-hoa");
+      await ev(`document.querySelector("#roster .aopt")?.click(), true`); await sleep(500); await ev(`(document.querySelector("#roster .rbody").scrollTop = 1e5, true)`); await sleep(200); await shot("42-hon-cot-cuong-hoa");
       await tab("core"); await sleep(400); await eq(3); await shot("43-hon-hach");
-      await ev(`document.querySelector("#roster .ccell:not(.empty)")?.click(), true`); await sleep(500); await shot("44-hon-hach-chon"); await ev(`(document.getElementById("roster").scrollTop = 1e5, true)`); await sleep(200); await shot("46-hon-hach-duoi");
+      await ev(`document.querySelector("#roster .ccell:not(.empty)")?.click(), true`); await sleep(500); await shot("44-hon-hach-chon"); await ev(`(document.querySelector("#roster .rbody").scrollTop = 1e5, true)`); await sleep(200); await shot("46-hon-hach-duoi");
       await tab("manh"); await sleep(400); await shot("45-manh");
       await key("Escape", "Escape");
     });

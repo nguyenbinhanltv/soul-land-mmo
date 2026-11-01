@@ -432,12 +432,13 @@ export class GameScene extends Phaser.Scene {
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean, kind?: "bicanh") => void; onBack: () => void; watch?: boolean }) {
     this.room = data.room; this.mapId = data.mapId; this.me = data.room.sessionId; this.onTravel = data.onTravel;
     this.onArena = data.onArena; this.onBack = data.onBack; this.isArena = MAPS[data.mapId]?.kind === "arena"; this.watching = this.isArena && !!data.watch;
+    this.wpHere = null; // trận truyền tống đang đứng thuộc phòng cũ; phòng mới tự báo `wp here` khi đổi key
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
       this.npcReply.cancel(); this.talkingNpc = null; this.talkingNpcStamp = -1;
       this.contextCursor?.destroy(); this.contextCursor = null;
-      this.slowmo = 1; this.hitstopEnd = 0; this.shakeEnd = 0; this.shakeInt = 0; this.flashTimes.length = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); clearQuestArrow(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
+      this.slowmo = 1; this.hitstopEnd = 0; this.shakeEnd = 0; this.shakeInt = 0; this.flashTimes.length = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); clearQuestArrow(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showWaypoint(null, () => {}); this.wpHere = null; hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} }); resetBiCanhRoom();
       this.show?.destroy(); this.show = undefined;
       hud.setFusionPending(null); hud.setFusionCd(0); // lời mời dung hợp gắn với phòng cũ (server đã hủy khi rời); hồi chiêu đọc lại từ vohons

@@ -32,7 +32,7 @@ async function ready(url) {
   for (let i = 0; i < 150; i++) { if (await fetch(url).then((r) => r.ok).catch(() => false)) return; await sleep(200); }
   throw Error(`Không mở được ${url}`);
 }
-const PANELS = [["char", "#char"], ["bag", "#bag"], ["mail", "#mail"], ["achv", "#achv"], ["vohon", "#roster"]];
+const PANELS = [["char", "#char"], ["bag", "#bag"], ["mail", "#mail"], ["achv", "#achv"], ["vohon", "#roster"], ["calendar", "#calendar"], ["welfare", "#welfare"], ["bicanh", "#bicanh"], ["notice", "#notice"]];
 const problems = [];
 try {
   await mkdir(out, { recursive: true });
@@ -113,6 +113,7 @@ try {
       if (m.covers) problems.push(`${tag}: thẻ che bảng ${Math.round(m.area)} px²`);
       if (!m.cover) problems.push(`${tag}: thẻ chưa thu gọn khi bảng mở`);
       if (m.cover && m.h > 80) problems.push(`${tag}: thẻ thu gọn cao ${Math.round(m.h)} px (> 80, không còn một dòng)`);
+      if (await page.locator("#obSpot").count()) problems.push(`${tag}: vòng sáng #obSpot còn vẽ đè bảng`);
       if (!/bước 1\/6/.test(m.step)) problems.push(`${tag}: bước đổi (${m.step})`);
       if (fs === 1 || (w === 1280 && fs === 0)) await page.screenshot({ path: resolve(out, `${prefix}-${w}x${h}-chu-${fs}-${hub}.png`) });
       await closePanel(sel);
@@ -124,5 +125,5 @@ try {
   if (problems.length) console.log(problems.join("\n"));
   if (!soft) assert.deepEqual(problems, [], "thẻ Làm quen che bảng đang mở");
   assert.deepEqual(errors, []);
-  console.log(`✓ Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình, 4 cỡ màn × 3 cỡ chữ: ${out}`);
+  console.log(`✓ Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình / Lịch / Phúc Lợi / Bí Cảnh / Thông Báo, 4 cỡ màn × 3 cỡ chữ: ${out}`);
 } finally { clearTimeout(watchdog); await browser?.close(); stop(); }

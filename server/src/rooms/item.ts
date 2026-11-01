@@ -1,7 +1,7 @@
 // Dùng vật phẩm và nhặt đồ (GAME_DESIGN.md mục 5.1, 5.2, 5.13; docs/design/kinh-te-tui-do.md), tách khỏi MapRoom.ts (#702, bước 23):
 // `pickup` (nhặt hồn hoàn / hồn cốt / hồn hạch / trang bị / mảnh dưới đất), `useItem` (dùng món trong túi: đan, Hồi Thành Phù, Ủy Thác Lệnh) và `useHerb` (tiên thảo cho võ hồn).
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts / bag.ts; nguyên văn từ MapRoom, không đổi số / thứ tự xử lý / thứ tự ghi DB qua `room.chain`. MapRoom chỉ chuyển tiếp 3 hàm
-// (`onMessage("pickup" / "use")`, `autoHunt.ts` gọi `room.pickup` như cũ). Còn ở MapRoom: `addItem` / `addRing` / `addBone` / `addEquip`, `takeItem`, `canLoot`, `lootNote` / `shardNote`, `useAutoToken`.
+// (`onMessage("pickup" / "use")`, `autoHunt.ts` gọi `room.pickup` như cũ). `addRing` / `addBone` / `addCore` / `addEquip` nay ở `bag.ts` (MapRoom chuyển tiếp); còn ở MapRoom: `addItem`, `takeItem`, `useAutoToken`; `canLoot` / `lootNote` nay ở `loot.ts`, `shardNote` ở `bag.ts` (MapRoom chuyển tiếp).
 import type { MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { DropState } from "./schema.ts";

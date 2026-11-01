@@ -1,11 +1,12 @@
 // Miền NPC / nhiệm vụ / khảo hạch hằng ngày (NPC 6.1, nhiệm vụ 6.2, khảo hạch hằng ngày mục 5.8): nói chuyện NPC, nhận / trả chuỗi nhiệm vụ, nhận / trả khảo hạch, tách khỏi MapRoom.ts (#702, bước 8).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / tong.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.saveTrade`, `room.save`.
-// MapRoom chỉ chuyển tiếp `talkNpc`, `questAction`, `dailyAction` (đăng ký `onMessage("talk")` / `onMessage("quest")` giữ nguyên thứ tự ở đó) và các hàm bộ đếm / tin riêng `sendQuest`, `fixedQuest`, `questOpen`, `questHave`, `questEvent`, `rewardFits`, `grantReward`, `dailyDay`, `dailyOf`, `dailyFresh`, `giveItems`, `dailyGive`, `sendDaily`, `dailyBag` (bước 28, nhiều miền gọi `room.questEvent` / `room.sendDaily` như cũ).
-import { itemDef, npcDef, questChain, questStart, questStatus, questRewardText, isDaily, DAILY, dailyIds, MAPS, QUEST_STARTER, QUEST_AFTER, BONE_SLOTS, vnDay,
-  type QuestGoal, type QuestReward, type QuestProgress, type QuestEvent } from "../../../shared/data.ts";
+// MapRoom chỉ chuyển tiếp `talkNpc`, `questAction`, `dailyAction` (đăng ký `onMessage("talk")` / `onMessage("quest")` giữ nguyên thứ tự ở đó) và các hàm bộ đếm / tin riêng `sendQuest`, `fixedQuest`, `questOpen`, `questHave`, `questEvent`, `rewardFits`, `grantReward`, `dailyDay`, `dailyOf`, `dailyFresh`, `giveItems`, `dailyGive`, `sendDaily`, `dailyBag` (bước 28, nhiều miền gọi `room.questEvent` / `room.sendDaily` như cũ). Đợt E5a: `npcNear` cũng ở đây, MapRoom chuyển tiếp.
+import { itemDef, NPC_RANGE, npcDef, questChain, questStart, questStatus, questRewardText, isDaily, DAILY, dailyIds, MAPS, QUEST_STARTER, QUEST_AFTER, BONE_SLOTS, vnDay,
+  type QuestGoal, type QuestReward, type QuestProgress, type QuestEvent, type NpcRole } from "../../../shared/data.ts";
 import { mapRoute } from "../map.ts";
 import { bossNow } from "../schedule.ts";
 import { progressFor, giveCandidates } from "./calc.ts";
+import type { NpcSpot } from "../map.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { CLAIM_BUSY, claimHeld, testShift } from "./common.ts";
@@ -269,4 +270,19 @@ export function dailyBag(room: MapRoom, id: string) {
   const { changed, ready } = dailyGive(d); if (!changed) return;
   if (ready >= 0) room.log(id, `Đã đủ đồ cho khảo hạch "${questChain(d.daily[ready].chain)?.steps[0].name}": mang tới nộp cho ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name}.`, "#86e0b0");
   sendDaily(room, id, ready >= 0 ? "ready" : undefined, ready);
+}
+
+/**
+ * NPC trong tầm NPC_RANGE của người chơi: đúng mã `id` (nói chuyện), hoặc NPC gần nhất có vai trò `role` (mua bán ở thương nhân).
+ * Người đã gục / đang chuyển bản đồ thì không có. Client chỉ gửi ý định, vị trí do server giữ.
+ */
+export function npcNear(room: MapRoom, id: string, want: { id?: string; role?: NpcRole }): NpcSpot | undefined {
+  const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d || p.dead || d.travelling) return undefined;
+  let best: NpcSpot | undefined, bd = NPC_RANGE;
+  for (const n of room.map.npcs) {
+    if ((want.id && n.id !== want.id) || (want.role && npcDef(n.id)?.role !== want.role)) continue;
+    const k = Math.hypot(n.x - p.x, n.y - p.y);
+    if (k <= bd) { bd = k; best = n; }
+  }
+  return best;
 }

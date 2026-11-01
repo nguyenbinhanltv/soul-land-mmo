@@ -3,25 +3,21 @@
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
 import { Room, Client, ServerError, OnMessageException, type RoomException } from "colyseus";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
-import { TICK_RATE, tierOfYears, vohonIndex,
+import { TICK_RATE,
   AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
   MAPS, parseNewLooks, encodeLpc,
-  BOAT_CAST,
   TILE,
-  itemDef, formatHonTe, type ItemDef,
-  RING_ITEM, DROP_OWNER_SECS,
-  SHARD_UNLOCK, starCost,
-  BONE_ITEM,
-  CORE_ITEM, type CoreData,
-  type CoreStat, EQUIP_ITEM, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
+  formatHonTe, type ItemDef,
+  type CoreData,
+  type CoreStat, type EquipData,
   loadoutOf, type BondKey, type SkillDef, type StatusApply, type BuffId,
   type BeastSkillDef, type Tele,
   BOSSES, bossIndex, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
   KING, kingNext, vnDay, type BossDef, type FormDef,
   WORLD, worldNext, worldBossOn, type He,
-  npcDef, NPC_RANGE, looksChangeCost, tongDef, type NpcRole,
+  npcDef, looksChangeCost, type NpcRole,
   QUEST_STARTER, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
-  PARTY_XP_RANGE, PARTY_BUFF_R,
+  PARTY_BUFF_R,
   type AutoSummary,
   type OfflinePower,
   } from "../../../shared/data.ts";
@@ -37,7 +33,6 @@ import * as join from "./join.ts";
 import * as autoRun from "./autoRun.ts";
 import { friends, FRIEND_TOPIC, type FriendNote } from "../friends.ts";
 import { watchGc, cpuMs } from "../perf.ts";
-import { arenaDequeue, arenaQueued, arenaReadCancel } from "./arenaQueue.ts";
 import { Interest } from "./interest.ts";
 import { Grounds } from "./ground.ts";
 import { presenceBackend, bg } from "../presence.ts";
@@ -45,7 +40,7 @@ import { ColdStacks } from "./cold.ts";
 import { _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
-import { newItem, bagUsed, itemLabel, shardCount } from "./items.ts";
+import { itemLabel, shardCount } from "./items.ts";
 import { questBump } from "./questBump.ts";
 import { beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
@@ -215,12 +210,8 @@ export class MapRoom extends Room<MapState> {
   };
   /** Bạn bè (presence FRIEND_TOPIC, #195): gửi lại bảng bạn bè và thông báo cho người của phòng này có trong `to`. */
   friendSub = (n: FriendNote) => this.friendNote(n);
-  /** Tông môn của phiên `c` cho chat tông (#198): hồn sư trong phòng đọc `pdata` (đổi tông có hiệu lực ngay); người xem trận không có
-   *  pdata (#278) thì theo tông lúc vào phòng (client.auth). */
-  chatTong(c: Client): string | null {
-    const d = this.pdata.get(c.sessionId);
-    return d ? d.tong : tongDef((c.auth as AuthData | undefined)?.tong?.tong)?.id ?? null;
-  }
+  /** Hàm nhỏ về đúng miền sở hữu (#702, E5a): `chatTong` / `partyNear` ở `social.ts`, `showVohon` / `syncCh` ở `team.ts`, `npcNear` ở `quest.ts`, `shopFor` ở `shop.ts`; các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  chatTong(c: Client): string | null { return social.chatTong(this, c); }
   partyT = 0;
   /** Khung giờ đang lấy suất thú vương (đặt trước `await takeKingSeat`): tin `spawn` tới trùng không lấy thêm suất / sinh thêm thú vương. */
   kingTaking = 0;
@@ -526,17 +517,9 @@ export class MapRoom extends Room<MapState> {
   /** Chỉ số hồn sư (tính lại, tin `stats`, Sức mạnh đội hình): logic ở `stats.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
   recalc(id: string, full: boolean) { stats.recalc(this, id, full); }
 
-  /** Hiện võ hồn `ch` lên trạng thái đồng bộ (người khác thấy võ hồn ra trận, cấp, hồn hoàn). */
-  showVohon(p: PlayerState, ch: Character) {
-    p.vh = Math.max(0, vohonIndex(ch.vohon)); p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
-    p.rings.clear(); ch.rings.forEach((y) => p.rings.push(tierOfYears(y)));
-  }
+  showVohon(p: PlayerState, ch: Character) { return team.showVohon(p, ch); }
 
-  /** Chép tiến độ đang chơi vào võ hồn ra trận (d.ch). */
-  syncCh(id: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    Object.assign(d.ch, { level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
-  }
+  syncCh(id: string) { return team.syncCh(this, id); }
 
   // ---------- Lưu người chơi (logic ở `persist.ts`, #702; các hàm dưới chỉ chuyển tiếp, `ArenaRoom` vẫn override `write`) ----------
   chain(d: PData, fn: () => unknown) { return persist.chain(this, d, fn); }
@@ -581,51 +564,16 @@ export class MapRoom extends Room<MapState> {
   sendOffline(id: string): void { autoRun.sendOffline(this, id); }
 
   // ---------- Cổng (mục 5.3 "Cổng và chặn mềm", mục 6 "Đi qua cổng và lưu vị trí") ----------
-  /**
-   * Hộp đi cổng gửi riêng: tên cổng, bản đồ đích, cấp đề xuất và cảnh báo khi võ hồn ra trận dưới cấp tối thiểu (chặn mềm). Bến thuyền
-   * (BĐ6d) kèm `boat` = số giây đi thuyền.
-   */
-  portalHint(id: string, p: PlayerState, d: PData) {
-    const portal = d.travelling || p.dead ? undefined : this.map.portalAt(p.x, p.y);
-    const warn = !!portal?.level && p.level < portal.level[0];
-    const key = portal ? `${portal.name}|${warn}` : "";
-    if (key === d.portalKey) return;
-    d.portalKey = key;
-    this.clients.getById(id)?.send("portal", portal
-      ? { name: portal.name, to: portal.to, toName: MAPS[portal.to].name, level: portal.level, warn, ...(portal.boat ? { boat: BOAT_CAST } : {}) }
-      : { name: "" });
-  }
+  /** Hộp đi cổng gửi riêng: logic ở `travel.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
+  portalHint(id: string, p: PlayerState, d: PData) { return travel.portalHint(this, id, p, d); }
 
   /** Đi cổng / truyền tống / Hồi Thành Phù (xem rooms/travel.ts, #702): các hàm dưới chỉ chuyển tiếp để `onMessage`, `tick`, `useItem`, gm.ts gọi như cũ. */
   travelDeny(id: string, name: string): string | null { return travel.travelDeny(this, id, name); }
 
   travel(c: Client, name: string) { travel.travel(this, c, name); }
 
-  /**
-   * Bật cờ `travelling` (đi cổng bước 2, hoặc client vừa rời phòng): từ đây người chơi không còn tiến độ mới nào trước lần ghi
-   * cuối. Tick bỏ qua người này (không di chuyển, không hấp thụ tiếp), hồn thú bỏ mục tiêu, và đạn hồn kỹ còn bay bị bỏ để
-   * không hạ được hồn thú sau khi đã chụp dữ liệu (mục 6).
-   */
-  freeze(id: string) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
-    this.autoStop(id, "rời bản đồ."); // tự săn (Auto 1): đi cổng, truyền tống sang bản đồ khác, vào sân đấu, mất kết nối
-    d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
-    // Rời bản đồ thì bỏ cả bên. Báo cho thành viên còn ở phòng để ô hàng chờ và khóa tổ đội không bị treo.
-    const q = arenaQueued(d.accountId);
-    if (q && arenaDequeue(d.accountId)) {
-      for (const member of q.members) {
-        const row = [...this.pdata.entries()].find(([, x]) => x.accountId === member.accountId);
-        if (!row) continue;
-        this.sendArenaQueue(row[0]);
-        if (row[0] !== id) this.log(row[0], "Đồng đội đã rời phòng, hàng chờ Đại Đấu Hồn Trường đã hủy.", "#ffb35c");
-      }
-    }
-    // Nếu còn ở pha đọc Elo, đánh dấu hủy nhưng giữ arenaBusy tới khi Promise kết thúc (#225/#227).
-    const accounts = party.partyIdOf(d.accountId) ? party.partyMembers(d.accountId) : [d.accountId];
-    accounts.forEach((acc) => arenaReadCancel(acc));
-    this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
-    this.projs = this.projs.filter((pr) => pr.owner !== id);
-  }
+  /** Bật cờ `travelling` khi đi cổng / rời phòng (hủy hàng chờ đấu trường, bỏ mục tiêu, đạn đang bay): logic ở `travel.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
+  freeze(id: string) { return travel.freeze(this, id); }
 
   beginTravel(id: string, portal: Portal, to?: { roomId: string; ch: number }, undo?: () => void) { travel.beginTravel(this, id, portal, to, undo); }
 
@@ -737,69 +685,25 @@ export class MapRoom extends Room<MapState> {
 
 
 
-  /** Thêm một hồn hoàn `years` năm vào túi (mỗi chiếc một ô, không gộp). Túi đầy thì false. Không tự gửi tin "bag". */
-  addRing(d: PData, years: number) {
-    const def = itemDef(RING_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return false;
-    d.bag.push(newItem(def, 1, years)); d.bagDirty = true;
-    return true;
-  }
+  /** Thêm hồn hoàn / hồn cốt / hồn hạch / trang bị vào túi (không tự gửi tin `bag`): logic ở `bag.ts` (#702, E6b), các hàm dưới chỉ chuyển tiếp. */
+  addRing(d: PData, years: number) { return bag.addRing(d, years); }
 
-  /**
-   * Thêm một hồn cốt vào túi (bước 4.1, mỗi món một ô): số năm `years`, loài `beast` (mã trong BEASTS), vị trí `slot` (mã trong
-   * BONE_SLOTS), cường hóa +0, chưa gắn. Túi đầy thì null. Không tự gửi tin "bag".
-   */
-  addBone(d: PData, years: number, beast: string, slot: string) {
-    const def = itemDef(BONE_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return null;
-    const it = newItem(def, 1, years); it.stats = { beast, slot };
-    d.bag.push(it); d.bagDirty = true;
-    return it;
-  }
+  /** Thêm một hồn cốt (loài, vị trí) vào túi; túi đầy thì `null`; logic ở `bag.ts` (#702, E6b). */
+  addBone(d: PData, years: number, beast: string, slot: string) { return bag.addBone(d, years, beast, slot); }
 
-  /**
-   * Thêm một hồn hạch vào túi (bước 5.1, mỗi món một ô): `stars` sao, bộ / chỉ số chính / dòng phụ `data` (đã tung), nâng cấp +0,
-   * chưa gắn. Túi đầy thì null. Không tự gửi tin "bag".
-   */
-  addCore(d: PData, stars: number, data: CoreData) {
-    const def = itemDef(CORE_ITEM); if (!def || bagUsed(d.bag) >= d.bagSlots) return null;
-    const it = newItem(def, 1); it.stars = stars; it.stats = { set: data.set, main: data.main, subs: data.subs.map(([k, v]) => [k, v]) };
-    d.bag.push(it); d.bagDirty = true;
-    return it;
-  }
+  /** Thêm một hồn hạch vào túi; túi đầy thì `null`; logic ở `bag.ts` (#702, E6b). */
+  addCore(d: PData, stars: number, data: CoreData) { return bag.addCore(d, stars, data); }
 
-  /** Thêm một món trang bị hồn sư (E2, mỗi món một ô, `stats` = EquipData). Túi đầy thì null, trừ `force` (ô tạm vượt túi, như rương). Không tự gửi tin "bag". */
-  addEquip(d: PData, data: EquipData, force = false) {
-    const def = itemDef(EQUIP_ITEM); if (!def || (!force && bagUsed(d.bag) >= d.bagSlots)) return null;
-    const it = newItem(def, 1); it.stats = { tpl: data.tpl, ilvl: data.ilvl, roll: data.roll, affixes: data.affixes.map(([k, v]) => [k, v]), luck: data.luck };
-    d.bag.push(it); d.bagDirty = true;
-    return it;
-  }
+  /** Thêm một món trang bị vào túi; túi đầy thì `null`, trừ `force` (ô tạm vượt túi, như rương); logic ở `bag.ts` (#702, E6b). */
+  addEquip(d: PData, data: EquipData, force = false) { return bag.addEquip(d, data, force); }
 
-  /** RNG cho rơi trang bị của `d`: hook test `edrop` đặt RNG có hạt, thường là Math.random. */
-  equipRng(d: PData) { return d.testEquip ?? Math.random; }
+  /** RNG cho rơi trang bị của `d` (hook test `edrop` đặt RNG có hạt, thường là `Math.random`); logic ở `loot.ts` (#702, E6b). */
+  equipRng(d: PData) { return loot.equipRng(d); }
 
   rollEquipGround(id: string, owner: string, rank: number, x: number, y: number, why?: string) { loot.rollEquipGround(this, id, owner, rank, x, y, why); }
 
-  /**
-   * Phần trang bị của rương thú vương / boss thế giới (E2): tung rollEquipDrop(bậc, bản đồ) và cộng Bùa Hộ Mệnh (rollEquipCharm) ngay
-   * lúc mở. Vào thẳng túi, vượt số ô túi nếu cần (cần KING_CHEST.slots / WORLD_CHEST.slots ô trống từ trước nên thường không vượt;
-   * nhiều hơn chỉ khi `rate` > 0). Thêm mô tả vào `got`.
-   */
-  chestEquip(d: PData, rank: number, mapId: string, got: string[]) {
-    const rng = this.equipRng(d), drops: EquipDrop[] = rollEquipDrop(rank, mapId, rng, 0), charm = rollEquipCharm(rank, rng);
-    const stones = new Map<string, number>();
-    for (const e of drops) {
-      if (e.kind === "stone") { stones.set(e.code, (stones.get(e.code) ?? 0) + e.qty); continue; }
-      if (this.addEquip(d, e.item, true)) got.push(equipName(e.item.tpl));
-    }
-    const give = (code: string, qty: number) => {
-      const def = itemDef(code); if (!def) return;
-      const n = this.addItem(d, code, qty);
-      if (n < qty) { let left = qty - n; while (left > 0) { const q = Math.min(left, def.stack); d.bag.push(newItem(def, q)); left -= q; d.bagDirty = true; } } // vượt ô túi, không mất thưởng
-      got.push(`${qty} ${def.name}`);
-    };
-    for (const [code, qty] of stones) give(code, qty);
-    if (charm) give(EQUIP_CHARM, charm);
-  }
+  /** Phần trang bị của rương thú vương / boss thế giới (tung `rollEquipDrop` rồi `rollEquipCharm` cùng một RNG); logic ở `loot.ts` (#702, E6b). */
+  chestEquip(d: PData, rank: number, mapId: string, got: string[]) { return loot.chestEquip(this, d, rank, mapId, got); }
 
   /** Tên một ô để báo trong log: "Hồn hoàn 437 năm", "3 Hồi Huyết Đan", "hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". */
   itemLabel(it: Item) { return itemLabel(it); }
@@ -811,20 +715,7 @@ export class MapRoom extends Room<MapState> {
   useItem(id: string, raw: unknown, vohonId?: unknown) { itemUse.useItem(this, id, raw, vohonId); }
 
   // ---------- NPC, thương nhân, lò rèn (mục 5.8, bước 6.1) ----------
-  /**
-   * NPC trong tầm NPC_RANGE của người chơi: đúng mã `id` (nói chuyện), hoặc NPC gần nhất có vai trò `role` (mua bán ở thương nhân).
-   * Người đã gục / đang chuyển bản đồ thì không có. Client chỉ gửi ý định, vị trí do server giữ.
-   */
-  npcNear(id: string, want: { id?: string; role?: NpcRole }): NpcSpot | undefined {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return undefined;
-    let best: NpcSpot | undefined, bd = NPC_RANGE;
-    for (const n of this.map.npcs) {
-      if ((want.id && n.id !== want.id) || (want.role && npcDef(n.id)?.role !== want.role)) continue;
-      const k = Math.hypot(n.x - p.x, n.y - p.y);
-      if (k <= bd) { bd = k; best = n; }
-    }
-    return best;
-  }
+  npcNear(id: string, want: { id?: string; role?: NpcRole }): NpcSpot | undefined { return quest.npcNear(this, id, want); }
 
   /** Nói chuyện với NPC (xem rooms/quest.ts): gửi tin riêng `npc {id}` để client mở hộp thoại. */
   talkNpc(id: string, raw: unknown) { quest.talkNpc(this, id, raw); }
@@ -884,18 +775,7 @@ export class MapRoom extends Room<MapState> {
   /** Tin client `tong` (xem rooms/tong.ts): gia nhập / rời tông, tông vụ, bảng tuần, thưởng tuần. */
   tongAction(id: string, op: unknown, raw: unknown, chain?: unknown) { tong.tongAction(this, id, op, raw, chain); }
 
-  /**
-   * Thương nhân để mua / bán / mua lại / mở rộng túi (#111): `rawNpc` là mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân
-   * gần nhất, như bot / client cũ), phải là thương nhân và đứng trong NPC_RANGE. Thương nhân lưu động đứng ở trại cổng (không phải vùng
-   * an toàn) nên ngoài vùng an toàn, đang giao chiến thì không giao dịch. Trả NPC, hoặc lý do từ chối (`verb`: "mua", "bán"…).
-   */
-  shopFor(id: string, d: PData, rawNpc: unknown, verb: string): NpcSpot | string {
-    const p = this.state.players.get(id);
-    const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "shop" });
-    if (!p || !npc || npcDef(npc.id)?.role !== "shop") return `Hãy đứng cạnh thương nhân rồi mới ${verb} được.`;
-    if (!this.map.inSafe(p.x, p.y) && d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới ${verb} được.`;
-    return npc;
-  }
+  shopFor(id: string, d: PData, rawNpc: unknown, verb: string): NpcSpot | string { return shop.shopFor(this, id, d, rawNpc, verb); }
 
   // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
   /** Nhiệm vụ, khảo hạch hằng ngày, bộ đếm sự kiện, thưởng nhiệm vụ: logic ở `quest.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
@@ -934,12 +814,8 @@ export class MapRoom extends Room<MapState> {
   sendArenaQueue(id: string) { arena.sendArenaQueue(this, id); }
   arenaTop(id: string) { arena.arenaTop(this, id); }
 
-  /** Lưu túi đồ sau mua / bán qua chuỗi lưu (mục 6); bấm dồn dập thì chỉ một lần chờ trong chuỗi, lần đó chụp túi mới nhất. */
-  saveTrade(id: string, d: PData) {
-    if (d.tradeQueued) return;
-    d.tradeQueued = true;
-    this.chain(d, () => { d.tradeQueued = false; return this.write(id); });
-  }
+  /** Lưu túi đồ sau mua / bán qua chuỗi lưu: logic ở `shop.ts` (#702, E5b), vẫn qua `room.chain(d, …)` và `room.write`; hàm dưới chỉ chuyển tiếp. */
+  saveTrade(id: string, d: PData) { return shop.saveTrade(this, id, d); }
 
 
   // ---------- Cửa hàng / thương nhân (mục 5.7, 9.8) ----------
@@ -1111,20 +987,10 @@ export class MapRoom extends Room<MapState> {
   // ---------- Đối thủ người chơi (PvP chỉ có trong Đại Đấu Hồn Trường, mục 5.9, bước 7.2) ----------
   /** Người chơi mà `id` đánh được lúc này. MapRoom: không ai (PvP ngoài rừng không có, mục 5.9); ArenaRoom ghi đè khi đang giao đấu. */
   foesOf(_id: string): string[] { return []; }
-  /** Đối thủ chưa gục đứng trong bán kính `r` quanh (x, y) (tính tới chân), kể cả đang tàng hình (đòn diện rộng vẫn trúng). */
-  foesNear(id: string, r: number, x: number, y: number) {
-    return this.foesOf(id).filter((f) => { const q = this.state.players.get(f); return !!q && !q.dead && Math.hypot(q.x - x, q.y - y) < r; });
-  }
-  /** Đối thủ gần `id` nhất trong bán kính `r` mà khóa mục tiêu được (chưa gục, không tàng hình). */
-  nearestFoe(id: string, r: number) {
-    const p = this.state.players.get(id); if (!p) return undefined;
-    let best: string | undefined, bd = r;
-    for (const f of this.foesOf(id)) {
-      const q = this.state.players.get(f), dd = q ? Math.hypot(q.x - p.x, q.y - p.y) : Infinity;
-      if (q && !q.dead && !this.pdata.get(f)?.buffs.has("hide") && dd < bd) { bd = dd; best = f; }
-    }
-    return best;
-  }
+  /** Đối thủ trong bán kính (`foesOf` ở lại MapRoom vì `ArenaRoom` override): logic ở `combat.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
+  foesNear(id: string, r: number, x: number, y: number) { return combat.foesNear(this, id, r, x, y); }
+  /** Đối thủ gần nhất khóa được: logic ở `combat.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
+  nearestFoe(id: string, r: number) { return combat.nearestFoe(this, id, r); }
   damageFoe(fid: string, dmg: number, by: string, _col: string, hit?: Hit, o: DmgOpt = {}) { return combat.damageFoe(this, fid, dmg, by, _col, hit, o); }
 
   /** Lãnh vực Phượng Hoàng khuếch đại sát thương lên hồn thú: logic ở `motion.ts` (#702). */
@@ -1156,22 +1022,11 @@ export class MapRoom extends Room<MapState> {
   /** Tổng số mảnh mã `code` trong túi (mọi ô). */
   shardCount(d: PData, code: string) { return shardCount(d.bag, code); }
 
-  /** Bớt `n` mảnh mã `code` khỏi túi, lấy từ các ô ít nhất trước (gọi sau khi đã kiểm tra đủ). */
-  takeShards(d: PData, code: string, n: number) {
-    for (const it of d.bag.filter((i) => i.code === code && i.vohonId === null).sort((a, b) => a.qty - b.qty)) {
-      if (n <= 0) break;
-      const k = Math.min(n, it.qty); this.takeItem(d, it, k); n -= k;
-    }
-  }
+  /** Mảnh võ hồn trong túi (bớt mảnh, chú thích tiến độ): logic ở `bag.ts` (#702, E6a), hàm dưới chỉ chuyển tiếp. */
+  takeShards(d: PData, code: string, n: number) { return bag.takeShards(this, d, code, n); }
 
-  /** Chú thích tiến độ sau khi nhận mảnh: " (12/50)" khi chưa sở hữu, " (8/40 lên 3★)" khi đã sở hữu, "" khi đã tối đa sao. */
-  shardNote(d: PData, code: string) {
-    const vohon = itemDef(code)?.vohon; if (!vohon) return "";
-    const n = this.shardCount(d, code), v = d.owned.find((x) => x.vohon === vohon);
-    if (!v) return ` (${n}/${SHARD_UNLOCK})`;
-    const cost = starCost(v.stars);
-    return cost === null ? "" : ` (${n}/${cost} lên ${v.stars + 1}★)`;
-  }
+  /** Chú thích tiến độ sau khi nhận mảnh: logic ở `bag.ts` (#702, E6a), chuyển tiếp. */
+  shardNote(d: PData, code: string) { return bag.shardNote(this, d, code); }
 
   /** Mở võ hồn / lên sao bằng mảnh: logic ở `team.ts` (#702), chuyển tiếp cho `onMessage`. */
   unlockVohon(id: string, raw: unknown) { return team.unlockVohon(this, id, raw); }
@@ -1183,25 +1038,11 @@ export class MapRoom extends Room<MapState> {
   boneBonusOf(d: PData, rowId: number) { return stats.boneBonusOf(d, rowId); }
   fillBoneSubs(d: PData) { return stats.fillBoneSubs(d); }
 
-  /** Luật chung khi gắn / tháo hồn cốt (từ 5.2 cả hồn hạch: `what`), như xếp đội hình: không gục, không hấp thụ, ngoài giao chiến. "" = được. */
-  boneLock(p: PlayerState, d: PData, what = "hồn cốt") {
-    if (p.dead) return `Đã gục ngã, không thể gắn / tháo ${what}.`;
-    if (d.absorbing) return `Đang hấp thụ hồn hoàn, không thể gắn / tháo ${what}.`;
-    if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới gắn / tháo ${what} được.`;
-    return "";
-  }
+  /** Luật chung khi gắn / tháo hồn cốt / hồn hạch (hàm thuần): logic ở `bones.ts` (#702, E6a), chuyển tiếp. */
+  boneLock(p: PlayerState, d: PData, what = "hồn cốt") { return bones.boneLock(p, d, what); }
 
-  /**
-   * Sau khi gắn / tháo hồn cốt hoặc hồn hạch (5.2) trên võ hồn `v`: võ hồn ra trận thì tính lại chỉ số (và hiệu ứng bộ) ngay; gửi lại
-   * túi và sinh lực đội (sinh lực tối đa đổi).
-   */
-  afterBones(id: string, v: Character) {
-    const d = this.pdata.get(id)!;
-    if (v === d.ch) this.recalc(id, false);
-    this.resCheck(id); // cộng minh (8.2): hồn cốt +10 / hồn hạch 5★ đang gắn
-    this.sendBag(id);
-    this.sendSquad(id, true);
-  }
+  /** Sau khi gắn / tháo hồn cốt / hồn hạch: tính lại chỉ số, gửi túi / đội: logic ở `bones.ts` (#702, E6a), chuyển tiếp. */
+  afterBones(id: string, v: Character) { return bones.afterBones(this, id, v); }
 
   // ---------- Trang bị hồn sư (mục 5.15, bước E1) ----------
   /** Trang bị / Thợ rèn: logic ở `equip.ts` (#702), các hàm dưới chỉ chuyển tiếp để `onMessage`, `tick` và hook test gọi như cũ. */
@@ -1391,38 +1232,13 @@ export class MapRoom extends Room<MapState> {
 
   rallyNote(r: party.RallyRoute) { return social.rallyNote(this, r); }
 
-  /**
-   * Người cùng chia kinh nghiệm khi `by` hạ hồn thú ở (x, y) (mục 5.9): chính `by`, cùng các thành viên tổ đội của `by` trong phòng này
-   * (cùng bản đồ, cùng kênh), chưa gục, không đang chuyển bản đồ, cách chỗ hồn thú gục dưới PARTY_XP_RANGE pixel. Kênh khác của cùng
-   * bản đồ là phòng khác nên không tính.
-   */
-  partyNear(by: string, x: number, y: number) {
-    const d = this.pdata.get(by), pid = d ? party.partyIdOf(d.accountId) : 0;
-    const out = [by]; if (!pid) return out;
-    for (const [id, o] of this.pdata) {
-      const p = this.state.players.get(id);
-      if (id === by || !p || p.dead || o.travelling || party.partyIdOf(o.accountId) !== pid) continue;
-      if (Math.hypot(p.x - x, p.y - y) < PARTY_XP_RANGE) out.push(id);
-    }
-    return out;
-  }
+  partyNear(by: string, x: number, y: number) { return social.partyNear(this, by, x, y); }
 
-  /** Được nhặt đồ rơi `dr` lúc này không: không ai được ưu tiên, của mình, của tổ đội mình (7.1), hoặc hết DROP_OWNER_SECS giây. */
-  canLoot(dr: DropState, id: string) {
-    if (!dr.owner || dr.owner === id || dr.ownerTtl <= 0) return true;
-    const d = this.pdata.get(id);
-    return !!dr.party && !!d && party.partyIdOf(d.accountId) === dr.party;
-  }
+  /** Được nhặt đồ rơi lúc này không: logic ở `loot.ts` (#702, E6a), chuyển tiếp. */
+  canLoot(dr: DropState, id: string) { return loot.canLoot(this, dr, id); }
 
-  /**
-   * Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). `why`: vì sao `owner` được ưu tiên
-   * (#119: tinh anh mà người đứng đầu bị khóa thưởng thì là người đóng góp nhiều nhất chưa bị khóa).
-   */
-  lootNote(owner: string, id: string, why = "đóng góp nhiều nhất") {
-    const d = this.pdata.get(owner), team = d && party.partyIdOf(d.accountId) ? "tổ đội " : "";
-    if (owner === id) return `${DROP_OWNER_SECS} giây đầu chỉ ${team ? "tổ đội của bạn" : "bạn"} nhặt được (phím E).`;
-    return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${this.state.players.get(owner)?.name ?? ""} (${why}).`;
-  }
+  /** Câu báo ai được ưu tiên đồ rơi: logic ở `loot.ts` (#702, E6a), chuyển tiếp. */
+  lootNote(owner: string, id: string, why = "đóng góp nhiều nhất") { return loot.lootNote(this, owner, id, why); }
 
   // ---------- Vòng lặp ----------
   // ---------- Hiệu năng bản đồ lớn (bước 11.4, mục 6 "Đồng bộ xuống client") ----------

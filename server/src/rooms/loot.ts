@@ -2,11 +2,13 @@
 // hồn hạch `rollCoreDrop`, mảnh võ hồn `rollShard`, tiên thảo `rollHerb`, trang bị `rollEquipGround`, tách khỏi MapRoom.ts (#702, bước 20).
 // Hàm nhận phòng (`room: MapRoom`) như combat.ts / tick.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý. MapRoom chỉ chuyển tiếp 9 hàm
 // (`killBeast`, `boss.ts`, `autoHunt.ts`, `gm.ts` gọi `room.rollX` / `room.rewardKill` / `room.addXp` như cũ).
-// Còn ở MapRoom: `killBeast`, `addRing` / `addBone` / `addEquip`, `chestEquip`, `lootNote` / `shardNote` / `canLoot`.
-import { TIERS, VOHON, xpNeed, xpBlocked, tierOfYears, vohonIndex, XP_SHARE_ACTIVE, XP_SHARE_BENCH, beastLevel, xpLevelScale, BEASTS, MAPS, itemDef, beastStats, DROP_OWNER_SECS, DROP_TTL_SECS, SHARD_QTY, shardChance, shardCode, BONE_ITEM, BONE_SLOTS, boneChance, boneName, CORE_ITEM, CORE_SETS, coreChance, rollCore, coreName, coreSetIndex, EQUIP_ITEM, equipName, rollEquipDrop, EQUIP_TEMPLATES, EQUIP_TIERS, herbChance, HERBS } from "../../../shared/data.ts";
+// `canLoot` / `lootNote` nay ở đây (E6a, MapRoom chuyển tiếp); `shardNote` ở `bag.ts`; `killBeast` ở `kill.ts`. `equipRng` / `chestEquip` (E6b) cũng ở đây, MapRoom chuyển tiếp; `addRing` / `addBone` / `addCore` / `addEquip` ở `bag.ts`.
+import { EQUIP_CHARM, rollEquipCharm, type EquipDrop, TIERS, VOHON, xpNeed, xpBlocked, tierOfYears, vohonIndex, XP_SHARE_ACTIVE, XP_SHARE_BENCH, beastLevel, xpLevelScale, BEASTS, MAPS, itemDef, beastStats, DROP_OWNER_SECS, DROP_TTL_SECS, SHARD_QTY, shardChance, shardCode, BONE_ITEM, BONE_SLOTS, boneChance, boneName, CORE_ITEM, CORE_SETS, coreChance, rollCore, coreName, coreSetIndex, EQUIP_ITEM, equipName, rollEquipDrop, EQUIP_TEMPLATES, EQUIP_TIERS, herbChance, HERBS } from "../../../shared/data.ts";
 import type { Character } from "../db.ts";
 import * as party from "../party.ts";
 import { DropState } from "./schema.ts";
+import type { PData } from "./types.ts";
+import { newItem } from "./items.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import { uid } from "./common.ts";
 
@@ -192,4 +194,46 @@ export function rollHerb(room: MapRoom, id: string, zone: string | undefined, x:
   drop.item = h.id; drop.qty = 1;
   room.state.drops.set(uid("d"), drop);
   room.log(id, `Túi đồ đã đầy (${d.bagSlots} ô): tiên thảo ${h.name} rơi xuống đất, ${room.lootNote(id, id)}`, "#ffb35c");
+}
+
+/** Được nhặt đồ rơi `dr` lúc này không: không ai được ưu tiên, của mình, của tổ đội mình (7.1), hoặc hết DROP_OWNER_SECS giây. */
+export function canLoot(room: MapRoom, dr: DropState, id: string) {
+  if (!dr.owner || dr.owner === id || dr.ownerTtl <= 0) return true;
+  const d = room.pdata.get(id);
+  return !!dr.party && !!d && party.partyIdOf(d.accountId) === dr.party;
+}
+
+/**
+ * Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). `why`: vì sao `owner` được ưu tiên
+ * (#119: tinh anh mà người đứng đầu bị khóa thưởng thì là người đóng góp nhiều nhất chưa bị khóa).
+ */
+export function lootNote(room: MapRoom, owner: string, id: string, why = "đóng góp nhiều nhất") {
+  const d = room.pdata.get(owner), team = d && party.partyIdOf(d.accountId) ? "tổ đội " : "";
+  if (owner === id) return `${DROP_OWNER_SECS} giây đầu chỉ ${team ? "tổ đội của bạn" : "bạn"} nhặt được (phím E).`;
+  return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${room.state.players.get(owner)?.name ?? ""} (${why}).`;
+}
+
+/** RNG cho rơi trang bị của `d`: hook test `edrop` đặt RNG có hạt, thường là Math.random. */
+export function equipRng(d: PData) { return d.testEquip ?? Math.random; }
+
+/**
+ * Phần trang bị của rương thú vương / boss thế giới (E2): tung rollEquipDrop(bậc, bản đồ) và cộng Bùa Hộ Mệnh (rollEquipCharm) ngay
+ * lúc mở. Vào thẳng túi, vượt số ô túi nếu cần (cần KING_CHEST.slots / WORLD_CHEST.slots ô trống từ trước nên thường không vượt;
+ * nhiều hơn chỉ khi `rate` > 0). Thêm mô tả vào `got`.
+ */
+export function chestEquip(room: MapRoom, d: PData, rank: number, mapId: string, got: string[]) {
+  const rng = equipRng(d), drops: EquipDrop[] = rollEquipDrop(rank, mapId, rng, 0), charm = rollEquipCharm(rank, rng);
+  const stones = new Map<string, number>();
+  for (const e of drops) {
+    if (e.kind === "stone") { stones.set(e.code, (stones.get(e.code) ?? 0) + e.qty); continue; }
+    if (room.addEquip(d, e.item, true)) got.push(equipName(e.item.tpl));
+  }
+  const give = (code: string, qty: number) => {
+    const def = itemDef(code); if (!def) return;
+    const n = room.addItem(d, code, qty);
+    if (n < qty) { let left = qty - n; while (left > 0) { const q = Math.min(left, def.stack); d.bag.push(newItem(def, q)); left -= q; d.bagDirty = true; } } // vượt ô túi, không mất thưởng
+    got.push(`${qty} ${def.name}`);
+  };
+  for (const [code, qty] of stones) give(code, qty);
+  if (charm) give(EQUIP_CHARM, charm);
 }

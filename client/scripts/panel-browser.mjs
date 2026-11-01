@@ -188,6 +188,33 @@ GameScene.prototype.create = function(...a) {
   check(res.settingsOverAuto.join() === "audio", `Cài đặt đóng Tự động: ${JSON.stringify(res.settingsOverAuto)}`);
   await page.keyboard.press("Escape"); await sleep(80);
 
+  // 4d. Menu (Hub) bằng bàn phím (#1636): Esc mở → tiêu điểm vào thẻ đầu; Tab / Shift+Tab xoay trong #hub, không đổi mục tiêu game; Enter mở bảng; Esc đóng trả tiêu điểm.
+  const hubFocus = () => page.evaluate(() => { const h = document.getElementById("hub"), a = document.activeElement; return { inHub: !h.hidden && h.contains(a), hubHidden: h.hidden, tag: a?.tagName, hub: a?.dataset?.hub ?? a?.className ?? "" }; });
+  await page.evaluate(() => { document.activeElement?.blur(); });
+  const lock0 = (await counts()).lockId;
+  await page.keyboard.press("Escape"); await sleep(120);
+  const hf0 = await hubFocus();
+  check(hf0.inHub, `Esc mở Hub thì tiêu điểm nằm trong Hub: ${JSON.stringify(hf0)}`);
+  const seen = new Set();
+  for (let i = 0; i < 40; i++) { await page.keyboard.press("Tab"); const f = await hubFocus(); seen.add(f.hub); check(f.inHub, `Tab lần ${i + 1} vẫn trong Hub: ${JSON.stringify(f)}`); }
+  for (let i = 0; i < 40; i++) { await page.keyboard.press("Shift+Tab"); const f = await hubFocus(); check(f.inHub, `Shift+Tab lần ${i + 1} vẫn trong Hub: ${JSON.stringify(f)}`); }
+  check(seen.size >= 5, `Tab đi qua nhiều thẻ khác nhau: ${[...seen].join(",")}`);
+  check((await counts()).lockId === lock0, "Tab trong Hub không đổi mục tiêu game");
+  for (let i = 0; i < 40 && (await hubFocus()).hub !== "bag"; i++) await page.keyboard.press("Tab"); // đi bằng Tab tới thẻ Túi
+  check((await hubFocus()).hub === "bag", "Tab tới được thẻ Túi trong Hub");
+  await page.keyboard.press("Enter"); await sleep(150);
+  res.hubEnter = { open: await open(), hub: await hubFocus() };
+  check(res.hubEnter.hub.hubHidden && res.hubEnter.open.join() === "bag", `Enter trên thẻ mở một bảng và đóng Hub: ${JSON.stringify(res.hubEnter)}`);
+  await page.keyboard.press("Escape"); await sleep(80);
+  // Trả tiêu điểm: nút có sẵn tiêu điểm trước khi mở Hub được trả lại khi đóng bằng Esc.
+  await page.evaluate(() => { const b = document.createElement("button"); b.id = "focusProbe"; b.textContent = "x"; b.style.cssText = "position:fixed;left:0;top:0;z-index:1"; document.body.append(b); b.focus(); });
+  await page.keyboard.press("Escape"); await sleep(120);
+  check((await hubFocus()).inHub, "mở Hub lần hai: tiêu điểm vào Hub");
+  await page.keyboard.press("Escape"); await sleep(120);
+  res.hubBack = await page.evaluate(() => ({ id: document.activeElement?.id, hubHidden: document.getElementById("hub").hidden }));
+  check(res.hubBack.hubHidden && res.hubBack.id === "focusProbe", `Esc đóng Hub trả tiêu điểm: ${JSON.stringify(res.hubBack)}`);
+  await page.evaluate(() => document.getElementById("focusProbe").remove());
+
   // 5. 960×540: hotbar / bảng vẫn chặn bấm xuyên (cùng bài 1).
   await page.setViewportSize({ width: 960, height: 540 }); await sleep(500);
   await page.keyboard.press("KeyB"); await sleep(200);
@@ -197,6 +224,36 @@ GameScene.prototype.create = function(...a) {
   res.small = await counts();
   await shot("960x540");
   check(res.small.walk === 0, `960×540 bấm trên Túi không đi: ${JSON.stringify(res.small)}`);
+
+  // 6. Huy hiệu 魂 (#hubBtn) không che nút / đầu bảng ở màn thấp (#1632): mỗi bảng lớn mở, tâm từng phần tử bấm được của bảng
+  // phải trúng chính phần tử đó (không phải 魂); đóng bảng thì 魂 hiện lại. `elementFromPoint` bỏ qua phần tử `visibility:hidden`.
+  await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+  const PANELS = [["char", () => page.keyboard.press("KeyH")], ["bag", () => page.keyboard.press("KeyB")], ["roster", () => page.keyboard.press("KeyV")], ["reso", () => page.keyboard.press("KeyK")], ["mail", () => hubOpen("mail")], ["achv", () => hubOpen("achv")]];
+  res.hubCover = [];
+  for (const fs of [0, 1, 2]) for (const [w, h] of [[640, 360], [960, 540], [1280, 720]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.evaluate((n) => { document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (n) document.body.classList.add(`a11y-fs-${n}`); }, fs);
+    await sleep(300);
+    for (const [id, openIt] of PANELS) {
+      await openIt(); await page.waitForFunction((i) => { const e = document.getElementById(i); return e && !e.hidden && e.getClientRects().length > 0; }, id, { timeout: 5000 });
+      await sleep(150);
+      const st = await page.evaluate((i) => {
+        const root = document.getElementById(i), badge = document.getElementById("hubBtn");
+        const covered = [...root.querySelectorAll("button,[role=button],[role=tab],a[href],input,select,[tabindex]")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== "hidden"; })
+          .filter((e) => { const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2; if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) return false; const top = document.elementFromPoint(x, y); return top === badge; })
+          .map((e) => `${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]} "${(e.textContent || e.getAttribute("aria-label") || "").trim().slice(0, 20)}"`);
+        return { covered, badge: getComputedStyle(badge).visibility };
+      }, id);
+      const tag3 = `${id} ${w}x${h} chữ ${fs}`;
+      res.hubCover.push({ at: tag3, ...st });
+      check(st.covered.length === 0, `魂 che nút của bảng ${tag3}: ${st.covered.join("; ")}`);
+      await page.screenshot({ path: resolve(out, `${tag}-hub-${id}-${w}x${h}-chu${fs}.png`) });
+      await page.keyboard.press("Escape"); await sleep(100);
+      const closed = await page.evaluate((i) => ({ open: !document.getElementById(i).hidden, badge: getComputedStyle(document.getElementById("hubBtn")).visibility }), id);
+      check(!closed.open && closed.badge === "visible", `đóng ${id} thì 魂 hiện lại ${w}x${h} chữ ${fs}: ${JSON.stringify(closed)}`);
+    }
+  }
+  await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2")); await page.setViewportSize({ width: 960, height: 540 }); await sleep(200);
 
   // Hộp xác nhận (confirmDialog, #1270) chặn phím của game: Enter trên Hủy đóng hộp, không gọi onYes / nhảy vào ô chat; phím khác không tới window.
   res.askKeys = await (async () => {
