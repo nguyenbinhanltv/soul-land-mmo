@@ -1,4 +1,4 @@
-// #1551: chỉ xuất ứng viên ngoài repo; chưa đăng ký vào game trước khi chủ repo duyệt.
+// #1551: dựng ứng viên ngoài repo; nhập bản đã duyệt bằng sen-import.mjs.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";

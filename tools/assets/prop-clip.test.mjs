@@ -34,7 +34,7 @@ for (const name of Object.keys(feet)) test(`${name}: thân tĩnh, chân và hồ
   assert.deepEqual(tiles.props[name].foot, feet[name]);
 });
 test("Chỉ các loại được giao có clip", () => {
-  assert.deepEqual(Object.keys(tiles.props).filter(name => tiles.props[name].clip).sort(), Object.keys(feet).sort());
+  assert.deepEqual(Object.keys(tiles.props).filter(name => tiles.props[name].clip).sort(), [...Object.keys(feet), "sen_phat_sang"].sort());
 });
 
 test("Lò đồng: lớp thân không còn lửa cũ hoặc viền lửa trên miệng bát", () => {

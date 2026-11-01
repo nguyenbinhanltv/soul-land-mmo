@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { senPreview } from "../../tools/assets/sen-preview.mjs";
 const root = fileURLToPath(new URL("../../", import.meta.url));
+const official=process.env.SEN_OFFICIAL === "1";
 assert.ok(process.env.SEN_OUTPUT,"Cần SEN_OUTPUT trỏ thư mục ngoài repo");
 const out = path.resolve(process.env.SEN_OUTPUT);
 assert.ok(out.toLowerCase() !== path.resolve(root).toLowerCase() && !out.toLowerCase().startsWith(path.resolve(root).toLowerCase()+path.sep), "Ảnh thử phải ngoài repo");
@@ -38,6 +39,7 @@ try {
   const page=await browser.newPage({viewport:{width:1280,height:720}});
   await page.addInitScript(({token})=>{localStorage.setItem("shh-token",token);localStorage.setItem("soul-land-fx-v1",JSON.stringify({level:"high",reduce:false,auto:false}));window.__senMode="static";},{token});
   await page.route("**/src/scenes/GameScene.ts*",async route=>{const response=await route.fetch();await route.fulfill({response,body:await response.text()+"\nconst senCreate=GameScene.prototype.create;GameScene.prototype.create=function(...a){window.__senScene=this;return senCreate.apply(this,a);};"});});
+  if(!official){
   await page.route("**/iso/tiles.json",async route=>{const response=await route.fetch();const d=await response.json();d.props.sen_phat_sang.clip={key:"prop_sen_phat_sang_clip",frames:32,ms:100};await route.fulfill({json:d});});
   await page.route("**/sen_phat_sang_clip*.png",route=>route.fulfill({path:path.join(candidate,route.request().url().includes("_n.png")?"sen_phat_sang_clip_n.png":"sen_phat_sang_clip.png")}));
   await page.route("**/src/isoMap.ts*",async route=>{const response=await route.fetch();const body=(await response.text()).replace("const n = moving ? Math.floor(this.scene.time.now / clip.ms) % clip.frames.length : 0",'const n = moving && (clip.frames.length !== 32 || window.__senMode === "clip") ? clip.frames.length === 32 && window.__senPhase !== undefined ? window.__senPhase : Math.floor(this.scene.time.now / clip.ms) % clip.frames.length : 0');assert.ok(body.includes("window.__senMode"));await route.fulfill({response,body});});
@@ -47,6 +49,7 @@ try {
   const normal=readPng(path.join(root,"shared/assets/sprites/iso/props/sen_phat_sang_n.png"));
   const strip=new Img(1024,32);for(let n=0;n<32;n++)strip.blit(normal,0,0,32,32,n*32,0);
   writeFileSync(path.join(candidate,"sen_phat_sang_clip_n.png"),encodePng(strip));
+  }
   await page.goto(web+"/choi/?light=1");
   await page.getByRole("button",{name:"Vào Thánh Hồn Thôn"}).click();
   await page.waitForFunction(()=>window.__senScene?.players.size>0,null,{timeout:60000});
@@ -63,9 +66,13 @@ try {
   await sleep(5000);
   const stats=()=>page.evaluate(()=>{const s=window.__senScene,m=s.isoMap;return{images:s.children.list.filter(o=>o.type==="Image").length,sprites:s.children.list.filter(o=>o.type==="Sprite").length,mapImages:[...m.live.values()].reduce((n,c)=>n+c.ims.length,0),clips:[...m.clips.values()].filter(c=>c.frames.length===32).length,textures:s.textures.getTextureKeys().length};});
   const renderer=await page.evaluate(()=>{const gl=window.__senScene.game.renderer.gl,e=gl.getExtension("WEBGL_debug_renderer_info");return e?gl.getParameter(e.UNMASKED_RENDERER_WEBGL):"WebGL";});
-  const results={center,totalSen:points.length,renderer,modes:{}};
-  for(const mode of ["static","clip","light"]){
-    await page.evaluate(mode=>window.__senMode=mode,mode);await sleep(5000);
+  const results={official,center,totalSen:points.length,renderer,modes:{}};
+  for(const mode of official?["static","clip"]:["static","clip","light"]){
+    await page.evaluate(({mode,official})=>{
+      window.__senMode=mode;
+      // Bản chính thức: không vá loader/bộ phát; baseline chỉ kéo dài khung 0 của sen.
+      if(official)for(const c of window.__senScene.isoMap.clips.values())if(c.frames.length===32)c.ms=mode==="static"?1e12:100;
+    },{mode,official});await sleep(5000);
     const timing=await page.evaluate(()=>new Promise(resolve=>{const d=[],start=performance.now();let last=start;function tick(t){d.push(t-last);last=t;if(t-start<25000)requestAnimationFrame(tick);else{d.shift();d.sort((a,b)=>a-b);resolve({fps:1000/(d.reduce((a,b)=>a+b,0)/d.length),p1:1000/d[Math.floor(d.length*.99)]});}}requestAnimationFrame(tick);}));
     results.modes[mode]={...timing,...await stats()};
     assert.ok(results.modes[mode].clips>0,"Phải có sen thật trong cảnh");
@@ -77,7 +84,7 @@ try {
     }
     await page.screenshot({path:path.join(out,`sen-${mode}.png`)});
     console.log(mode,results.modes[mode]);
-    if(mode==="clip"){
+    if(mode==="clip"&&!official){
       const frames=path.join(out,`${mode}-frames`);mkdirSync(frames,{recursive:true});
       for(let n=0;n<32;n++){await page.evaluate(n=>window.__senPhase=n,n);await sleep(100);await page.screenshot({path:path.join(frames,`${String(n).padStart(2,"0")}.png`)});}
       await page.evaluate(()=>delete window.__senPhase);
