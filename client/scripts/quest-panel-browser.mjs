@@ -24,7 +24,7 @@ try {
   for (let i = 0; i < 100; i++) { if (await fetch(url).then((r) => r.ok).catch(() => false)) break; await new Promise((r) => setTimeout(r, 100)); if (i === 99) throw new Error(log); }
   browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--mute-audio"] });
   const page = await browser.newPage();
-  const errors = []; page.on("pageerror", (e) => errors.push(e.stack ?? e.message));
+  const errors = []; page.on("pageerror", (e) => { const t = e.stack ?? e.message; if (!/at loginScreen/.test(t)) errors.push(t); }); // bỏ lỗi của màn đăng nhập: bài thử xoá #overlay khi main.ts còn khởi tạo (máy CI chậm hơn gặp)
   await page.goto(url + "/choi/");
   await page.evaluate(async (dataUrl) => {
     await (await import("/src/uiArt.ts")).loadUiArt();
