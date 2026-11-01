@@ -1,9 +1,12 @@
 import type Phaser from "phaser";
 
 // Chỉ bật cho sheet đã soát tóc / cổ áo / tay ở đủ năm hàng hướng.
-// Râu dài và tóc đuôi dài đi qua hàng 29 cần pose riêng, không tự bật theo vai trò.
+// Râu dài, tóc đuôi / bím dài, tóc xõa dài đi qua hàng 29 cần pose riêng (chưa bật): lao_kiet_khac, lo_ren_thien_dau,
+// dan_lao_nhan, dan_nho_sinh, dan_ban_rong, dan_nu_duoi_ngua, dan_thon_nu(_toc_tet), dan_tieu_thu, dan_khach, dau_hon_truong, linh_gac(_giao).
 const REPLY_SHEETS = new Set([
   "lpc_dai_su", "lpc_thuong_nhan", "lpc_lo_ren", "lpc_thuong_nhan_thien_dau", "lpc_to_van_dao",
+  // Đợt 2: ba NPC còn lại có tóc ngắn / búi gọn, tóc sau gáy chỉ thò xuống vài hàng dưới hàng 29.
+  "lpc_phat_lan_duc", "lpc_su_gia_dau_hon", "lpc_thuong_nhan_luu_dong",
 ]);
 
 /** Gật đầu một điểm ảnh theo mẫu Đại Sư đã duyệt, từ pose đứng đủ lớp.
