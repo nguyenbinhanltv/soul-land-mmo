@@ -132,6 +132,14 @@ GameScene.prototype.create = function(...a) {
     check(cells.length === 10, `đủ 10 ô trang bị ${tag2}`);
     check(cells.every((c) => c.w === mu.w), `mọi ô trang bị cùng chiều rộng ${tag2}: ${JSON.stringify(cells)}`);
     check(ao.h === mu.h && ao.w === ao.h || fs > 0 && ao.h === mu.h, `ô Giáp cao bằng ô Mũ ${tag2}: ao ${ao.w}x${ao.h}, mu ${mu.w}x${mu.h}`);
+    // #1634: hai nút "Mặc tốt nhất" theo cỡ chữ của bảng (bằng chữ thân bảng, 12 / 15 / 18 px), không tràn khung bảng
+    const btn = await page.evaluate(() => {
+      const px = (el) => parseFloat(getComputedStyle(el).fontSize), box = document.querySelector("#char").getBoundingClientRect();
+      const bs = [...document.querySelectorAll("#char .f2-nut-chinh, #char .f2-nut-phu")].filter((b) => b.textContent.startsWith("Mặc tốt nhất"));
+      return { tab: px(document.querySelector("#char")), fonts: bs.map(px), n: bs.length, over: bs.some((b) => b.scrollWidth > b.clientWidth + 1 || b.getBoundingClientRect().right > box.right + 1) };
+    });
+    check(btn.n === 2 && btn.fonts.every((f) => f === btn.tab), `nút Mặc tốt nhất cỡ chữ bằng chữ thân bảng (--fs-m: 12 / 15 / 18 px) ${tag2}: ${JSON.stringify(btn)}`);
+    check(!btn.over, `nút Mặc tốt nhất không tràn ${tag2}`);
     // rê chuột vào ô Giáp và ô Mũ: chụp tooltip
     for (const slot of ["ao", "mu"]) {
       mark(`${tag2} ${slot} rê chuột`);
