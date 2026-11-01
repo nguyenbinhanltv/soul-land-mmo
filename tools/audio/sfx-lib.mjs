@@ -5,7 +5,7 @@ export const SFX_FORMATS = ["ogg", "m4a"];
 export const SFX_MAX_TOTAL_BYTES = 8 * 1024 * 1024;
 export const SFX_CREDITS_START = "<!-- audio-sfx-g2:start -->";
 export const SFX_CREDITS_END = "<!-- audio-sfx-g2:end -->";
-export const SFX_PACKS = ["combat", "skill", "beast", "world", "steps", "amb", "ui", "pk"];
+export const SFX_PACKS = ["combat", "skill", "beast", "world", "steps", "amb", "amb-lanh", "ui", "pk"];
 export const T3_SKILL_IDS = [
   "cuu_tinh_that_sat_kiem", "lam_dien_ba_vuong_long", "ky_nhung_thong_thien_cuc", "ta_hoa_phuong_hoang", "u_minh_linh_mieu",
   "nguyet_nhan", "hoa_long", "nhu_cot_tho", "kim_vu_mieu_ung", "tu_vong_chu_hoang", "bich_lan_xa_hoang", "can_khon_hon_nguyen_toa",
@@ -26,7 +26,7 @@ export const SFX_REQUIRED = {
   "beast-bien": 3,
   ...Object.fromEntries(["co", "dat", "da", "tuyet", "go", "nuoc"].map((s) => [`step-${s}`, 3])),
   // Lô 2 (G5, #396): môi trường lớp chồng, giao diện, PK
-  "amb-wind": 3, "amb-wave": 3, "amb-bird": 3, "amb-cricket": 3, "amb-fire": 3, "amb-bell": 2,
+  "amb-wind": 3, "amb-wind-lanh": 3, "amb-wave": 3, "amb-bird": 3, "amb-cricket": 3, "amb-fire": 3, "amb-bell": 2,
   ...Object.fromEntries(["open", "close", "drag", "drop", "equip", "enhance-ok", "enhance-fail", "rare"].map((k) => [`ui-${k}`, 2])),
   // Đợt 1c UI v2 (#599): bấm nút, lỗi / từ chối, nhận thưởng, toast
   ...Object.fromEntries(["click", "error", "reward", "notify"].map((k) => [`ui-${k}`, 2])),

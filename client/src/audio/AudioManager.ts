@@ -5,7 +5,7 @@ import { createZzFxBuffer } from "./zzfx.ts";
 import { musicPlayerFor, type MusicPlayer } from "./music.ts";
 import { SfxBank, type SfxBankOptions } from "./sfxBank.ts";
 import { ambientBedFor, type AmbientBed, type AmbientBedOptions } from "./ambientBed.ts";
-import { AmbientLayers, type AmbientInput, type AmbientKind } from "./ambientLayers.ts";
+import { AmbientLayers, ambientGroupFor, type AmbientInput, type AmbientKind } from "./ambientLayers.ts";
 import { LOUD_FX, SKILL_PHASE_OF_FX, T3_WINDOW_MS, T3_OTHERS_GAP_MS, T3_OTHERS_GAIN, t3Group, SWING_FX, UI_GROUP, heartbeatInterval, groupTrim, voiceClassOf, VOICE_CAP, CROWD_DUCK, MASTER_COMPRESSOR, LOW_HP_RATIO, ringGlowMix, type VoiceClass, type UiSound, type SkillPhase, type BeastFamily, type Element, type Material, type Weapon } from "./soundMap.ts";
 
 interface SoundManagerHost {
@@ -143,7 +143,7 @@ export class AudioManager {
     this.bank = this.context ? new SfxBank(this.context, options.bank) : null;
     this.random = options.random ?? Math.random;
     this.bed = ambientBedFor(this.context, options.bed);
-    this.ambient = new AmbientLayers((kind, volume, pan) => this.playAmbient(kind, volume, pan), this.random);
+    this.ambient = new AmbientLayers((kind, volume, pan, mapId) => this.playAmbient(kind, volume, pan, mapId), this.random);
     this.listener = listener;
     this.sourceResolver = sourceResolver;
     this.settings = loadAudioSettings(storage());
@@ -245,8 +245,11 @@ export class AudioManager {
   /** Môi trường lớp chồng: gọi mỗi vài khung với bản đồ, mức đêm, khoảng cách tới lửa gần nhất (ambientLayers.ts). */
   updateAmbient(nowMs: number, input: AmbientInput): void { this.ambient.update(nowMs, input); this.bed?.setMap(input.mapId); }
 
-  private playAmbient(kind: AmbientKind, volume: number, pan: number): void {
-    this.playGroup(`amb-${kind}`, null, { channel: "ambient", priority: 0.25, gain: volume, pan, ...(kind === "bell" ? { wet: 0.5 } : {}) });
+  private playAmbient(kind: AmbientKind, volume: number, pan: number, mapId: string): void {
+    const opts = { channel: "ambient" as const, priority: 0.25, gain: volume, pan, ...(kind === "bell" ? { wet: 0.5 } : {}) };
+    const group = ambientGroupFor(kind, mapId), generic = `amb-${kind}`;
+    // Nhóm riêng của bản đồ (gió lạnh Cực Bắc) chưa tải / lỗi: lùi về nhóm chung cho lần này, gói riêng vẫn tải lười ở nền.
+    if (!this.playGroup(group, null, opts) && group !== generic) this.playGroup(generic, null, opts);
   }
 
   // ---- PK (G5, #396): chỉ tiếng + hàm phát; trận đấu trường gọi ở G6 (#397). ----

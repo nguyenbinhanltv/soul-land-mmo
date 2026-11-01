@@ -22,6 +22,16 @@ export const AMBIENT_PROFILES: Readonly<Record<string, AmbientProfile>> = {
 };
 
 /**
+ * Nhóm mẫu gió riêng của bản đồ (#1572): bản đồ có ở đây thì tiếng `wind` lấy nhóm này thay `amb-wind` chung (gói `amb-lanh`, tải lười khi vào bản đồ đó);
+ * bản đồ khác vẫn `amb-wind`. Gói chưa tải / lỗi thì AudioManager lùi về `amb-wind`.
+ */
+export const AMBIENT_WIND_GROUPS: Readonly<Record<string, string>> = {
+  cuc_bac_chi_dia: "amb-wind-lanh",
+};
+/** Nhóm mẫu của một tiếng môi trường theo bản đồ (chỉ `wind` có nhóm riêng theo bản đồ). */
+export const ambientGroupFor = (kind: AmbientKind, mapId: string): string => (kind === "wind" ? AMBIENT_WIND_GROUPS[mapId] : undefined) ?? `amb-${kind}`;
+
+/**
  * Nền vòng lặp theo bản đồ (#622, ambientBed.ts): file `audio/ambient/amb_nen_<mapId>.{ogg,m4a}`, đã cân -16 LUFS (tools/audio/bed.mjs).
  * `gain` là độ to khi đưa vào bus Môi trường (chốt khi nghe thử: nhạc khu giữ nguyên, nền nằm dưới, lớp chồng ngẫu nhiên vẫn nghe rõ).
  */
@@ -56,7 +66,7 @@ export interface AmbientInput {
 }
 
 /** Một lần phát: loại tiếng, độ to 0..1 theo ngữ cảnh (lửa theo khoảng cách), lệch trái / phải ngẫu nhiên. */
-export type AmbientPlayer = (kind: AmbientKind, volume: number, pan: number) => void;
+export type AmbientPlayer = (kind: AmbientKind, volume: number, pan: number, mapId: string) => void;
 
 export class AmbientLayers {
   private readonly play: AmbientPlayer;
@@ -83,7 +93,7 @@ export class AmbientLayers {
       if (due === undefined || nowMs < due) continue;
       const volume = this.weight(kind, input);
       if (volume <= 0) { this.due.set(kind, nowMs + RETRY_S * 1000); continue; }
-      this.play(kind, volume, (this.random() * 2 - 1) * 0.5);
+      this.play(kind, volume, (this.random() * 2 - 1) * 0.5, input.mapId);
       this.due.set(kind, nowMs + every * 1000 * (JITTER[0] + this.random() * (JITTER[1] - JITTER[0])));
     }
   }
