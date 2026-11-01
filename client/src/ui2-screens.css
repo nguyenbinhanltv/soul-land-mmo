@@ -160,7 +160,12 @@ body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visi
 .av-bar{display:block;height:8px;background:var(--paper3);border:var(--bd-fine) solid var(--line)}
 .av-fill{display:block;height:100%;background:var(--son)}
 .av-prog{font:var(--fs-s)/1.2 var(--f10);color:var(--muted)}
-.av-rw{font:var(--fs-s)/1.3 var(--f10);text-align:right;overflow-wrap:anywhere}
+.av-rw{font:var(--fs-s)/1.3 var(--f10);text-align:right;overflow-wrap:anywhere;min-width:0;max-width:240px}
+.gift-list{display:flex;flex-direction:column;gap:var(--sp-2);min-width:0}
+.gift-entry{display:flex;align-items:center;gap:var(--sp-2);min-width:0;text-align:left}
+.gift-icon{width:32px;height:32px;object-fit:contain;image-rendering:pixelated;flex:none}
+.gift-icon[hidden]{display:none}
+.gift-label{min-width:0;overflow-wrap:anywhere}
 .av-st{font:var(--fs-s)/1.2 var(--f10);color:var(--muted);text-align:center}
 .av-claim{min-height:32px;padding:0 var(--sp-5);cursor:pointer}
 .av-claim[disabled]{opacity:.6;cursor:default}
@@ -187,6 +192,7 @@ body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visi
 .ml-claimed,.ml-read{opacity:.7}
 .ml-sel{outline:var(--bd) solid var(--son);outline-offset:-3px}
 .ml-detail{display:flex;flex-direction:column;gap:var(--sp-3);padding:var(--sp-4);overflow:auto;min-height:0;background:var(--paper);color:var(--text);border:var(--bd) solid var(--line)}
+.ml-detail>*{flex-shrink:0}
 .ml-dt{margin:0;font:var(--fs-l)/1.2 var(--f12);overflow-wrap:anywhere}
 .ml-body{margin:0;font:var(--fs-m)/1.4 var(--f12);white-space:pre-wrap;overflow-wrap:anywhere}
 .ml-att{display:flex;flex-direction:column;gap:var(--sp-1);padding:var(--sp-3);background:var(--paper2);border:var(--bd-fine) dashed var(--line);font:var(--fs-s)/1.3 var(--f10)}
@@ -198,3 +204,7 @@ body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visi
 .ml-note{border-style:solid;border-left:6px solid var(--good)}
 .ml-note.ml-bad{border-left-color:var(--son)}
 :where(body.ui-w640) .ml-cols{grid-template-columns:minmax(0,1fr)}
+/* Màn thấp vẫn dành vùng đọc quà; thanh điều hướng cuộn riêng khi chữ lớn. */
+:where(body.ui-h500) :is(#mail,#achv){inset:var(--sp-3);transform:none;width:auto;max-height:calc(100vh - var(--sp-3) * 2)}
+:where(body.ui-h500) :is(#mail,#achv) .p2-man{height:100%;max-height:100%}
+:where(body.ui-h500) :is(#mail,#achv) .p2-nav{min-height:0;overflow:auto}

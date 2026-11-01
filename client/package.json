@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:gift-browser": "node scripts/gift-browser.mjs",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",

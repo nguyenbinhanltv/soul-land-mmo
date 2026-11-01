@@ -2,6 +2,7 @@
 // `mail {op:"get"|"read"|"claim"|"claimAll"|"del", id}`: thư, đính kèm, hạn, đã đọc / đã nhận đều do server quyết định; client không tạo thư và không tự cộng quà.
 import { MAIL, formatHonTe, itemDef, mailDaysLeft } from "../../shared/data.ts";
 import { abbrevNumber, screenFrame, stateBox, mount, addCloseButton, type PNode } from "./uiParts.ts";
+import { giftNode, bindGiftImages } from "./giftView.ts";
 
 export interface MailView {
   id: number; from: string; title: string; body: string; honTe: number; items: { code: string; qty: number }[];
@@ -116,7 +117,7 @@ export function mailDetailNode(m: MailView | null, busyNow: boolean, now: number
     h("h3", "ml-dt", { text: m.title }),
     h("small", "ml-meta", { text: `Từ ${m.from} · ${dayText(m.at)} · ${ex.text}` }),
     m.body ? h("p", "ml-body", { text: m.body }) : null,
-    gift.length ? h("div", "ml-att", { kids: [h("b", "", { text: m.claimed ? "Đính kèm (đã nhận)" : "Đính kèm" }), h("span", "", { text: gift.join(" · ") })] }) : null,
+    gift.length ? h("div", "ml-att", { kids: [h("b", "", { text: m.claimed ? "Đính kèm (đã nhận)" : "Đính kèm" }), giftNode(m)] }) : null,
     h("div", "ml-act", { kids: [
       mailHasGift(m) && !m.claimed ? h("button", "ml-claim f2-nut-phu", { text: "Nhận", attrs: { type: "button", "data-id": String(m.id), ...(busyNow ? { disabled: "", title: "Đang gửi…" } : {}) } }) : null,
       canDel ? h("button", "ml-del f2-nut-phu", { text: "Xóa", attrs: { type: "button", "data-id": String(m.id), ...(busyNow ? { disabled: "", title: "Đang gửi…" } : {}) } }) : h("small", "ml-hint", { text: "Nhận quà rồi mới xóa được thư này." }),
@@ -152,4 +153,5 @@ function render() {
   }
   addCloseButton(f.root, closeMail);
   root.replaceChildren(f.root);
+  bindGiftImages(f.root);
 }

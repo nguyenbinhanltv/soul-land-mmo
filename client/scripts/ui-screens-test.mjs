@@ -5,6 +5,17 @@ import { setBadge, clearBadge, badgeOf, allBadges, onBadges, resetBadges, starRe
 import { logNotice, notices, clearNotices, LOG_MAX } from "../src/noticeLog.ts";
 import { noticeNode, noticeTime } from "../src/noticeScreen.ts";
 import { toHtml } from "../src/uiParts.ts";
+import { giftNode, giftItemUrl } from "../src/giftView.ts";
+
+// Quà dùng chữ làm nghĩa chính; chưa tải manifest vẫn đọc đủ và mã lạ không tạo ảnh.
+const giftHtml = toHtml(giftNode({ honTe: 120, shards: 2, items: [{ code: "hoi_huyet_dan", qty: 3 }, { code: '<img src=x onerror="alert(1)">', qty: 4 }] }));
+assert.match(giftHtml, /120 Hồn Tệ/);
+assert.match(giftHtml, /Mảnh võ hồn ×2/);
+assert.match(giftHtml, /Hồi Huyết Đan ×3/);
+assert.match(giftHtml, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; ×4/);
+assert.doesNotMatch(giftHtml, /<(?:button|a|img)\b/);
+assert.equal(giftItemUrl("ma_la"), null);
+assert.deepEqual(giftNode({}).kids, []);
 import { fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
 import { rewardIcons, cellState, signedToday, needsSign, welfareBadgeCount, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
