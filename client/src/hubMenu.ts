@@ -3,34 +3,36 @@
 // (GameScene truyền vào `actions`), hub không giữ trạng thái game. Mục chưa có chức năng: thẻ lưới và mục rail hiện mờ kèm lý do "Chưa có".
 // Chấm đỏ / mũi tên xanh đọc từ kho `badges.ts` (đợt 4b); hub chỉ vẽ lại khi kho đổi. Các nút HUD cũ (Hồn sư, Đội hình, Túi…) đã bỏ: chấm chỉ còn ở huy hiệu menu và hub.
 import { statusCard, mount, type CardOpts, type PNode } from "./uiParts.ts";
+import { menuIconUrl } from "./uiIcons.ts";
 import { allBadges, onBadges, type BadgeKind } from "./badges.ts";
 
 export type HubSize = "big" | "mid" | "grid" | "rail";
 export interface HubItem { id: string; label: string; size: HubSize; /** phím tắt đã có (chỉ để nhắc, hub không bắt phím). */ key?: string; sub?: string;
+  /** khóa icon menu có sẵn (`gi_menu_*`); mục chưa có ảnh thì bỏ trống, không icon giả. */ icon?: string;
   /** lý do khi chưa nối bảng (thẻ khoá luôn nói rõ vì sao + đi đâu); thiếu thì "Chưa có". */ why?: string }
 
 /** Cây menu đã duyệt (bộ spec UI mục 2): 2 thẻ lớn, 2 thẻ vừa, lưới 4 cột, rail dọc. Thêm mục = thêm dòng và truyền hành động cùng `id`. */
 export const HUB_ITEMS: HubItem[] = [
-  { id: "vohon", label: "Võ Hồn", size: "big", key: "V", sub: "Đội hình, hồn hoàn, hồn cốt" },
-  { id: "char", label: "Nhân Vật", size: "big", key: "H", sub: "Chỉ số, trang bị" },
+  { id: "vohon", label: "Võ Hồn", size: "big", icon: "gi_menu_roster", key: "V", sub: "Đội hình, hồn hoàn, hồn cốt" },
+  { id: "char", label: "Nhân Vật", size: "big", icon: "gi_menu_char", key: "H", sub: "Chỉ số, trang bị" },
   { id: "tong", label: "Tông Môn", size: "mid", why: "Gặp Sứ giả Tông Môn ở thành" },
-  { id: "reso", label: "Cộng Minh", size: "mid", key: "K" },
-  { id: "bag", label: "Túi Đồ", size: "grid", key: "B" },
-  { id: "shop", label: "Cửa Hàng", size: "grid", why: "Tại NPC" },
-  { id: "rank", label: "Xếp Hạng", size: "grid" },
-  { id: "achv", label: "Thành Tựu", size: "grid" },
-  { id: "quest", label: "Nhiệm Vụ", size: "grid" },
-  { id: "world", label: "Bản Đồ", size: "grid", key: "M" },
-  { id: "friends", label: "Bạn Bè", size: "grid", key: "L" },
-  { id: "auto", label: "Tự Động", size: "grid", key: "T" },
-  { id: "forge", label: "Ghép / Rèn", size: "grid", why: "Tại NPC" },
-  { id: "guide", label: "Cẩm Nang", size: "grid" },
-  { id: "calendar", label: "Lịch HĐ", size: "grid" },
-  { id: "welfare", label: "Phúc Lợi", size: "grid" },
-  { id: "bicanh", label: "Bí Cảnh", size: "grid" },
-  { id: "mail", label: "Thư", size: "rail" },
-  { id: "notice", label: "Thông báo", size: "rail" },
-  { id: "settings", label: "Cài đặt", size: "rail" },
+  { id: "reso", label: "Cộng Minh", size: "mid", icon: "gi_menu_reso", key: "K" },
+  { id: "bag", label: "Túi Đồ", size: "grid", icon: "gi_menu_bag", key: "B" },
+  { id: "shop", label: "Cửa Hàng", size: "grid", icon: "gi_menu_shop", why: "Tại NPC" },
+  { id: "rank", label: "Xếp Hạng", size: "grid", icon: "gi_menu_rank" },
+  { id: "achv", label: "Thành Tựu", size: "grid", icon: "gi_menu_achv" },
+  { id: "quest", label: "Nhiệm Vụ", size: "grid", icon: "gi_menu_quest" },
+  { id: "world", label: "Bản Đồ", size: "grid", icon: "gi_menu_world", key: "M" },
+  { id: "friends", label: "Bạn Bè", size: "grid", icon: "gi_menu_friends", key: "L" },
+  { id: "auto", label: "Tự Động", size: "grid", icon: "gi_menu_auto", key: "T" },
+  { id: "forge", label: "Ghép / Rèn", size: "grid", icon: "gi_menu_forge", why: "Tại NPC" },
+  { id: "guide", label: "Cẩm Nang", size: "grid", icon: "gi_menu_guide" },
+  { id: "calendar", label: "Lịch HĐ", size: "grid", icon: "gi_menu_calendar" },
+  { id: "welfare", label: "Phúc Lợi", size: "grid", icon: "gi_menu_welfare" },
+  { id: "bicanh", label: "Bí Cảnh", size: "grid", icon: "gi_menu_bicanh" },
+  { id: "mail", label: "Thư", size: "rail", icon: "gi_menu_mail" },
+  { id: "notice", label: "Thông báo", size: "rail", icon: "gi_menu_notice" },
+  { id: "settings", label: "Cài đặt", size: "rail", icon: "gi_menu_settings" },
   { id: "shot", label: "Chụp ảnh", size: "rail" },
 ];
 
@@ -59,9 +61,18 @@ const idsOf = (k: BadgeKind) => [...allBadges()].filter(([, b]) => b.kind === k)
 const hubIds = new Set(HUB_ITEMS.map((i) => i.id));
 const phim = (c: HubCell) => (c.item.key ? ` · ${c.item.key}` : "");
 
+/** Ảnh lỗi / thiếu thì ẩn, thẻ giữ nguyên dạng chữ. */
+function guardIcon(img: HTMLImageElement | null) {
+  if (!img) return;
+  img.addEventListener("error", () => { img.hidden = true; }, { once: true });
+  if (img.complete && !img.naturalWidth) img.hidden = true;
+}
+const iconOf = (c: HubCell) => (c.item.icon ? menuIconUrl(c.item.icon) ?? undefined : undefined);
+
 function cellButton(c: HubCell, cls: string): HTMLElement {
-  const el = statusCard({ ...c.card, sub: [c.card.sub, c.item.key ? `Phím ${c.item.key}` : ""].filter(Boolean).join(" · ") || undefined, onClick: c.enabled ? () => run(c.item.id) : undefined });
-  el.classList.add(cls); el.dataset.hub = c.item.id;
+  const icon = iconOf(c);
+  const el = statusCard({ ...c.card, ...(icon ? { icon } : {}), sub: [c.card.sub, c.item.key ? `Phím ${c.item.key}` : ""].filter(Boolean).join(" · ") || undefined, onClick: c.enabled ? () => run(c.item.id) : undefined });
+  el.classList.add(cls); el.dataset.hub = c.item.id; guardIcon(el.querySelector<HTMLImageElement>(".p2-card-i"));
   if (!c.enabled && el.tagName !== "BUTTON") el.setAttribute("aria-disabled", "true");
   return el;
 }
@@ -85,7 +96,10 @@ function render() {
   main.append(sec("hub-big", L.big, "hub-c-big"), sec("hub-mid", L.mid, "hub-c-mid"), sec("hub-grid", L.grid, "hub-c-grid"));
   const rail = document.createElement("nav"); rail.className = "hub-rail"; rail.setAttribute("aria-label", "Tiện ích");
   for (const c of L.rail) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "hub-r"; b.dataset.hub = c.item.id; b.textContent = c.item.label;
+    const b = document.createElement("button"); b.type = "button"; b.className = "hub-r"; b.dataset.hub = c.item.id;
+    const ri = iconOf(c);
+    if (ri) { const img = new Image(); img.className = "hub-r-i"; img.alt = ""; img.draggable = false; img.setAttribute("aria-hidden", "true"); img.src = ri; guardIcon(img); b.append(img); }
+    b.append(c.item.label);
     if (c.card.state === "new" || c.card.state === "up") b.dataset.badge = c.card.state;
     if (c.enabled) { b.title = c.item.label + phim(c); b.addEventListener("click", () => run(c.item.id)); }
     else { b.title = `${c.item.label}: ${c.card.reason}`; b.setAttribute("aria-disabled", "true"); b.classList.add("lock"); }

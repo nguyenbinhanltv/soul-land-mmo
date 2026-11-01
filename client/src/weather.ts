@@ -7,6 +7,7 @@ import { storage } from "./net.ts";
 import { VIEW_W, VIEW_H, screenToWorld } from "./iso.ts";
 import { vnHour, type Lighting } from "./lighting.ts";
 import type { IsoMap } from "./isoMap.ts";
+import { fxPrefs, fxLevel } from "./combatFx.ts";
 
 /** Hạt bay trên màn hình tối đa (mục 5.11), độ mờ tối đa. */
 const MAX_PARTICLES = 150, MAX_ALPHA = 0.5;
@@ -19,12 +20,12 @@ const OFF_KEY = "shh-hat";
  * Một loại hạt: ảnh (FX_TEX), các màu, số hạt mỗi giây trên khung VIEW_W × VIEW_H, tuổi (ms), vận tốc (pixel nội bộ / giây), trọng lực,
  * độ mờ đỉnh, cộng sáng (`add`, hạt phát sáng), lập lòe; `when`: chỉ ban đêm / ban ngày / buổi sớm (hệ số theo mức đêm);
  * `at`: chỗ sinh (`view` khắp màn hình, `water` trên mặt nước, `house` trên mái nhà / lửa trại); `zone`: chỉ khi đứng trong vùng đó;
- * `north`: dày dần về phía bắc bản đồ (y thế giới nhỏ).
+ * `north`: dày dần về phía bắc bản đồ (y thế giới nhỏ); `calm`: hạt trang trí rất thưa, tắt khi Giảm chuyển động hoặc mức hiệu ứng Thấp, giảm một nửa ở mức Vừa.
  */
 interface Kind {
   tex: keyof typeof FX_TEX; tint: string[]; rate: number; life: [number, number]; vx: [number, number]; vy: [number, number]; gy?: number;
   alpha: number; add?: boolean; flicker?: boolean; when?: "night" | "day" | "dawn"; at?: "view" | "water" | "house"; zone?: string; north?: boolean;
-  scale?: [number, number];
+  scale?: [number, number]; calm?: boolean;
 }
 /** Lớp phủ toàn màn hình: sương (màu, độ mờ, vùng / giờ), mưa, sét, cực quang. */
 interface Sky { fog?: { col: string; a: number; zone?: string; when?: "dawn" }[]; bolt?: string; aurora?: boolean }
@@ -78,6 +79,11 @@ const CLIMATE: Record<string, Climate> = {
     fx: [{ tex: "glow", tint: ["#c0e0ff", "#6ab0f0"], rate: 5, life: [3000, 5000], vx: [-3, 3], vy: [-14, -6], alpha: 0.5, add: true }],          // hạt hồn lực trôi lên
     sky: { fog: [{ col: "#6a6a9a", a: 0.12 }] },                                                                                                 // sương mù
   },
+  luyen_hon_canh: { fx: [
+    // Sảnh đá kín (Bí Cảnh), màu lấy từ ô nền san_da_loi / san_da_nut (xám lam #bfced8, vàng nhạt #e0c890); rất thưa, mờ tối đa 0,3 để không che chiến đấu.
+    { tex: "glow", tint: ["#bfced8", "#e0c890"], rate: 0.8, life: [5000, 8000], vx: [-3, 3], vy: [-7, -3], alpha: 0.3, add: true, flicker: true, calm: true }, // linh khí trôi lên
+    { tex: "dot", tint: ["#e0c890"], rate: 0.5, life: [4000, 6500], vx: [-2, 2], vy: [-5, -2], alpha: 0.25, add: true, calm: true },                         // tàn sáng
+  ] },
   dai_dau_hon_truong: { fx: [
     { tex: "dot", tint: ["#c8b08a", "#e0d0b0"], rate: 3, life: [2000, 3500], vx: [6, 16], vy: [-3, 3], alpha: 0.35 },                          // bụi cát
   ] },
@@ -206,8 +212,10 @@ export class Weather {
     const k = (boss ? 0.5 : 1) * (document.body.classList.contains("touch") ? 0.6 : 1) * Math.max(0.3, (wv.width * wv.height) / (VIEW_W * VIEW_H));
     for (const l of this.live) {
       const w = l.kind.when === "night" ? night : l.kind.when === "day" ? 1 - night : l.kind.when === "dawn" ? dawn : 1;
-      const z = !l.kind.zone || l.kind.zone === zone, f = w * k * (z ? 1 : 0);
+      const calm = l.kind.calm ? (fxPrefs.reduce ? 0 : { low: 0, mid: 0.5, high: 1 }[fxLevel()]) : 1;
+      const z = !l.kind.zone || l.kind.zone === zone, f = w * k * calm * (z ? 1 : 0);
       l.em.emitting = f > 0.05;
+      if (calm === 0) l.em.killAll(); // Thấp / Giảm chuyển động: hạt đang bay tan ngay
       if (f > 0.05) l.em.frequency = l.base / f;
     }
     // Lớp phủ toàn màn hình theo khung nhìn (như lớp vignette cũ: đặt giữa màn hình, chia hệ số phóng).

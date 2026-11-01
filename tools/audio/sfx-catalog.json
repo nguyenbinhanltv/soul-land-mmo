@@ -82,6 +82,15 @@
       "retrievedAt": "2026-10-23"
     },
     {
+      "id": "oga-short-wind",
+      "title": "Short Wind Sound",
+      "author": "remaxim",
+      "url": "https://opengameart.org/content/short-wind-sound",
+      "license": "CC0-1.0",
+      "archiveSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "retrievedAt": "2026-11-01"
+    },
+    {
       "id": "oga-waterflow",
       "title": "Waterflow Sound",
       "author": "TyberiusGames",
@@ -1257,6 +1266,58 @@
       "startSeconds": 37,
       "maxSeconds": 5,
       "highpass": 70,
+      "gainDb": -3
+    },
+    {
+      "id": "amb-wind-lanh-1",
+      "group": "amb-wind-lanh",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "input": "oga-short-wind/short_wind_sound.wav",
+      "inputSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "pitch": 1.0,
+      "highpass": 80,
+      "fadeIn": 0.4,
+      "fadeOut": 0.8,
+      "gainDb": -3
+    },
+    {
+      "id": "amb-wind-lanh-2",
+      "group": "amb-wind-lanh",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "input": "oga-short-wind/short_wind_sound.wav",
+      "inputSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "pitch": 0.8,
+      "highpass": 80,
+      "fadeIn": 0.4,
+      "fadeOut": 0.8,
+      "gainDb": -3
+    },
+    {
+      "id": "amb-wind-lanh-3",
+      "group": "amb-wind-lanh",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "input": "oga-short-wind/short_wind_sound.wav",
+      "inputSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "pitch": 0.65,
+      "highpass": 80,
+      "fadeIn": 0.4,
+      "fadeOut": 0.8,
+      "gainDb": -3
+    },
+    {
+      "id": "amb-wind-lanh-4",
+      "group": "amb-wind-lanh",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "input": "oga-short-wind/short_wind_sound.wav",
+      "inputSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "pitch": 0.5,
+      "highpass": 80,
+      "fadeIn": 0.4,
+      "fadeOut": 0.8,
       "gainDb": -3
     },
     {

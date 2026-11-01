@@ -5,6 +5,17 @@ import { setBadge, clearBadge, badgeOf, allBadges, onBadges, resetBadges, starRe
 import { logNotice, notices, clearNotices, LOG_MAX } from "../src/noticeLog.ts";
 import { noticeNode, noticeTime } from "../src/noticeScreen.ts";
 import { toHtml } from "../src/uiParts.ts";
+import { giftNode, giftItemUrl } from "../src/giftView.ts";
+
+// Quà dùng chữ làm nghĩa chính; chưa tải manifest vẫn đọc đủ và mã lạ không tạo ảnh.
+const giftHtml = toHtml(giftNode({ honTe: 120, shards: 2, items: [{ code: "hoi_huyet_dan", qty: 3 }, { code: '<img src=x onerror="alert(1)">', qty: 4 }] }));
+assert.match(giftHtml, /120 Hồn Tệ/);
+assert.match(giftHtml, /Mảnh võ hồn ×2/);
+assert.match(giftHtml, /Hồi Huyết Đan ×3/);
+assert.match(giftHtml, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; ×4/);
+assert.doesNotMatch(giftHtml, /<(?:button|a|img)\b/);
+assert.equal(giftItemUrl("ma_la"), null);
+assert.deepEqual(giftNode({}).kids, []);
 import { fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
 import { rewardIcons, cellState, signedToday, needsSign, welfareBadgeCount, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
@@ -27,6 +38,9 @@ assert.equal(cell(L, "bag").card.state, undefined, "mục có chức năng, khô
 assert.deepEqual(L.rail.map((c) => [c.item.id, c.enabled]), [["mail", false], ["notice", false], ["settings", true], ["shot", false]], "rail đủ mục, chưa nối thì mờ");
 assert.equal(cell(L, "mail").card.state, "lock"); assert.equal(cell(L, "mail").card.reason, "Chưa có", "Thư đã nối bảng: chưa nối thì thẻ khoá nói \"Chưa có\" (không còn \"Chờ máy chủ\")");
 assert.equal(cell(hubLayout(["mail"], ["mail"]), "mail").card.state, "new", "chấm đỏ cho Thư có thư chưa đọc / quà chờ nhận");
+// icon menu có sẵn (#1579): đúng 19 mục, khóa gi_menu_*; mục chưa có ảnh thì không icon giả
+assert.deepEqual(HUB_ITEMS.filter((i) => i.icon).map((i) => i.id).sort(), ["achv","auto","bag","bicanh","calendar","char","forge","friends","guide","mail","notice","quest","rank","reso","settings","shop","vohon","welfare","world"]);
+assert.ok(HUB_ITEMS.every((i) => !i.icon || /^gi_menu_[a-z]+$/.test(i.icon)));
 assert.equal(cell(hubLayout(["bag"], [], ["bag"]), "bag").card.state, "up", "mũi tên xanh cho mục nâng được");
 assert.equal(cell(hubLayout(["bag"], ["bag"], ["bag"]), "bag").card.state, "new", "chấm đỏ thắng mũi tên");
 assert.equal(cell(hubLayout([], [], ["bag"]), "bag").card.state, "lock", "mục chưa nối không có mũi tên");
@@ -231,6 +245,20 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
 
 // ---- Thư (mailScreen.ts, #1336): hàm thuần ----
 {
+  const { mailRewardClaimed } = await import("../src/mailScreen.ts");
+  const { achvRewardStep } = await import("../src/achvScreen.ts");
+  const { welfareRewardClaimed } = await import("../src/welfareScreen.ts");
+  // Tiếng thưởng (#1577): chỉ khi server xác nhận nhận thật, đúng một lần.
+  assert.equal(mailRewardClaimed({ claimedNow: { count: 2, honTe: 5, items: [] } }), true, "thư: nhận thật thì có tiếng");
+  assert.equal(mailRewardClaimed({}), false, "thư: làm mới thì im"); assert.equal(mailRewardClaimed({ err: "x", claimedNow: { count: 1, honTe: 0, items: [] } }), true, "thư: nhận một phần rồi lỗi vẫn có tiếng"); assert.equal(mailRewardClaimed({ err: "x" }), false, "thư: lỗi không nhận gì thì im"); assert.equal(mailRewardClaimed({ claimedNow: { count: 0, honTe: 0, items: [] } }), false, "thư: nhận 0 thì im");
+  assert.equal(welfareRewardClaimed({ signed: { day: 1, makeup: false, fee: 0, honTe: 1, items: [] } }), true, "ký thành công có tiếng"); assert.equal(welfareRewardClaimed({}), false); assert.equal(welfareRewardClaimed({ err: "x" }), false);
+  const cn = { claimedNow: { id: "a", honTe: 1, items: [] } };
+  assert.deepEqual(achvRewardStep(false, cn, 0), { won: false, play: true }, "thành tựu: nhận một mốc → một tiếng");
+  assert.deepEqual(achvRewardStep(false, cn, 2), { won: true, play: false }, "nhận tất cả: chưa hết hàng đợi thì chưa phát");
+  assert.deepEqual(achvRewardStep(true, cn, 0), { won: false, play: true }, "nhận tất cả: mốc cuối → đúng một tiếng");
+  assert.deepEqual(achvRewardStep(true, { err: "x" }, 0), { won: false, play: true }, "lỗi giữa chừng sau khi đã nhận → vẫn một tiếng");
+  assert.deepEqual(achvRewardStep(false, { err: "x" }, 0), { won: false, play: false }, "lỗi ngay từ đầu → im");
+  assert.deepEqual(achvRewardStep(false, {}, 0), { won: false, play: false }, "làm mới → im");
   const { MAIL } = await import("../../shared/data.ts");
   const { mailStateOf, mailFilter, mailBadgeCount, mailGiftIds, mailExpiry, mailGiftParts, mailClaimedLine, mailPrimary, mailRowNode, mailDetailNode } = await import("../src/mailScreen.ts");
   const DAY = 86_400_000, now = 1_000_000_000_000;

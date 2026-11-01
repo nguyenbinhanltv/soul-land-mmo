@@ -18,6 +18,7 @@ export function packOfGroup(group: string): string | null {
   if (group.startsWith("beast-")) return "beast";
   if (group.startsWith("ring-")) return "world";
   if (group.startsWith("step-")) return "steps";
+  if (group.startsWith("amb-wind-lanh")) return "amb-lanh";
   if (group.startsWith("amb-fountain")) return "amb-nuoc";
   if (group.startsWith("amb-")) return "amb";
   if (group.startsWith("ui-")) return "ui";

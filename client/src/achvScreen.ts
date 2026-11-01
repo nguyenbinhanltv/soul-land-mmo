@@ -2,6 +2,7 @@
 // `achv {op:"get"|"claim", id}`: chỉ số, điều kiện "đạt", quà đều do server kiểm lại lúc nhận; client chỉ đọc danh mục `ACHV` ở shared/data.ts để vẽ.
 import { ACHV, ACHV_GROUPS, achvReached, formatHonTe, itemDef, type AchvDef, type AchvStats } from "../../shared/data.ts";
 import { abbrevNumber, screenFrame, stateBox, mount, addCloseButton, type PNode } from "./uiParts.ts";
+import { giftNode, bindGiftImages } from "./giftView.ts";
 
 export interface AchvMsg {
   stats: AchvStats; claimed: string[]; ready: number;
@@ -71,14 +72,25 @@ function load() {
 export function openAchv() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; queue = []; busy = false; loading = false; load(); render(); }
 export function closeAchv() { const e = el(); if (e) e.hidden = true; queue = []; loading = false; window.clearTimeout(timer); }
 
-export function onAchv(m: AchvMsg) {
-  if (!m || typeof m.ready !== "number" || !m.stats || !Array.isArray(m.claimed)) return;
+/** Quyết định tiếng thưởng của chuỗi nhận: mỗi mốc nhận xong ghi `won`; chỉ phát khi chuỗi hết (hàng đợi rỗng) hoặc bị lỗi chặn giữa chừng mà đã nhận được ít nhất một mốc,
+ *  nên "Nhận tất cả" chỉ một tiếng. Làm mới / nhận lỗi ngay từ đầu thì im. Hàm thuần (test). */
+export function achvRewardStep(won: boolean, m: Pick<AchvMsg, "claimedNow" | "err">, queueLeft: number): { won: boolean; play: boolean } {
+  const w = won || (!m.err && !!m.claimedNow);
+  return m.err || queueLeft === 0 ? { won: false, play: w && (!!m.claimedNow || !!m.err) } : { won: w, play: false };
+}
+let rewardWon = false;
+
+/** Trả true khi chuỗi nhận quà vừa xong có ít nhất một mốc nhận thật (GameScene phát `reward`). */
+export function onAchv(m: AchvMsg): boolean {
+  if (!m || typeof m.ready !== "number" || !m.stats || !Array.isArray(m.claimed)) return false;
   msg = m; loading = false; failed = false; window.clearTimeout(timer);
   if (m.err) { note = { text: m.err, err: true }; queue = []; busy = false; }
   else if (m.claimedNow) { note = { text: claimedLine(m.claimedNow), err: false }; busy = false; }
   else if (busy) busy = false;
   onChange(achvBadgeCount(m));
+  const step = achvRewardStep(rewardWon, m, m.err ? 0 : queue.length); rewardWon = step.won;
   if (queue.length && !m.err) next(); else render();
+  return step.play;
 }
 
 /** Gửi một yêu cầu nhận; bộ đếm chờ để màn không treo khi server im (server bỏ tin quá nhịp). */
@@ -105,7 +117,7 @@ export function achvRowNode(r: AchvRowView, busyNow = false): PNode {
         kids: [h("i", "av-fill", { attrs: { style: `width:${Math.round(r.pct * 100)}%` } })] }),
       h("small", "av-prog", { text: `${abbrevNumber(r.have)} / ${abbrevNumber(def.need)}` }),
     ] }),
-    h("span", "av-rw", { text: achvRewardParts(def).join(" · ") }),
+    h("span", "av-rw", { kids: [giftNode(def.reward)] }),
     r.state === "ready"
       ? h("button", "av-claim f2-nut-phu", { text: "Nhận", attrs: { type: "button", "data-id": def.id, ...(busyNow ? { disabled: "", title: "Đang gửi…" } : {}) } })
       : h("span", "av-st", { text: MARK[r.state] }),
@@ -140,4 +152,5 @@ function render() {
   }
   addCloseButton(f.root, closeAchv);
   root.replaceChildren(f.root);
+  bindGiftImages(f.root);
 }

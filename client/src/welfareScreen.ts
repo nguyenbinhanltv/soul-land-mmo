@@ -85,11 +85,16 @@ export const isWelfareOpen = () => { const e = el(); return !!e && !e.hidden; };
 export function openWelfare() { const e = el(); if (!e || !send) return; e.hidden = false; confirmDay = null; send("welfare", { op: "get" }); render(); }
 export function closeWelfare() { const e = el(); if (e) e.hidden = true; confirmDay = null; for (const s of stops) s(); stops = []; }
 
-export function onWelfare(m: WelfareMsg) {
-  if (!m || typeof m.mask !== "number" || typeof m.day !== "number") return;
+/** Tin này có xác nhận vừa ký (điểm danh / ký bù) thành công không; làm mới / lỗi thì không. Hàm thuần (test). */
+export const welfareRewardClaimed = (m: Pick<WelfareMsg, "signed" | "err">) => !m.err && !!m.signed;
+
+/** Trả true khi tin vừa xác nhận ký thành công (GameScene phát `reward`). */
+export function onWelfare(m: WelfareMsg): boolean {
+  if (!m || typeof m.mask !== "number" || typeof m.day !== "number") return false;
   syncServerNow(m.now); msg = m; busy = false; confirmDay = null; window.clearTimeout(timer);
   if (m.err) note = { text: m.err, err: true }; else if (m.signed) note = { text: signedLine(m.signed), err: false };
   onChange(welfareBadgeCount(m)); render();
+  return welfareRewardClaimed(m);
 }
 
 function act(op: "sign" | "makeup", day?: number, pay?: boolean) {

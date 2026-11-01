@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:hub-icon-browser": "node scripts/hub-icon-browser.mjs",
+    "test:gift-browser": "node scripts/gift-browser.mjs",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
@@ -15,6 +17,7 @@
     "test:actionbar-browser": "node scripts/actionbar-browser.mjs",
     "test:bando-browser": "node scripts/bando-browser.mjs",
     "test:flow-browser": "node scripts/flow-browser.mjs",
+    "test:giap-tooltip-browser": "node scripts/giap-tooltip-browser.mjs",
     "test:panel-browser": "node scripts/panel-browser.mjs",
     "test:npc-reply-browser": "node scripts/npc-reply-browser.mjs",
     "test:mail-achv-browser": "node scripts/mail-achv-browser.mjs",
