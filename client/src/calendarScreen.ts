@@ -66,8 +66,10 @@ const seen = new Set<string>(); // khung giờ đã xem (mở bảng) trong phi�
 const WATCH_REFRESH_MS = 10 * 60_000, WATCH_TICK_MS = 30_000;
 export function bindCalendar(sender: (type: string, payload: unknown) => void, go?: (g: CalGoal) => void, badge?: (n: number) => void) { send = sender; if (go) goTo = go; if (badge) onBadge = badge; }
 /** Chấm đỏ: xin lịch tuần này lúc vào phòng và mỗi 10 phút (khi bảng đóng), tính lại mỗi 30 giây từ bản đã có; chỉ dùng tin `calendar` sẵn có, không tin mới. */
-export function watchCalendar(signal: AbortSignal) {
+/** `blocked`: phòng sân đấu / Bí Cảnh chặn tin `calendar` (BLOCKED ở server), nên không tự xin lịch nền ở đó (#1603: toast "không làm được việc này" ngay khi vào phòng). */
+export function watchCalendar(signal: AbortSignal, blocked = false) {
   seen.clear(); data = null;
+  if (blocked) return;
   const ask = () => { if (send && !isCalendarOpen()) send("calendar", { op: "get", week: 0 }); };
   const tickBadge = () => { const open = isCalendarOpen(); if (open && data) for (const it of data.items) if (slotState(it, serverNow()) !== "past") seen.add(`${it.id}@${it.s}`); onBadge(data && !open ? unseenSoon(data.items, serverNow(), seen) : 0); };
   const a = window.setTimeout(ask, 1500), r = window.setInterval(ask, WATCH_REFRESH_MS), t = window.setInterval(tickBadge, WATCH_TICK_MS);

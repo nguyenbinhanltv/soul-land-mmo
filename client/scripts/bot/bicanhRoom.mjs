@@ -54,7 +54,7 @@ export async function bicanhRoomTest(){
   ok(B.room.state.mapId===BICANH_MAP_ID,"vào phòng riêng trên bản đồ Luyện Hồn Cảnh");
   { await test(B,"gmadmin",{on:true}); const n=B.logs.length, h0=B.bag.honTe; B.room.send("gm",{cmd:"coin 999"}); await waitFor(()=>B.logs.length>n,2000); await sleep(150);
     ok(B.logs.slice(n).some(t=>/Không dùng lệnh GM/.test(t))&&B.bag.honTe===h0&&B.leftCode===null,"admin gửi lệnh GM trong phòng Bí Cảnh: bị từ chối, không đổi gì"); await test(B,"gmadmin",{on:false}); }
-  { const n=B.logs.length; for(const m of [["bicanh",{op:"enter",id:ID}],["bicanh",{op:"buy",id:ID,pay:true}],["buy",{code:"hoi_huyet_dan",qty:1}],["travel",{portal:"x"}],["sortbag",{}],["arena",{op:"queue"}],["use",{id:"x"}]]) B.room.send(...m);
+  { const n=B.logs.length; for(const m of [["bicanh",{op:"enter",id:ID}],["bicanh",{op:"buy",id:ID,pay:true}],["buy",{code:"hoi_huyet_dan",qty:1}],["travel",{portal:"x"}],["sortbag",{}],["arena",{op:"queue"}],["calendar",{op:"get",week:0}],["use",{id:"x"}]]) B.room.send(...m);
     await sleep(600); ok(B.leftCode===null&&B.logs.slice(n).some(t=>/Bí Cảnh/.test(t)),"tin ngoài trận trong phòng (bicanh lồng, mua, đi cổng, túi, đấu trường): bị chặn, vẫn kết nối"); }
   B.room.send("attack"); await sleep(300); ok(B.room.state.beasts.size===0,"chưa đếm ngược xong: chưa có hồn thú");
   await fight();
