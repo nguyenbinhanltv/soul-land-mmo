@@ -45,7 +45,8 @@ function measure() {
     const r = rect(c), name = c.className.toString().split(" ").slice(0, 2).join(".") + (c.dataset.i ? `[${c.dataset.i}]` : "");
     if (r.left < -0.5 || r.right > vw + 0.5 || r.top < -0.5 || r.bottom > vh + 0.5) problems.push(`ô ${name} ${r.left.toFixed(0)}→${r.right.toFixed(0)} ngoài màn`);
     const hit = document.elementFromPoint(Math.min(vw - 1, Math.max(0, r.x + r.width / 2)), Math.min(vh - 1, Math.max(0, r.y + r.height / 2)));
-    if (!c.contains(hit) && !hit?.closest("#toasts,.f2-toast"))   // thông báo nổi tạm thời không tính là che problems.push(`ô ${name} bị che bởi ${hit?.id || hit?.className || hit?.tagName}`);
+    // thông báo nổi tạm thời không tính là che
+    if (!c.contains(hit) && !hit?.closest("#toasts,.f2-toast")) problems.push(`ô ${name} bị che bởi ${hit?.id || hit?.className || hit?.tagName}`);
     for (const o of others) {
       if (o.id === "lcol" || o.id === "rcol") continue; // khối chứa lớn trong suốt; che thật đã bắt bằng elementFromPoint
       if (r.left < o.r.right - 1 && r.right > o.r.left + 1 && r.top < o.r.bottom - 1 && r.bottom > o.r.top + 1) problems.push(`ô ${name} đè ${o.id}`);
