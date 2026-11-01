@@ -439,6 +439,6 @@ export function foldNote(note: HTMLElement, key: string) {
   const text = document.createElement("span"); text.className = "rn-t"; text.textContent = note.textContent;
   const more = document.createElement("button"); more.type = "button"; more.className = "rn-more";
   const show = (open: boolean) => { note.classList.toggle("open", open); more.setAttribute("aria-expanded", String(open)); more.textContent = open ? "Thu gọn" : "Xem thêm"; };
-  more.addEventListener("click", () => { const open = !note.classList.contains("open"); if (open) noteOpen.add(key); else noteOpen.delete(key); show(open); more.blur(); });
+  more.addEventListener("click", () => { const open = !note.classList.contains("open"); if (open) noteOpen.add(key); else noteOpen.delete(key); show(open); });
   note.classList.add("fold"); note.replaceChildren(text, more); show(noteOpen.has(key));
 }

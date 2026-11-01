@@ -77,6 +77,7 @@ GameScene.prototype.create = function(...a) {
   await test({ op: "give", code: "hon_cot", qty: 4 });
   await test({ op: "give", code: "hon_hach", qty: 4 });
   await test({ op: "give", code: "hon_hoan", qty: 4 });
+  await test({ op: "give", code: "y_la_uat_kim_huong", qty: 4 });
   await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3, enhance: 5 });
   await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
   if (!soft) {
@@ -153,6 +154,8 @@ GameScene.prototype.create = function(...a) {
     await cdp.detach();
   }
   // #1602: ô "Xếp" và dòng gợi ý chân bảng (Túi, Đội hình) nằm trọn trong bảng, bấm / đọc được; cỡ chữ mặc định và lớn, 1280×720 và 960×540.
+  await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3, enhance: 1 }); // món đang mặc không nằm trong túi: thêm một món rời để đủ 8 tab lọc
+  await sleep(300);
   const fit = [];
   for (const [width, height] of [[1280,720],[960,540]]) for (const fs of [0, 2]) {
     await page.setViewportSize({ width, height });
@@ -177,11 +180,20 @@ GameScene.prototype.create = function(...a) {
     await page.screenshot({ path: resolve(out, `${tag2}-tui.png`) });
     const noteM = await probe(".rnote", "#bag", ".nope");
     await page.screenshot({ path: resolve(out, `${tag2}-tui-chan.png`) });
+    // Đủ 8 tab lọc: mọi tab nằm trong bảng, bấm trúng (hit-test), ô Xếp không đè tab nào.
+    const tabsM = await page.evaluate(() => {
+      const p = document.querySelector("#bag"); p.scrollTop = 0; const pr = p.getBoundingClientRect(), tabs = [...p.querySelectorAll(".bfilter .ui-tab")], sel = p.querySelector(".bsortsel"), sr = sel.getBoundingClientRect();
+      const hit = (el) => { const r = el.getBoundingClientRect(); return [[.15,.5],[.85,.5],[.5,.5]].every(([a, b]) => { const t = document.elementFromPoint(r.left + r.width * a, r.top + r.height * b); return !!t && (t === el || el.contains(t)); }); };
+      const ov = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      return { labels: tabs.map((t) => t.textContent), n: tabs.length, inside: tabs.every((t) => { const r = t.getBoundingClientRect(); return r.left >= pr.left && r.right <= pr.right && r.top >= pr.top && r.bottom <= pr.bottom; }), hit: tabs.every(hit) && hit(sel), selOverlap: tabs.some((t) => ov(t.getBoundingClientRect(), sr)), rows: new Set(tabs.map((t) => Math.round(t.getBoundingClientRect().top))).size };
+    });
+    globalThis.__tabsM = tabsM;
+    check(tabsM.n === 8 && tabsM.inside && tabsM.hit && !tabsM.selOverlap, `đủ 8 tab lọc thấy và bấm được, ô Xếp không đè tab (${tag2}): ${JSON.stringify(tabsM)}`);
     await page.evaluate(async () => { const { setPanel } = await import("/src/charPanel.ts"); setPanel("bag", false); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(true); });
     await sleep(500);
     const rosM = await probe(".rnote", "#roster", ".rtabs");
     await page.screenshot({ path: resolve(out, `${tag2}-doihinh.png`) });
-    fit.push({ width, height, fs, sort: sortM, bagNote: noteM, rosterNote: rosM });
+    fit.push({ width, height, fs, tabs: globalThis.__tabsM, sort: sortM, bagNote: noteM, rosterNote: rosM });
     check(sortM.inside && sortM.clear, `ô Xếp trọn trong bảng và bấm được (${tag2}): ${JSON.stringify(sortM)}`);
     check(!noteM.textCut && noteM.inside && noteM.clear, `chân Túi đọc đủ (${tag2}): ${JSON.stringify(noteM)}`);
     check(!rosM.missing && (!rosM.textCut && rosM.inside && rosM.clear && rosM.strip === 0), `chân Đội hình đọc đủ, không bị tab đè (${tag2}): ${JSON.stringify(rosM)}`);
