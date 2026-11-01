@@ -50,9 +50,10 @@ async function walkTo(T, g, nv, goal, maxMs) {
   let idle = 0, idleMs = 0, repaths = -1, inIdle = false, anchor = { x: me().x, y: me().y, t: t0 };
   let best = Infinity, bestT = t0, res = "timeout";
   // Ghi chuyển động mỗi lần gọi (mỗi ~50 ms): đứng yên kể từ `anchor.t` quá IDLE_MS thì đếm một đoạn đứng yên.
+  const flushIdle = (now) => { if (inIdle) idleMs += now - anchor.t - IDLE_MS; }; // phần đứng yên vượt IDLE_MS của đoạn đang mở
   const track = () => {
     const q = me(), now = Date.now();
-    if (Math.hypot(q.x - anchor.x, q.y - anchor.y) >= MOVE_PX) { if (inIdle) idleMs += now - anchor.t - IDLE_MS; inIdle = false; anchor = { x: q.x, y: q.y, t: now }; }
+    if (Math.hypot(q.x - anchor.x, q.y - anchor.y) >= MOVE_PX) { flushIdle(now); inIdle = false; anchor = { x: q.x, y: q.y, t: now }; }
     else if (!inIdle && now - anchor.t >= IDLE_MS) { inIdle = true; idle++; }
   };
   outer: while (Date.now() - t0 < maxMs) {
@@ -78,6 +79,7 @@ async function walkTo(T, g, nv, goal, maxMs) {
     T.room.send("input", { x: 0, y: 0 }); await sleep(80); track();
   }
   T.room.send("input", { x: 0, y: 0 });
+  flushIdle(Date.now()); // tuyến kết thúc (kẹt, hết giờ…) khi còn đang đứng yên: tính nốt đoạn cuối
   return { res, secs: (Date.now() - t0) / 1000, idle, idleSecs: idleMs / 1000, repaths: Math.max(0, repaths) };
 }
 
