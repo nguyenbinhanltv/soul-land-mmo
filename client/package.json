@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test:calendar-icon-browser": "node scripts/calendar-icon-browser.mjs",
+    "test:hon-kinh-browser": "node scripts/hon-kinh-browser.mjs",
     "test:hub-icon-browser": "node scripts/hub-icon-browser.mjs",
     "test:hub-ten-browser": "node scripts/hub-ten-browser.mjs",
     "test:gift-browser": "node scripts/gift-browser.mjs",

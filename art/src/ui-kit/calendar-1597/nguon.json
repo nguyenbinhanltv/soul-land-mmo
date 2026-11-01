@@ -1,5 +1,6 @@
 {
-  "status": "cho-duyet-my-thuat",
+  "status": "da-duyet-da-nhap",
+  "approval": "Chủ repo duyệt cả sáu mẫu qua điều phối soul_land_game-815, 01/11/2026; PR #1626/#1597",
   "tool": "Codex builtin OpenAI image_gen.imagegen",
   "date": "2026-11-01",
   "license": "Điều khoản đầu ra OpenAI; không CC0",

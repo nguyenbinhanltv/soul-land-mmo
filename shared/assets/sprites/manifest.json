@@ -45968,6 +45968,58 @@
       ],
       "iso": true
     },
+    {
+      "key": "item_hon_kinh_quyen",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_king",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_king_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_world",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_world_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_arena",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_arena_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_auto",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_auto_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_daily",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_daily_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_weekly",
+      "iso": true
+    },
+    {
+      "key": "gi_calendar_weekly_1x",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

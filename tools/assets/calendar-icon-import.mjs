@@ -9,6 +9,7 @@ import { buildCandidate, EVENTS } from "./calendar-icon-candidate.mjs";
 
 const check = process.argv.includes("--check"), dir = path.join(ROOT, "art/src/ui-kit/calendar-1597");
 const source = JSON.parse(readFileSync(path.join(dir, "nguon.json"), "utf8"));
+if (source.status !== "da-duyet-da-nhap") throw new Error("Chưa có trạng thái chủ repo duyệt mẫu Lịch");
 const { files } = buildCandidate();
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const missing = [];

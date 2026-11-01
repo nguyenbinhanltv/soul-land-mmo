@@ -41,6 +41,7 @@ try {
     for (const [width, height] of [[1280, 720], [1920, 1080], [640, 360]]) for (const fs of [0, 1, 2]) {
       await page.setViewportSize({ width, height });
       await page.evaluate((fs) => { document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (fs) document.body.classList.add(`a11y-fs-${fs}`); }, fs);
+      await page.locator("#calendar .p2-body, #calendar .cal-grid").evaluateAll((els) => { for (const el of els) { el.scrollTop = 0; el.scrollLeft = 0; } });
       await page.locator("#calendar .cal-icon").evaluateAll(async (imgs) => { await Promise.all(imgs.map((i) => i.decode())); });
       const state = await page.locator("#calendar").evaluate((el) => ({
         icons: [...el.querySelectorAll(".cal-icon")].map((i) => ({ src: i.src, width: i.naturalWidth, hidden: i.hidden, alt: i.alt, decorative: i.getAttribute("aria-hidden") })),
@@ -50,11 +51,16 @@ try {
       assert.equal(state.icons.length, 7);
       assert.ok(state.icons.every((i) => i.width === (dpr === 1 ? 24 : 32) && !i.hidden && !i.alt && i.decorative === "true"));
       assert.match(state.live, /Đang mở/); assert.match(state.soon, /Sắp mở/); assert.match(state.past, /■/);
+      assert.ok(await page.locator("#calendar .p2-body").evaluate((el) => el.clientHeight > 60), "vùng đọc Lịch còn đủ cao ở màn thấp/chữ lớn");
       if (dpr === 1) {
         await page.screenshot({ path: resolve(out, `lich-${width}x${height}-chu-${fs}.png`) });
         // Màn nhỏ vẫn cuộn được đến cuối, không mất các thẻ dưới khung nhìn.
         await page.locator("#calendar .p2-body").evaluate((el) => { el.scrollTop = el.scrollHeight; });
         await page.screenshot({ path: resolve(out, `lich-${width}x${height}-chu-${fs}-cuon.png`) });
+        if (width === 640) for (const state of ["live", "soon"]) {
+          await page.locator(`#calendar .cal-${state}`).scrollIntoViewIfNeeded();
+          await page.screenshot({ path: resolve(out, `lich-${width}x${height}-chu-${fs}-${state}.png`) });
+        }
       }
     }
     await page.evaluate(() => {
