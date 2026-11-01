@@ -183,7 +183,7 @@ export function widestPath(g, W, from, to) {
 }
 
 /**
- * Tỷ lệ ô chặn "lẻ": ô chặn (bỏ viền 3 ô) thuộc cụm liên thông 4 hướng chỉ 1–3 ô, trên tổng ô chặn bỏ viền (mục 1.1: cây lẻ / đôi).
+ * Tỷ lệ ô chặn "lẻ": ô chặn (bỏ viền 3 ô) thuộc cụm liên thông 4 hướng chỉ 1–3 ô, trên tổng ô chặn bỏ viền (phần 1.1: cây lẻ / đôi).
  * Cụm chạm viền hoặc ≥ 4 ô không tính là lẻ.
  */
 export function smallBlockPct(g, maxSize = 3, border = 3) {

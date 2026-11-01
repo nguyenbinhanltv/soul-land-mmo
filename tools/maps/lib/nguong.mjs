@@ -1,4 +1,4 @@
-// Ngưỡng chỉ tiêu bố cục bản đồ theo loại map (docs/design/cai-to-luong-di-chuyen-ban-do.md mục 1.1; L4 #1662). Hàm thuần, kiểm thử: nguong.test.mjs.
+// Ngưỡng chỉ tiêu bố cục bản đồ theo loại map (docs/design/cai-to-luong-di-chuyen-ban-do.md phần 1.1; L4 #1662). Hàm thuần, kiểm thử: nguong.test.mjs.
 // Chỉ tiêu thiết kế của công cụ dựng, KHÔNG phải số cân bằng nên không vào shared/data.ts. Chỉ số đo ở lib/luong.mjs (`gridStats`).
 // Chưa kiểm: hành lang chính / đường nhánh rộng tối thiểu (cần tuyến mốc, đo ở do-luong.mjs --tuyen).
 

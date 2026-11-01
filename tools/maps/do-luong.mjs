@@ -4,7 +4,7 @@
 //   node tools/maps/do-luong.mjs --sinh              kèm soát chỗ sinh hồn thú: bao nhiêu chỗ nằm ở ô khe 1 ô / sau khe (đúng luật spawn.ts)
 //   node tools/maps/do-luong.mjs --tuyen             kèm từng tuyến trại hồi sinh → mốc (giây, đoạn cổ chai, ngang tuyến rộng nhất)
 //   node tools/maps/do-luong.mjs --json              in JSON thay bảng (L2–L5 so trước / sau)
-//   node tools/maps/do-luong.mjs --canh-bao [--strict]  chỉ in bản đồ vượt chỉ tiêu mục 1.1 (lib/nguong.mjs); thoát 0, --strict thì thoát 1 nếu có vượt (L4 #1662; `npm run check` gọi lệnh này, LUONG_STRICT=1 = --strict)
+//   node tools/maps/do-luong.mjs --canh-bao [--strict]  chỉ in bản đồ vượt chỉ tiêu phần 1.1 (lib/nguong.mjs); thoát 0, --strict thì thoát 1 nếu có vượt (L4 #1662; `npm run check` gọi lệnh này, LUONG_STRICT=1 = --strict)
 // Dùng file Tiled đang chạy trong game (`<mapId>.v2.json` nếu có, không thì `<mapId>.json`), cùng lưới ô chặn với server (shared/move.ts).
 // Hàm đo thuần ở lib/luong.mjs (kiểm thử: lib/luong.test.mjs). `--canh-bao` chạy trong `npm run check` (chỉ cảnh báo).
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -175,9 +175,9 @@ const rows = pick.map((m) => measure(m, opt));
 if (opt.canhBao) {
   const fmt = (v) => (Number.isInteger(v) ? String(v) : f(v, v < 10 ? 2 : 1));
   const bad = rows.map((r) => ({ r, v: violations(r) })).filter((x) => x.v.length);
-  if (!bad.length) console.log(`[luong] ${rows.length} bản đồ đều đạt chỉ tiêu bố cục (mục 1.1).`);
+  if (!bad.length) console.log(`[luong] ${rows.length} bản đồ đều đạt chỉ tiêu bố cục (phần 1.1).`);
   else {
-    console.log(`[luong] ${strictTag(opt)}${bad.length}/${rows.length} bản đồ vượt chỉ tiêu bố cục (docs/design/cai-to-luong-di-chuyen-ban-do.md mục 1.1; chi tiết: node tools/maps/do-luong.mjs):`);
+    console.log(`[luong] ${strictTag(opt)}${bad.length}/${rows.length} bản đồ vượt chỉ tiêu bố cục (docs/design/cai-to-luong-di-chuyen-ban-do.md phần 1.1; chi tiết: node tools/maps/do-luong.mjs):`);
     for (const { r, v } of bad) console.log(`  ${r.ten} (${GROUP_OF_KIND[r.kind]}): ${v.map((x) => `${x.ten} ${fmt(x.value)} (cần ${x.op} ${x.limit})`).join("; ")}`);
     if (opt.strict) process.exit(1);
   }

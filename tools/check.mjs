@@ -97,7 +97,7 @@ if (maps) {
   const q = spawnSync(process.execPath, [path.join(root, "tools", "maps", "quet-chan.mjs")], { cwd: root, stdio: "inherit" });
   if (q.status !== 0) failed = true;
 }
-// L4 (#1662): chỉ tiêu luồng di chuyển mục 1.1 (docs/design/cai-to-luong-di-chuyen-ban-do.md): CHỈ CẢNH BÁO (~0,4 giây), không làm đỏ.
+// L4 (#1662): chỉ tiêu luồng di chuyển phần 1.1 (docs/design/cai-to-luong-di-chuyen-ban-do.md): CHỈ CẢNH BÁO (~0,4 giây), không làm đỏ.
 // LUONG_STRICT=1 (hoặc `node tools/maps/do-luong.mjs --canh-bao --strict`) mới đỏ; bật sau khi L5 xong.
 if (mode === "" || maps) {
   const l = spawnSync(process.execPath, [path.join(root, "tools", "maps", "do-luong.mjs"), "--canh-bao"], { cwd: root, stdio: "inherit" });
