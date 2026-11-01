@@ -4173,6 +4173,8 @@ export const AUTO_TOKEN = "uy_thac_lenh";
 export const AUTO_TOKEN_SECS = 2 * 3600;
 export const AUTO_TOKEN_PRICE = 500;
 export const AUTO_BONUS_MAX = 24 * 3600;
+/** Mã quyển dùng chung cho phần thưởng và định nghĩa vật phẩm; bộ nhập icon đọc hằng chuỗi này. */
+export const BICANH_TOME = "hon_kinh_quyen";
 /**
  * Bí Cảnh (mục 5.22, docs/design/bi-canh.md; #877): phụ bản hằng ngày có lượt, làm mới 05:00 giờ Việt Nam (`resetHour`, khóa ngày riêng `bicanhDay`, không đụng
  * lượt boss / đấu trường vẫn đổi 00:00). `claimKind`: tiền tố `kind` ở `boss_claims` (mỗi phụ bản thêm `_<id>`: lượt đã vào; `_<id>_mua`: lượt đã mua thêm), nên không cần bảng mới.
@@ -4184,7 +4186,7 @@ export const AUTO_BONUS_MAX = 24 * 3600;
  * (ringLimit), `tomes` quyển thưởng khi hạ hết sóng, `elite` kèm một tinh anh.
  */
 export const BICANH = {
-  resetHour: 5, claimKind: "bi_canh", tome: "hon_kinh_quyen", tomeXp: 300, tomeDailyCap: 6, equivMin: 10,
+  resetHour: 5, claimKind: "bi_canh", tome: BICANH_TOME, tomeXp: 300, tomeDailyCap: 6, equivMin: 10,
   maxRooms: 8, joinSecs: 20, readySecs: 4, waveGapSecs: 3, endSecs: 8,
   scenes: [{ id: "luyen_hon", name: "Luyện Hồn Cảnh", runs: 3, buyBase: 3000, buyGrow: 1.5, buyMax: 3, fightSecs: 300,
     beasts: ["phong_lang", "tu_van_bao", "quy_ho", "loi_van_hau"],
@@ -4243,7 +4245,7 @@ export const ITEMS: ItemDef[] = [
   { id: EQUIP_ITEM, kind: "trang_bi", name: "Trang bị hồn sư", col: "#e8e8e8", stack: 1,
     desc: "Mặc vào một trong 10 ô của hồn sư để cộng chỉ số cho võ hồn đang ra trận. Cường hóa, hợp thành, phân giải ở Thợ rèn." },
   // Hồn Kinh Quyển (Bí Cảnh, mục 5.22): phần thưởng Luyện Hồn Cảnh; chỉ nhận từ phụ bản, không bán, không mua; dùng cho một võ hồn bất kỳ (kể cả dự bị).
-  { id: BICANH.tome, kind: "kinh_quyen", name: "Hồn Kinh Quyển", col: "#9fd0ff", stack: 99,
+  { id: BICANH_TOME, kind: "kinh_quyen", name: "Hồn Kinh Quyển", col: "#9fd0ff", stack: 99,
     desc: `Dùng cho một võ hồn bất kỳ (kể cả dự bị): +${BICANH.tomeXp} kinh nghiệm. Vẫn dừng ở bình cảnh, cần hấp thụ hồn hoàn kế tiếp.` },
   ...EQUIP_MATERIALS.map((m): ItemDef => ({ id: m.id, kind: "nguyen_lieu", name: m.name, col: m.col, stack: m.stack, desc: m.desc })),
 ];
