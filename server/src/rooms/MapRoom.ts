@@ -6,7 +6,6 @@ import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TICK_RATE,
   AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
   MAPS, parseNewLooks, encodeLpc,
-
   TILE,
   itemDef, formatHonTe, type ItemDef,
   RING_ITEM, DROP_OWNER_SECS,
@@ -568,7 +567,7 @@ export class MapRoom extends Room<MapState> {
   sendOffline(id: string): void { autoRun.sendOffline(this, id); }
 
   // ---------- Cổng (mục 5.3 "Cổng và chặn mềm", mục 6 "Đi qua cổng và lưu vị trí") ----------
-  /** Hàm nhỏ về đúng miền sở hữu (#702, E5b): `portalHint` / `freeze` ở `travel.ts`, `saveTrade` ở `shop.ts` (ghi DB vẫn qua `room.chain`), `foesNear` / `nearestFoe` ở `combat.ts` (`foesOf` ở lại vì `ArenaRoom` override); các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  /** Hộp đi cổng gửi riêng: logic ở `travel.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
   portalHint(id: string, p: PlayerState, d: PData) { return travel.portalHint(this, id, p, d); }
 
   /** Đi cổng / truyền tống / Hồi Thành Phù (xem rooms/travel.ts, #702): các hàm dưới chỉ chuyển tiếp để `onMessage`, `tick`, `useItem`, gm.ts gọi như cũ. */
@@ -576,6 +575,7 @@ export class MapRoom extends Room<MapState> {
 
   travel(c: Client, name: string) { travel.travel(this, c, name); }
 
+  /** Bật cờ `travelling` khi đi cổng / rời phòng (hủy hàng chờ đấu trường, bỏ mục tiêu, đạn đang bay): logic ở `travel.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
   freeze(id: string) { return travel.freeze(this, id); }
 
   beginTravel(id: string, portal: Portal, to?: { roomId: string; ch: number }, undo?: () => void) { travel.beginTravel(this, id, portal, to, undo); }
@@ -861,6 +861,7 @@ export class MapRoom extends Room<MapState> {
   sendArenaQueue(id: string) { arena.sendArenaQueue(this, id); }
   arenaTop(id: string) { arena.arenaTop(this, id); }
 
+  /** Lưu túi đồ sau mua / bán qua chuỗi lưu: logic ở `shop.ts` (#702, E5b), vẫn qua `room.chain(d, …)` và `room.write`; hàm dưới chỉ chuyển tiếp. */
   saveTrade(id: string, d: PData) { return shop.saveTrade(this, id, d); }
 
 
@@ -1033,7 +1034,9 @@ export class MapRoom extends Room<MapState> {
   // ---------- Đối thủ người chơi (PvP chỉ có trong Đại Đấu Hồn Trường, mục 5.9, bước 7.2) ----------
   /** Người chơi mà `id` đánh được lúc này. MapRoom: không ai (PvP ngoài rừng không có, mục 5.9); ArenaRoom ghi đè khi đang giao đấu. */
   foesOf(_id: string): string[] { return []; }
+  /** Đối thủ trong bán kính (`foesOf` ở lại MapRoom vì `ArenaRoom` override): logic ở `combat.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
   foesNear(id: string, r: number, x: number, y: number) { return combat.foesNear(this, id, r, x, y); }
+  /** Đối thủ gần nhất khóa được: logic ở `combat.ts` (#702, E5b), hàm dưới chỉ chuyển tiếp. */
   nearestFoe(id: string, r: number) { return combat.nearestFoe(this, id, r); }
   damageFoe(fid: string, dmg: number, by: string, _col: string, hit?: Hit, o: DmgOpt = {}) { return combat.damageFoe(this, fid, dmg, by, _col, hit, o); }
 
