@@ -2943,9 +2943,41 @@
       "pack": "skill",
       "sourceId": "oga-100-cc0-sfx",
       "start": 82.52
+    },
+    {
+      "duration": 1.84,
+      "group": "amb-wind-lanh",
+      "id": "amb-wind-lanh-1",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "start": 0
+    },
+    {
+      "duration": 2.3,
+      "group": "amb-wind-lanh",
+      "id": "amb-wind-lanh-2",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "start": 1.89
+    },
+    {
+      "duration": 2.84,
+      "group": "amb-wind-lanh",
+      "id": "amb-wind-lanh-3",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "start": 4.24
+    },
+    {
+      "duration": 3.69,
+      "group": "amb-wind-lanh",
+      "id": "amb-wind-lanh-4",
+      "pack": "amb-lanh",
+      "sourceId": "oga-short-wind",
+      "start": 7.13
     }
   ],
-  "generatedAt": "2026-10-31T00:00:00.000Z",
+  "generatedAt": "2026-11-01T00:00:00.000Z",
   "packs": {
     "amb": {
       "duration": 79.67,
@@ -2957,6 +2989,19 @@
         "ogg": {
           "bytes": 672433,
           "path": "sfx/amb.ogg"
+        }
+      }
+    },
+    "amb-lanh": {
+      "duration": 10.87,
+      "files": {
+        "m4a": {
+          "bytes": 91568,
+          "path": "sfx/amb-lanh.m4a"
+        },
+        "ogg": {
+          "bytes": 81549,
+          "path": "sfx/amb-lanh.ogg"
         }
       }
     },
@@ -3135,6 +3180,15 @@
       "retrievedAt": "2026-10-23",
       "title": "Mild Wind Background Noise",
       "url": "https://opengameart.org/content/mild-wind-background-noise"
+    },
+    {
+      "archiveSha256": "4435f5ad1baf171f21f876f778d0a8a7447becea0c4955bb2566e0c63ab20f41",
+      "author": "remaxim",
+      "id": "oga-short-wind",
+      "license": "CC0-1.0",
+      "retrievedAt": "2026-11-01",
+      "title": "Short Wind Sound",
+      "url": "https://opengameart.org/content/short-wind-sound"
     },
     {
       "archiveSha256": "fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c",

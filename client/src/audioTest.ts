@@ -39,7 +39,7 @@ function sections(): { title: string; hint: string; rows: Row[] }[] {
     { title: "Giao diện (lô 2)", hint: "tự phát khi mở / đóng panel, kéo thả, trang bị, cường hóa, nhận đồ hiếm; kênh Giao diện",
       rows: (Object.keys(UI_GROUP) as UiSound[]).map((k) => ({ title: label(k), group: UI_GROUP[k], channel: "ui" as AudioChannel })) },
     { title: "Môi trường lớp chồng (lô 2)", hint: "phát ngẫu nhiên theo bản đồ và ngày đêm (nút chạy thử ở trên); kênh Môi trường",
-      rows: (["wind", "wave", "bird", "cricket", "fire", "bell"] as const).map((k) => ({ title: ({ wind: "Gió", fire: "Lửa trại" } as Record<string, string>)[k] ?? label(k), group: `amb-${k}`, channel: "ambient" as AudioChannel })) },
+      rows: (["wind", "wave", "bird", "cricket", "fire", "bell"] as const).map((k) => ({ title: ({ wind: "Gió", fire: "Lửa trại" } as Record<string, string>)[k] ?? label(k), group: `amb-${k}`, channel: "ambient" as AudioChannel })).concat([{ title: "Gió lạnh (chỉ Cực Bắc Chi Địa)", group: "amb-wind-lanh", channel: "ambient" as AudioChannel }]) },
     { title: "PK (lô 2): chỉ tiếng + hàm phát, G6 (#397) gọi", hint: "audio.playPkOpen / playPkCountdown(n) / playPkKill(nguồn) / updateLowHpHeartbeat(tỉ lệ máu)",
       rows: [{ title: "Trống mở trận", group: "pk-open", channel: "ui" }, { title: "Đếm ngược (mõ)", group: "pk-count", channel: "ui" }, { title: "Vào trận (chuông / chiêng)", group: "pk-go", channel: "ui" },
         { title: "Kết liễu", group: "pk-kill", channel: "sfx" }, { title: "Nhịp tim máu thấp (1 chậm, 2 nhanh)", group: "pk-heartbeat", channel: "sfx" }] },
@@ -96,7 +96,7 @@ export function audioTestScreen(card: HTMLElement, overlay: HTMLElement): void {
   const unlock = () => audio.unlock();
   card.addEventListener("pointerdown", unlock, { once: true });
   card.addEventListener("keydown", unlock, { once: true });
-  const ensureAll = async () => { await audio.bank?.loadManifest(); await Promise.all(["combat", "skill", "beast", "world", "steps", "amb", "ui", "pk"].map((p) => audio.bank?.ensure(p))); };
+  const ensureAll = async () => { await audio.bank?.loadManifest(); await Promise.all(["combat", "skill", "beast", "world", "steps", "amb", "amb-lanh", "ui", "pk"].map((p) => audio.bank?.ensure(p))); };
   const voices = () => { $("atVoices").textContent = `đang phát ${audio.activeVoices} tiếng`; };
   const timer = setInterval(voices, 250);
   addEventListener("pagehide", () => clearInterval(timer), { once: true });
