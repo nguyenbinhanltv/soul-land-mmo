@@ -247,7 +247,7 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   const { welfareRewardClaimed } = await import("../src/welfareScreen.ts");
   // Tiếng thưởng (#1577): chỉ khi server xác nhận nhận thật, đúng một lần.
   assert.equal(mailRewardClaimed({ claimedNow: { count: 2, honTe: 5, items: [] } }), true, "thư: nhận thật thì có tiếng");
-  assert.equal(mailRewardClaimed({}), false, "thư: làm mới thì im"); assert.equal(mailRewardClaimed({ err: "x", claimedNow: { count: 1, honTe: 0, items: [] } }), false, "thư: lỗi thì im"); assert.equal(mailRewardClaimed({ claimedNow: { count: 0, honTe: 0, items: [] } }), false, "thư: nhận 0 thì im");
+  assert.equal(mailRewardClaimed({}), false, "thư: làm mới thì im"); assert.equal(mailRewardClaimed({ err: "x", claimedNow: { count: 1, honTe: 0, items: [] } }), true, "thư: nhận một phần rồi lỗi vẫn có tiếng"); assert.equal(mailRewardClaimed({ err: "x" }), false, "thư: lỗi không nhận gì thì im"); assert.equal(mailRewardClaimed({ claimedNow: { count: 0, honTe: 0, items: [] } }), false, "thư: nhận 0 thì im");
   assert.equal(welfareRewardClaimed({ signed: { day: 1, makeup: false, fee: 0, honTe: 1, items: [] } }), true, "ký thành công có tiếng"); assert.equal(welfareRewardClaimed({}), false); assert.equal(welfareRewardClaimed({ err: "x" }), false);
   const cn = { claimedNow: { id: "a", honTe: 1, items: [] } };
   assert.deepEqual(achvRewardStep(false, cn, 0), { won: false, play: true }, "thành tựu: nhận một mốc → một tiếng");

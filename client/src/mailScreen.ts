@@ -75,8 +75,8 @@ function load() {
 export function openMail() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; busy = false; loading = false; load(); render(); }
 export function closeMail() { const e = el(); if (e) e.hidden = true; reading = 0; loading = false; window.clearTimeout(timer); }
 
-/** Tin này có xác nhận vừa nhận quà thật không (để phát tiếng thưởng đúng một lần, kể cả "Nhận tất cả"). Làm mới / lỗi thì không. Hàm thuần (test). */
-export const mailRewardClaimed = (m: Pick<MailMsg, "claimedNow" | "err">) => !m.err && !!m.claimedNow && m.claimedNow.count > 0;
+/** Tin này có xác nhận vừa nhận quà thật không (để phát tiếng thưởng đúng một lần, kể cả "Nhận tất cả"). Làm mới / lỗi không nhận được gì thì không; nhận một phần rồi gặp lỗi (túi đầy…) vẫn có vì đồ đã vào túi. Hàm thuần (test). */
+export const mailRewardClaimed = (m: Pick<MailMsg, "claimedNow">) => !!m.claimedNow && m.claimedNow.count > 0;
 
 /** Trả true khi tin vừa xác nhận nhận quà thật (GameScene phát `reward`). */
 export function onMail(m: MailMsg): boolean {
