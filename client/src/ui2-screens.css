@@ -36,6 +36,9 @@ body.touch.ui-h460:not(.ui-portrait) .ui2-screen .p2-man{max-height:100%;height:
 body.touch.ui-h460:not(.ui-portrait) .ui2-screen .p2-nav{overflow-y:auto;overscroll-behavior:contain}
 body.touch .ui2-screen :is(.scr-x,.p2-nav-i){min-height:44px;min-width:44px}
 body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visibility:hidden}
+/* Màn thấp / hẹp (logic ≤ 560 cao hoặc ≤ 640 rộng, vd 960×540 chữ 2, 640×360): bảng lớn phủ lên chỗ huy hiệu 魂 (giữa-trên, fixed) nên 魂 che nút "Sắp xếp" / đầu bảng (#1632).
+   Có bảng nào trong ngăn xếp mở thì ẩn 魂; đóng bảng là hiện lại. Vẫn mở Hub bằng Esc, ở bản đồ lớn đã có luật riêng (ui2-map.css). Danh sách đúng `OB_COVER_PANELS` (onboard.ts). */
+body:is(.ui-h560,.ui-w640):has(:is(#char,#bag,#roster,#reso,#friends,#audio,#autoPanel,#autoSum,#mail,#achv,.ui2-screen):not([hidden])) #hubBtn{visibility:hidden}
 .ui2-screen .p2-man{flex:1;min-width:0;max-height:inherit;grid-template-rows:auto minmax(0,1fr) auto}
 .ui2-screen .p2-nav:empty{display:none}
 .scr-x{flex:none;width:32px;height:32px;box-sizing:border-box;margin-left:var(--sp-4);cursor:pointer;font:var(--fs-l)/1 var(--f12);color:var(--p2-fg);background:var(--track);border:var(--bd) solid var(--p2-fg2)}
