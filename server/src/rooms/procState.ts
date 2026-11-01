@@ -3,7 +3,7 @@
 // `testOfflineAgo`), danh sách mua lại (`buybacks`). Nguyên văn từ MapRoom; MỘT thể hiện duy nhất mỗi Map / Set (MapRoom, các miền và script kiểm thử đều import từ đây).
 // Module lá: KHÔNG gọi presence / Redis và KHÔNG import MapRoom (chỉ phụ thuộc shared/data.ts, schedule.ts cho đồng hồ boss và type của db.ts / schema.ts). Tác dụng phụ lúc nạp duy nhất: `CHANNEL_CAP` đọc `GAME_TEST` / `CHANNEL_MAX` (như khi còn ở MapRoom); timer dọn định kỳ KHÔNG chạy lúc nạp mà do MapRoom gọi `startChannelSweep()` một lần. Hook test (`testNoLeaveLock`, `testOfflineAgo`, `kingClaimTest`) ở `testState.ts` (`kingRecs` / `applyKingDoc` / `kingClaimCache` vẫn xuất từ đây cho hook đó). Phần ghi presence (`persistKingSeat`, `takeKingSeat`, `persistEliteLock`, `editBuyback`...) ở `presenceState.ts`, registry kênh ở `channel.ts`, ghế ở `seat.ts`.
 import { KING, WORLD, BOSSES, MAPS, kingActive, worldActive, CHANNEL_MAX, CHANNEL_CD } from "../../../shared/data.ts";
-import { bossOffset } from "../schedule.ts";
+import { bossOffset, type BossEvent } from "../schedule.ts";
 import type { BeastState } from "./schema.ts";
 import type { Item } from "../db.ts";
 
@@ -130,3 +130,8 @@ export function startChannelSweep() { return channelSweepTimer ??= setInterval((
  */
 export interface Buyback { key: string; item: Item; price: number; }
 export const buybacks = new Map<number, Buyback[]>(); // map-co-dinh: đường xóa là `buybacks.delete` ở editBuyback (MapRoom, miền D2), forgetBuyback (shop.ts) và join.ts (nạp lại / dọn khi vào phòng); mỗi tài khoản tối đa BUYBACK_MAX mục
+/**
+ * Báo trước thú vương gần nhất theo bản đồ (kênh "boss", `at` = giờ xuất hiện, ms): phòng mở ra trong lúc chờ (kể cả báo trước của
+ * hook test) vẫn có đếm ngược. Xóa khi thú vương của bản đồ đó xuất hiện.
+ */
+export const kingWarns = new Map<string, BossEvent & { at: number }>(); // map-co-dinh: khóa theo mapId, bị `kingWarns.delete` khi thú vương xuất hiện (onBossEvent, bossEvent.ts) và đè khi có báo trước mới; mỗi bản đồ một mục
