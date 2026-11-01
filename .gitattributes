@@ -3,3 +3,4 @@
 .githooks/* text eol=lf
 *.sh text eol=lf
 *.png binary
+art/src/ui-kit/hub-1580/prompt.txt text eol=lf

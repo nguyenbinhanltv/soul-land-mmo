@@ -38,8 +38,8 @@ assert.equal(cell(L, "bag").card.state, undefined, "mục có chức năng, khô
 assert.deepEqual(L.rail.map((c) => [c.item.id, c.enabled]), [["mail", false], ["notice", false], ["settings", true], ["shot", false]], "rail đủ mục, chưa nối thì mờ");
 assert.equal(cell(L, "mail").card.state, "lock"); assert.equal(cell(L, "mail").card.reason, "Chưa có", "Thư đã nối bảng: chưa nối thì thẻ khoá nói \"Chưa có\" (không còn \"Chờ máy chủ\")");
 assert.equal(cell(hubLayout(["mail"], ["mail"]), "mail").card.state, "new", "chấm đỏ cho Thư có thư chưa đọc / quà chờ nhận");
-// icon menu có sẵn (#1579): đúng 12 mục, khóa gi_menu_*; mục chưa có ảnh thì không icon giả
-assert.deepEqual(HUB_ITEMS.filter((i) => i.icon).map((i) => i.id).sort(), ["auto","bag","char","forge","friends","quest","rank","reso","settings","shop","vohon","world"]);
+// icon menu có sẵn (#1579): đúng 19 mục, khóa gi_menu_*; mục chưa có ảnh thì không icon giả
+assert.deepEqual(HUB_ITEMS.filter((i) => i.icon).map((i) => i.id).sort(), ["achv","auto","bag","bicanh","calendar","char","forge","friends","guide","mail","notice","quest","rank","reso","settings","shop","vohon","welfare","world"]);
 assert.ok(HUB_ITEMS.every((i) => !i.icon || /^gi_menu_[a-z]+$/.test(i.icon)));
 assert.equal(cell(hubLayout(["bag"], [], ["bag"]), "bag").card.state, "up", "mũi tên xanh cho mục nâng được");
 assert.equal(cell(hubLayout(["bag"], ["bag"], ["bag"]), "bag").card.state, "new", "chấm đỏ thắng mũi tên");

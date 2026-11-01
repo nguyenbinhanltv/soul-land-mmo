@@ -1,4 +1,4 @@
-// Nhập 16 icon menu AI (tờ `art/src/ui-kit/toI-2.png`, #884, theo dõi #877) vào game thay cho 16 `gi_menu_*` game-icons.
+// Nhập 23 icon menu AI: 16 mẫu #884 và 7 mẫu Hub #1580 đã được chủ repo duyệt.
 //   node tools/assets/menu-icon-import.mjs           cắt tờ bằng cutter ui:cut (--soft --prefix menu_), ghi ảnh + đăng ký khoá vào manifest
 //   node tools/assets/menu-icon-import.mjs --check   không ghi; lỗi nếu ảnh / manifest lệch kết quả cắt (tất định) hoặc vượt ngân sách icon
 // Mỗi icon ra hai bản (luật 1× / 2× của kit): `gi_menu_<key>` = 2× khung 32×32 (cỡ cũ, HUD / hub dùng ở 24 px CSS khi DPR ≥ 1,5),
@@ -7,12 +7,14 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { decodePng, encodePng, Img, MANIFEST, readPng, ROOT, SPRITES } from "./lib.mjs";
 import { loadKit } from "./ui-kit-lib.mjs";
 import { cutUiSheet } from "./ui-sheet-cut.mjs";
 
 const SHEET = path.join(ROOT, "art/src/ui-kit/toI-2.png");
 const SOURCE = path.join(ROOT, "art/src/ui-kit/menu-pilot.source.json");
+const HUB_SOURCE = path.join(ROOT, "art/src/ui-kit/hub-1580/nguon.json");
 const OUT = path.join(SPRITES, "iso/gi");
 export const FRAMES = { "": 32, _1x: 24 };
 /** Ngân sách icon của kit (docs/art/ui-kit.md): ≤ 150 KB, mỗi bản 2× / 1× tính riêng. */
@@ -43,23 +45,40 @@ export function fitFrame(src, size) {
 
 /** Cắt tờ rồi dựng { `menu_<key><hậu tố>.png` → Buffer }. */
 export function buildIcons() {
-  const kit = loadKit(), mapping = JSON.parse(readFileSync(SOURCE, "utf8")).mapping;
-  const cut = cutUiSheet({ img: readPng(SHEET), name: "toI-2", kindId: "I", kit, prefix: "menu_", soft: true });
-  const files = new Map();
-  for (const m of mapping) {
-    const piece = cut.files.get(`2x/ui2_menu_icon_${String(m.index).padStart(2, "0")}.png`);
-    if (!piece) throw new Error(`thiếu mảnh icon_${m.index} (${m.key})`);
-    const img = decodePng(piece);
-    for (const [suffix, size] of Object.entries(FRAMES)) files.set(`${m.key.replace(/^gi_/, "")}${suffix}.png`, encodePng(fitFrame(img, size)));
+  const kit = loadKit(), files = new Map(), keys = [];
+  const hub = JSON.parse(readFileSync(HUB_SOURCE, "utf8"));
+  for (const [file, hash] of [[hub.raw, hub.raw_sha256], [hub.prompt, hub.prompt_sha256]]) {
+    const actual = createHash("sha256").update(readFileSync(path.join(path.dirname(HUB_SOURCE), file))).digest("hex");
+    if (actual !== hash) throw new Error(`SHA256 nguồn Hub lệch: ${file}`);
   }
-  return { files, keys: mapping.map((m) => m.key) };
+  const sources = [
+    { sheet: SHEET, name: "toI-2", mapping: JSON.parse(readFileSync(SOURCE, "utf8")).mapping },
+    { sheet: path.join(path.dirname(HUB_SOURCE), hub.raw), name: "hub-1580", mapping: hub.mapping },
+  ];
+  for (const source of sources) {
+    const cut = cutUiSheet({ img: readPng(source.sheet), name: source.name, kindId: "I", kit, prefix: "menu_", soft: true });
+    for (const m of source.mapping) {
+      const piece = cut.files.get(`2x/ui2_menu_icon_${String(m.index).padStart(2, "0")}.png`);
+      if (!piece) throw new Error(`thiếu mảnh icon_${m.index} (${m.key})`);
+      const img = decodePng(piece);
+      if (keys.includes(m.key)) throw new Error(`trùng khóa menu: ${m.key}`);
+      keys.push(m.key);
+      for (const [suffix, size] of Object.entries(FRAMES)) files.set(`${m.key.replace(/^gi_/, "")}${suffix}.png`, encodePng(fitFrame(img, size)));
+    }
+  }
+  return { files, keys };
 }
 
-/** Thêm khoá `_1x` còn thiếu vào manifest (mục `gi_menu_<key>` đã có), ngay sau khoá gốc; giữ nguyên từng byte phần còn lại. */
+/** Đăng ký khóa mới và bản `_1x` cạnh nhóm menu; giữ nguyên phần còn lại của manifest. */
 export function spliceManifest(text, keys) {
   const nl = text.includes("\r\n") ? "\r\n" : "\n";
   let t = text;
   for (const key of keys) {
+    if (!t.includes(`"${key}"`)) {
+      const anchor = /(\{\s*"key": "gi_menu_forge_1x",\s*"iso": true\s*\},)/;
+      if (!anchor.test(t)) throw new Error("manifest thiếu neo gi_menu_forge_1x");
+      t = t.replace(anchor, `$1${nl}    { "key": "${key}", "iso": true },`);
+    }
     if (t.includes(`"${key}_1x"`)) continue;
     const re = new RegExp(String.raw`(\{\s*"key": "${key}",\s*"iso": true\s*\},?)`);
     if (!re.test(t)) throw new Error(`manifest chưa có ${key}`);

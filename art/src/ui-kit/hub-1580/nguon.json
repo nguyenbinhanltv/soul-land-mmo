@@ -1,0 +1,68 @@
+{
+  "issue": 1580,
+  "date": "2026-11-01",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "model": null,
+  "seed": null,
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "native": [
+    1254,
+    1254
+  ],
+  "raw": "RAW.png",
+  "raw_sha256": "daec34cbcb06a214abc4b01578b2d4e83b4c4ba4a42631252cea1208609fd4ef",
+  "prompt": "prompt.txt",
+  "prompt_sha256": "c875b174e8316152fa9e075884d008592f8327c4cd828b6f7b7d2c96f18e09c1",
+  "raw_copy_byte_identical": true,
+  "references": [
+    "art/src/ui-kit/toI-2.png"
+  ],
+  "attempt": 1,
+  "imported_into_game": true,
+  "mapping": [
+    {
+      "index": 1,
+      "key": "gi_menu_achv",
+      "label": "Thành Tựu"
+    },
+    {
+      "index": 2,
+      "key": "gi_menu_welfare",
+      "label": "Phúc Lợi"
+    },
+    {
+      "index": 3,
+      "key": "gi_menu_bicanh",
+      "label": "Bí Cảnh"
+    },
+    {
+      "index": 4,
+      "key": "gi_menu_mail",
+      "label": "Thư"
+    },
+    {
+      "index": 5,
+      "key": "gi_menu_calendar",
+      "label": "Lịch HĐ"
+    },
+    {
+      "index": 6,
+      "key": "gi_menu_guide",
+      "label": "Cẩm Nang"
+    },
+    {
+      "index": 7,
+      "key": "gi_menu_notice",
+      "label": "Thông báo"
+    }
+  ],
+  "check": {
+    "blocking": 0,
+    "light": 2,
+    "notes": [
+      "Khoảng cách vài ô dưới 5%",
+      "Viền hồng 51% đã bù về 0%"
+    ]
+  },
+  "approved_by": "Chủ repo duyệt 7 mẫu, điều phối phiên soul_land_game-815 ngày 01/11/2026"
+}
