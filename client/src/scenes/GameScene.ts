@@ -87,7 +87,7 @@ import { SPIRIT_FAMILY, clipOscK, weaponOscK, spiritPose, spiritScale, spiritPha
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel, toggleSettings } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
-import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
+import { AMBIENT_FIRE_PROPS, AMBIENT_PROFILES } from "../audio/ambientLayers.ts";
 import { autoJob, autoJobText, bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, setAutoStatus, toggleAutoPanel } from "../autoPanel.ts";
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
@@ -3687,12 +3687,9 @@ export class GameScene extends Phaser.Scene {
       const d = Math.hypot(g.x - mv.root.x, g.y - mv.root.y);
       if (fireDist === null || d < fireDist) fireDist = d;
     }
-    let fountainDist: number | null = null;
-    if (mv) for (const f of this.isoMap.fountains()) {
-      const d = Math.hypot(f.x - mv.root.x, f.y - mv.root.y);
-      if (fountainDist === null || d < fountainDist) fountainDist = d;
-    }
-    this.audio.updateAmbient(time, { mapId: this.room.state.mapId || this.mapId, night: this.light.nightness(), fireDist, fountainDist });
+    const mapId = this.room.state.mapId || this.mapId;
+    const fountainDist = mv && AMBIENT_PROFILES[mapId]?.fountain ? this.isoMap.nearestFountain(mv.root.x, mv.root.y) : null;
+    this.audio.updateAmbient(time, { mapId, night: this.light.nightness(), fireDist, fountainDist });
   }
 
   /**

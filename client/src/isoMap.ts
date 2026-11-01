@@ -482,13 +482,17 @@ export class IsoMap {
   }
 
   // ---------- Ánh sáng và không khí vùng (10.7) ----------
-  /** Điểm phát sáng: vật phát sáng và mặt nước của các ô đang hiện, cộng ánh cửa mọi ngôi nhà (Lighting lọc theo khung camera). */
-  /** Các đài phun của khối đang hiện (tiếng nước cục bộ, ambientLayers.ts). */
-  fountains(): ReadonlyArray<Glow> { return [...this.fountainAt.values()]; }
+  /** Khoảng cách (pixel màn hình) từ (x, y) tới đài phun gần nhất của khối đang hiện; null nếu không có (tiếng nước cục bộ, ambientLayers.ts). */
+  nearestFountain(x: number, y: number): number | null {
+    let best: number | null = null;
+    for (const f of this.fountainAt.values()) { const d = Math.hypot(f.x - x, f.y - y); if (best === null || d < best) best = d; }
+    return best;
+  }
   private markFountain(i: number, key: string, x: number, y: number) {
     const name = key.replace(/^prop_/, "").split("~")[0];
     if (AMBIENT_FOUNTAIN_PROPS.has(name)) this.fountainAt.set(i, { x, y, kind: name });
   }
+  /** Điểm phát sáng: vật phát sáng và mặt nước của các ô đang hiện, cộng ánh cửa mọi ngôi nhà (Lighting lọc theo khung camera). */
   glows(): Glow[] { return (this.glowList ??= [...this.houseGlow, ...[...this.glowAt.values()].flat()]); }
   /** Chỗ khói bay lên (màn hình): đỉnh mái nhà và lửa đang hiện. */
   chimneys(): { x: number; y: number }[] {

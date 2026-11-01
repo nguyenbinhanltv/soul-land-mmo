@@ -7,7 +7,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../s
 const OUT = process.argv.includes("--json") ? process.argv[process.argv.indexOf("--json") + 1] : null;
 /** Độ to mục tiêu (RMS dBFS) theo khóa nhóm; khóa không liệt kê lấy mục tiêu của loại (tiền tố). Tiếng ngắn / nền thấp hơn tiếng chiến đấu; tuyệt kỹ T3 to hơn hồn kỹ thường. */
 const TARGET = { "swing-": -22, "hit-": -22, "skill-t3-ult": -21, "skill-t3-ct": -22, "skill-t3-avatar": -21, "skill-": -23, "beast-boss": -17, "beast-die": -20, "beast-": -22, "ring-": -24, "step-": -34,
-  "amb-bird": -30, "amb-cricket": -28, "amb-fire": -28, "amb-": -26, "ui-": -22, "pk-open": -18, "pk-kill": -19, "pk-heartbeat": -22, "pk-": -20 };
+  "amb-bird": -30, "amb-cricket": -28, "amb-fire": -28, "amb-fountain": -31, "amb-": -26, "ui-": -22, "pk-open": -18, "pk-kill": -19, "pk-heartbeat": -22, "pk-": -20 };
 /** Trần tăng / giảm (dB) và chừa đỉnh: không đẩy đỉnh tiếng lên quá PEAK_MAX dBFS (bộ nén ở AudioManager lo phần còn lại). */
 const TRIM_MIN = -9, TRIM_MAX = 9, PEAK_MAX = -1.5;
 const targetOf = (k) => { const hit = Object.keys(TARGET).filter((p) => k === p || (p.endsWith("-") && k.startsWith(p))).sort((a, b) => b.length - a.length)[0]; return TARGET[hit]; };
