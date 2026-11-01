@@ -16,6 +16,7 @@ import { preloadSprites, createSheetAnims, honsuAnimKey, honsuAnimMs, syncLayers
   ISO_HS_ORIGIN, ISO_VH_ORIGIN, playFx, type HsAnim, animLayoutOf } from "../sprites.ts";
 import { dieFrame, dieMs, type BeastAnimState } from "../beastAnim.ts";
 import * as hud from "../hud.ts";
+import { NpcReply } from "../npcReply.ts";
 import { deathShow, deathTick } from "../hudArena.ts";
 import { artUrl, fusionImgKey } from "../uiArt.ts";
 import { cbTierMark } from "../a11y.ts";
@@ -359,6 +360,8 @@ export class GameScene extends Phaser.Scene {
   npcs: { id: string; x: number; y: number; def: NpcDef | undefined; body: Sprite | null; mark: Phaser.GameObjects.Text | null;
     qmark: Phaser.GameObjects.Text | null; nameText: Phaser.GameObjects.Text; titleText: Phaser.GameObjects.Text | null; top: number }[] = []; // qmark: dấu "!" / "?" của NPC giao nhiệm vụ (6.2)
   talkingNpc: string | null = null; // Chỉ giữ mã trong scene, không giữ sprite qua bản đồ.
+  npcReply = new NpcReply();
+  talkingNpcStamp = -1;
   daily: DailyMsg | null = null; // khảo hạch hằng ngày (tin riêng "daily")
   /** Mục tiêu nhiệm vụ chấm trên bản đồ nhỏ (questTargets), tính lại khi tiến độ / cấp đổi (`key`). */
   qt: { key: string; npcs: Pt[]; zones: Rect[]; portals: Rect[] } = { key: "", npcs: [], zones: [], portals: [] };
@@ -431,6 +434,7 @@ export class GameScene extends Phaser.Scene {
     hud.resetChannels(); // danh sách kênh của phòng trước không còn đúng
     // Scene tắt (đổi bản đồ, vào / ra sân đấu): bỏ các hộp gắn với bản đồ cũ (cổng, gợi ý / hộp thoại NPC, trường đấu).
     const off = () => {
+      this.npcReply.cancel(); this.talkingNpc = null; this.talkingNpcStamp = -1;
       this.contextCursor?.destroy(); this.contextCursor = null;
       this.slowmo = 1; this.hitstopEnd = 0; this.shakeEnd = 0; this.shakeInt = 0; this.flashTimes.length = 0; this.anims.globalTimeScale = 1; this.tweens.timeScale = 1; this.ac.abort(); clearQuestArrow(); this.cine.destroy(); this.ptCut.destroy(); this.pt.clear(); this.lpc?.destroy(); this.audio?.dispose(); closeAudioPanel(); closeAutoPanel(); hud.showPortal(null, () => {}); hud.showTalk(null, () => {}); hud.closeNpc(); hud.closeLooks(); hud.showPlayerMenu(null);
       hud.setArenaQueue(null, () => {}); hud.showArena(null, () => {}); hud.arenaEnd(null, { back() {}, top() {} }); resetBiCanhRoom();
@@ -766,13 +770,13 @@ export class GameScene extends Phaser.Scene {
     }
     const open = hud.npcOpenId(), on = open && this.npcs.find((n) => n.id === open);
     if (on && Math.hypot(on.x - me.x, on.y - me.y) > NPC_RANGE + 12) hud.closeNpc();
-    this.faceTalkingNpc(me);
   }
 
   /** Chốt hướng lúc mở hội thoại, giữ suốt cuộc nói chuyện để không giật ở ranh giới hướng / NPC gần nhau. */
   faceTalkingNpc(me: { x: number; y: number }) {
-    const open = hud.npcOpenId();
-    if (open === this.talkingNpc) return;
+    const open = hud.npcOpenId(), stamp = hud.npcOpenStamp();
+    if (open === this.talkingNpc && stamp === this.talkingNpcStamp) { this.npcReply.step(this.time.now, fxPrefs.reduce); return; }
+    this.npcReply.cancel();
     for (const n of this.npcs) {
       if (!n.body || (n.id !== open && n.id !== this.talkingNpc)) continue;
       const dx = me.x - n.x, dy = me.y - n.y;
@@ -780,8 +784,10 @@ export class GameScene extends Phaser.Scene {
       const d = n.id === open && Math.hypot(dx, dy) > 2 ? dir8(dx, dy) ?? "s" : "s";
       const a = honsuAnimKey(n.body.texture.key, "idle", d);
       n.body.setFlipX(a.flip).play(a.key, true);
+      if (n.id === open && n.id === "dai_su" && !fxPrefs.reduce) this.npcReply.start(n.body, a.key, this.time.now);
     }
     this.talkingNpc = open;
+    this.talkingNpcStamp = stamp;
   }
 
   /**
@@ -3312,6 +3318,7 @@ export class GameScene extends Phaser.Scene {
       pingAck(me.seq ?? 0); // mỗi khung hình (không theo nhịp hudT 0,08 s) để RTT không bị cộng thêm 0–80 ms (UI v2)
       this.hudT -= dt;
       if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(me); this.updateNpcs(me); }
+      this.faceTalkingNpc(me);
     }
     this.layoutOverheadLabels();
     this.updateContextCursor();

@@ -118,11 +118,15 @@ export function setTongBoard(m: TongBoardMsg) { tongBoardMsg = m; if (npcDefOpen
 
 /** NPC đang mở hộp thoại (null = đóng). */
 export const npcOpenId = () => npcDefOpen?.id ?? null;
+let npcOpenRevision = 0;
+/** Phân biệt đóng rồi mở lại cùng NPC giữa hai frame; vẽ lại túi / lời thoại không tăng. */
+export const npcOpenStamp = () => npcOpenRevision;
 /** Mở hộp thoại NPC `id` (server đã cho phép): bắt đầu từ câu thoại đầu tiên; đóng túi đồ và bảng đội hình (cùng chỗ giữa màn hình). */
 export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
   const def = NPCS.find((n) => n.id === id); if (!def) return;
   // NPC giao nhiệm vụ (6.2) đang có bài mới / chờ trả thì mở thẳng trang nhiệm vụ.
   if (npcDefOpen?.id !== id) {
+    npcOpenRevision++;
     const qs = questOf(id)?.status, ds = id === DAILY.giver ? dailyMark() : null;
     npcPage = qs === "offer" || qs === "ready" ? "quest" : ds === "offer" || ds === "ready" ? "daily" : "talk"; npcLine = 0;
   }
@@ -133,6 +137,7 @@ export function openNpc(id: string, bag: BagMsg | null, act: NpcActions) {
 }
 export function closeNpc() {
   if (!npcDefOpen) return;
+  npcOpenRevision++;
   npcDefOpen = null; npcAct = null; sellConfirm = null; enhClose();
   const el = $("#npc"); el.hidden = true; el.innerHTML = "";
 }
