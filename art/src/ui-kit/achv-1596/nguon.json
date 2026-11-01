@@ -1,0 +1,70 @@
+{
+  "issue": 1596,
+  "date": "2026-11-01",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "model": null,
+  "seed": null,
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "native": [
+    1254,
+    1254
+  ],
+  "raw": "RAW.png",
+  "raw_sha256": "becb8e4f3d9c7269125b9b52bd170088a57be79e5810246afd907867577cbd11",
+  "prompt": "prompt.txt",
+  "prompt_sha256": "0e0fad67e2b1005b9bb56fdab28ee4138a3aac817f264ec57d0828bb97ec0fa6",
+  "raw_copy_byte_identical": true,
+  "references": [
+    "art/src/ui-kit/toI-2.png"
+  ],
+  "attempt": 1,
+  "imported_into_game": false,
+  "approved_by": null,
+  "mapping": [
+    {
+      "index": 1,
+      "key": "gi_achv_level",
+      "label": "Cấp"
+    },
+    {
+      "index": 2,
+      "key": "gi_achv_collect",
+      "label": "Sưu tầm"
+    },
+    {
+      "index": 3,
+      "key": "gi_achv_hunt",
+      "label": "Săn"
+    },
+    {
+      "index": 4,
+      "key": "gi_achv_quest",
+      "label": "Nhiệm vụ"
+    },
+    {
+      "index": 5,
+      "key": "gi_achv_arena",
+      "label": "Đấu trường"
+    },
+    {
+      "index": 6,
+      "key": "gi_achv_bicanh",
+      "label": "Bí Cảnh"
+    },
+    {
+      "index": 7,
+      "key": "gi_achv_claimed",
+      "label": "Đã nhận"
+    }
+  ],
+  "check": {
+    "blocking": 0,
+    "light": 1,
+    "pieces": 16,
+    "fringe_before": 0,
+    "fringe_after": 0,
+    "notes": [
+      "Khoảng cách vài ô dưới 5%; đã kiểm bằng mắt bản24px trên Mực/Giấy/caro."
+    ]
+  }
+}

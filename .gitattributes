@@ -4,3 +4,4 @@
 *.sh text eol=lf
 *.png binary
 art/src/ui-kit/hub-1580/prompt.txt text eol=lf
+art/src/ui-kit/achv-1596/prompt.txt text eol=lf
