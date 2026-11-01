@@ -30,12 +30,12 @@
 /* ---- khung màn đầy khung (Xếp Hạng, Phúc Lợi) và hộp thoại Giấy (Lịch HĐ) ---- */
 .ui2-screen{position:fixed;left:50%;top:calc(50% - 56px);transform:translate(-50%,-50%);z-index:4;width:min(880px,calc(100vw - var(--sp-6) * 2));max-height:calc(100vh - 210px);display:flex}   /* chừa dải hồn kỹ / đội hình ở đáy */
 .ui2-screen[hidden]{display:none}
-/* Mobile ngang thấp: ưu tiên cửa sổ đang đọc, không trừ cố định chiều cao HUD. */
-body.touch.ui-h460:not(.ui-portrait) .ui2-screen{inset:var(--sp-3);transform:none;width:auto;max-height:none}
-body.touch.ui-h460:not(.ui-portrait) .ui2-screen .p2-man{max-height:100%;height:100%}
-body.touch.ui-h460:not(.ui-portrait) .ui2-screen .p2-nav{overflow-y:auto;overscroll-behavior:contain}
+/* Màn ngang thấp (mọi kiểu nhập, #1646): ưu tiên cửa sổ đang đọc, không trừ cố định chiều cao HUD. */
+body.ui-h460:not(.ui-portrait) .ui2-screen{inset:var(--sp-3);transform:none;width:auto;max-height:none}
+body.ui-h460:not(.ui-portrait) .ui2-screen .p2-man{max-height:100%;height:100%}
+body.ui-h460:not(.ui-portrait) .ui2-screen .p2-nav{overflow-y:auto;overscroll-behavior:contain}
 body.touch .ui2-screen :is(.scr-x,.p2-nav-i){min-height:44px;min-width:44px}
-body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visibility:hidden}
+body.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visibility:hidden}
 .ui2-screen .p2-man{flex:1;min-width:0;max-height:inherit;grid-template-rows:auto minmax(0,1fr) auto}
 .ui2-screen .p2-nav:empty{display:none}
 .scr-x{flex:none;width:32px;height:32px;box-sizing:border-box;margin-left:var(--sp-4);cursor:pointer;font:var(--fs-l)/1 var(--f12);color:var(--p2-fg);background:var(--track);border:var(--bd) solid var(--p2-fg2)}
@@ -90,7 +90,7 @@ body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visi
 @media (prefers-reduced-motion:reduce){.rk-skel-r{animation:none}}
 
 /* ---- Lịch Hoạt Động (Giấy) ---- */
-:where(body.ui-h500:not(.touch)) #calendar{top:50%;max-height:calc(100vh - var(--sp-5) * 2)}
+:where(body.ui-h500:not(.touch):not(.ui-h460)) #calendar{top:50%;max-height:calc(100vh - var(--sp-5) * 2)}
 .cal-wrap{display:flex;flex-direction:column;gap:var(--sp-4);min-height:0}
 .cal-fixed,.cal-wk{display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-3)}
 .cal-fixed-l{font:var(--fs-s)/1.2 var(--f10);color:var(--muted)}

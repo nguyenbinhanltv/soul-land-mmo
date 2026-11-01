@@ -27,7 +27,8 @@ const hudOnly = process.env.C8_HUD_ONLY === "1";
 if (hudOnly) viewports.splice(0, viewports.length, [640, 360, true], [844, 390, true], [1280, 720, false], [960, 540, false], [1920, 1080, false]);
 const namesOnly = process.env.C8_NAMES_ONLY === "1";
 const screensOnly = process.env.C8_SCREENS_ONLY === "1";
-if (screensOnly) viewports.splice(0, viewports.length, [640, 360, true], [844, 390, true], [1280, 720, false], [960, 540, false], [1920, 1080, false]);
+// #1646: màn thấp quét cả chuột lẫn cảm ứng (lỗi cũ chỉ sửa cho cảm ứng).
+if (screensOnly) viewports.splice(0, viewports.length, [640, 360, true], [640, 360, false], [844, 390, true], [844, 390, false], [1280, 720, false], [960, 540, false], [1920, 1080, false]);
 const toastOnly = process.env.C8_TOAST_ONLY === "1";
 let browser;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -92,7 +93,7 @@ try {
   };
   browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   for (const [width, height, touch] of viewports) {
-    const size = `${width}x${height}`;
+    const size = `${width}x${height}${touch ? "" : screensOnly && height < 460 ? "-chuot" : ""}`;
     const { token } = await post("/api/login", { name: `C8 ${width} ${Date.now().toString(36)}`, password: "C8-local-preview!" });
     await post("/api/looks", { token, sex: 0, hair: 0, hairCol: 0, outfitCol: 0 });
     await post("/api/awaken", { token, vohon: "lam_dien_ba_vuong_long" });
@@ -165,12 +166,12 @@ try {
     }
     if (screensOnly) {
       await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
-      for (const fs of [0, 1, 2]) for (const kind of ["mail", "rank", "calendar"]) {
+      for (const fs of [0, 1, 2]) for (const kind of ["mail", "rank", "calendar", "welfare", "bicanh"]) {
         await page.evaluate(async ({ fs, kind }) => {
           document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
           if (fs) document.body.classList.add(`a11y-fs-${fs}`);
-          const modules = { mail: "/src/mailScreen.ts", rank: "/src/rankScreen.ts", calendar: "/src/calendarScreen.ts" };
-          const mod = await import(modules[kind]); mod[{ mail:"openMail", rank:"openRank", calendar:"openCalendar" }[kind]]();
+          const modules = { mail: "/src/mailScreen.ts", rank: "/src/rankScreen.ts", calendar: "/src/calendarScreen.ts", welfare: "/src/welfareScreen.ts", bicanh: "/src/bicanhScreen.ts" };
+          const mod = await import(modules[kind]); mod[{ mail:"openMail", rank:"openRank", calendar:"openCalendar", welfare:"openWelfare", bicanh:"openBiCanh" }[kind]]();
         }, { fs, kind });
         await page.mouse.move(1, 1);
         await page.waitForTimeout(500);
@@ -186,8 +187,8 @@ try {
         });
         samples.push({size,kind,fs,geometry});
         if (!before) {
-          assert.ok(geometry.height >= 80, `Vùng đọc ${kind} ${size} fs${fs}: ${JSON.stringify(geometry)}`);
-          if (touch) assert.ok(geometry.badgeHidden, `Huy hiệu cần nhường cửa sổ ${kind} ${size}`);
+          assert.ok(geometry.height >= 120, `Vùng đọc ${kind} ${size} fs${fs}: ${JSON.stringify(geometry)}`);
+          if (height < 460) assert.ok(geometry.badgeHidden, `Huy hiệu cần nhường cửa sổ ${kind} ${size}`);
           if (touch) assert.ok(geometry.navOverflow <= 1, `Điều hướng tràn ngang ${kind} ${size}`);
           assert.ok(geometry.top>=0 && geometry.bottom<=height+1 && geometry.left>=0 && geometry.right<=width+1, `Khung ngoài màn ${kind} ${size}`);
           if (kind === "mail") {
@@ -198,7 +199,7 @@ try {
         }
         await screen.locator(".scr-x").click();
         assert.ok(await screen.isHidden());
-        if (touch && !before) assert.ok(await page.locator("#hubBtn").evaluate(e => getComputedStyle(e).visibility !== "hidden"), "Đóng cửa sổ trả lại huy hiệu menu");
+        if (height < 460 && !before) assert.ok(await page.locator("#hubBtn").evaluate(e => getComputedStyle(e).visibility !== "hidden"), "Đóng cửa sổ trả lại huy hiệu menu");
       }
       await context.close(); console.log(`✓ Cửa sổ ${phase} ${size}: ba cỡ chữ`); continue;
     }
