@@ -1,6 +1,6 @@
 // Cửa hàng / thương nhân (GAME_DESIGN.md mục 5.7, 9.8): mua, bán, mua lại, đổi mảnh võ hồn, tự bán từ xa, mở rộng túi, tách khỏi MapRoom.ts (#702, bước 5).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / social.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`, `room.saveTrade`.
-// MapRoom chỉ chuyển tiếp (đăng ký `onMessage` giữ nguyên ở đó; ArenaRoom vẫn override `forgetBuyback`). `shopFor`, `saveTrade`, `bagRoom` còn ở MapRoom.
+// MapRoom chỉ chuyển tiếp (đăng ký `onMessage` giữ nguyên ở đó; ArenaRoom vẫn override `forgetBuyback`). `shopFor` ở đây, MapRoom chuyển tiếp; chỉ `saveTrade`, `bagRoom` còn ở MapRoom.
 import { randomUUID } from "node:crypto";
 import { itemDef, TEAM_COMBAT_SECS, formatHonTe, shopOf, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, AUTO_SELL_BUYBACK, AUTO_SELL_FREE, autoSellable, parseSell, shopExpands, npcDef,
   bagExpandCost, BAG_MAX_SLOTS, BAG_EXPAND, SHARD_BUY, ARENA_SHARDS, VOHON, vohonIndex, shardCode, shardBuyCost } from "../../../shared/data.ts";
