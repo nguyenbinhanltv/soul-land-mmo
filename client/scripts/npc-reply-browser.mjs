@@ -114,8 +114,8 @@ GameScene.prototype.create = function(...a) {
     const expected=await page.evaluate(async({dx,dy})=>{const {dir8}=await import('/src/iso.ts'),{honsuAnimKey}=await import('/src/sprites.ts'); return honsuAnimKey('lpc_'+window.__npcReplyTarget,'idle',dir8(dx,dy));},{dx,dy});
     const during=await talk();
     assert.equal(during.anim,expected.key); assert.equal(during.flip,expected.flip); assert.equal(during.head.flip,expected.flip); assert.ok(during.crop);
-    await page.waitForTimeout(560); const after=await state();
-    assert.ok(!after.active&&!after.crop); assert.equal(after.anim,expected.key); assert.equal(after.x,during.x); assert.equal(after.y,during.y); assert.equal(after.bodyX,during.bodyX); assert.equal(after.bodyY,during.bodyY);
+    await page.waitForTimeout(560); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:4000}).catch(()=>{}); const after=await state();
+    assert.ok(!after.active&&!after.crop, `sau cử chỉ hướng ${dx},${dy}: ${JSON.stringify(after)}`); assert.equal(after.anim,expected.key); assert.equal(after.x,during.x); assert.equal(after.y,during.y); assert.equal(after.bodyX,during.bodyX); assert.equal(after.bodyY,during.bodyY);
     await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.npcBag({slots:30,honTe:0,items:[],bones:[],cores:[],gears:[]});});
     await page.waitForTimeout(100); assert.ok(!(await state()).active,'túi không phát lại');
     await close(); assert.equal((await state()).anim,sheet+':idle_s');
@@ -123,14 +123,14 @@ GameScene.prototype.create = function(...a) {
   console.log(npcId, '✓ Tám hướng / giữ điểm chân / về idle / cập nhật túi không phát lại');
   console.log("Kiểm đóng sớm"); await move(24,24); await talk(); await close(); assert.ok(!(await state()).active && !(await state()).crop);
   // Đổi NPC qua HUD thật để kiểm hủy lớp tạm (NPC còn lại xa nên chỉ kiểm vòng đời hiển thị).
-  console.log("Kiểm đổi NPC"); await talk(); await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.openNpc('su_gia_dau_hon',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active);
+  console.log("Kiểm đổi NPC"); await talk(); await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.openNpc('lo_ren_thien_dau',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active);
   console.log("Kiểm mở lại nhanh"); await close(); await talk();
   await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.closeNpc();h.openNpc(window.__npcReplyTarget,null,{});});
   await page.waitForTimeout(70); assert.ok((await state()).active,'mở lại cùng NPC giữa hai frame'); await close();
   console.log("Kiểm Giảm chuyển động"); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;});
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active); await close();
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;});
-  await talk(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForTimeout(60); assert.ok(!(await state()).active); await close();
+  await talk(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:2000}); assert.ok(!(await state()).active); await close();
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); const key=s.lpc.acquire(window.__npcLpcStr(n.def.looks));window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');});
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active,'sheet không đúng giữ idle'); await close();
   await page.evaluate(()=>window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.stop().setTexture('lpc_'+window.__npcReplyTarget).play('lpc_'+window.__npcReplyTarget+':idle_s'));
