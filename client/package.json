@@ -16,6 +16,7 @@
     "test:bando-browser": "node scripts/bando-browser.mjs",
     "test:flow-browser": "node scripts/flow-browser.mjs",
     "test:panel-browser": "node scripts/panel-browser.mjs",
+    "test:npc-reply-browser": "node scripts/npc-reply-browser.mjs",
     "test:resonance-browser": "node scripts/resonance-browser.mjs",
     "test:join-browser": "node scripts/join-browser.mjs",
     "test:beastfallback-browser": "node scripts/beastfallback-browser.mjs",
