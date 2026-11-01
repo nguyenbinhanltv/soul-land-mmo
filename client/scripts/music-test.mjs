@@ -476,6 +476,34 @@ assert.equal(Math.round(musicLoopSeconds(109.714) * 44100), 4838400);
   assert.equal(music.status().jingle, "level_up", "lần sau tải lại khúc ngắn");
 }
 
+// #1553: vào/ra thí luyện nhiều lần chỉ đổi đúng bài, không giữ nguồn cũ sau fade.
+for (const format of ["ogg", "m4a"]) {
+  const ctx = makeContext(), { loads, load } = makeLoader();
+  const music = new MusicPlayer(ctx, { load, format, now });
+  music.setVolume(0.5);
+  for (const id of ["luyen_hon_canh", "dai_dau_hon_truong", "luyen_hon_canh", "dai_dau_hon_truong", "luyen_hon_canh"]) {
+    music.setMap(id);
+    await music.whenIdle();
+    assert.equal(music.status().playing, id);
+    const count = mains(ctx).length;
+    music.setMap(id);
+    await music.whenIdle();
+    assert.equal(mains(ctx).length, count, "đặt lại cùng bản đồ không tạo thêm nguồn");
+    ctx.currentTime += MUSIC_FADE_S + 1;
+    assert.equal(mains(ctx).filter((s) => s.stopped === null || s.stopped > ctx.currentTime).length, 1,
+      "sau mờ chéo chỉ còn một bài nền sống");
+  }
+  assert.equal(loads.filter((p) => p === mapTrack("luyen_hon_canh").files[format].path).length, 1, "tái vào dùng cache");
+  assert.ok(!ctx.sources.some((s) => s.buffer?.tag?.includes("luyen_hon_canh_chien")), "không kéo lớp giao chiến Đấu trường vào bài mới");
+  music.setVolume(0);
+  await music.whenIdle();
+  assert.equal(music.status().playing, null, "mute dừng bài thí luyện");
+  music.setVolume(0.5);
+  await music.whenIdle();
+  assert.equal(music.status().playing, "luyen_hon_canh", "bật lại trả về đúng bài thí luyện");
+  music.stop();
+}
+
 // Định dạng m4a (Safari): tải file m4a.
 {
   const ctx = makeContext(), { loads, load } = makeLoader();

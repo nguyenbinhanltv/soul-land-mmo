@@ -6,6 +6,7 @@ import haiThanDao from "./hai_than_dao.mjs";
 import jingles from "./jingles.mjs";
 import lacNhatSamLam from "./lac_nhat_sam_lam.mjs";
 import loiTinhDau from "./loi_tinh_dau.mjs";
+import luyenHonCanh from "./luyen_hon_canh.mjs";
 import nacDinhThanh from "./nac_dinh_thanh.mjs";
 import stems from "./stems.mjs";
 import thanhHonThon from "./thanh_hon_thon.mjs";
@@ -15,5 +16,5 @@ import tinhDauNoiDia from "./tinh_dau_noi_dia.mjs";
 
 export default [
   thanhHonThon, nacDinhThanh, thienDauThanh, tinhDauNgoaiVi, tinhDauNoiDia, lacNhatSamLam, cucBacChiDia, haiThanDao,
-  loiTinhDau, daiDauHonTruong, giaoChienBoss, ...stems, ...jingles,
+  loiTinhDau, daiDauHonTruong, luyenHonCanh, giaoChienBoss, ...stems, ...jingles,
 ];
