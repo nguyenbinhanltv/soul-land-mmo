@@ -38,10 +38,10 @@ try {
     for (const [width, height] of [[1280, 720], [1920, 1080], [640, 360], [390, 844]]) for (const fs of [0, 1, 2]) {
       await page.setViewportSize({ width, height });
       await page.evaluate((fs) => { document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (fs) document.body.classList.add(`a11y-fs-${fs}`); }, fs);
-      await page.locator("#achv .p2-nav-icon, #achv .av-icon").evaluateAll(async (imgs) => { await Promise.all(imgs.map((i) => i.decode())); });
+      await page.locator("#achv .p2-nav-ico, #achv .av-icon").evaluateAll(async (imgs) => { await Promise.all(imgs.map((i) => i.decode())); });
       const state = await page.locator("#achv").evaluate((el) => ({
         nav: [...el.querySelectorAll(".p2-nav-i")].map((b) => ({ label: b.textContent, h: b.getBoundingClientRect().height, w: b.getBoundingClientRect().width, key: b.dataset.id })),
-        imgs: [...el.querySelectorAll(".p2-nav-icon, .av-icon")].map((i) => ({ src: i.src, width: i.naturalWidth, h: i.hidden, alt: i.alt, decorative: i.getAttribute("aria-hidden") })),
+        imgs: [...el.querySelectorAll(".p2-nav-ico, .av-icon")].map((i) => ({ src: i.src, width: i.naturalWidth, h: i.hidden, alt: i.alt, decorative: i.getAttribute("aria-hidden") })),
         claimed: el.querySelector('.av-claimed .av-st')?.textContent,
       }));
       assert.equal(state.nav.length, 6); assert.equal(state.imgs.length, 7);
@@ -60,8 +60,8 @@ try {
     assert.ok(await page.locator('#achv .p2-nav').evaluate((nav) => { const n = nav.getBoundingClientRect(), s = nav.querySelector('.sel').getBoundingClientRect(); return s.left >= n.left - 1 && s.right <= n.right + 1; }), 'nhóm được chọn nằm trong tầm nhìn sau dựng lại');
     await page.locator('#achv .p2-nav-i[data-id="cap"] img').click();
     assert.equal(await page.evaluate(() => achvSent.filter((x) => x.payload.op === 'claim').length), 0);
-    await page.evaluate(() => { for (const img of document.querySelectorAll('#achv .p2-nav-icon, #achv .av-icon')) img.dispatchEvent(new Event('error')); });
-    assert.ok(await page.locator('#achv .p2-nav-icon, #achv .av-icon').evaluateAll((imgs) => imgs.every((i) => i.hidden)));
+    await page.evaluate(() => { for (const img of document.querySelectorAll('#achv .p2-nav-ico, #achv .av-icon')) img.dispatchEvent(new Event('error')); });
+    assert.ok(await page.locator('#achv .p2-nav-ico, #achv .av-icon').evaluateAll((imgs) => imgs.every((i) => i.hidden)));
     assert.match(await page.locator('#achv').innerText(), /Đã nhận/);
     assert.match(await page.locator('#achv .p2-nav').innerText(), /Sưu tầm/);
     assert.deepEqual(errors, []); await context.close();

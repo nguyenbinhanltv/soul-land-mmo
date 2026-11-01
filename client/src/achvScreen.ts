@@ -1,7 +1,7 @@
 // UI v2, màn Thành Tựu (docs/design/thanh-tuu.md "Giao diện", #1317, Part of #877). Chỉ hiển thị tin riêng `achv` của server và gửi ý định
 // `achv {op:"get"|"claim", id}`: chỉ số, điều kiện "đạt", quà đều do server kiểm lại lúc nhận; client chỉ đọc danh mục `ACHV` ở shared/data.ts để vẽ.
 import { ACHV, ACHV_GROUPS, achvReached, formatHonTe, itemDef, type AchvDef, type AchvStats } from "../../shared/data.ts";
-import { abbrevNumber, screenFrame, stateBox, mount, addCloseButton, type PNode } from "./uiParts.ts";
+import { abbrevNumber, screenFrame, stateBox, mount, addCloseButton, guardImgs, type PNode } from "./uiParts.ts";
 import { giftNode, bindGiftImages } from "./giftView.ts";
 import { artUrl } from "./uiArt.ts";
 
@@ -164,6 +164,6 @@ function render() {
   addCloseButton(f.root, closeAchv);
   root.replaceChildren(f.root);
   if (f.nav.scrollWidth > f.nav.clientWidth) f.nav.querySelector<HTMLElement>(".sel")?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  for (const img of root.querySelectorAll<HTMLImageElement>(".av-icon")) img.addEventListener("error", () => { img.hidden = true; });
+  guardImgs(root, ".av-icon");
   bindGiftImages(f.root);
 }
