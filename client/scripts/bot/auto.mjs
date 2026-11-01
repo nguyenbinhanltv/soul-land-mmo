@@ -814,14 +814,41 @@ export async function autoTest(){
     await sleep(500);
     await test(A,"goto",home); await autoOp(A,"set",{cfg:{...P3,restNoPot:true,stopNoPot:false}});
     await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); await test(A,"hurt",{pct:70}); await sleep(600);
-    // Con mồi lang thang ±BEAST_WANDER mỗi trục quanh chỗ sinh; findTarget chỉ nhận con trong AUTO_RADIUS quanh neo (không lề). Sinh ở dx=200
-    // thì con mồi có lúc ra ngoài vùng neo suốt lúc nghỉ → không có mục tiêu hợp lệ dù đã hồi đủ (#1536). Chọn dx sao cho cả ô lang thang
-    // nằm trong vùng neo, và vẫn ngoài tầm hung hăng BEAST_AGGRO_R (con mồi không tự đánh mình trong lúc nghỉ).
-    const BDX=150; // cả ô lang thang: hypot(BDX + BEAST_WANDER, BEAST_WANDER) ≈ 218 < AUTO_RADIUS, và BDX - BEAST_WANDER = 90 > BEAST_AGGRO_R; maxDA đo lại bên dưới
-    const bait=(await test(A,"spawn",{tier:0,dx:BDX,dy:0,years:10,hpx:50}))?.bid; let rested=false, baited=false, back=false, maxDA=null;
+    // Con mồi lang thang ±BEAST_WANDER mỗi trục quanh chỗ sinh (hx, hy); findTarget chỉ nhận con trong AUTO_RADIUS quanh NEO (không lề), mà neo
+    // lệch vị trí người chơi 14–28 pixel (#1550). Nên đặt theo neo đọc ở server, không theo chỗ đứng: hook spawn cộng dx, dy vào vị trí người chơi.
+    // Con mồi ở neo + BDX theo một trong 4 trục (chọn bên dưới). Con mồi chỉ đi tới điểm trong ô hx ± BEAST_WANDER mỗi trục quanh điểm sinh, nên:
+    //   cách neo xa nhất = hypot(BDX + BEAST_WANDER, BEAST_WANDER) = hypot(210, 60) ≈ 218,4 < AUTO_RADIUS 240 (dư 21,6 pixel cho sai số làm tròn / đẩy nền);
+    //   vị trí đặt thật được đo lại (BDX ±6) vì hook spawn kẹp điểm sinh vào bản đồ: neo sát mép thì con mồi bị kéo về 96 pixel (đã gặp), biên trên mất nghĩa;
+    //   ô lang thang phải cách người chơi > BEAST_AGGRO_R (con mồi không tự đánh lúc nghỉ).
+    const BDX=150;
+    // Người chơi còn đi về neo sau lệnh hurt thì vị trí ở client cũ hơn server: chờ tới khi đang nghỉ (đứng yên) và vị trí không đổi giữa hai lần đọc.
+    let px=null, py=null; for(let t=0;t<8000;t+=300){ const st=await infoA(), x=me(A).x, y=me(A).y; if(st.resting&&x===px&&y===py) break; px=x; py=y; await sleep(300); }
+    const st0=await infoA(); let pl={x:me(A).x,y:me(A).y}; const an=st0.anchor??pl; // chụp vị trí người chơi trước khi đặt (me(A) là đối tượng sống)
+    const bound=Math.hypot(BDX+BEAST_WANDER,BEAST_WANDER);
+    ok(bound<AUTO_RADIUS,`AH3 B3: con mồi dự định cách neo ${BDX} pixel, cận xấu nhất tính được ${bound.toFixed(1)} < ${AUTO_RADIUS}`);
+    // Hướng đặt: một trong 4 trục quanh neo, điểm sinh phải trong bản đồ (hook spawn kẹp vào [8, MW·TILE-8]: neo gần mép thì bị kẹp, cách neo chỉ ~96 pixel) và không vướng nền;
+    // chọn hướng mà ô lang thang hx ± BEAST_WANDER xa người chơi nhất (khoảng cách từ người chơi tới hình chữ nhật), phải > BEAST_AGGRO_R.
+    // Neo sát mép có thể chỉ còn hướng nằm cùng phía người chơi (lệch neo tới ~35 pixel → chỉ cách 57 < 70): khi đó đưa người chơi về đúng neo (lệch 0 → cách ≥ BDX - BEAST_WANDER = 90 > 70) rồi chọn lại.
+    const gB3=solidGrid(JSON.parse(readFileSync(mapUrl(NV),"utf8"))), W=BEAST_WANDER;
+    const boxD=(c)=>Math.hypot(Math.max(0,Math.abs(pl.x-c.x)-W),Math.max(0,Math.abs(pl.y-c.y)-W));
+    const pick=()=>[[1,0],[-1,0],[0,1],[0,-1]].map(([ux,uy])=>({x:an.x+ux*BDX,y:an.y+uy*BDX})).filter(c=>c.x>=8+W&&c.x<=gB3.MW*TILE-8-W&&c.y>=24+W&&c.y<=gB3.MH*TILE-24-W&&![[0,0],[W,W],[-W,W],[W,-W],[-W,-W]].some(([ox,oy])=>hits(gB3,c.x+ox,c.y+oy,6,4))).sort((a,b)=>boxD(b)-boxD(a))[0];
+    let spot=pick();
+    if(st0.anchor&&!(spot&&boxD(spot)>BEAST_AGGRO_R)){
+      await test(A,"goto",{x:Math.round(an.x),y:Math.round(an.y)}); px=null; py=null;
+      for(let t=0;t<4000;t+=300){ const st=await infoA(), x=me(A).x, y=me(A).y; if(st.resting&&x===px&&y===py) break; px=x; py=y; await sleep(300); }
+      pl={x:me(A).x,y:me(A).y}; spot=pick();
+    }
+    // Điều kiện tiền đề của bài (không phải hành vi cần kiểm): không đạt thì báo ⚠ rõ, bài hành vi bên dưới vẫn chạy và tự báo ✗ nếu bait thật sự ngoài vùng.
+    if(!(st0.anchor&&spot&&boxD(spot)>BEAST_AGGRO_R)) console.log("  ⚠ AH3 B3: không dựng được vị trí đặt con mồi hợp lệ",JSON.stringify({an,pl,spot,box:spot?boxD(spot):null,anchor:!!st0.anchor}));
+    else console.log(`  ℹ AH3 B3: neo ${Math.round(an.x)},${Math.round(an.y)}; bait ${Math.round(spot.x)},${Math.round(spot.y)}; người chơi lệch neo ${Math.round(Math.hypot(pl.x-an.x,pl.y-an.y))} pixel, ô lang thang cách người chơi ≥ ${boxD(spot).toFixed(0)} > ${BEAST_AGGRO_R}`);
+    const bait=(await test(A,"spawn",{tier:0,dx:Math.round((spot?.x??an.x+BDX)-pl.x),dy:Math.round((spot?.y??an.y)-pl.y),years:10,hpx:50}))?.bid; let rested=false, baited=false, back=false, maxDA=null;
+    // Vị trí đặt thật (chưa lang thang, hx = điểm sinh) phải đúng BDX quanh neo: nếu nền chắn / bị kẹp thì biên ở trên không còn đúng.
+    await waitFor(()=>A.room.state.beasts.get(bait),1500); const b0=A.room.state.beasts.get(bait), d0=b0?Math.round(Math.hypot(b0.x-an.x,b0.y-an.y)):null;
+    ok(d0!==null&&Math.abs(d0-BDX)<=6,`AH3 B3: con mồi vừa đặt cách neo ${d0??"không thấy"} pixel (cần ${BDX} ±6, nên cận xấu nhất ≤ ${(bound+6).toFixed(1)} < ${AUTO_RADIUS})`);
     for(let t=0;t<40000&&!back;t+=300){ const st=await infoA(), bb=A.room.state.beasts.get(bait); if(bb&&st.anchor) maxDA=Math.max(maxDA??0,Math.round(Math.hypot(bb.x-st.anchor.x,bb.y-st.anchor.y)));
       if(st.resting) { rested=true; if(st.target===bait) baited=true; } else if(rested&&st.target===bait) back=true; await sleep(300); }
-    ok(m?.on&&rested&&!baited&&back&&maxDA!==null&&maxDA<=AUTO_RADIUS&&me(A).hp>=me(A).maxHp*AUTO_REST.resume-1,`AH3 B3: hết đan, sinh lực dưới ${AUTO_DEFAULTS.hp*100}% → nghỉ (không nhắm con mới), tới ${AUTO_REST.resume*100}% sinh lực săn tiếp (nghỉ ${rested}, nhắm khi nghỉ ${baited}, săn tiếp ${back}, sinh lực ${me(A).hp}/${me(A).maxHp}, con mồi cách neo tối đa ${maxDA??"không đo được"} ≤ ${AUTO_RADIUS})`);
+    ok(m?.on&&rested&&!baited&&back&&me(A).hp>=me(A).maxHp*AUTO_REST.resume-1,`AH3 B3: hết đan, sinh lực dưới ${AUTO_DEFAULTS.hp*100}% → nghỉ (không nhắm con mới), tới ${AUTO_REST.resume*100}% sinh lực săn tiếp (nghỉ ${rested}, nhắm khi nghỉ ${baited}, săn tiếp ${back}, sinh lực ${me(A).hp}/${me(A).maxHp})`);
+    console.log(`  ℹ AH3 B3: con mồi cách neo tối đa ${maxDA??"không đo được"} pixel (giới hạn ${AUTO_RADIUS}, tính ${bound.toFixed(1)}), neo lệch người chơi lúc đặt ${Math.round(Math.hypot(pl.x-an.x,pl.y-an.y))} pixel`);
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"goto",home);
     await autoOp(A,"set",{cfg:{...P3,restNoPot:true,stopNoPot:true}}); await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); await test(A,"hurt",{pct:70});
     ok(m?.on&&await stopped(A,/hết đan/,4000),`AH3 B3: chọn "hết đan thì dừng" → dừng, không nghỉ (${A.autoMsg?.why})`);
