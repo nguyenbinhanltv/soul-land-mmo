@@ -10,6 +10,7 @@ import { parseArgs } from "node:util";
 import { buildMidi, loopSeconds, PPQ } from "./lib/midi.mjs";
 import { decodedSamples, encode, renderLoop, renderOnce, writeWav } from "./lib/render.mjs";
 import SONGS from "./songs/index.mjs";
+import luyenHonCanh from "./candidates/luyen_hon_canh.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS = path.resolve(here, "../../../shared/assets");
@@ -25,6 +26,7 @@ const { values: args } = parseArgs({
     song: { type: "string" },
     midi: { type: "string" },
     bitrate: { type: "string", default: "96k" },
+    candidate: { type: "boolean", default: false },
   },
 });
 if (!args.soundfont) {
@@ -35,12 +37,14 @@ if (!existsSync(args.soundfont)) throw new Error(`Không thấy soundfont: ${arg
 const extraBanks = args["extra-soundfont"] ? [{ path: args["extra-soundfont"], offset: 1 }] : [];
 if (extraBanks.some((b) => !existsSync(b.path))) throw new Error(`Không thấy soundfont phụ: ${args["extra-soundfont"]}`);
 const out = path.resolve(args.out);
+if (args.candidate && !path.relative(ASSETS, out).startsWith(`..${path.sep}`)) throw new Error("Bản nghe thử phải xuất ngoài shared/assets; chưa được thay manifest đang chạy.");
 mkdirSync(out, { recursive: true });
 if (args.midi) mkdirSync(args.midi, { recursive: true });
 
 const wanted = args.song?.split(",");
-const list = wanted ? SONGS.filter((s) => wanted.includes(s.id)) : SONGS;
-if (wanted && list.length !== wanted.length) throw new Error(`Không có bài: ${wanted.filter((w) => !SONGS.some((s) => s.id === w)).join(", ")}. Có: ${SONGS.map((s) => s.id).join(", ")}`);
+const catalog = args.candidate ? [luyenHonCanh] : SONGS;
+const list = wanted ? catalog.filter((s) => wanted.includes(s.id)) : catalog;
+if (wanted && list.length !== wanted.length) throw new Error(`Không có bài: ${wanted.filter((w) => !catalog.some((s) => s.id === w)).join(", ")}. Có: ${catalog.map((s) => s.id).join(", ")}`);
 
 // Đường dẫn trong manifest tính từ shared/assets nếu --out nằm trong đó (như manifest của tools/audio, #133).
 const rel = (file) => {
@@ -49,7 +53,7 @@ const rel = (file) => {
 };
 const manifestPath = path.join(out, "manifest.json");
 const previous = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")).tracks : [];
-const tracks = new Map(previous.filter((t) => SONGS.some((s) => s.id === t.id)).map((t) => [t.id, t]));
+const tracks = new Map(previous.filter((t) => catalog.some((s) => s.id === t.id)).map((t) => [t.id, t]));
 const tmp = mkdtempSync(path.join(os.tmpdir(), "soul-land-compose-"));
 let failed = false;
 
