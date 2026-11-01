@@ -21,7 +21,7 @@ Thành và làng Thánh Hồn Thôn là nơi an toàn (mục 4). Mỗi bản đ�
 
 Khi mở hội thoại, client chốt hướng thân LPC về phía hồn sư theo phép chiếu isometric, dùng idle và hướng sẵn có. Hướng giữ suốt cuộc nói chuyện để tránh giật khi đi qua ranh giới hướng hoặc giữa nhiều NPC; đóng hội thoại thì trở về hướng xuống. Gần trùng chân giữ hướng xuống; NPC dạng biển hiệu không đổi. Chỉ thay hiển thị cục bộ, không đổi điểm đứng hay vùng tương tác.
 
-Ngọc Tiểu Cương thí điểm gật đầu ngắn một lần khi mở hội thoại, rồi về idle theo hướng đang nói. Chỉ dùng pose đứng của sheet `lpc_dai_su` đã ghép đủ lớp, giữ nguyên thân / tay / chân; bộ dự phòng hoặc Giảm chuyển động giữ idle. Đóng / đổi NPC / đổi bản đồ hủy cử chỉ. Cập nhật túi và lời thoại không phát lại. Chờ chủ repo duyệt hình trong game trước khi nhân rộng (#1552).
+Ngọc Tiểu Cương thí điểm gật đầu ngắn một lần khi mở hội thoại, rồi về idle theo hướng đang nói. Chỉ dùng pose đứng của sheet `lpc_dai_su` đã ghép đủ lớp, giữ nguyên thân / tay / chân; bộ dự phòng hoặc Giảm chuyển động giữ idle. Đóng / đổi NPC / đổi bản đồ hủy cử chỉ. Cập nhật túi và lời thoại không phát lại. Bản thí điểm đã được chủ repo duyệt trong game; việc nhân rộng sang NPC khác nằm ngoài bản này (#1552).
 
 ## Lịch sử / issue liên quan
 - Nhật ký từng bước: `docs/lich-su.md`.
