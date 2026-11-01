@@ -59,32 +59,45 @@ function questGoals(s: QuestStep, prog: number[] | null) {
  * tiêu x/N, gợi ý gặp / quay về NPC giao bài; xong cả chuỗi thì bỏ mục đó), rồi mục "Hằng ngày" (khảo hạch của Phất Lan Đức); bấm /
  * chạm tiêu đề từng mục để thu gọn. Không còn gì để theo dõi thì ẩn.
  */
-function renderQuestTracker() {
-  const el = $("#quest"); el.innerHTML = "";
+function renderQuestTracker(keepFocus = true) {
+  const el = $("#quest"), active = document.activeElement;
+  const heads = [...el.querySelectorAll<HTMLButtonElement>(".qhead")];
+  // Chỉ nối lại vị trí bàn phím bị mất do thay node; chuột / chat / bảng khác không bị kéo tiêu điểm.
+  const index = keepFocus && active instanceof HTMLButtonElement && active.matches(":focus-visible") ? heads.indexOf(active) : -1;
+  const key = index >= 0 ? heads[index].dataset.focusKey : undefined;
+  el.innerHTML = "";
   let any = false;
   for (const q of questTracked()) any = renderChainTracker(el, q) || any;
   const daily = renderDailyTracker(el);
   el.hidden = !any && !daily;
   sideBoxQuest(!el.hidden); // khung gộp: hiện dòng gợi ý khi không có gì theo dõi
+  if (index >= 0 && active && !active.isConnected && document.activeElement === document.body) {
+    const next = [...el.querySelectorAll<HTMLButtonElement>(".qhead")];
+    // Mục vừa xong: đi tiếp ở cùng vị trí, hết thì lùi mục cuối; rỗng thì về tab Nhiệm vụ.
+    const target = next.find((b) => b.dataset.focusKey === key) ?? next[Math.min(index, next.length - 1)] ??
+      document.querySelector<HTMLButtonElement>('#sideBox .sb-tab[data-tab="quest"]');
+    if (target?.getClientRects().length) target.focus({ preventScroll: true });
+  }
 }
 /**
  * Nút bấm / chạm của khung theo dõi (#190): `pointerdown` + preventDefault như thanh hồn kỹ (chạm trên điện thoại không phải lúc nào
  * cũng sinh `click`); `click` không kèm số lần nhấn chuột (detail 0) là Enter / Space từ bàn phím.
  */
-function onTap(b: HTMLElement, fn: () => void) {
-  b.addEventListener("pointerdown", (e) => { if (e.button === 0) { e.preventDefault(); fn(); } });
-  b.addEventListener("click", (e) => { if (e.detail === 0) fn(); });
+function onTap(b: HTMLElement, fn: (keyboard: boolean) => void) {
+  b.addEventListener("pointerdown", (e) => { if (e.button === 0) { e.preventDefault(); fn(false); } });
+  b.addEventListener("click", (e) => { if (e.detail === 0) fn(true); });
 }
 function renderChainTracker(el: HTMLElement, q: QuestMsg) {
   const { c, npc, where } = giverOf(q.chain), s = c?.steps[q.step];
   if (!c || !s) return false;
   const fold = questFold.has(q.chain), sec = document.createElement("div"); sec.className = "qsec"; sec.dataset.chain = q.chain;
   const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!fold));
+  head.dataset.focusKey = `chain:${q.chain}`;
   head.innerHTML = "<b></b><i></i>";
   head.querySelector("b")!.textContent = `${s.name}${q.status === "offer" ? " !" : q.status === "ready" ? " ?" : ""}`;
   head.querySelector("i")!.textContent = `${q.step + 1}/${c.steps.length} ${fold ? "▸" : "▾"}`;
   head.title = fold ? `Mở mục ${c.name}` : `Thu gọn mục ${c.name}`;
-  onTap(head, () => { if (!questFold.delete(q.chain)) questFold.add(q.chain); renderQuestTracker(); });
+  onTap(head, (keyboard) => { if (!questFold.delete(q.chain)) questFold.add(q.chain); renderQuestTracker(keyboard); });
   sec.appendChild(head);
   const sub = document.createElement("small"); sub.textContent = c.name; sec.appendChild(sub);
   el.appendChild(sec);
@@ -216,11 +229,12 @@ function renderDailyTracker(el: HTMLElement) {
   const done = m.list.filter((x) => x.status === "done").length, mark = dailyMark();
   const sec = document.createElement("div"); sec.className = "qsec";
   const head = document.createElement("button"); head.type = "button"; head.className = "qhead"; head.setAttribute("aria-expanded", String(!dailyFold));
+  head.dataset.focusKey = "daily";
   head.innerHTML = "<b></b><i></i>";
   head.querySelector("b")!.textContent = `Hằng ngày${mark === "offer" ? " !" : mark === "ready" ? " ?" : ""}`;
   head.querySelector("i")!.textContent = `${done}/${m.list.length} ${dailyFold ? "▸" : "▾"}`;
   head.title = dailyFold ? "Mở mục Hằng ngày" : "Thu gọn mục Hằng ngày";
-  onTap(head, () => { dailyFold = !dailyFold; renderQuestTracker(); });
+  onTap(head, (keyboard) => { dailyFold = !dailyFold; renderQuestTracker(keyboard); });
   sec.appendChild(head);
   const sub = document.createElement("small"); sub.textContent = DAILY.name; sec.appendChild(sub);
   el.appendChild(sec);
