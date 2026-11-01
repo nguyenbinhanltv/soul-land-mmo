@@ -176,10 +176,9 @@ body:is(.ui-h560,.ui-w640):has(:is(#char,#bag,#roster,#reso,#friends,#audio,#aut
 .gift-icon{width:32px;height:32px;object-fit:contain;image-rendering:pixelated;flex:none}
 .gift-icon[hidden]{display:none}
 .gift-label{min-width:0;overflow-wrap:anywhere}
-.av-st{font:var(--fs-s)/1.2 var(--f10);color:var(--muted);text-align:center}
+.av-st{font:var(--fs-s)/1.2 var(--f10);color:var(--muted);text-align:center;display:flex;align-items:center;justify-content:center;gap:var(--sp-1)}
 #achv .p2-nav-i{min-height:44px}
-.av-st{display:flex;align-items:center;justify-content:center;gap:var(--sp-1);flex-wrap:wrap}
-.av-icon{width:24px;height:24px;flex:none;object-fit:contain;image-rendering:pixelated}
+.av-icon{flex:none;image-rendering:pixelated}
 :where(body.ui-w420) #achv .p2-man{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"hd" "nav" "body" "ft"}
 :where(body.ui-w420) #achv .p2-nav{flex-direction:row;overflow-x:auto;min-width:0;padding:0 0 var(--sp-3);margin-bottom:var(--sp-3)}
 :where(body.ui-w420) #achv .p2-nav-i{flex:none;min-width:128px}
