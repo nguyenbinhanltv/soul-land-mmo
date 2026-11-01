@@ -1,7 +1,8 @@
 // UI v2, màn Thư (docs/design/thu.md "Giao diện", #1336, Part of #877). Chỉ hiển thị tin riêng `mail` của server và gửi ý định
 // `mail {op:"get"|"read"|"claim"|"claimAll"|"del", id}`: thư, đính kèm, hạn, đã đọc / đã nhận đều do server quyết định; client không tạo thư và không tự cộng quà.
 import { MAIL, formatHonTe, itemDef, mailDaysLeft } from "../../shared/data.ts";
-import { abbrevNumber, screenFrame, stateBox, mount, addCloseButton, type PNode } from "./uiParts.ts";
+import { abbrevNumber, screenFrame, stateBox, mount, addCloseButton, guardImgs, type PNode } from "./uiParts.ts";
+import { mailFromIcon } from "./sourceIcons.ts";
 import { giftNode, bindGiftImages } from "./giftView.ts";
 
 export interface MailView {
@@ -111,11 +112,14 @@ const h = (tag: string, cls: string, o: { text?: string; attrs?: Record<string, 
 const MARK: Record<MailState, string> = { new: "Mới", gift: "Có quà", read: "Đã đọc", claimed: "■ Đã nhận" };
 const dayText = (t: number) => new Date(t).toLocaleDateString("vi-VN");
 
+/** Icon nguồn thư (trang trí; nhãn chữ nguồn vẫn ở dòng meta). */
+const srcIcon = (from: string) => { const src = mailFromIcon(from); return src ? h("img", "ml-src", { attrs: { src, alt: "", draggable: "false", "aria-hidden": "true" } }) : null; };
 /** Một dòng danh sách: dấu trạng thái bằng chữ, tiêu đề, người gửi + ngày, nhãn hạn. Hàm thuần (test). */
 export function mailRowNode(m: MailView, selected: boolean, now: number): PNode {
   const st = mailStateOf(m), ex = mailExpiry(m.exp, now);
   return h("li", "", { kids: [h("button", `ml-row ml-${st}${selected ? " ml-sel" : ""}`, { attrs: { type: "button", "data-id": String(m.id), "data-st": st, "aria-pressed": selected ? "true" : "false" }, kids: [
     h("span", "ml-mark", { text: MARK[st] }),
+    srcIcon(m.from),
     h("b", "ml-title", { text: m.title }),
     h("small", "ml-meta", { text: `${m.from} · ${dayText(m.at)}` }),
     ex.soon && !m.claimed ? h("small", "ml-exp", { text: ex.text }) : null,
@@ -127,7 +131,7 @@ export function mailDetailNode(m: MailView | null, busyNow: boolean, now: number
   const gift = mailGiftParts(m), ex = mailExpiry(m.exp, now), canDel = m.claimed || !mailHasGift(m);
   return h("article", "ml-detail", { attrs: { "aria-label": `Thư: ${m.title}` }, kids: [
     h("h3", "ml-dt", { text: m.title }),
-    h("small", "ml-meta", { text: `Từ ${m.from} · ${dayText(m.at)} · ${ex.text}` }),
+    h("small", "ml-meta ml-from", { kids: [srcIcon(m.from), h("span", "", { text: `Từ ${m.from} · ${dayText(m.at)} · ${ex.text}` })] }),
     m.body ? h("p", "ml-body", { text: m.body }) : null,
     gift.length ? h("div", "ml-att", { kids: [h("b", "", { text: m.claimed ? "Đính kèm (đã nhận)" : "Đính kèm" }), giftNode(m)] }) : null,
     h("div", "ml-act", { kids: [
@@ -171,4 +175,5 @@ function render() {
   addCloseButton(f.root, closeMail);
   root.replaceChildren(f.root);
   bindGiftImages(f.root);
+  guardImgs(f.root, ".ml-src");
 }

@@ -7,6 +7,7 @@ import type { ResonanceTopMsg } from "./net.ts";
 import type { ArenaTopMsg } from "./hudArena.ts";
 import type { TongBoardMsg } from "./hudNpc.ts";
 import { hhmmVn } from "./svClock.ts";
+import { rankGroupIcon } from "./sourceIcons.ts";
 
 export interface RankBoardInfo { board: string; group: string; name: string; period: number }
 export interface RankSlot { vohon: string; level: number; stars: number }
@@ -152,7 +153,7 @@ function render() {
   const cd = Math.max(0, (sourceAt.get(source.type) ?? 0) + source.cd * 1000 - Date.now());
   const f = screenFrame({
     material: "muc", title: "Xếp Hạng", badge: "榜", info: "Điểm và hạng do máy chủ gửi; từng bảng giữ cách tính và nhịp cập nhật hiện hành.",
-    nav: groups.map((g) => ({ id: g.group, label: g.group, active: g.group === grp })),
+    nav: groups.map((g) => ({ id: g.group, label: g.group, active: g.group === grp, icon: rankGroupIcon(g.group) })),
     primary: { label: "Làm mới", disabled: cd > 0 || status === "loading", reason: status === "loading" ? "Đang tải…" : cd > 0 ? "Chờ một chút rồi làm mới" : undefined },
     onNav: (g) => { const first = groups.find((x) => x.group === g)?.boards[0]; if (first) { cur = first.board; page = 1; data = null; request(); } },
     onPrimary: () => request(),

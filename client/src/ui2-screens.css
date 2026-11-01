@@ -191,9 +191,13 @@ body:is(.ui-h560,.ui-w640):has(:is(#char,#bag,#roster,#reso,#friends,#audio,#aut
 .ml-wrap{display:flex;flex-direction:column;gap:var(--sp-4);min-height:0}
 .ml-cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:var(--sp-4);min-height:0}
 .ml-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;overflow:auto;min-height:0;max-height:100%;background:var(--paper);color:var(--text);border:var(--bd) solid var(--line)}
-.ml-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--sp-1) var(--sp-3);width:100%;min-height:44px;padding:var(--sp-3) var(--sp-4);text-align:left;cursor:pointer;color:inherit;background:transparent;border:0;border-bottom:var(--bd-fine) solid var(--line2);border-left:6px solid var(--line)}
+.ml-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:var(--sp-1) var(--sp-3);width:100%;min-height:44px;padding:var(--sp-3) var(--sp-4);text-align:left;cursor:pointer;color:inherit;background:transparent;border:0;border-bottom:var(--bd-fine) solid var(--line2);border-left:6px solid var(--line)}
 .ml-mark{grid-row:1;font:var(--fs-s)/1.2 var(--f10);color:var(--muted);white-space:nowrap}
-.ml-title{grid-row:1;grid-column:2;font:var(--fs-m)/1.2 var(--f12);overflow-wrap:anywhere}
+.ml-src{grid-row:1;grid-column:2;width:24px;height:24px;object-fit:contain;image-rendering:pixelated}
+.ml-from{display:flex;align-items:center;gap:var(--sp-2)}
+.ml-from .ml-src{flex:none}
+.ml-src[hidden]{display:none}
+.ml-title{grid-row:1;grid-column:3;font:var(--fs-m)/1.2 var(--f12);overflow-wrap:anywhere}
 .ml-meta{grid-column:1 / -1;font:var(--fs-s)/1.2 var(--f10);color:var(--muted)}
 .ml-exp{grid-column:1 / -1;font:var(--fs-s)/1.2 var(--f10);color:var(--text);border-left:3px solid var(--son);padding-left:var(--sp-2)}
 .ml-gift,.ml-new{border-left-color:var(--son);background:var(--paper2)}   /* mới / có quà chờ nhận: viền trái dày + nhãn chữ, không chỉ màu */
