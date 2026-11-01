@@ -1,4 +1,4 @@
-﻿// #1551: chỉ xuất ứng viên ngoài repo; chưa đăng ký vào game trước khi chủ repo duyệt.
+// #1551: chỉ xuất ứng viên ngoài repo; chưa đăng ký vào game trước khi chủ repo duyệt.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
@@ -40,4 +40,3 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   if (!out || path.resolve(out).toLowerCase() === ROOT.toLowerCase() || path.resolve(out).toLowerCase().startsWith(ROOT.toLowerCase()+path.sep)) throw new Error("Chỉ xuất vào thư mục ngoài repo để chờ duyệt");
   senPreview(path.resolve(out));
 }
-

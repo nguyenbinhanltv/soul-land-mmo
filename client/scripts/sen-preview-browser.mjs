@@ -16,10 +16,14 @@ senPreview(candidate);
 const children=[]; let browser;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const port=()=>new Promise(r=>{const s=createServer();s.listen(0,"127.0.0.1",()=>{const p=s.address().port;s.close(()=>r(p));});});
-function start(args,env){const c=spawn(process.execPath,args,{cwd:root,env:{...process.env,DATABASE_URL:"",REDIS_URL:"",ADMIN_ACCOUNTS:"",...env},stdio:"ignore"});children.push(c);}
+function start(args,env){const c=spawn(process.execPath,args,{cwd:root,detached:process.platform!=="win32",env:{...process.env,DATABASE_URL:"",REDIS_URL:"",ADMIN_ACCOUNTS:"",...env},stdio:"ignore"});children.push(c);}
 async function ready(url){for(let i=0;i<200;i++){if(await fetch(url).then(r=>r.ok).catch(()=>false))return;await sleep(200);}throw Error(url);}
-const cleanup=()=>{for(const c of children)spawn("taskkill",["/pid",String(c.pid),"/t","/f"],{stdio:"ignore"});};
-const timer=setTimeout(()=>{cleanup();process.exit(1);},300000);
+const cleanup=()=>{for(const c of children){
+  if(!c.pid||c.exitCode!==null||c.signalCode!==null)continue;
+  if(process.platform==="win32")spawn("taskkill",["/pid",String(c.pid),"/t","/f"],{stdio:"ignore"});
+  else try{process.kill(-c.pid);}catch(e){console.warn("Không dọn được nhóm tiến trình thử",e.message);}
+}};
+const timer=setTimeout(async()=>{await browser?.close().catch(e=>console.warn("Không đóng được Chrome thử",e.message));cleanup();process.exit(1);},300000);
 try {
   const api=`http://127.0.0.1:${await port()}`,web=`http://127.0.0.1:${await port()}`;
   start(["server/node_modules/tsx/dist/cli.mjs","--tsconfig","server/tsconfig.json","server/src/index.ts"],{PORT:api.split(":").at(-1),GAME_TEST:"1"});
@@ -75,7 +79,7 @@ try {
     console.log(mode,results.modes[mode]);
     if(mode==="clip"){
       const frames=path.join(out,`${mode}-frames`);mkdirSync(frames,{recursive:true});
-      for(let n=0;n<32;n++){if(mode==="clip")await page.evaluate(n=>window.__senPhase=n,n);await sleep(100);await page.screenshot({path:path.join(frames,`${String(n).padStart(2,"0")}.png`)});}
+      for(let n=0;n<32;n++){await page.evaluate(n=>window.__senPhase=n,n);await sleep(100);await page.screenshot({path:path.join(frames,`${String(n).padStart(2,"0")}.png`)});}
       await page.evaluate(()=>delete window.__senPhase);
     }
   }
