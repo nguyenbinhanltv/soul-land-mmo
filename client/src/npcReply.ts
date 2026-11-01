@@ -1,6 +1,12 @@
 import type Phaser from "phaser";
 
-/** Thí điểm Đại Sư: gật đầu một điểm ảnh từ pose đứng đã đủ tóc / áo / tay.
+// Chỉ bật cho sheet đã soát tóc / cổ áo / tay ở đủ năm hàng hướng.
+// Râu dài và tóc đuôi dài đi qua hàng 29 cần pose riêng, không tự bật theo vai trò.
+const REPLY_SHEETS = new Set([
+  "lpc_dai_su", "lpc_thuong_nhan", "lpc_lo_ren", "lpc_thuong_nhan_thien_dau", "lpc_to_van_dao",
+]);
+
+/** Gật đầu một điểm ảnh theo mẫu Đại Sư đã duyệt, từ pose đứng đủ lớp.
  * Không dùng khung đánh / niệm phép, không dịch thân hoặc chân, không đổi idle gốc. */
 export class NpcReply {
   private active: { body: Phaser.GameObjects.Sprite; head: Phaser.GameObjects.Sprite; idle: string; at: number } | null = null;
@@ -8,7 +14,7 @@ export class NpcReply {
   start(body: Phaser.GameObjects.Sprite, idle: string, now: number) {
     this.cancel();
     // Chỉ sheet đã kiểm bằng mắt; bộ ghép dự phòng / sheet thiếu vẫn đứng idle.
-    if (body.texture.key !== "lpc_dai_su" || !body.parentContainer || !body.scene.anims.exists(idle)) return;
+    if (!REPLY_SHEETS.has(body.texture.key) || !body.parentContainer || !body.scene.anims.exists(idle)) return;
     const first = body.scene.anims.get(idle).frames[0]?.frame;
     if (!first || first.width !== 64 || first.height !== 64) return;
     body.stop().setFrame(first.name).setCrop(0, 29, 64, 35);
