@@ -4,12 +4,14 @@
 //   node tools/maps/do-luong.mjs --sinh              kèm soát chỗ sinh hồn thú: bao nhiêu chỗ nằm ở ô khe 1 ô / sau khe (đúng luật spawn.ts)
 //   node tools/maps/do-luong.mjs --tuyen             kèm từng tuyến trại hồi sinh → mốc (giây, đoạn cổ chai, ngang tuyến rộng nhất)
 //   node tools/maps/do-luong.mjs --json              in JSON thay bảng (L2–L5 so trước / sau)
+//   node tools/maps/do-luong.mjs --canh-bao [--strict]  chỉ in bản đồ vượt chỉ tiêu mục 1.1 (lib/nguong.mjs); thoát 0, --strict thì thoát 1 nếu có vượt (L4 #1662; `npm run check` gọi lệnh này, LUONG_STRICT=1 = --strict)
 // Dùng file Tiled đang chạy trong game (`<mapId>.v2.json` nếu có, không thì `<mapId>.json`), cùng lưới ô chặn với server (shared/move.ts).
-// Hàm đo thuần ở lib/luong.mjs (kiểm thử: lib/luong.test.mjs). Chưa nằm trong `npm run check`.
+// Hàm đo thuần ở lib/luong.mjs (kiểm thử: lib/luong.test.mjs). `--canh-bao` chạy trong `npm run check` (chỉ cảnh báo).
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gridStats, shortestPath, chokeRuns, widestPath } from "./lib/luong.mjs";
+import { violations, GROUP_OF_KIND } from "./lib/nguong.mjs";
 import { Img, encodePng, hex } from "../assets/lib.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
@@ -127,15 +129,16 @@ function widthPng(g, W, marks) {
   return encodePng(img);
 }
 
+const strictTag = (o) => (o.strict ? "LỖI (--strict): " : "Cảnh báo: ");
 const f = (n, d = 1) => n.toFixed(d).replace(".", ",");
 
 function measure(mp, opt) {
   const raw = JSON.parse(readFileSync(path.join(ASSETS, mp.file), "utf8")), g = solidGrid(raw), st = gridStats(g), W = st.W, marks = landmarks(raw, g);
-  const rs = routes(g, W, marks), n = rs.length;
+  const rs = opt.nhanh ? [] : routes(g, W, marks), n = rs.length; // --canh-bao bỏ tuyến (A*) cho nhanh
   const res = {
-    id: mp.id, ten: MAPS[mp.id]?.name ?? mp.id, file: mp.file, cols: g.MW, rows: g.MH,
+    id: mp.id, kind: MAPS[mp.id]?.kind, ten: MAPS[mp.id]?.name ?? mp.id, file: mp.file, cols: g.MW, rows: g.MH,
     chanCung: st.solidPct, chanTrong: st.solidInnerPct, ngangTB: st.meanW, hepPct: st.narrowPct, thoangPct: st.open5Pct,
-    kepCheo: st.pinchPer1000, ngoCut: st.deadEndPer1000, sauKhe: st.behindGap, thanhPhan: st.components,
+    nhoPct: st.smallBlockPct, kepCheo: st.pinchPer1000, ngoCut: st.deadEndPer1000, sauKhe: st.behindGap, thanhPhan: st.components,
     coChai: n ? rs.reduce((a, r) => a + r.choke, 0) : null, tuyen: n,
     ngangTuyen: n ? rs.reduce((a, r) => a + r.widest, 0) / n : null, giayTB: n ? rs.reduce((a, r) => a + r.secs, 0) / n : null,
   };
@@ -154,12 +157,14 @@ function table(rows) {
   return [line(head), w.map((x) => "-".repeat(x)).join("-|-"), ...body.map(line)].join("\n");
 }
 
-const argv = process.argv.slice(2), opt = { png: null, sinh: false, tuyen: false, json: false }, ids = [];
+const argv = process.argv.slice(2), opt = { canhBao: false, strict: process.env.LUONG_STRICT === "1", nhanh: false, png: null, sinh: false, tuyen: false, json: false }, ids = [];
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === "--png") opt.png = path.resolve(argv[++i] ?? "");
   else if (argv[i] === "--sinh") opt.sinh = true;
   else if (argv[i] === "--tuyen") opt.tuyen = true;
   else if (argv[i] === "--json") opt.json = true;
+  else if (argv[i] === "--canh-bao") opt.canhBao = opt.nhanh = true;
+  else if (argv[i] === "--strict") opt.strict = true;
   else if (argv[i].startsWith("--")) { console.error(`Cờ lạ: ${argv[i]}`); process.exit(2); }
   else ids.push(argv[i]);
 }
@@ -167,7 +172,16 @@ const all = mapList(), pick = ids.length ? all.filter((m) => ids.includes(m.id))
 for (const id of ids) if (!all.some((m) => m.id === id)) { console.error(`Không có bản đồ: ${id} (có: ${all.map((m) => m.id).join(", ")})`); process.exit(2); }
 const rows = pick.map((m) => measure(m, opt));
 
-if (opt.json) console.log(JSON.stringify(rows, null, 2));
+if (opt.canhBao) {
+  const fmt = (v) => (Number.isInteger(v) ? String(v) : f(v, v < 10 ? 2 : 1));
+  const bad = rows.map((r) => ({ r, v: violations(r) })).filter((x) => x.v.length);
+  if (!bad.length) console.log(`[luong] ${rows.length} bản đồ đều đạt chỉ tiêu bố cục (mục 1.1).`);
+  else {
+    console.log(`[luong] ${strictTag(opt)}${bad.length}/${rows.length} bản đồ vượt chỉ tiêu bố cục (docs/design/cai-to-luong-di-chuyen-ban-do.md mục 1.1; chi tiết: node tools/maps/do-luong.mjs):`);
+    for (const { r, v } of bad) console.log(`  ${r.ten} (${GROUP_OF_KIND[r.kind]}): ${v.map((x) => `${x.ten} ${fmt(x.value)} (cần ${x.op} ${x.limit})`).join("; ")}`);
+    if (opt.strict) process.exit(1);
+  }
+} else if (opt.json) console.log(JSON.stringify(rows, null, 2));
 else {
   console.log(table(rows));
   if (opt.tuyen) for (const r of rows) if (r.dsTuyen?.length) {

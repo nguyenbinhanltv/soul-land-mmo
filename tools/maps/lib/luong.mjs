@@ -182,6 +182,32 @@ export function widestPath(g, W, from, to) {
   return Math.max(0, best[to]);
 }
 
+/**
+ * Tỷ lệ ô chặn "lẻ": ô chặn (bỏ viền 3 ô) thuộc cụm liên thông 4 hướng chỉ 1–3 ô, trên tổng ô chặn bỏ viền (mục 1.1: cây lẻ / đôi).
+ * Cụm chạm viền hoặc ≥ 4 ô không tính là lẻ.
+ */
+export function smallBlockPct(g, maxSize = 3, border = 3) {
+  const { MW, MH } = g, seen = new Uint8Array(MW * MH);
+  const inner = (x, y) => x >= border && y >= border && x < MW - border && y < MH - border;
+  let total = 0, small = 0;
+  for (let s = 0; s < MW * MH; s++) {
+    if (!g.solid[s] || seen[s]) continue;
+    const cells = [s]; seen[s] = 1;
+    for (let k = 0; k < cells.length; k++) {
+      const i = cells[k], x = i % MW, y = (i - x) / MW;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= MW || Y >= MH) continue;
+        const j = Y * MW + X; if (g.solid[j] && !seen[j]) { seen[j] = 1; cells.push(j); }
+      }
+    }
+    const touch = cells.some((i) => !inner(i % MW, Math.floor(i / MW)));
+    const n = cells.filter((i) => inner(i % MW, Math.floor(i / MW))).length;
+    total += n;
+    if (!touch && cells.length <= maxSize) small += n;
+  }
+  return total ? (100 * small) / total : 0;
+}
+
 /** Chỉ số chính của một lưới (không tính tuyến mốc). */
 export function gridStats(g) {
   const N = g.MW * g.MH, W = widths(g);
@@ -198,6 +224,6 @@ export function gridStats(g) {
     W, cells: N, walk, solidPct: pct(solid, N), solidInnerPct: pct(sIn, nIn), meanW: walk ? sumW / walk : 0,
     narrowPct: pct(narrow, walk), open5Pct: pct(open5, walk),
     pinchPer1000: (1000 * pinches(g)) / N, deadEndPer1000: (1000 * deadEnds(g)) / (walk || 1),
-    behindGap: behindGap(g, W), components: components(g),
+    behindGap: behindGap(g, W), components: components(g), smallBlockPct: smallBlockPct(g),
   };
 }
