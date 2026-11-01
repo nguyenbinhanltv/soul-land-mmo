@@ -1,6 +1,6 @@
 // Đóng góp sát thương / hỗ trợ lên tinh anh, thú vương, boss thế giới (GAME_DESIGN.md mục 5.4, 9.2; #119): cộng đóng góp (`credit`), đóng góp hỗ trợ (`supportCredit`), chuyển đóng góp sang phiên mới
 // của cùng tài khoản (`rebindContrib`), người nhận hồn hoàn / thưởng (`topContrib`). Hàm nhận phòng (`room: MapRoom`) như stats.ts / fog.ts; nguyên văn từ MapRoom, không đổi hành vi.
-// MapRoom chỉ chuyển tiếp (`kill.ts` / `boss.ts` / `join.ts` / `combat.ts` / `autoHunt.ts` gọi `room.credit` / `room.topContrib` / `room.rebindContrib` như cũ); `contribOf` / `contributors`
+// MapRoom chỉ chuyển tiếp (`combat.ts` gọi `room.credit`, `kill.ts` / `boss.ts` gọi `room.topContrib`, `join.ts` gọi `room.rebindContrib`, `MapRoom` gọi `supportCredit` như cũ); `contribOf` / `contributors`
 // (chuyển tiếp 1 dòng sang calc.ts) ở lại MapRoom. `ArenaRoom` / `BiCanhRoom` không override hàm nào ở đây.
 import type { MapRoom } from "./MapRoom.ts";
 import type { EliteData } from "./types.ts";
