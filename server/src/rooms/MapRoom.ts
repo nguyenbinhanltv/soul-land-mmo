@@ -3,9 +3,9 @@
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
 import { Room, Client, ServerError, OnMessageException, type RoomException } from "colyseus";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
-import { TIERS, VOHON, TICK_RATE, tierOfYears, vohonIndex,
+import { VOHON, TICK_RATE, tierOfYears, vohonIndex,
   AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
-  MAPS, parseNewLooks, encodeLpc, dir4,
+  MAPS, parseNewLooks, encodeLpc,
   BOAT_CAST,
   TILE,
   itemDef, formatHonTe, type ItemDef,
@@ -14,8 +14,7 @@ import { TIERS, VOHON, TICK_RATE, tierOfYears, vohonIndex,
   BONE_ITEM,
   CORE_ITEM, type CoreData,
   type CoreStat, EQUIP_ITEM, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
-  STATUS, CC_TIER_MULT, BEAST_REGEN,
-  loadoutOf, phoenixFieldR, type BondKey, type SkillDef, type StatusApply, type BuffId,
+  loadoutOf, type BondKey, type SkillDef, type StatusApply, type BuffId,
   type BeastSkillDef, type Tele,
   BOSSES, bossIndex, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
   KING, kingNext, vnDay, type BossDef, type FormDef,
@@ -26,7 +25,6 @@ import { TIERS, VOHON, TICK_RATE, tierOfYears, vohonIndex,
   type AutoSummary,
   type OfflinePower,
   } from "../../../shared/data.ts";
-import { hpRegen, mpRegen } from "../../../shared/data.ts"; // hồi sinh lực / hồn lực (mục 4), regenPlayer
 import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../../../shared/data.ts"; // nhịp tin client xin lại dữ liệu riêng (#165)
 import { clampDir, MOVE_DEAD } from "../../../shared/move.ts";
 import { loadMap, mapFile, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
@@ -49,7 +47,7 @@ import { Tide } from "./tide.ts";
 import { LairSplit } from "./split.ts";
 import { newItem, bagUsed, itemLabel, shardCount } from "./items.ts";
 import { questBump } from "./questBump.ts";
-import { beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn, dashPath, dashAim, regenStep } from "./calc.ts";
+import { beastDmgOf, buffMask, contribOf, contributors, pickNearest, pickWeakest, fxPoint, spawnPointIn } from "./calc.ts";
 import { targetMsg, manualAttack } from "./lock.ts";
 import * as equip from "./equip.ts";
 import { equipBest } from "./equipBest.ts";
@@ -84,6 +82,7 @@ import * as kill from "./kill.ts";
 import * as ava from "./ava.ts";
 import * as tienco from "./tienco.ts";
 import * as stats from "./stats.ts";
+import * as motion from "./motion.ts";
 import * as contrib from "./contrib.ts";
 import type { PData, Hit, AuthData, RecallCast, BData, EliteData, KingData, WorldData, Proj, DmgOpt, FusHit, ChatRoute } from "./types.ts";
 import * as fog from "./fog.ts";
@@ -991,48 +990,14 @@ export class MapRoom extends Room<MapState> {
   /** Hồn thú còn ít sinh lực nhất (theo tỉ lệ) trong bán kính r; bằng nhau thì con gần hơn (Nguyệt Nhận khóa mục tiêu yếu máu). */
   weakestBeast(p: PlayerState, r: number) { return pickWeakest(p, r, this.beastsNear(p.x, p.y, r)); }
 
-  /** Lướt theo d.dir tối đa `dist` pixel, dừng khi vướng vật cản. Trả về quãng đã lướt. */
-  dashStep(p: PlayerState, d: PData, dist: number) {
-    const r = dashPath(p.x, p.y, d.dir, dist, (x, y) => this.map.hits(x, y, 5, 4));
-    p.x = r.x; p.y = r.y;
-    return r.moved;
-  }
+  /** Lướt của hồn sư, kéo / đẩy hồn thú (logic ở `motion.ts`, #702; `pushBeast` bỏ qua hồn thú Choáng / Trói / thú thực vật): các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  dashStep(p: PlayerState, d: PData, dist: number) { return motion.dashStep(this, p, d, dist); }
 
-  /** Quay mặt về mục tiêu `b` (hồn thú, hoặc đối thủ ở 7.2) cỡ `size` pixel rồi lướt tới sát nó (tối đa `dist`). */
-  dashTo(p: PlayerState, d: PData, b: { x: number; y: number }, dist: number, size: number) {
-    const aim = dashAim(p, b, dist, size);
-    d.dir = aim.dir; p.dir = dir4(d.dir.x, d.dir.y);
-    return this.dashStep(p, d, aim.dist);
-  }
+  dashTo(p: PlayerState, d: PData, b: { x: number; y: number }, dist: number, size: number) { return motion.dashTo(this, p, d, b, dist, size); }
 
-  /** Kéo hồn thú về sát hồn sư (gom quái), từng bước nhỏ để không xuyên vật cản. */
-  pullBeast(bid: string, p: PlayerState) {
-    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || bd.rooted) return; // thú thực vật cắm rễ (#116)
-    const hw = Math.max(3, TIERS[b.tier].size / 3);
-    for (let k = 0; k < 40; k++) {
-      const dx = p.x - b.x, dy = p.y - b.y, dd = Math.hypot(dx, dy), stop = TIERS[b.tier].size / 2 + 8;
-      if (dd <= stop) break;
-      const s = Math.min(4, dd - stop), x0 = b.x, y0 = b.y;
-      this.moveBeast(b, (dx / dd) * s, (dy / dd) * s, hw); // không kéo vào vùng an toàn
-      if (b.x === x0 && b.y === y0) break;
-    }
-    bd.kx = 0; bd.ky = 0;
-  }
+  pullBeast(bid: string, p: PlayerState) { return motion.pullBeast(this, bid, p); }
 
-  /**
-   * Đẩy lùi hồn thú ra xa hồn sư `dist` pixel (nhân CC_TIER_MULT theo bậc), từng bước nhỏ để không xuyên vật cản. Hồn thú đang
-   * Choáng / Trói và thú thực vật đứng yên (#116) không bị đẩy (mục 5.1), và không bị đẩy vào vùng an toàn (moveBeast).
-   */
-  pushBeast(bid: string, p: PlayerState, dist: number) {
-    const b = this.state.beasts.get(bid), bd = this.bdata.get(bid); if (!b || !bd || bd.st.has("stun") || bd.st.has("root") || bd.rooted) return;
-    const hw = Math.max(3, TIERS[b.tier].size / 3), dx = b.x - p.x, dy = b.y - p.y, dd = Math.hypot(dx, dy) || 1;
-    let left = dist * (CC_TIER_MULT[b.tier] ?? 1);
-    while (left > 0) {
-      const s = Math.min(4, left), x0 = b.x, y0 = b.y;
-      this.moveBeast(b, (dx / dd) * s, (dy / dd) * s, hw); left -= s;
-      if (b.x === x0 && b.y === y0) break;
-    }
-  }
+  pushBeast(bid: string, p: PlayerState, dist: number) { return motion.pushBeast(this, bid, p, dist); }
 
   /** Hẹn chạy `fn` sau `t` giây (trong tick). */
   later(t: number, fn: () => void) { this.timers.push({ t, fn }); }
@@ -1159,27 +1124,10 @@ export class MapRoom extends Room<MapState> {
 
   tickStatus(bid: string, dt: number) { return status.tickStatus(this, bid, dt); }
 
-  /**
-   * Hồi sinh lực / hồn lực của hồn sư trong `dt` giây (mục 4, hpRegen / mpRegen); vùng an toàn hồi nhanh hơn (SAFE_REGEN_MULT).
-   * Võ hồn khác trong đội (chưa gục) hồi sinh lực cùng nhịp với võ hồn ra trận. Trả về có đang ở vùng an toàn không.
-   */
-  regenPlayer(p: PlayerState, d: PData, dt: number): boolean {
-    const safe = this.map.inSafe(p.x, p.y), regen = (max: number) => hpRegen(max, d.lastHit, safe) * dt;
-    d.mpF = Math.min(p.maxMp, d.mpF + mpRegen(p.level, VOHON[p.vh].mp, safe) * dt);
-    d.hpF = Math.min(p.maxHp, d.hpF + regen(p.maxHp));
-    p.hp = Math.ceil(d.hpF); p.mp = Math.floor(d.mpF);
-    for (const [r, hp] of d.benchHp) {
-      const v = d.owned.find((o) => o.rowId === r), max = v ? this.maxHpOf(d, v) : 0;
-      const nv = hp + regen(max);
-      if (!v || nv >= max) d.benchHp.delete(r); else d.benchHp.set(r, nv);
-    }
-    return safe;
-  }
+  /** Hồi sinh lực / hồn lực của hồn sư (vùng an toàn hồi nhanh hơn) và hồi máu hồn thú: logic ở `motion.ts` (#702), `regenBeast` là hàm thuần. */
+  regenPlayer(p: PlayerState, d: PData, dt: number): boolean { return motion.regenPlayer(this, p, d, dt); }
 
-  /** Hồn thú không mục tiêu, không bị đánh BEAST_REGEN.delay giây thì hồi máu; Trúng độc giảm hồi máu (healCut). */
-  regenBeast(b: BeastState, bd: BData, dt: number, pct = BEAST_REGEN.pct) {
-    regenStep(b, bd, bd.st.has("poison") ? 1 - STATUS.poison.healCut : 1, pct, dt);
-  }
+  regenBeast(b: BeastState, bd: BData, dt: number, pct?: number) { return motion.regenBeast(b, bd, dt, pct); }
 
   // ---------- Chiêu có báo trước của hồn thú (mục 5.3, 5.4; bước 3.5) ----------
   beginCast(bid: string, b: BeastState, bd: BData, s: BData["skills"][number], pid: string, tgt: { x: number; y: number }) { return cast.beginCast(this, bid, b, bd, s, pid, tgt); }
@@ -1252,21 +1200,8 @@ export class MapRoom extends Room<MapState> {
   }
   damageFoe(fid: string, dmg: number, by: string, _col: string, hit?: Hit, o: DmgOpt = {}) { return combat.damageFoe(this, fid, dmg, by, _col, hit, o); }
 
-  /**
-   * Lãnh vực phượng hoàng (Tà Hỏa Phượng Hoàng, 2.5b): hồn thú trong PHOENIX_FIELD_R quanh một hồn sư đang có lãnh vực nhận thêm
-   * sát thương từ mọi nguồn (lấy lãnh vực mạnh nhất, không cộng nhiều lãnh vực). Hồn sư đã gục, đang chuyển bản đồ hoặc đứng
-   * trong vùng an toàn thì lãnh vực không có tác dụng. Từ 8.1b bán kính theo phoenixFieldR: võ hồn ra trận đang Chân Thân có
-   * `field` (Tà Hỏa Phượng Hoàng Chân Thân) thì lãnh vực rộng hơn.
-   */
-  phoenixAmp(b: BeastState) {
-    let a = 0;
-    for (const [pid, pd] of this.pdata) {
-      const v = pd.buffs.get("phoenix")?.v ?? 0, pp = this.state.players.get(pid);
-      if (v <= a || !pp || pp.dead || pd.travelling || this.map.inSafe(pp.x, pp.y)) continue;
-      if (Math.hypot(b.x - pp.x, b.y - pp.y) < phoenixFieldR(pd.ch.vohon, !!pd.ava)) a = v;
-    }
-    return a;
-  }
+  /** Lãnh vực Phượng Hoàng khuếch đại sát thương lên hồn thú: logic ở `motion.ts` (#702). */
+  phoenixAmp(b: BeastState) { return motion.phoenixAmp(this, b); }
 
   tienCoSet(d: PData, v: Character) { return tienco.tienCoSet(this, d, v); }
 
