@@ -1,0 +1,175 @@
+{
+  "status": "cho-duyet-my-thuat",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-01",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "raw_sha256": "d6e352b4a2e4e37d5586643b7f03e2bb0d1427ce6d4757b3f92b4d13a6b62d39",
+  "prompt_sha256": "c7cadc8e10f6c34e01e2931f7c93272de3418821cd64100cf0f2b06954ef66eb",
+  "raw": "RAW.png",
+  "prompt": "prompt.txt",
+  "native": [
+    1254,
+    1254
+  ],
+  "reference": "art/src/ui-kit/toI-2.png",
+  "reference_sha256": "4e3a775410681de5b498198f9cb14fe3ed829225a4d8ea915d87cd18c581f992",
+  "model_id": null,
+  "seed": null,
+  "attempt": 1,
+  "mapping": [
+    {
+      "index": 1,
+      "key": "gi_calendar_king",
+      "name": "Thú vương tà hóa",
+      "event": "king:*"
+    },
+    {
+      "index": 2,
+      "key": "gi_calendar_world",
+      "name": "Boss thế giới",
+      "event": "world:*"
+    },
+    {
+      "index": 3,
+      "key": "gi_calendar_arena",
+      "name": "Đại Đấu Hồn Trường",
+      "event": "always:arena"
+    },
+    {
+      "index": 4,
+      "key": "gi_calendar_auto",
+      "name": "Tự săn",
+      "event": "always:auto"
+    },
+    {
+      "index": 5,
+      "key": "gi_calendar_daily",
+      "name": "Làm mới ngày",
+      "event": "reset:daily"
+    },
+    {
+      "index": 6,
+      "key": "gi_calendar_weekly",
+      "name": "Làm mới tuần",
+      "event": "reset:tong"
+    }
+  ],
+  "candidate_files": {
+    "king-24.png": {
+      "sha256": "eb58b48302c172f4dd6045ed7a99251a31dea1710da4bfc47f8bdb337447b1cb",
+      "size": [
+        24,
+        24
+      ],
+      "colors": 26,
+      "bytes": 603
+    },
+    "king-32.png": {
+      "sha256": "e7fbe59fd491b3f77957cf43beab1f6b82fa590e4cec645a7601e3daa423d714",
+      "size": [
+        32,
+        32
+      ],
+      "colors": 27,
+      "bytes": 897
+    },
+    "world-24.png": {
+      "sha256": "6f6e38651d5c243a60762821818eebdaa17714556da6ebd170a4f8b201167957",
+      "size": [
+        24,
+        24
+      ],
+      "colors": 25,
+      "bytes": 565
+    },
+    "world-32.png": {
+      "sha256": "afcf777e980e110885e1d5aa45b2dd6a399390e6e2653203a08cea1c1a73ccc3",
+      "size": [
+        32,
+        32
+      ],
+      "colors": 29,
+      "bytes": 853
+    },
+    "arena-24.png": {
+      "sha256": "e2dfc7b84e01c551b62830b2b6540acb5bc9cfd88094d7a19515abee34586a8c",
+      "size": [
+        24,
+        24
+      ],
+      "colors": 27,
+      "bytes": 561
+    },
+    "arena-32.png": {
+      "sha256": "11d92b8abcf06559be132044bb2a17a9e63f97fda145c8390da12e17df54932e",
+      "size": [
+        32,
+        32
+      ],
+      "colors": 29,
+      "bytes": 841
+    },
+    "auto-24.png": {
+      "sha256": "b9c59c43765b9ab40bbaa216e0692d64eb635524d180bc759a0305a09fefa54c",
+      "size": [
+        24,
+        24
+      ],
+      "colors": 25,
+      "bytes": 577
+    },
+    "auto-32.png": {
+      "sha256": "1b1345866a4635c872f194503baf54c3044b2c4d75b77fa5720000d2ae3bca59",
+      "size": [
+        32,
+        32
+      ],
+      "colors": 28,
+      "bytes": 850
+    },
+    "daily-24.png": {
+      "sha256": "bf3177e040440458696a300d05bee867cc201282b3199e3c7d22cb1e70fb33c3",
+      "size": [
+        24,
+        24
+      ],
+      "colors": 24,
+      "bytes": 546
+    },
+    "daily-32.png": {
+      "sha256": "1994be3552da4a974d545115cd8124b316ad9ab8f76d93e40f35cf9f9bc76092",
+      "size": [
+        32,
+        32
+      ],
+      "colors": 25,
+      "bytes": 796
+    },
+    "weekly-24.png": {
+      "sha256": "09c49bff608bcdcf5f25d910fe051c0105e65ebe94574344522fba0b3e975530",
+      "size": [
+        24,
+        24
+      ],
+      "colors": 26,
+      "bytes": 557
+    },
+    "weekly-32.png": {
+      "sha256": "a2a8e5d8cc3c37444ca8402e935241fd03424733b5601c54243077c15a54d99e",
+      "size": [
+        32,
+        32
+      ],
+      "colors": 29,
+      "bytes": 824
+    }
+  },
+  "issues": [
+    {
+      "sev": "light",
+      "code": "khoang-cach",
+      "where": "icon_01, icon_02, icon_03, icon_04, icon_05, icon_06, icon_10, icon_11, icon_12, icon_13, icon_14, icon_15",
+      "msg": "mảnh cách nhau < 5% cạnh tờ (63 px): dễ dính khi tách."
+    }
+  ]
+}
