@@ -55,19 +55,26 @@ export function achvPrimary(m: AchvMsg | null, busy: boolean): { label: string; 
 // ---- phần DOM ----
 let send: ((type: string, payload: unknown) => void) | null = null;
 let onChange: (n: number) => void = () => {};
-let msg: AchvMsg | null = null, group = ACHV_GROUPS[0].code as string, busy = false, failed = false, queue: string[] = [], note: { text: string; err: boolean } | null = null, timer = 0;
+let msg: AchvMsg | null = null, group = ACHV_GROUPS[0].code as string, busy = false, loading = false, failed = false, queue: string[] = [], note: { text: string; err: boolean } | null = null, timer = 0;
 const el = () => document.getElementById("achv");
 const BUSY_MS = 6000;
 
 export function bindAchv(sender: (type: string, payload: unknown) => void, changed: (n: number) => void) { send = sender; onChange = changed; }
 export const isAchvOpen = () => { const e = el(); return !!e && !e.hidden; };
-function load() { failed = false; send?.("achv", { op: "get" }); window.clearTimeout(timer); timer = window.setTimeout(() => { if (!msg && isAchvOpen()) { failed = true; render(); } }, BUSY_MS); }
-export function openAchv() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; queue = []; busy = false; load(); render(); }
-export function closeAchv() { const e = el(); if (e) e.hidden = true; queue = []; window.clearTimeout(timer); }
+/** Chờ get độc lập với cache; dùng chung một timer với thao tác nhận quà. */
+function load() {
+  if (!send || loading || busy) return;
+  loading = true; failed = false;
+  window.clearTimeout(timer);
+  timer = window.setTimeout(() => { loading = false; if (isAchvOpen()) { failed = true; render(); } }, BUSY_MS);
+  send("achv", { op: "get" });
+}
+export function openAchv() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; queue = []; busy = false; loading = false; load(); render(); }
+export function closeAchv() { const e = el(); if (e) e.hidden = true; queue = []; loading = false; window.clearTimeout(timer); }
 
 export function onAchv(m: AchvMsg) {
   if (!m || typeof m.ready !== "number" || !m.stats || !Array.isArray(m.claimed)) return;
-  msg = m; failed = false; window.clearTimeout(timer);
+  msg = m; loading = false; failed = false; window.clearTimeout(timer);
   if (m.err) { note = { text: m.err, err: true }; queue = []; busy = false; }
   else if (m.claimedNow) { note = { text: claimedLine(m.claimedNow), err: false }; busy = false; }
   else if (busy) busy = false;
@@ -78,7 +85,7 @@ export function onAchv(m: AchvMsg) {
 /** Gửi một yêu cầu nhận; bộ đếm chờ để màn không treo khi server im (server bỏ tin quá nhịp). */
 function claim(id: string) {
   if (!send) return;
-  busy = true; note = null; send("achv", { op: "claim", id });
+  busy = true; loading = false; note = null; send("achv", { op: "claim", id });
   window.clearTimeout(timer); timer = window.setTimeout(() => { if (busy) { busy = false; queue = []; note = { text: "Máy chủ chưa trả lời: thử lại sau.", err: true }; render(); } }, BUSY_MS);
   render();
 }
@@ -118,6 +125,11 @@ function render() {
     ? stateBox({ kind: "error", text: "Không tải được thành tựu (mất kết nối hoặc máy chủ chưa trả lời).", hint: "Kiểm tra mạng rồi bấm Thử lại.", onRetry: () => { load(); render(); } })
     : stateBox({ kind: "loading", rows: 5, text: "Đang tải thành tựu…" }));
   else {
+    if (loading) f.body.append(mount(h("div", "av-note", { text: "Đang cập nhật thành tựu… Dữ liệu cũ vẫn hiển thị để đọc.", attrs: { role: "status", "aria-busy": "true" } })));
+    else if (failed) {
+      const error = stateBox({ kind: "error", text: "Cập nhật thất bại.", hint: "Dữ liệu cũ · Máy chủ chưa trả lời.", onRetry: () => { load(); render(); } });
+      error.classList.add("refresh-error"); f.body.append(error);
+    }
     const kids: PNode[] = [];
     if (achvIsBlank(msg)) kids.push(h("div", "av-blank", { text: "Chưa đạt thành tựu nào. Săn hồn thú, làm nhiệm vụ, đấu trường hay Bí Cảnh để lên mốc đầu tiên.", attrs: { role: "status" } }));
     if (note) kids.push(h("div", `av-note${note.err ? " av-bad" : ""}`, { text: note.text, attrs: { role: note.err ? "alert" : "status" } }));

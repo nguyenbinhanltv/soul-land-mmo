@@ -9182,6 +9182,7 @@
       "iso": true,
       "map": "loi_tinh_dau"
     },
+    { "key": "prop_sen_phat_sang_clip", "frame": [32,32], "iso": true, "map": "loi_tinh_dau" },
     {
       "key": "prop_so_thu_khong_lo",
       "iso": true

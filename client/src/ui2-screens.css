@@ -208,3 +208,6 @@ body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visi
 :where(body.ui-h500) :is(#mail,#achv){inset:var(--sp-3);transform:none;width:auto;max-height:calc(100vh - var(--sp-3) * 2)}
 :where(body.ui-h500) :is(#mail,#achv) .p2-man{height:100%;max-height:100%}
 :where(body.ui-h500) :is(#mail,#achv) .p2-nav{min-height:0;overflow:auto}
+
+/* Cảnh báo làm mới cạnh cache: chừa chỗ đọc ở 960×540 và cả ba cỡ chữ. */
+:is(#mail,#achv) .refresh-error{flex-direction:row;flex-wrap:wrap;min-height:0;gap:var(--sp-2) var(--sp-3);padding:var(--sp-2) var(--sp-3)}

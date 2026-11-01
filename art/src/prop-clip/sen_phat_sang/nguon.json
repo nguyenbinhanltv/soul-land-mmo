@@ -1,0 +1,19 @@
+{
+  "tool": "Codex hậu kỳ pixel bằng code, không sinh model",
+  "nativeSize": [
+    32,
+    32
+  ],
+  "rawSHA256": "279139b02358a73587ae90b0efae987a12e7756eb9f4bf9decba383b998f20f6",
+  "originalSHA256": "279139b02358a73587ae90b0efae987a12e7756eb9f4bf9decba383b998f20f6",
+  "clipSHA256": "9c1b300ea036c39b8ed8efe9cb6bf58486bacbd6144388eb6900852e919e6109",
+  "frames": 32,
+  "ms": 100,
+  "foot": [
+    16,
+    28
+  ],
+  "prompt": "Giữ thân, chân, alpha, palette; chỉ nhịp sáng nhẹ cánh/nhụy sen, vòng 3,2 giây; khung 0 nguyên bản.",
+  "license": "Ảnh ComfyUI (SDXL base 1.0 + pixel-art-xl) cũ đã duyệt giữ nguyên nguồn và giấy phép trong art/CREDITS.md; không gán CC0.",
+  "normalSHA256": "8259c663a4870cf6f2bc96b5ad6d1f2587f2aa60574b5c4044301300948b1ee9"
+}
