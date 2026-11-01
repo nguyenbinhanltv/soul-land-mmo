@@ -14,7 +14,6 @@ import { VOHON, TICK_RATE, tierOfYears, vohonIndex,
   BONE_ITEM,
   CORE_ITEM, type CoreData,
   type CoreStat, EQUIP_ITEM, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
-
   loadoutOf, type BondKey, type SkillDef, type StatusApply, type BuffId,
   type BeastSkillDef, type Tele,
   BOSSES, bossIndex, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
@@ -991,7 +990,7 @@ export class MapRoom extends Room<MapState> {
   /** Hồn thú còn ít sinh lực nhất (theo tỉ lệ) trong bán kính r; bằng nhau thì con gần hơn (Nguyệt Nhận khóa mục tiêu yếu máu). */
   weakestBeast(p: PlayerState, r: number) { return pickWeakest(p, r, this.beastsNear(p.x, p.y, r)); }
 
-  /** Di chuyển cưỡng bức (lướt, kéo / đẩy hồn thú), hồi phục, lãnh vực Phượng Hoàng: logic ở `motion.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  /** Lướt của hồn sư, kéo / đẩy hồn thú (logic ở `motion.ts`, #702; `pushBeast` bỏ qua hồn thú Choáng / Trói / thú thực vật): các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
   dashStep(p: PlayerState, d: PData, dist: number) { return motion.dashStep(this, p, d, dist); }
 
   dashTo(p: PlayerState, d: PData, b: { x: number; y: number }, dist: number, size: number) { return motion.dashTo(this, p, d, b, dist, size); }
@@ -1125,7 +1124,7 @@ export class MapRoom extends Room<MapState> {
 
   tickStatus(bid: string, dt: number) { return status.tickStatus(this, bid, dt); }
 
-  /** Di chuyển cưỡng bức (lướt, kéo / đẩy hồn thú), hồi phục, lãnh vực Phượng Hoàng: logic ở `motion.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  /** Hồi sinh lực / hồn lực của hồn sư (vùng an toàn hồi nhanh hơn) và hồi máu hồn thú: logic ở `motion.ts` (#702), `regenBeast` là hàm thuần. */
   regenPlayer(p: PlayerState, d: PData, dt: number): boolean { return motion.regenPlayer(this, p, d, dt); }
 
   regenBeast(b: BeastState, bd: BData, dt: number, pct?: number) { return motion.regenBeast(b, bd, dt, pct); }
@@ -1201,7 +1200,7 @@ export class MapRoom extends Room<MapState> {
   }
   damageFoe(fid: string, dmg: number, by: string, _col: string, hit?: Hit, o: DmgOpt = {}) { return combat.damageFoe(this, fid, dmg, by, _col, hit, o); }
 
-  /** Di chuyển cưỡng bức (lướt, kéo / đẩy hồn thú), hồi phục, lãnh vực Phượng Hoàng: logic ở `motion.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  /** Lãnh vực Phượng Hoàng khuếch đại sát thương lên hồn thú: logic ở `motion.ts` (#702). */
   phoenixAmp(b: BeastState) { return motion.phoenixAmp(this, b); }
 
   tienCoSet(d: PData, v: Character) { return tienco.tienCoSet(this, d, v); }
