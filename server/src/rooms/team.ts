@@ -1,13 +1,14 @@
 // Cộng minh, võ hồn sở hữu và đội hình (GAME_DESIGN.md mục 5.1, 5.10): tính tiến độ cộng minh (resCheck / sendRes / resonanceTop), tin riêng "vohons" / "squad", xếp đội hình, đổi võ hồn, cho võ hồn ra trận, lưu đội hình; tách khỏi MapRoom.ts (#702, bước 12).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / bag.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`.
-// MapRoom chỉ chuyển tiếp (onMessage, tick, autoHunt.ts, gm.ts, các miền khác gọi `room.resCheck` / `room.activate` / `room.sendVohons` như cũ); `ArenaRoom` vẫn override `switchSlot`.
+// MapRoom chỉ chuyển tiếp (onMessage, tick, autoHunt.ts, gm.ts, các miền khác gọi `room.resCheck` / `room.activate` / `room.sendVohons` như cũ); `ArenaRoom` vẫn override `switchSlot`. Đợt E5a: `showVohon` (hàm thuần) / `syncCh` cũng ở đây, MapRoom chuyển tiếp.
 
 import type { Client } from "colyseus";
 import { store, type Character } from "../db.ts";
-import { VOHON, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX, parseTeam, loadoutOf, BONE_ITEM, CORE_ITEM, CORE_SETS, CORE_FX_RULE, coreFx, coreSetIndex,
+import { VOHON, tierOfYears, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX, parseTeam, loadoutOf, BONE_ITEM, CORE_ITEM, CORE_SETS, CORE_FX_RULE, coreFx, coreSetIndex,
   SHARD_UNLOCK, MAX_STARS, starCost, shardCode,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText } from "../../../shared/data.ts";
 import { itemStacks } from "./items.ts";
+import type { PlayerState } from "./schema.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { fusionCdLeft } from "./procState.ts";
@@ -270,4 +271,16 @@ export function starUp(room: MapRoom, id: string, raw: unknown) {
     try { await store.saveVohonsBag(d.accountId, list, bag); }
     catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
   });
+}
+
+/** Hiện võ hồn `ch` lên trạng thái đồng bộ (người khác thấy võ hồn ra trận, cấp, hồn hoàn). */
+export function showVohon(p: PlayerState, ch: Character) {
+  p.vh = Math.max(0, vohonIndex(ch.vohon)); p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
+  p.rings.clear(); ch.rings.forEach((y) => p.rings.push(tierOfYears(y)));
+}
+
+/** Chép tiến độ đang chơi vào võ hồn ra trận (d.ch). */
+export function syncCh(room: MapRoom, id: string) {
+  const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d) return;
+  Object.assign(d.ch, { level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
 }
