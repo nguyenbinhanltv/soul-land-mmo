@@ -39,3 +39,10 @@
 .hub-legend [data-k="new"]::before{border-radius:50%;background:var(--son-l)}
 .hub-legend [data-k="up"]::before{background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}
 .hub-legend [data-k="lock"]::before{border:var(--bd-fine) dashed var(--paper3)}
+
+/* Icon menu trên thẻ / rail hub (#1579): ảnh trang trí xếp trên nhãn chữ (aria-hidden, nhãn không đổi); ảnh lỗi thì [hidden] và thẻ về dạng chữ. Thẻ khoá: icon xám. */
+.hub-r-i{width:24px;height:24px;object-fit:contain;image-rendering:pixelated;flex:none}
+.hub-c-big .p2-card-i{width:48px;height:48px}
+.p2-card-i[hidden],.hub-r-i[hidden]{display:none}
+.p2-s-lock .p2-card-i,.hub-r.lock .hub-r-i{filter:grayscale(1);opacity:.7}
+.hub-r:has(.hub-r-i:not([hidden])){display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2)}

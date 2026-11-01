@@ -4,10 +4,15 @@ import { pingOnline } from "./pingMeter.ts";
 export const MENU_ICON_KEYS = ["char", "roster", "bag", "reso", "settings", "auto", "channel", "area", "world", "friends", "rank", "quest", "chat", "arena", "shop", "forge"].map((key) => `gi_menu_${key}`);
 const MENU: Record<string, string> = { autoChip: "auto", chanBtn: "channel", worldBtn: "world" };
 
+/** URL icon menu: bản 1× (24 px) khi DPR < 1.5, không có thì bản 2×; thiếu manifest thì null. */
+export function menuIconUrl(key: string): string | null {
+  return (key.startsWith("gi_menu_") && window.devicePixelRatio < 1.5 && artUrl(`${key}_1x`)) || artUrl(key);
+}
+
 /** Nạp ảnh trước khi đổi icon; thiếu key/tải lỗi thì giữ nguyên chữ và ký tự cũ. */
 function decorate(el: HTMLElement, key: string) {
   if (el.dataset.c12Key === key) return;
-  const url = (key.startsWith("gi_menu_") && window.devicePixelRatio < 1.5 && artUrl(`${key}_1x`)) || artUrl(key); if (!url) return; // icon menu có bản 1× (24 px) cho màn DPR 1
+  const url = menuIconUrl(key); if (!url) return;
   el.dataset.c12Key = key;
   const image = new Image(); image.alt = ""; image.draggable = false;
   image.onload = () => {

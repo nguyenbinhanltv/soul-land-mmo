@@ -530,6 +530,36 @@ noListenerAudio.dispose();
     const spread = new Set(), ls = new amb.AmbientLayers((k, v, p) => spread.add(p), Math.random);
     for (let t = 0; t < 600_000; t += 250) ls.update(t, { mapId: "cuc_bac_chi_dia", night: 0, fireDist: null });
     assert.ok(spread.size > 3, "lệch trái / phải ngẫu nhiên");
+
+    // Gió lạnh riêng của Cực Bắc (#1572): chỉ bản đồ đó đổi nhóm; gói riêng tải lười; chưa tải / lỗi thì lùi về gió chung.
+    assert.deepEqual(Object.keys(amb.AMBIENT_WIND_GROUPS), ["cuc_bac_chi_dia"], "thí điểm chỉ một bản đồ");
+    for (const id of Object.keys(amb.AMBIENT_PROFILES)) {
+      assert.equal(amb.ambientGroupFor("wind", id), id === "cuc_bac_chi_dia" ? "amb-wind-lanh" : "amb-wind", `gió của ${id}`);
+      for (const kind of ["wave", "bird", "cricket", "fire", "bell"]) assert.equal(amb.ambientGroupFor(kind, id), `amb-${kind}`, `${kind} của ${id} không đổi`);
+    }
+    assert.equal(amb.ambientGroupFor("wind", "luyen_hon_canh"), "amb-wind", "Luyện Hồn Cảnh giữ gió chung");
+    assert.equal(packOfGroup("amb-wind-lanh"), "amb-lanh", "gió lạnh nằm gói riêng, không nhét vào gói amb dùng chung");
+    assert.equal(packOfGroup("amb-wind"), "amb");
+    assert.ok(have.get("amb-wind-lanh") >= 3 && real.packs["amb-lanh"], "manifest thật có gói amb-lanh với ≥ 3 biến thể");
+    assert.equal(voiceClassOf("amb-wind-lanh"), "amb", "gió lạnh chịu trần tiếng môi trường như gió chung");
+    {
+      const { audio: cold } = make();
+      const seen = [];
+      cold.playGroup = (g, s, o) => { seen.push([g, o]); return true; };
+      cold.playAmbient("wind", 0.8, 0.1, "cuc_bac_chi_dia");
+      assert.deepEqual(seen.map((s) => s[0]), ["amb-wind-lanh"], "Cực Bắc: chỉ gió lạnh");
+      assert.deepEqual([seen[0][1].channel, seen[0][1].gain, seen[0][1].pan], ["ambient", 0.8, 0.1], "kênh Môi trường, độ to và lệch theo lịch");
+      seen.length = 0;
+      cold.playAmbient("wind", 1, 0, "thanh_hon_thon"); cold.playAmbient("wind", 1, 0, "luyen_hon_canh");
+      assert.deepEqual(seen.map((s) => s[0]), ["amb-wind", "amb-wind"], "làng / Luyện Hồn Cảnh không nghe gió lạnh");
+      seen.length = 0;
+      cold.playGroup = (g) => { seen.push([g]); return g !== "amb-wind-lanh"; };
+      cold.playAmbient("wind", 1, 0, "cuc_bac_chi_dia");
+      assert.deepEqual(seen.map((s) => s[0]), ["amb-wind-lanh", "amb-wind"], "gói gió lạnh chưa tải / lỗi: lùi về gió chung");
+      seen.length = 0;
+      cold.playAmbient("fire", 1, 0, "cuc_bac_chi_dia");
+      assert.deepEqual(seen.map((s) => s[0]), ["amb-fire"], "lửa ở Cực Bắc không đổi");
+    }
   }
 
   // Nền môi trường vòng lặp (#622): tải lười theo bản đồ, vòng lặp, chuyển chéo khi đổi bản đồ, im ở bản đồ không có nền.

@@ -303,3 +303,5 @@ Kiểm bằng `npm run ui:check -- art/src/ui-kit/toI-manh.png --family manh --s
 - Đợt 5c (#886) đã gỡ cờ `ui2` / `isUi2()` / `?ui=` / `shh-ui2` (5c-a) và `body.ui2` (5c-b); còn gỡ luật cũ khỏi `style.css` (5b): `ROADMAP.md`.
 
 Trạng thái thật ở các issue.
+
+- **Chú thích (`#tip`) không kéo 9-slice** (lỗi nền "nhiều ô", ô Giáp): chú thích cao 160–310 px nên hoa văn giữa cạnh của `khung_tooltip` bị kéo thành thanh dài. `ui2-feedback.css` vẽ tấm Mực liền (`--plate`) với viền màu bậc `--tip-c`; mảnh `khung_tooltip` còn trong kit nhưng `#tip` không dùng. Kiểm: `npm run test:giap-tooltip-browser --prefix client` (mọi ô trang bị cùng cỡ, nền chú thích liền; chạy trong job `flow-browser` của CI).
