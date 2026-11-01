@@ -12,6 +12,16 @@ import { buildPage, writePreview, sourceFromFixture, BACKGROUNDS, FRAME_SIZES, F
 
 const kit = loadKit();
 
+test("prompt Hub #1580: tái tạo đúng prompt thật, không lẫn thứ tự menu cũ", () => {
+  const p = buildPrompt(expandKind(kit, "I"), { family: "hub" });
+  assert.equal(p, readFileSync(new URL("../../art/src/ui-kit/hub-1580/prompt.txt", import.meta.url), "utf8"));
+  assert.match(p, /achievement medal/);
+  assert.match(p, /attendance booklet/);
+  assert.match(p, /announcement bronze handbell/);
+  assert.doesNotMatch(p, /automatic hunt crossed blades/);
+  assert.doesNotMatch(buildPrompt(expandKind(kit, "I"), { family: "menu" }), /attendance booklet/);
+});
+
 test("hon-quang: phân vai riêng, BOARD v3 đủ mẫu và không đổi hướng mặc định", () => {
   for (const id of SHEET_KINDS) {
     const p = buildPrompt(expandKind(kit, id), { style: "hon-quang" });

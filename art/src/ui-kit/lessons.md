@@ -9,6 +9,8 @@
 - Nguồn: luật vẽ AI ở `docs/art/ui-kit.md`, bài học hồn thú (#861–#870) và bảng triệu chứng ở skill `ui-kit`.
 
 ## Chữ và ký tự
+- [I] For the hub family draw these sixteen subjects in reading order: achievement medal with a broad vermilion ribbon, welfare attendance booklet with one bold check mark, secret realm stone arch portal with an ivory opening, sealed ivory mail envelope with a vermilion round seal, activity calendar with two bronze top rings and a simple blank square grid, open ivory guide book with a vermilion bookmark, announcement bronze handbell with a vermilion handle, character bust, four-person roster, bag, linked rings, settings gear, local map pin, world globe, two friends, forge hammer and anvil. The first seven are new menu icons, the last nine are style controls only. // family:hub — bảy icon #1580, chín ô đối chiếu không nhập
+- [I] Use only three flat opaque fill colours across the hub family: ivory #e8dcc0, vermilion #a43d32 and bronze #b08a4a, plus outline #1a1020; keep bold compact silhouettes, no flourishes, tassels, decorative frames, extra shading, texture or thin detail. Keep the canvas square and use the same four by four grid and line weight as the approved menu sheet reference. // family:hub — cùng bộ menu đã duyệt
 - [all] Draw no text, numbers, letters, glyphs, runes, logos or symbols that could be read as characters anywhere in the image; where a label would go, draw an empty bar or a flat block of colour. // chữ do phông game vẽ; model làm hỏng chữ Việt
 - [F, N, T, BOARD] Do not draw fake labels, button captions or placeholder squiggles inside the frames: the inside stays an empty flat fill. // chữ lạc trong ruột
 

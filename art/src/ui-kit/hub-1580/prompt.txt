@@ -1,0 +1,36 @@
+A sheet of 16 separate icon pieces for a pixel-art game user interface, square 1:1 aspect ratio. Each piece is its own separate object on the sheet. The icon family of this sheet: hub. Draw exactly 16 different icons of that one family.
+LAYOUT: 4 rows, row 1: 4 pieces; row 2: 4 pieces; row 3: 4 pieces; row 4: 4 pieces; read left to right, top to bottom, in exactly this order:
+  1.1  icon 01
+  1.2  icon 02
+  1.3  icon 03
+  1.4  icon 04
+  2.1  icon 05
+  2.2  icon 06
+  2.3  icon 07
+  2.4  icon 08
+  3.1  icon 09
+  3.2  icon 10
+  3.3  icon 11
+  3.4  icon 12
+  4.1  icon 13
+  4.2  icon 14
+  4.3  icon 15
+  4.4  icon 16
+BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no glow, no vignette, no frame or border around the image.
+STYLE: pixel-art game interface with an isometric fantasy mood mixed with Chinese ink-wash xianxia; sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.
+DO NOT DRAW: text, numbers, letters, logos, labels, glow, drop shadow, particles, characters, hands, extra pieces, a border around the sheet.
+
+LESSONS (learned from earlier sheets, follow every line):
+- For the hub family draw these sixteen subjects in reading order: achievement medal with a broad vermilion ribbon, welfare attendance booklet with one bold check mark, secret realm stone arch portal with an ivory opening, sealed ivory mail envelope with a vermilion round seal, activity calendar with two bronze top rings and a simple blank square grid, open ivory guide book with a vermilion bookmark, announcement bronze handbell with a vermilion handle, character bust, four-person roster, bag, linked rings, settings gear, local map pin, world globe, two friends, forge hammer and anvil. The first seven are new menu icons, the last nine are style controls only.
+- Use only three flat opaque fill colours across the hub family: ivory #e8dcc0, vermilion #a43d32 and bronze #b08a4a, plus outline #1a1020; keep bold compact silhouettes, no flourishes, tassels, decorative frames, extra shading, texture or thin detail. Keep the canvas square and use the same four by four grid and line weight as the approved menu sheet reference.
+- Draw no text, numbers, letters, glyphs, runes, logos or symbols that could be read as characters anywhere in the image; where a label would go, draw an empty bar or a flat block of colour.
+- Keep at least five percent of the image width of empty magenta between neighbouring pieces and between any piece and the image edge; never let two pieces touch.
+- Arrange the pieces on an even grid, left to right, top to bottom, exactly in the order and row counts given; draw each piece once, never repeat, mirror or crop a piece.
+- Cast no shadow and no glow onto the magenta background; a soft shadow or halo turns into a pink fringe after the background is keyed out.
+- Limit the whole image to a small palette of at most 32 colours with one consistent dark outline (#1a1020); sharp pixel edges, no anti-aliased blur, no large gradients, no noise texture.
+- Match the style, materials and palette of the attached approved reference exactly; never copy its layout.
+- One icon family per sheet: the same stroke weight, the same corner rounding, the same colour budget; each icon is a single readable silhouette centred in its cell, roughly sixty percent of the cell size.
+- Icons stay legible when reduced to a quarter of their size: no hairlines, no more than three tones per icon plus the outline.
+- Keep the complete canvas strictly square with four equally spaced rows and four equally spaced columns, regardless of the landscape shape of the BOARD reference.
+- Reduce each menu icon to one bold compact silhouette with at most three flat tones and its outline; remove cloud flourishes, tassels, decorative frames, grain and small secondary objects.
+- Reuse exactly the same three flat fill colours across the entire menu family, with no per-icon shading ramps or texture colours.

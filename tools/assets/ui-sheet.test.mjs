@@ -288,7 +288,7 @@ test("mirror theo mảnh: spec `mirror: false` giữ nguyên hình (tab hở đ�
 test("ui:prompt --style: mọi loại tờ có khối STYLE + AVOID của hướng, mặc định giữ STYLE cũ", () => {
   for (const id of ["BOARD", "F", "N", "O", "T", "I", "D"]) {
     const k = expandKind(realKit, id), base = buildPrompt(k);
-    assert.match(base, /Ultima Online/);
+    assert.match(base, /isometric fantasy mood/);
     assert.doesNotMatch(base, /AVOID:/);
     for (const style of Object.keys(STYLES)) {
       const p = buildPrompt(k, { style });
