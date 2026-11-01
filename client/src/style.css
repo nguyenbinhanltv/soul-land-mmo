@@ -1401,7 +1401,7 @@ body.touch :is(.cring,.qhead){min-width:0}
 #char .ecell{width:56px;min-height:56px;cursor:default}
 #char .ecell span{font-size:10px;font-family:var(--f10);text-align:center;line-height:1.1}
 #char .emid{position:relative;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);background:radial-gradient(circle,color-mix(in srgb,var(--accent) 18%,transparent),rgba(0,0,0,.2) 70%);min-height:260px}
-#char .emid img{width:96px;height:96px;image-rendering:pixelated;margin-bottom:40px}
+#char .emid>img{width:96px;height:96px;image-rendering:pixelated;margin-bottom:40px}   /* chỉ ảnh hồn sư ở giữa: ảnh trong ô Giáp (.ecell img) không được thừa lề dưới 40 px làm ô cao hơn các ô khác */
 #char .emid .ecell{position:absolute;left:50%;bottom:12px;transform:translateX(-50%)}
 /* tab Hồn hạch: vòng đan điền, 6 ô quanh tâm; ô thuộc bộ đang kích hoạt viền màu bộ */
 #char .cring6{position:relative;width:min(300px,100%);aspect-ratio:1;align-self:center;margin:var(--sp-2) 0}
