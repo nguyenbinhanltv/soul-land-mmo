@@ -225,6 +225,36 @@ GameScene.prototype.create = function(...a) {
   await shot("960x540");
   check(res.small.walk === 0, `960×540 bấm trên Túi không đi: ${JSON.stringify(res.small)}`);
 
+  // 6. Huy hiệu 魂 (#hubBtn) không che nút / đầu bảng ở màn thấp (#1632): mỗi bảng lớn mở, tâm từng phần tử bấm được của bảng
+  // phải trúng chính phần tử đó (không phải 魂); đóng bảng thì 魂 hiện lại. `elementFromPoint` bỏ qua phần tử `visibility:hidden`.
+  await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+  const PANELS = [["char", () => page.keyboard.press("KeyH")], ["bag", () => page.keyboard.press("KeyB")], ["roster", () => page.keyboard.press("KeyV")], ["reso", () => page.keyboard.press("KeyK")], ["mail", () => hubOpen("mail")], ["achv", () => hubOpen("achv")]];
+  res.hubCover = [];
+  for (const fs of [0, 1, 2]) for (const [w, h] of [[640, 360], [960, 540], [1280, 720]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.evaluate((n) => { document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (n) document.body.classList.add(`a11y-fs-${n}`); }, fs);
+    await sleep(300);
+    for (const [id, openIt] of PANELS) {
+      await openIt(); await page.waitForFunction((i) => { const e = document.getElementById(i); return e && !e.hidden && e.getClientRects().length > 0; }, id, { timeout: 5000 });
+      await sleep(150);
+      const st = await page.evaluate((i) => {
+        const root = document.getElementById(i), badge = document.getElementById("hubBtn");
+        const covered = [...root.querySelectorAll("button,[role=button],[role=tab],a[href],input,select,[tabindex]")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== "hidden"; })
+          .filter((e) => { const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2; if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) return false; const top = document.elementFromPoint(x, y); return top === badge; })
+          .map((e) => `${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]} "${(e.textContent || e.getAttribute("aria-label") || "").trim().slice(0, 20)}"`);
+        return { covered, badge: getComputedStyle(badge).visibility };
+      }, id);
+      const tag3 = `${id} ${w}x${h} chữ ${fs}`;
+      res.hubCover.push({ at: tag3, ...st });
+      check(st.covered.length === 0, `魂 che nút của bảng ${tag3}: ${st.covered.join("; ")}`);
+      await page.screenshot({ path: resolve(out, `${tag}-hub-${id}-${w}x${h}-chu${fs}.png`) });
+      await page.keyboard.press("Escape"); await sleep(100);
+      const closed = await page.evaluate((i) => ({ open: !document.getElementById(i).hidden, badge: getComputedStyle(document.getElementById("hubBtn")).visibility }), id);
+      check(!closed.open && closed.badge === "visible", `đóng ${id} thì 魂 hiện lại ${w}x${h} chữ ${fs}: ${JSON.stringify(closed)}`);
+    }
+  }
+  await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2")); await page.setViewportSize({ width: 960, height: 540 }); await sleep(200);
+
   // Hộp xác nhận (confirmDialog, #1270) chặn phím của game: Enter trên Hủy đóng hộp, không gọi onYes / nhảy vào ô chat; phím khác không tới window.
   res.askKeys = await (async () => {
     const r = await page.evaluate(async () => {
