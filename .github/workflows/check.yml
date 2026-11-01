@@ -289,6 +289,11 @@ jobs:
         timeout-minutes: 2
         env:
           HON_KINH_OUTPUT: ${{ runner.temp }}/flow-browser/hon-kinh
+      - run: npm run test:calendar-icon-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 2
+        env:
+          CALENDAR_OUTPUT: ${{ runner.temp }}/flow-browser/calendar-icon
       # Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình (#1601): đo hộp chồng nhau, 4 cỡ màn × 3 cỡ chữ; cùng job.
       - run: npm run test:onboard-cover-browser --prefix client
         if: ${{ !cancelled() }}

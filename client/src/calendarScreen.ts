@@ -4,6 +4,7 @@ import { EVENT_DEFS } from "../../shared/data.ts";
 import { COUNTDOWN_SOON_MS, countdown, screenFrame, mount, addCloseButton, type PNode } from "./uiParts.ts";
 import { mapName } from "./autowalk.ts";
 import { hhmmVn, serverNow, syncServerNow } from "./svClock.ts";
+import { artUrl } from "./uiArt.ts";
 
 export interface CalItem { id: string; name: string; kind: "slot"; s: number; e: number; d: number; map: string; mapName: string; boss: string; note?: string }
 export interface CalFixed { id: string; name: string; kind: "reset" | "always"; at?: string; weekly?: boolean; npc?: string; note?: string }
@@ -52,6 +53,13 @@ export function unseenSoon(items: Pick<CalItem, "id" | "s" | "e">[], now: number
 }
 export const STATE_LABEL: Record<SlotState, string> = { live: "Đang mở", soon: "Sắp mở", past: "Đã qua", later: "" };
 
+/** Chỉ suy loại từ mã server đã gửi; mã lạ giữ nguyên thẻ chữ. */
+export function calendarIconKey(id: string): string | null {
+  const type = id.startsWith("king:") ? "king" : id.startsWith("world:") ? "world" :
+    id === "always:arena" ? "arena" : id === "always:auto" ? "auto" : id === "reset:daily" ? "daily" : id === "reset:tong" ? "weekly" : null;
+  return type ? `gi_calendar_${type}` : null;
+}
+
 // ---- phần DOM ----
 let send: ((type: string, payload: unknown) => void) | null = null;
 let data: CalendarMsg | null = null, week = 0, status: "loading" | "ready" | "error" = "loading", sel: string | null = null;
@@ -97,22 +105,31 @@ const h = (tag: string, cls: string, o: { text?: string; attrs?: Record<string, 
   ({ tag, cls, ...(o.attrs ? { attrs: o.attrs } : {}), ...(o.text !== undefined ? { text: o.text } : {}), ...(o.kids ? { kids: o.kids.filter((k): k is PNode => !!k) } : {}) });
 const slotKey = (it: CalItem) => `${it.id}@${it.s}`;
 
+function eventIcon(id: string): PNode | null {
+  const key = calendarIconKey(id); if (!key) return null;
+  const url = (window.devicePixelRatio < 1.5 && artUrl(`${key}_1x`)) || artUrl(key);
+  return url ? h("img", "cal-icon", { attrs: { src: url, alt: "", "aria-hidden": "true", draggable: "false", width: "24", height: "24" } }) : null;
+}
+const eventName = (id: string, name: string, short = false) => h("span", "cal-heading", { kids: [eventIcon(id), h("span", `cal-name${short ? " cal-short" : ""}`, { text: name })] });
+
 function slotNode(it: CalItem, st: SlotState): PNode {
   const mark = st === "live" ? "▶ " : st === "soon" ? "◔ " : st === "past" ? "■ " : ""; // dấu hình + chữ: không chỉ màu
   const label = `${it.name}, ${slotRange(it)}${STATE_LABEL[st] ? `, ${STATE_LABEL[st]}` : ""}`;
   // đã qua: thu gọn một dòng (giờ + dấu tick) để bảng ngày không dài vô tận; còn lại đủ tên + boss
   return h("button", `cal-slot cal-${st}${sel === slotKey(it) ? " sel" : ""}`, { attrs: { type: "button", "data-k": slotKey(it), "aria-label": label, title: label }, kids: st === "past" ? [
-    h("span", "cal-time", { text: `■ ${hhmmVn(it.s)}` }), h("span", "cal-name cal-short", { text: it.name }),
+    h("span", "cal-time", { text: `■ ${hhmmVn(it.s)}` }), eventName(it.id, it.name, true),
   ] : [
     h("span", "cal-time", { text: slotRange(it) }),
     st !== "later" ? h("span", "cal-tag", { text: mark + STATE_LABEL[st] }) : null,
-    h("span", "cal-name", { text: it.name }),
+    eventName(it.id, it.name),
     it.boss ? h("span", "cal-boss", { text: `Boss: ${it.boss}` }) : null,
   ] });
 }
 
 function render() {
   const root = el(); if (!root || root.hidden) return;
+  const previousGrid = root.querySelector<HTMLElement>(".cal-grid");
+  const previousScroll = previousGrid ? { week: previousGrid.dataset.week, left: previousGrid.scrollLeft, top: previousGrid.scrollTop } : null;
   for (const s of stops) s(); stops = [];
   const f = screenFrame({ material: "giay", title: "Lịch Hoạt Động", badge: "曆", info: "Giờ theo giờ Việt Nam. Lịch chỉ đọc từ luật thời gian của máy chủ; mỗi ngày làm mới lúc 00:00." });
   const now = serverNow(), body: PNode[] = [];
@@ -122,16 +139,17 @@ function render() {
     const d = data, today = todayIndex(now, d.weekStart), cols = byDay(d.items);
     const always = d.fixed.filter((x) => x.kind === "always"), resets = d.fixed.filter((x) => x.kind === "reset");
     body.push(h("div", "cal-fixed", { kids: [h("span", "cal-fixed-l", { text: "Luôn mở:" }), ...always.map((x) => { const g = fixedGoal(x, mapName); return h("span", "cal-chip", { kids: [
+      eventIcon(x.id),
       h("span", "", { text: x.name, attrs: x.note ? { title: x.note } : {} }),
       g ? h("button", "cal-go cal-go-s", { text: "Đến", attrs: { type: "button", "data-map": g.map, "data-npc": g.npc ?? "", "data-mn": g.mapName, "aria-label": `Đến ${x.name} ở ${g.mapName}` } }) : null] }); })] }));
     body.push(h("div", "cal-wk", { kids: [
       h("button", "cal-nav", { text: "◀", attrs: { type: "button", "data-w": "-1", "aria-label": "Tuần trước", ...(week <= -1 ? { disabled: "" } : {}) } }),
       h("span", "cal-wk-l", { text: `${dayDate(d.weekStart, 0)} – ${dayDate(d.weekStart, 6)}${week === 0 ? " · tuần này" : week < 0 ? " · tuần trước" : " · tuần sau"}` }),
       h("button", "cal-nav", { text: "▶", attrs: { type: "button", "data-w": "1", "aria-label": "Tuần sau", ...(week >= 1 ? { disabled: "" } : {}) } }),
-      h("span", "cal-resets", { text: resets.map((r) => `${r.name}: ${r.at ?? "00:00"}${r.weekly ? " thứ Hai" : ""}`).join(" · ") }),
+      h("span", "cal-resets", { kids: resets.map((r) => h("span", "cal-reset", { kids: [eventIcon(r.id), h("span", "", { text: `${r.name}: ${r.at ?? "00:00"}${r.weekly ? " thứ Hai" : ""}` })] })) }),
     ] }));
     if (!d.items.length) body.push(h("div", "cal-msg", { text: "Tuần này chưa có khung giờ." }));
-    else body.push(h("div", "cal-grid", { kids: cols.map((c, i) => h("div", `cal-col${today === i ? " cal-today" : ""}`, { kids: [
+    else body.push(h("div", "cal-grid", { attrs: { "data-week": String(d.weekStart) }, kids: cols.map((c, i) => h("div", `cal-col${today === i ? " cal-today" : ""}`, { kids: [
       h("div", "cal-dh", { kids: [h("span", "cal-dn", { text: DAY_LABELS[i] }), h("span", "cal-dd", { text: dayDate(d.weekStart, i) }), today === i ? h("span", "cal-now", { text: "Hôm nay" }) : null] }),
       ...(c.length ? c.map((it) => slotNode(it, slotState(it, now))) : [h("span", "cal-empty", { text: "—" })]),
     ] })) }));
@@ -147,6 +165,10 @@ function render() {
     }
   }
   const wrap = mount(h("div", "cal-wrap", { kids: body }));
+  for (const img of wrap.querySelectorAll<HTMLImageElement>(".cal-icon")) {
+    img.addEventListener("error", () => { img.hidden = true; }, { once: true });
+    if (img.complete && !img.naturalWidth) img.hidden = true;
+  }
   f.body.append(wrap);
   const cdHost = wrap.querySelector<HTMLElement>(".cal-cd");
   if (cdHost) {
@@ -162,4 +184,11 @@ function render() {
   });
   addCloseButton(f.root, closeCalendar);
   root.replaceChildren(f.root);
+  const grid = root.querySelector<HTMLElement>(".cal-grid"), today = grid?.querySelector<HTMLElement>(".cal-today");
+  if (grid && previousScroll && previousScroll.week === grid.dataset.week) {
+    grid.scrollLeft = previousScroll.left; grid.scrollTop = previousScroll.top;
+  } else if (grid && today) {
+    // Lưới hẹp cuộn ngang: mở đúng cột hôm nay; các lần dựng lại cùng tuần giữ vị trí người chơi đã cuộn.
+    grid.scrollLeft = Math.max(0, today.getBoundingClientRect().left - grid.getBoundingClientRect().left - (grid.clientWidth - today.offsetWidth) / 2);
+  }
 }
