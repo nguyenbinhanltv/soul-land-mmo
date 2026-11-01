@@ -1,0 +1,26 @@
+{
+  "generatedBy": "tools/audio/compose/compose.mjs",
+  "soundfont": "GeneralUser-GS.sf2",
+  "tracks": [
+    {
+      "id": "luyen_hon_canh",
+      "title": "Luyện Hồn Cảnh — Tĩnh tâm luyện hồn",
+      "kind": "map",
+      "maps": [
+        "luyen_hon_canh"
+      ],
+      "loop": true,
+      "seconds": 102.4,
+      "files": {
+        "ogg": {
+          "path": "luyen_hon_canh.ogg",
+          "bytes": 967240
+        },
+        "m4a": {
+          "path": "luyen_hon_canh.m4a",
+          "bytes": 1261427
+        }
+      }
+    }
+  ]
+}

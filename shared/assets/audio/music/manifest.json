@@ -45,8 +45,7 @@
       "title": "Đại Đấu Hồn Trường",
       "kind": "map",
       "maps": [
-        "dai_dau_hon_truong",
-        "luyen_hon_canh"
+        "dai_dau_hon_truong"
       ],
       "loop": true,
       "seconds": 73.143,
@@ -334,6 +333,26 @@
         "m4a": {
           "path": "audio/music/loi_tinh_dau_chien.m4a",
           "bytes": 681756
+        }
+      }
+    },
+    {
+      "id": "luyen_hon_canh",
+      "title": "Luyện Hồn Cảnh — Tĩnh tâm luyện hồn",
+      "kind": "map",
+      "maps": [
+        "luyen_hon_canh"
+      ],
+      "loop": true,
+      "seconds": 102.4,
+      "files": {
+        "ogg": {
+          "path": "audio/music/luyen_hon_canh.ogg",
+          "bytes": 967240
+        },
+        "m4a": {
+          "path": "audio/music/luyen_hon_canh.m4a",
+          "bytes": 1261427
         }
       }
     },
