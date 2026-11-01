@@ -132,6 +132,7 @@ Quy tắc chung ở `GAME_DESIGN.md` mục 5.11 (phong cách B, "Ánh sáng và 
 | Hải Thần Đảo (`hai_than_dao`) | Ngọc lam, vàng | Ngày nắng biển rực; đêm lam ngọc, sóng phát quang | Gió biển; mưa ở Ma Quỷ Hải Vực | Bọt sóng, đom đóm biển | San hô, đá ngầm, cát vàng, đền Hải Thần (lưu ly) |
 | Lõi Tinh Đấu (`loi_tinh_dau`) | Tím than, lam hồ thần | Luôn đêm, hồ phát sáng | Sương mù | Hạt hồn lực trôi lên | Hồ trung tâm, đá cổ, rễ khổng lồ |
 | Đại Đấu Hồn Trường (`dai_dau_hon_truong`) | Đá xám, vàng kim, đỏ son | Luôn sáng đuốc | Quang | Bụi cát; giấy hoa khi có người thắng | Sàn đấu, khán đài, cờ, khán đài vua (lưu ly) |
+| Luyện Hồn Cảnh (`luyen_hon_canh`) | Xám lam, vàng nhạt | Sảnh đá kín | Quang | Linh khí, tàn sáng rất thưa (`calm`: tắt khi Thấp / Giảm chuyển động, nửa ở Vừa) | Sảnh đá, dấu sóng, dấu tinh anh |
 
 ## Vùng chiêu
 Client chiếu từng điểm của hình server gửi (`client/src/iso.ts`): vòng tròn bán kính r thành elip bán trục `√2·r` × `r/√2` (`fillGround` / `strokeGround`, `RX` / `RY`); vệt, nón, cung chém (`arcPts`) thành đa giác chiếu (`ptsToScreen`). Cùng các hàm cho vùng báo trước, vùng chiêu, sóng, vùng an toàn, cổng.
