@@ -1,6 +1,6 @@
 // Miền xã hội: chat, bạn bè / chặn, tổ đội (GAME_DESIGN.md mục 4 "Lệnh chat", 5.9), tách khỏi MapRoom.ts (#702, bước 4).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / bones.ts; nguyên văn từ MapRoom, không đổi hành vi. MapRoom chỉ chuyển tiếp (đăng ký `onMessage` giữ
-// nguyên ở đó; ArenaRoom vẫn override `partyAction`). Bước 24: phần phát / nhận presence (`friendAfter` / `friendPublish` / `friendNote` / `sendFriends`, `partyPublish` / `partyNote` / `sendParty`, `rallyAction` / `rallyNote`) cũng ở đây, MapRoom chỉ chuyển tiếp.
+// nguyên ở đó; ArenaRoom vẫn override `partyAction`). Bước 24: phần phát / nhận presence (`friendAfter` / `friendPublish` / `friendNote` / `sendFriends`, `partyPublish` / `partyNote` / `sendParty`, `rallyAction` / `rallyNote`) cũng ở đây, MapRoom chỉ chuyển tiếp. Đợt E5a: `chatTong` / `partyNear` cũng ở đây, MapRoom chuyển tiếp.
 import { WORLD_CHAT, tongDef, PARTY_XP_RANGE, MAPS, RALLY, TILE } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import { chatCheck, chatText, worldWait, worldMark, rallyCheck, inviteCheck, friendCheck, friendNoteOk } from "../ratelimit.ts";

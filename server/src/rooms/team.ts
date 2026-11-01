@@ -1,6 +1,6 @@
 // Cộng minh, võ hồn sở hữu và đội hình (GAME_DESIGN.md mục 5.1, 5.10): tính tiến độ cộng minh (resCheck / sendRes / resonanceTop), tin riêng "vohons" / "squad", xếp đội hình, đổi võ hồn, cho võ hồn ra trận, lưu đội hình; tách khỏi MapRoom.ts (#702, bước 12).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / bag.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`.
-// MapRoom chỉ chuyển tiếp (onMessage, tick, autoHunt.ts, gm.ts, các miền khác gọi `room.resCheck` / `room.activate` / `room.sendVohons` như cũ); `ArenaRoom` vẫn override `switchSlot`.
+// MapRoom chỉ chuyển tiếp (onMessage, tick, autoHunt.ts, gm.ts, các miền khác gọi `room.resCheck` / `room.activate` / `room.sendVohons` như cũ); `ArenaRoom` vẫn override `switchSlot`. Đợt E5a: `showVohon` (hàm thuần) / `syncCh` cũng ở đây, MapRoom chuyển tiếp.
 
 import type { Client } from "colyseus";
 import { store, type Character } from "../db.ts";
