@@ -6,7 +6,7 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 
 ## Nguồn ảnh được phép (hiện hành)
 
-Bảy icon Hub (#1580, PR nháp #1585): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; tham chiếu duy nhất tờ menu đã duyệt `art/src/ui-kit/toI-2.png`. RAW nguyên byte native 1254×1254, prompt thật, SHA256 và ánh xạ bảy ô ở `art/src/ui-kit/hub-1580/NGUON.md`, `nguon.json`. Điều khoản đầu ra OpenAI, không CC0. **Chờ chủ repo duyệt mỹ thuật**, chưa nhập `shared/assets` hoặc nối Hub; chín ô cuối chỉ đối chiếu phong cách.
+Bảy icon Hub (#1580, PR nháp #1585): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; tham chiếu duy nhất tờ menu đã duyệt `art/src/ui-kit/toI-2.png`. RAW nguyên byte native 1254×1254, prompt thật, SHA256 và ánh xạ bảy ô ở `art/src/ui-kit/hub-1580/NGUON.md`, `nguon.json`. Điều khoản đầu ra OpenAI, không CC0. **Chủ repo đã duyệt cả 7 mẫu**, đã nhập `gi_menu_{achv,welfare,bicanh,mail,calendar,guide,notice}` và bản `_1x` 24px bằng `menu-icon-import.mjs`, nối Hub sau #1587; chín ô cuối chỉ đối chiếu phong cách.
 
 Đèn/tua `cot_den_do` (#1537): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; chỉ tham chiếu ảnh Gemini cũ của game. RAW nguyên byte, prompt, kích thước native và SHA256 ở `art/src/prop-clip/cot_den_do/NGUON.md`, `nguon.json`. Đầu ra OpenAI, không CC0; cột/tay treo/chân giữ nguyên nguồn cũ.
 

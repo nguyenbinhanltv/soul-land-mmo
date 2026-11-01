@@ -1,7 +1,7 @@
 import { artUrl } from "./uiArt.ts";
 import { pingOnline } from "./pingMeter.ts";
 
-export const MENU_ICON_KEYS = ["char", "roster", "bag", "reso", "settings", "auto", "channel", "area", "world", "friends", "rank", "quest", "chat", "arena", "shop", "forge"].map((key) => `gi_menu_${key}`);
+export const MENU_ICON_KEYS = ["char", "roster", "bag", "reso", "settings", "auto", "channel", "area", "world", "friends", "rank", "quest", "chat", "arena", "shop", "forge", "achv", "welfare", "bicanh", "mail", "calendar", "guide", "notice"].map((key) => `gi_menu_${key}`);
 const MENU: Record<string, string> = { autoChip: "auto", chanBtn: "channel", worldBtn: "world" };
 
 /** URL icon menu: bản 1× (24 px) khi DPR < 1.5, không có thì bản 2×; thiếu manifest thì null. */

@@ -45619,6 +45619,20 @@
       "iso": true
     },
     { "key": "gi_menu_forge_1x", "iso": true },
+    { "key": "gi_menu_notice", "iso": true },
+    { "key": "gi_menu_notice_1x", "iso": true },
+    { "key": "gi_menu_guide", "iso": true },
+    { "key": "gi_menu_guide_1x", "iso": true },
+    { "key": "gi_menu_calendar", "iso": true },
+    { "key": "gi_menu_calendar_1x", "iso": true },
+    { "key": "gi_menu_mail", "iso": true },
+    { "key": "gi_menu_mail_1x", "iso": true },
+    { "key": "gi_menu_bicanh", "iso": true },
+    { "key": "gi_menu_bicanh_1x", "iso": true },
+    { "key": "gi_menu_welfare", "iso": true },
+    { "key": "gi_menu_welfare_1x", "iso": true },
+    { "key": "gi_menu_achv", "iso": true },
+    { "key": "gi_menu_achv_1x", "iso": true },
     {
       "key": "item_hon_hach_phuong_hoang",
       "iso": true
