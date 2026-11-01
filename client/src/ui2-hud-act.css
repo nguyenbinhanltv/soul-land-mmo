@@ -3,8 +3,8 @@
    Nhóm Hồn cốt / Hồn kỹ / Vật phẩm cách nhau bằng khoảng trống + vạch dọc (không nhãn). Tên kỹ năng nằm ở chú thích (tooltip.ts: rê chuột / chạm giữ).
    Hàng đội hình: avatar tròn + số cấp + thanh sinh lực mỏng, không tên; ô ra trận có viền sáng. Khung ô do lớp `f2-o` (ui2-hud.css) lo. */
 
-#hud #actbar{gap:var(--sp-3);flex-shrink:0}
-#hud #actrow{display:flex;align-items:flex-end;gap:0}
+#hud #actbar{gap:var(--sp-3);flex:0 1 auto;min-width:0;max-width:100%}   /* co theo chỗ còn lại cạnh khung chat (#1647), không còn rộng cố định 616 px */
+#hud #actrow{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:flex-end;gap:var(--sp-3) 0;max-width:100%}   /* cửa sổ 641–912 px: các nhóm xuống hàng thay vì tràn khỏi màn mất nút Túi */
 #hud #actrow .action-group{display:flex}
 #hud #actrow .action-group+.action-group{margin-left:var(--sp-5);padding-left:var(--sp-5);border-left:var(--bd) solid var(--paper3)}
 #hud #actbar :is(#skills,#bskills,#itemActions){display:flex;flex-direction:row;flex-wrap:nowrap;gap:var(--sp-2);width:auto}
@@ -69,7 +69,7 @@
    ⋯ mở hàng phụ phía trên cụm: R Chân Thân, G Dung hợp, Z / X / C hồn cốt. Đội hình thu thành 4 chip dọc bên trái cụm. Mọi nút ≥ 44 px, không đè cần điều khiển
    (trái dưới) hay giữa màn. Dùng :is(.touch,.ui-w640) trong mọi luật để thắng độ ưu tiên của luật desktop ở trên. */
 body:is(.touch,.ui-w640) #hud #actbar{position:absolute;right:0;bottom:calc(var(--sp-3) - 4px);width:200px;height:164px;gap:0}
-body:is(.touch,.ui-w640) #hud #actrow{position:absolute;inset:0;display:block;max-width:none}
+body:is(.touch,.ui-w640) #hud #actrow{position:absolute;inset:0;display:block;max-width:none;flex-wrap:nowrap}
 body:is(.touch,.ui-w640) #hud #actrow :is(.action-group,#skills,#bskills,#itemActions){display:contents}
 body:is(.touch,.ui-w640) #hud #actrow .action-group+.action-group{margin:0;padding:0;border:0}
 body:is(.touch,.ui-w640) #hud #actbar .sk.ui-cell.f2-o{position:absolute;width:44px;height:44px}
