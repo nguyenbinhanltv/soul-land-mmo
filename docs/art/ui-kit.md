@@ -299,7 +299,7 @@ Tờ `toI-manh.png` là họ I riêng: **một hàng ba khung** SR / SSR / UR, �
 
 Kiểm bằng `npm run ui:check -- art/src/ui-kit/toI-manh.png --family manh --soft --out <thư mục ngoài repo>`. Kết quả: không còn chặn; nhẹ vì khoảng cách dưới 5% và viền hồng đã bù từ 56,2% về 0%. Cắt bằng `node tools/assets/manh-sheet.mjs cut art/src/ui-kit/toI-manh.png`, rồi `node tools/assets/manh-compose.mjs` ghép lại 25 icon. Mẫu năm sắc 32×32 giữ alpha / mảng giấy từ ảnh model, sắc đồng được đổi theo `col`; icon chỉ hiện trong ruột Mực, không đè nét khung. `test:assets` kiểm cắt lại RAW và ghép lại đúng dữ liệu.
 
-- Icon 16 menu: đã chọn bộ AI và nhập (#884); checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
+- Icon 23 menu: bộ AI 16 mẫu (#884) và 7 mẫu Hub đã được chủ repo duyệt (#1580); `menu-icon-import.mjs` tái tạo cả hai tờ, kiểm SHA256 nguồn Hub, đăng ký bản 32px/24px. Checkbox / slider / scrollbar từ gói CC0, tuỳ chọn (#888).
 - Đợt 5c (#886) đã gỡ cờ `ui2` / `isUi2()` / `?ui=` / `shh-ui2` (5c-a) và `body.ui2` (5c-b); còn gỡ luật cũ khỏi `style.css` (5b): `ROADMAP.md`.
 
 Trạng thái thật ở các issue.

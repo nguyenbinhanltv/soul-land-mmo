@@ -16,6 +16,8 @@ const ASPECT = { "3:2": ["landscape 3:2 aspect ratio", "3:2, ra 1536×1024"], "2
 
 const BACKGROUND = "BACKGROUND: one flat solid #FF00FF magenta, no gradient, no texture, no ground, no cast shadow, no glow, no vignette, no frame or border around the image.";
 const STYLE = "STYLE: pixel-art game interface in an isometric Ultima Online mood mixed with Chinese ink-wash xianxia (Douluo Dalu setting); sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.";
+// Họ Hub mới không dùng tên game thương mại; giữ prompt lịch sử của các tờ đã nhập.
+const HUB_STYLE = "STYLE: pixel-art game interface with an isometric fantasy mood mixed with Chinese ink-wash xianxia; sharp pixel edges, palette of at most 32 colours, one thick consistent dark outline (#1a1020), pale bronze rim, no blur, no large gradients.";
 /** Hướng nghệ thuật tu tiên (NHÁP CHỜ DUYỆT, docs/art/ui-kit.md mục "Hướng nghệ thuật tu tiên"): khối STYLE + AVOID theo hướng; mặc định (không --style) giữ nguyên STYLE cũ (hướng B). */
 const COMMON_TX = "pixel-art game interface for a xianxia cultivation MMO (Douluo Dalu setting), sharp pixel edges, palette of at most 32 colours, one consistent dark outline (#1a1020), no blur, no large gradients. Restraint: generous empty space (liu bai), ornament only at the corners, the middle of each side and clasp points, the straight sides stay flat. Exactly one lit accent per piece or screen (spirit power); everything else recedes into dark. Rank by light, never by loud colour: stone grey, jade green, ice blue, violet with gold veins, gold with vermilion qi. At most 3 accent colours.";
 const COMMON_AVOID = "long decorative lettering, plastic gradient drop shadows, double or triple borders, oversaturated glaring colours, cartoon-style icons, copying the artwork or symbols of another game";
@@ -132,7 +134,7 @@ function piecesBlock(kind, layout, material) {
 
 /** Prompt tiếng Anh cho model. */
 export function buildPrompt(kind, o = {}) {
-  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [aspect] = ASPECT[shape], mat = materialOf(o), bd = o.style ? STYLES[o.style].board : { ink: "near-black wood, ink-wash grain, pale bronze rim", paper: "ivory rice paper, thin vermilion rim, wooden roller", rim: "bronze rim" }, selectedLessons = o.lessons ?? lessonsFor(kind.id), lessons = lessonsBlock(kind.id, o.style ? selectedLessons.filter((l) => !OLD_MATERIAL.test(l.text)) : selectedLessons);
+  const shape = o.shape ?? (kind.board ? "3:2" : kind.shapes[0]), [aspect] = ASPECT[shape], mat = materialOf(o), bd = o.style ? STYLES[o.style].board : { ink: "near-black wood, ink-wash grain, pale bronze rim", paper: "ivory rice paper, thin vermilion rim, wooden roller", rim: "bronze rim" }, selectedLessons = o.lessons ?? lessonsFor(kind.id, undefined, o.family), lessons = lessonsBlock(kind.id, o.style ? selectedLessons.filter((l) => !OLD_MATERIAL.test(l.text)) : selectedLessons);
   if (kind.board) {
     if (o.style === "hon-quang") {
       // BOARD v3 có bố cục và nền riêng; không kéo bài học tờ cắt / BOARD cũ vào.
@@ -159,7 +161,7 @@ Outside the screen the background is one flat solid colour. Behind the panels hi
 LAYOUT: ${layout.length} rows, ${rows}; read left to right, top to bottom, in exactly this order:
 ${piecesBlock(kind, layout, o.material ?? "muc")}
 ${kind.stretch ? "Each frame-like piece must stretch cleanly: ornament only at the four corners and the middle of each side, the straight sides are a flat one or two colour band, the inside is a flat uniform fill.\n" : ""}${BACKGROUND}
-${styleBlock(o.style)}${mate}
+${o.family === "hub" ? HUB_STYLE : styleBlock(o.style)}${mate}
 DO NOT DRAW: text, numbers, letters, logos, labels, glow, drop shadow, particles, characters, hands, extra pieces, a border around the sheet.${lessons}`;
 }
 
