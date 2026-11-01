@@ -65,7 +65,7 @@ export function parseSaved(raw: string | null, n = OB_STEPS.length): ObSaved | n
 const shown = (e: Element | null): e is HTMLElement => !!e && !(e as HTMLElement).hidden && (e as HTMLElement).getClientRects().length > 0;
 /** Bộ chọn đầu tiên trong danh sách đang hiện, hoặc null. */
 export const firstShown = (sels: readonly string[], root: ParentNode = document): HTMLElement | null => {
-  for (const s of sels) { const e = root.querySelector(s); if (shown(e)) return e; }
+  for (const s of sels) for (const e of root.querySelectorAll(s)) if (shown(e)) return e; // mọi phần tử khớp, không chỉ cái đầu tiên (#1631: .ui2-screen có nhiều bảng)
   return null;
 };
 
@@ -143,8 +143,8 @@ function tick() {
   if (!running) return;
   const s = OB_STEPS[step];
   if (!reviewing && s.open && firstShown(s.open)) return advance();
-  place(firstShown(s.target));
   syncCover();
+  place(card?.dataset.cover === "1" ? null : firstShown(s.target)); // bảng lớn đang mở thì không vẽ vòng sáng đè lên bảng (#1631)
   if (!reviewing && s.tap) {
     const e = document.querySelector<HTMLElement>(s.tap);
     if (e && e !== tapEl) { tapEl?.removeEventListener("pointerdown", onTap); tapEl = e; e.addEventListener("pointerdown", onTap); }
