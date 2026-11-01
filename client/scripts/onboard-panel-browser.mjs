@@ -79,10 +79,12 @@ try {
       await page.locator(`#${p.id}:not([hidden])`).waitFor();
       await sleep(400);
       const panel = await page.locator(`#${p.id}`).boundingBox();
-      const shown = await card.isVisible(), box = shown ? await card.boundingBox() : null;
+      const shown = await card.isVisible(), fold = await card.getAttribute("data-fold"), box = shown ? await card.boundingBox() : null;
       const area = box ? inter(box, panel) : 0;
-      report.push({ size: `${width}x${height}`, panel: p.id, card: shown ? "hiện" : "ẩn", cardBox: box && [box.x, box.y, box.width, box.height].map(Math.round), panelBox: [panel.x, panel.y, panel.width, panel.height].map(Math.round), overlapPx2: area });
+      report.push({ size: `${width}x${height}`, panel: p.id, card: shown ? "hiện" : "ẩn", fold, cardBox: box && [box.x, box.y, box.width, box.height].map(Math.round), panelBox: [panel.x, panel.y, panel.width, panel.height].map(Math.round), overlapPx2: area });
       await page.screenshot({ path: resolve(out, `${label}-${width}x${height}-${p.id}.png`) });
+      if (!soft) assert.equal(fold === "bar", shown, `${width}x${height} ${p.id}: data-fold khớp hiển thị`);
+      if (!soft && height === 720) assert.ok(shown, `${width}x${height} ${p.id}: còn chỗ nên thanh một dòng phải hiện`);
       if (!soft) assert.equal(area, 0, `${width}x${height} ${p.id}: thẻ Làm quen chồng lên bảng ${area} px²`);
       await p.close();
       await sleep(200);

@@ -21,12 +21,12 @@
 
 /* Bảng toàn màn đang mở (onboard.ts fit): thẻ thu về một dòng sát đáy (chỉ tiêu đề + hai nút, bước và nút vẫn đọc / bấm được bằng chuột, chạm, bàn phím);
    không còn chỗ trống ngoài bảng thì ẩn tạm, đóng bảng là hiện đủ lại. Đặt sau luật (1) và cao hơn luật màn thấp ở cuối file nhờ #hud > . */
-#hud > #onboard[data-fold="bar"]{bottom:var(--sp-3);width:min(560px,calc(100% - 2 * var(--sp-5)));min-width:0;max-height:none;overflow:visible;padding:var(--sp-2) var(--sp-4);align-items:center}
-#hud > #onboard[data-fold="bar"] :is(p,.ob-dots){display:none}
-#hud > #onboard[data-fold="bar"] .ob-head{justify-content:flex-start}
-#hud > #onboard[data-fold="bar"] h4{margin:0}
-#hud > #onboard[data-fold="bar"] .ob-foot{flex-direction:row}
-#hud > #onboard[data-fold="hide"]{display:none}
+#hud > #onboard:is([data-fold="bar"],[data-fold="hide"]){bottom:var(--sp-3);width:min(560px,calc(100% - 2 * var(--sp-5)));min-width:0;max-height:none;overflow:visible;padding:var(--sp-2) var(--sp-4);align-items:center}
+#hud > #onboard:is([data-fold="bar"],[data-fold="hide"]) :is(p,.ob-dots){display:none}
+#hud > #onboard:is([data-fold="bar"],[data-fold="hide"]) .ob-head{justify-content:flex-start}
+#hud > #onboard:is([data-fold="bar"],[data-fold="hide"]) h4{margin:0}
+#hud > #onboard:is([data-fold="bar"],[data-fold="hide"]) .ob-foot{flex-direction:row}
+#hud > #onboard[data-fold="hide"]{visibility:hidden}   /* không nhận chuột / phím / đọc màn hình, đóng bảng là hiện lại */
 
 /* (2) Vòng sáng + mũi nhấn bám theo nút cần bấm (onboard.ts đặt left / top / width / height theo nút). Mũi nhấn là ▼ nằm trên nút (hoặc ▲ dưới nút khi sát mép trên). */
 #obSpot{position:absolute;z-index:6;pointer-events:none;box-sizing:border-box}

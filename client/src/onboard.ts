@@ -127,9 +127,10 @@ function fit() {
   const panels = card.dataset.mode === "step" && !card.dataset.dock
     ? OB_PANELS.flatMap((sel) => [...document.querySelectorAll<HTMLElement>(sel)].filter((e) => shown(e))) : [];
   if (!panels.length) { delete card.dataset.fold; return; }
-  card.dataset.fold = "bar";
-  const bar = card.getBoundingClientRect();
-  if (panels.some((e) => boxesOverlap(bar, e.getBoundingClientRect()))) card.dataset.fold = "hide";
+  // "hide" giữ nguyên hình học của thanh (chỉ visibility:hidden), nên đo được mà không bật / tắt hiển thị mỗi nhịp.
+  if (!card.dataset.fold) card.dataset.fold = "bar";
+  const bar = card.getBoundingClientRect(), next = panels.some((e) => boxesOverlap(bar, e.getBoundingClientRect())) ? "hide" : "bar";
+  if (card.dataset.fold !== next) card.dataset.fold = next;
 }
 
 function paint() {
