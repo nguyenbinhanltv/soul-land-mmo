@@ -8,8 +8,6 @@ import { TICK_RATE,
   MAPS, parseNewLooks, encodeLpc,
   TILE,
   formatHonTe, type ItemDef,
-
-
   type CoreData,
   type CoreStat, type EquipData,
   loadoutOf, type BondKey, type SkillDef, type StatusApply, type BuffId,
@@ -687,19 +685,24 @@ export class MapRoom extends Room<MapState> {
 
 
 
-  /** Thêm hồn hoàn / hồn cốt / hồn hạch / trang bị vào túi và phần trang bị của rương: logic ở `bag.ts` (`addRing` / `addBone` / `addCore` / `addEquip`) và `loot.ts` (`equipRng` / `chestEquip`) (#702, E6b), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  /** Thêm hồn hoàn / hồn cốt / hồn hạch / trang bị vào túi (không tự gửi tin `bag`): logic ở `bag.ts` (#702, E6b), các hàm dưới chỉ chuyển tiếp. */
   addRing(d: PData, years: number) { return bag.addRing(d, years); }
 
+  /** Thêm một hồn cốt (loài, vị trí) vào túi; túi đầy thì `null`; logic ở `bag.ts` (#702, E6b). */
   addBone(d: PData, years: number, beast: string, slot: string) { return bag.addBone(d, years, beast, slot); }
 
+  /** Thêm một hồn hạch vào túi; túi đầy thì `null`; logic ở `bag.ts` (#702, E6b). */
   addCore(d: PData, stars: number, data: CoreData) { return bag.addCore(d, stars, data); }
 
+  /** Thêm một món trang bị vào túi; túi đầy thì `null`, trừ `force` (ô tạm vượt túi, như rương); logic ở `bag.ts` (#702, E6b). */
   addEquip(d: PData, data: EquipData, force = false) { return bag.addEquip(d, data, force); }
 
+  /** RNG cho rơi trang bị của `d` (hook test `edrop` đặt RNG có hạt, thường là `Math.random`); logic ở `loot.ts` (#702, E6b). */
   equipRng(d: PData) { return loot.equipRng(d); }
 
   rollEquipGround(id: string, owner: string, rank: number, x: number, y: number, why?: string) { loot.rollEquipGround(this, id, owner, rank, x, y, why); }
 
+  /** Phần trang bị của rương thú vương / boss thế giới (tung `rollEquipDrop` rồi `rollEquipCharm` cùng một RNG); logic ở `loot.ts` (#702, E6b). */
   chestEquip(d: PData, rank: number, mapId: string, got: string[]) { return loot.chestEquip(this, d, rank, mapId, got); }
 
   /** Tên một ô để báo trong log: "Hồn hoàn 437 năm", "3 Hồi Huyết Đan", "hồn cốt Ám Kim Khủng Trảo Hùng – Tay phải, 32.000 năm". */
@@ -1019,7 +1022,7 @@ export class MapRoom extends Room<MapState> {
   /** Tổng số mảnh mã `code` trong túi (mọi ô). */
   shardCount(d: PData, code: string) { return shardCount(d.bag, code); }
 
-  /** Mảnh võ hồn trong túi (bớt mảnh, chú thích tiến độ): logic ở `bag.ts` (#702, E6a), hàm dưới chỉ chuyển tiếp (E6b còn `addRing` / `addBone` / `addCore` / `addEquip` / `equipRng` / `chestEquip`). */
+  /** Mảnh võ hồn trong túi (bớt mảnh, chú thích tiến độ): logic ở `bag.ts` (#702, E6a), hàm dưới chỉ chuyển tiếp. */
   takeShards(d: PData, code: string, n: number) { return bag.takeShards(this, d, code, n); }
 
   /** Chú thích tiến độ sau khi nhận mảnh: logic ở `bag.ts` (#702, E6a), chuyển tiếp. */
