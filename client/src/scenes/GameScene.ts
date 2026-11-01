@@ -961,7 +961,7 @@ export class GameScene extends Phaser.Scene {
     const end = (e: PointerEvent) => { if (e.pointerId !== jid) return; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = ""; };
     joyEl.addEventListener("pointerup", end, on); joyEl.addEventListener("pointercancel", end, on);
     // Ngăn xếp bảng (U1 #754): Esc đóng bảng trên cùng, bấm vào bảng nâng lên; mở bảng thì nhả phím đang giữ và dừng cần điều khiển.
-    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g), (n) => setBadge("calendar", n ? "new" : null, n)); watchCalendar(this.ac.signal); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
+    bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g), (n) => setBadge("calendar", n ? "new" : null, n)); watchCalendar(this.ac.signal, this.isArena); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
     bindBiCanh((type, payload) => this.room.send(type, payload), (has) => setBadge("bicanh", has ? "new" : null)); // chấm đỏ "còn lượt" (kho badges)
     bindBiCanhRoom(() => this.onBack(), () => this.onBack());
     bindAchv((type, payload) => this.room.send(type, payload), (n) => setBadge("achv", n ? "new" : null, n)); // chấm đỏ "có thành tựu nhận được" (kho badges)
