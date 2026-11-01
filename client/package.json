@@ -10,6 +10,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "bot": "node scripts/bot-test.mjs",
+    "test:c16": "node --test scripts/c16-contrast-test.mjs scripts/c16-runtime-test.mjs",
     "test:viloi": "node --experimental-strip-types scripts/viloi-test.mjs",
     "test:contextcursor": "node --experimental-strip-types scripts/contextcursor-test.mjs",
     "test:predict": "node scripts/predict-test.mjs",
