@@ -52,7 +52,7 @@ export interface RosterActions {
  * kế tiếp (x/STAR_COST), nút Mở / Lên sao (server kiểm tra lại số mảnh).
  */
 export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<string, number>, items: BagItem[] = []) {
-  const el = $("#roster"); el.innerHTML = "";
+  const el = $("#roster"), keepTop = el.querySelector(".rbody")?.scrollTop ?? 0; el.innerHTML = "";
   el.classList.add("f2-muc-lon");
   const members = data.team.filter((r) => r > 0).length;
   const head = document.createElement("div"); head.className = "rhead";
@@ -132,7 +132,7 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   }
   const note = document.createElement("small"); note.className = "rnote";
   note.textContent = `Chỉ xếp đội khi không giao chiến và không hấp thụ. Trong trận nhấn 1–${TEAM_SIZE} (hoặc chạm ô đội hình) để đổi võ hồn. Phím V để mở/đóng.`;
-  if (doi) { foldNote(note); el.appendChild(note); }
+  if (doi) { foldNote(note, "roster"); el.appendChild(note); }
   rosterAgain = () => renderRoster(data, act, shards, items);
   if (showTab("ky")) renderLoadout(el, data, act, rosterAgain);
   if (showTab("bone")) renderBones(el, data, act, items, rosterAgain);
@@ -140,7 +140,7 @@ export function renderRoster(data: OwnedVohons, act: RosterActions, shards: Map<
   if (showTab("manh")) renderShards(el, data, act, shards);
   // #1602: nội dung cuộn trong `.rbody`, tab dưới nằm ngoài vùng cuộn (không đè dòng cuối).
   const body = document.createElement("div"); body.className = "rbody"; body.append(...el.children);
-  el.append(body, rosterTabs(members, rosterAgain));
+  el.append(body, rosterTabs(members, rosterAgain)); body.scrollTop = keepTop; // vẽ lại (chọn thẻ, tin server) giữ nguyên chỗ đang cuộn
 }
 
 /** Tab dưới của bảng (UI v2): 5 mục, mục đang xem có vạch dưới chân; cuộn về đầu khi đổi mục. Chỉ đổi cách hiện, không gửi gì lên server. */

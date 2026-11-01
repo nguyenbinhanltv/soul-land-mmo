@@ -184,7 +184,7 @@ GameScene.prototype.create = function(...a) {
     fit.push({ width, height, fs, sort: sortM, bagNote: noteM, rosterNote: rosM });
     check(sortM.inside && sortM.clear, `ô Xếp trọn trong bảng và bấm được (${tag2}): ${JSON.stringify(sortM)}`);
     check(!noteM.textCut && noteM.inside && noteM.clear, `chân Túi đọc đủ (${tag2}): ${JSON.stringify(noteM)}`);
-    check(rosM.missing || (!rosM.textCut && rosM.inside && rosM.clear && rosM.strip === 0), `chân Đội hình đọc đủ, không bị tab đè (${tag2}): ${JSON.stringify(rosM)}`);
+    check(!rosM.missing && (!rosM.textCut && rosM.inside && rosM.clear && rosM.strip === 0), `chân Đội hình đọc đủ, không bị tab đè (${tag2}): ${JSON.stringify(rosM)}`);
   }
   // Bấm thật (chuột): ô Xếp nhận chuột ở 960×540 chữ lớn; "Xem thêm" mở / thu gọn chân Túi.
   await page.setViewportSize({ width: 960, height: 540 });

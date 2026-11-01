@@ -433,10 +433,12 @@ export function lockWhy(b: HTMLButtonElement, reason: string | null | undefined)
   return w;
 }
 
-/** Chân bảng dài (#1602): thu về 2 dòng kèm nút "Xem thêm" / "Thu gọn"; không đổi chữ, chuột và chạm như nhau. Gọi sau khi đã gán `textContent`. */
-export function foldNote(note: HTMLElement) {
+const noteOpen = new Set<string>(); // chân đang mở "Xem thêm" (bảng vẽ lại thì giữ nguyên trạng thái)
+/** Chân bảng dài (#1602): thu về 2 dòng kèm nút "Xem thêm" / "Thu gọn"; không đổi chữ, chuột và chạm như nhau. Gọi sau khi đã gán `textContent`; `key` nhớ trạng thái mở qua các lần vẽ lại. */
+export function foldNote(note: HTMLElement, key: string) {
   const text = document.createElement("span"); text.className = "rn-t"; text.textContent = note.textContent;
-  const more = document.createElement("button"); more.type = "button"; more.className = "rn-more"; more.textContent = "Xem thêm"; more.setAttribute("aria-expanded", "false");
-  more.addEventListener("click", () => { const open = note.classList.toggle("open"); more.setAttribute("aria-expanded", String(open)); more.textContent = open ? "Thu gọn" : "Xem thêm"; more.blur(); });
-  note.classList.add("fold"); note.replaceChildren(text, more);
+  const more = document.createElement("button"); more.type = "button"; more.className = "rn-more";
+  const show = (open: boolean) => { note.classList.toggle("open", open); more.setAttribute("aria-expanded", String(open)); more.textContent = open ? "Thu gọn" : "Xem thêm"; };
+  more.addEventListener("click", () => { const open = !note.classList.contains("open"); if (open) noteOpen.add(key); else noteOpen.delete(key); show(open); more.blur(); });
+  note.classList.add("fold"); note.replaceChildren(text, more); show(noteOpen.has(key));
 }
