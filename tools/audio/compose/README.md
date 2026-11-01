@@ -35,14 +35,12 @@ thêm bài (hoặc thêm mã bản đồ vào `maps` của một bài có sẵn)
 
 ## Bộ tiếng (soundfont)
 
-### Ứng viên Luyện Hồn Cảnh (#1553)
+### Luyện Hồn Cảnh (#1553)
 
-`candidates/luyen_hon_canh.mjs` là một bài riêng đang chờ chủ repo nghe A/B, chưa nằm trong `songs/index.mjs`.
-Render bằng `node compose.mjs --candidate --soundfont <GeneralUser-GS.sf2> --extra-soundfont <DSK-Asian-DreamZ.SF2> --out <thư-mục-nghe-thử>`.
-Chế độ này chỉ render ứng viên và từ chối đầu ra trong `shared/assets`; không thay manifest đang chạy.
-File nghe thử được giữ ở `art/src/audio/luyen_hon_canh/`; nguồn và SHA256 ở `NGUON.md` cùng thư mục.
-Sau khi chủ repo duyệt, việc gán bài chỉ được chuyển `luyen_hon_canh`; Đại Đấu Hồn Trường giữ bài hiện tại.
-Đây là bước nghe thử, không thêm lớp giao chiến hay thay bộ phát, gió, mute, slider, cache hoặc mờ chéo.
+`songs/luyen_hon_canh.mjs` là bài riêng đã được chủ repo nghe A/B và duyệt, chỉ gán cho `luyen_hon_canh`.
+Render bằng `node compose.mjs --song luyen_hon_canh --soundfont <GeneralUser-GS.sf2> --extra-soundfont <DSK-Asian-DreamZ.SF2>`.
+Runtime giữ nguyên byte bản RAW đã duyệt trong `art/src/audio/luyen_hon_canh/`; nguồn và SHA256 ở `NGUON.md` cùng thư mục.
+Đại Đấu Hồn Trường giữ bài và lớp giao chiến hiện tại; không thêm lớp giao chiến cho bài mới.
 
 Không nằm trong repo, tải riêng: **GeneralUser GS** v2.0.3 của S. Christian Collins, <https://github.com/mrbumpy409/GeneralUser-GS>
 (`GeneralUser-GS.sf2`, commit `684543d`, SHA-256 `9575028c7a1f589f5770fccc8cff2734566af40cd26ed836944e9a5152688cfe`).

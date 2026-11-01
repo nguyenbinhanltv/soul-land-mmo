@@ -1,4 +1,4 @@
-// Luyện Hồn Cảnh — Tĩnh tâm luyện hồn (#1553): ứng viên chờ chủ repo nghe A/B.
+// Luyện Hồn Cảnh — Tĩnh tâm luyện hồn (#1553): chủ repo đã nghe A/B và duyệt nhập runtime.
 // La điệu Vũ (A C D E G), 75 BPM, 32 ô 4/4 = 102,4 giây, 4.515.840 mẫu.
 // Tiêu và cổ tranh đối đáp, mỗi câu có khoảng nghỉ; không trống, chuông, bè giao chiến.
 // Giai điệu viết riêng bằng code; dùng bộ tiếng miễn phí đã ghi công của dự án.

@@ -8,7 +8,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import SONGS from "./songs/index.mjs";
-import luyenHonCanh from "./candidates/luyen_hon_canh.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS = path.resolve(here, "../../../shared/assets");
@@ -24,7 +23,6 @@ const { values: args } = parseArgs({
     song: { type: "string" },
     midi: { type: "string" },
     bitrate: { type: "string", default: "96k" },
-    candidate: { type: "boolean", default: false },
   },
 });
 if (!args.soundfont) {
@@ -35,17 +33,14 @@ if (!existsSync(args.soundfont)) throw new Error(`Không thấy soundfont: ${arg
 const extraBanks = args["extra-soundfont"] ? [{ path: args["extra-soundfont"], offset: 1 }] : [];
 if (extraBanks.some((b) => !existsSync(b.path))) throw new Error(`Không thấy soundfont phụ: ${args["extra-soundfont"]}`);
 const out = path.resolve(args.out);
-const relativeOut = path.relative(ASSETS, out);
-const outsideAssets = path.isAbsolute(relativeOut) || relativeOut === ".." || relativeOut.startsWith(`..${path.sep}`);
-if (args.candidate && !outsideAssets) throw new Error("Bản nghe thử phải xuất ngoài shared/assets; chưa được thay manifest đang chạy.");
-// Kiểm đầu ra trước khi nạp thư viện dựng nhạc: test an toàn chạy được trên CI không cài bộ sáng tác.
+// Chỉ nạp thư viện dựng nhạc khi chạy công cụ; các kiểm tra danh mục không cần cài bộ sáng tác.
 const { buildMidi, loopSeconds, PPQ } = await import("./lib/midi.mjs");
 const { decodedSamples, encode, renderLoop, renderOnce, writeWav } = await import("./lib/render.mjs");
 mkdirSync(out, { recursive: true });
 if (args.midi) mkdirSync(args.midi, { recursive: true });
 
 const wanted = args.song?.split(",");
-const catalog = args.candidate ? [luyenHonCanh] : SONGS;
+const catalog = SONGS;
 const list = wanted ? catalog.filter((s) => wanted.includes(s.id)) : catalog;
 if (wanted && list.length !== wanted.length) throw new Error(`Không có bài: ${wanted.filter((w) => !catalog.some((s) => s.id === w)).join(", ")}. Có: ${catalog.map((s) => s.id).join(", ")}`);
 
