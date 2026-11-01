@@ -19,6 +19,7 @@
     "test:predict": "node scripts/predict-test.mjs",
     "test:nameplate": "node --experimental-strip-types scripts/nameplate-test.mjs",
     "test:nameplate-browser": "node scripts/nameplate-browser.mjs",
+    "test:actbar-fit-browser": "node scripts/actbar-fit-browser.mjs",
     "test:actionbar-browser": "node scripts/actionbar-browser.mjs",
     "test:bando-browser": "node scripts/bando-browser.mjs",
     "test:flow-browser": "node scripts/flow-browser.mjs",
