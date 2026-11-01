@@ -242,8 +242,8 @@ export async function friendTest(){
     // Bộ đếm hồi theo giờ thật (1 lượt / giây): số lần bỏ chặn qua trước khi báo "quá nhanh" tùy tốc độ máy (#1591: 9 hay 10).
     // Xóa bộ đếm ngay trước vòng này rồi đếm số lần bỏ chặn thật sự thành công, đối chiếu với danh sách sau khi vào lại.
     await T(E,"friend",{fop:"rlreset"});
-    let rl="", unOk=0; for(let i=0;i<BLOCK_MAX&&!rl;i++){ const r=await F(E,"unblock",names[i]); if(/quá nhanh/.test(r)) rl=r; else if(/Đã bỏ chặn/.test(r)) unOk++; else break; }
-    ok(/quá nhanh/.test(rl)&&unOk>0,`thao tác bạn bè dồn dập: báo quá nhanh sau ${unOk} lần bỏ chặn (${rl})`);
+    let rl="", unOk=0; for(let i=0;i<BLOCK_MAX&&!rl;i++){ const r=await F(E,"unblock",names[i]); if(/quá nhanh/.test(r)) rl=r; else if(/Đã bỏ chặn/.test(r)) unOk++; else { rl=`lời đáp lạ: ${r}`; break; } }
+    ok(/quá nhanh/.test(rl)&&unOk>=10,`thao tác bạn bè dồn dập: báo quá nhanh sau ${unOk} lần bỏ chặn (tối thiểu 10 = lượt gom sau khi xóa bộ đếm; giờ thật chỉ thêm) (${rl})`);
     await E.room.leave(); await sleep(400); E.mapId=(await post("/api/me",{token:E.token})).mapId; await enter(E); await waitFor(()=>E.owned,3000);
     await list(E); ok(E.friends.list.length===0&&E.friends.blocks.length===BLOCK_MAX-unOk&&!E.friends.blocks.includes(names[0])&&!E.friends.blocks.includes(names[unOk-1])&&E.friends.blocks.includes(names[unOk])&&E.friends.blocks.includes(names[BLOCK_MAX-1]),
       `vào lại: danh sách chặn còn ${E.friends.blocks.length} người (đã bỏ chặn ${unOk}, mong ${BLOCK_MAX-unOk})`);
