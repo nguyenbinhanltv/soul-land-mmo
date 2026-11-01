@@ -53,19 +53,26 @@ export function mailPrimary(m: MailMsg | null, busy: boolean): { label: string; 
 // ---- phần DOM ----
 let send: ((type: string, payload: unknown) => void) | null = null;
 let onChange: (n: number) => void = () => {};
-let msg: MailMsg | null = null, filter: MailFilter = "all", sel = 0, busy = false, failed = false, note: { text: string; err: boolean } | null = null, timer = 0;
+let msg: MailMsg | null = null, filter: MailFilter = "all", sel = 0, busy = false, loading = false, failed = false, note: { text: string; err: boolean } | null = null, timer = 0;
 const el = () => document.getElementById("mail");
 const BUSY_MS = 6000;
 
 export function bindMail(sender: (type: string, payload: unknown) => void, changed: (n: number) => void) { send = sender; onChange = changed; }
 export const isMailOpen = () => { const e = el(); return !!e && !e.hidden; };
-function load() { failed = false; send?.("mail", { op: "get" }); window.clearTimeout(timer); timer = window.setTimeout(() => { if (!msg && isMailOpen()) { failed = true; render(); } }, BUSY_MS); }
-export function openMail() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; busy = false; load(); render(); }
-export function closeMail() { const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); }
+/** Chờ get độc lập với cache; dùng chung một timer với thao tác nhận quà. */
+function load() {
+  if (!send || loading || busy) return;
+  loading = true; failed = false;
+  window.clearTimeout(timer);
+  timer = window.setTimeout(() => { loading = false; if (isMailOpen()) { failed = true; render(); } }, BUSY_MS);
+  send("mail", { op: "get" });
+}
+export function openMail() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; busy = false; loading = false; load(); render(); }
+export function closeMail() { const e = el(); if (e) e.hidden = true; loading = false; window.clearTimeout(timer); }
 
 export function onMail(m: MailMsg) {
   if (!m || !Array.isArray(m.list) || typeof m.pending !== "number") return;
-  msg = m; failed = false; window.clearTimeout(timer); busy = false;
+  msg = m; loading = false; failed = false; window.clearTimeout(timer); busy = false;
   if (m.err) note = { text: m.err, err: true }; else if (m.claimedNow) note = { text: mailClaimedLine(m.claimedNow), err: false };
   if (sel && !m.list.some((x) => x.id === sel)) sel = 0;
   onChange(mailBadgeCount(m));
@@ -75,7 +82,7 @@ export function onMail(m: MailMsg) {
 /** Gửi một yêu cầu ghi; bộ đếm chờ để màn không treo khi server im (server bỏ tin quá nhịp). */
 function act(op: "claim" | "claimAll" | "del", id?: number) {
   if (!send || busy) return;
-  busy = true; note = null; send("mail", id === undefined ? { op } : { op, id });
+  busy = true; loading = false; note = null; send("mail", id === undefined ? { op } : { op, id });
   window.clearTimeout(timer); timer = window.setTimeout(() => { if (busy) { busy = false; note = { text: "Máy chủ chưa trả lời: thử lại sau.", err: true }; render(); } }, BUSY_MS);
   render();
 }
@@ -131,6 +138,11 @@ function render() {
     ? stateBox({ kind: "error", text: "Không tải được thư (mất kết nối hoặc máy chủ chưa trả lời).", hint: "Kiểm tra mạng rồi bấm Thử lại.", onRetry: () => { load(); render(); } })
     : stateBox({ kind: "loading", rows: 5, text: "Đang tải thư…" }));
   else {
+    if (loading) f.body.append(mount(h("div", "ml-note", { text: "Đang cập nhật thư… Dữ liệu cũ vẫn hiển thị để đọc.", attrs: { role: "status", "aria-busy": "true" } })));
+    else if (failed) {
+      const error = stateBox({ kind: "error", text: "Cập nhật thất bại.", hint: "Dữ liệu cũ · Máy chủ chưa trả lời.", onRetry: () => { load(); render(); } });
+      error.classList.add("refresh-error"); f.body.append(error);
+    }
     const kids: PNode[] = [];
     if (note) kids.push(h("div", `ml-note${note.err ? " ml-bad" : ""}`, { text: note.text, attrs: { role: note.err ? "alert" : "status" } }));
     if (!msg.list.length) kids.push(h("div", "ml-blank", { text: "Hộp thư trống. Phần thưởng Phúc Lợi, Bí Cảnh hoặc quà từ quản trị sẽ về đây.", attrs: { role: "status" } }));

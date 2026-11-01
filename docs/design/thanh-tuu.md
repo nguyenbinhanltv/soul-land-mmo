@@ -101,6 +101,7 @@ Nguyên tắc: **thưởng nhỏ, lấy từ vật phẩm đã có, tổng cả 
 - Giá trị thật của từng thành tựu cân qua skill `balance-data` / `balance-review`; bài soát ghi bảng quan hệ ở trên với số thật lúc đó.
 
 ### Giao diện
+- Khi mở lại, giữ nội dung cũ để đọc và báo đang cập nhật; `get` quá hạn thì ghi rõ dữ liệu cũ, lỗi cập nhật và **Thử lại** (chỉ gửi `get`). Tin hợp lệ mới xóa cảnh báo; dùng chung timer với nhận thưởng, không tự retry (#1566).
 Chất liệu **Giấy** (kit gốc, `docs/art/ui-kit.md`): cửa sổ riêng mở từ thẻ `achv` ở hub (`client/src/hubMenu.ts`, hiện `why: "Sắp có"` → nối bảng, bỏ khóa); Esc đóng theo ngăn xếp (`panelStack.ts`); PC.
 - **Bố cục:** cột nhóm bên trái (Cấp, Sưu tầm, Săn, Nhiệm vụ, Đấu trường, Bí Cảnh), danh sách thành tựu bên phải; mỗi dòng: tên, mô tả điều kiện, thanh tiến độ `chỉ số / ngưỡng`, thưởng, nút "Nhận" (vùng bấm 32–44 px).
 - **Trạng thái dòng** (hình + chữ, không chỉ màu): *chưa đạt* (thanh tiến độ), *đạt, chưa nhận* (nổi bật + nút Nhận + chấm đỏ nhóm), *đã nhận* (xám + dấu tick).
