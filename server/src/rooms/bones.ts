@@ -1,13 +1,15 @@
 // Hồn cốt / hồn hạch (GAME_DESIGN.md mục 5.5, 5.6), tách khỏi MapRoom.ts (#702, bước 3): gắn / tháo, cường hóa hồn cốt, nâng cấp hồn hạch, đổi bộ.
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.save`. MapRoom chỉ chuyển tiếp
-// (đăng ký `onMessage` giữ nguyên ở đó); `afterBones` / `boneLock` / `bonesOn` / `coresOn` còn ở MapRoom vì nhiều miền khác gọi.
-import { VOHON, tierOfYears, vohonIndex, formatHonTe, npcDef,
+// (đăng ký `onMessage` giữ nguyên ở đó); `afterBones` / `boneLock` nay ở đây (E6a, MapRoom chuyển tiếp); `bonesOn` / `coresOn` ở `stats.ts` (MapRoom chuyển tiếp) vì nhiều miền khác gọi.
+import { VOHON, TEAM_COMBAT_SECS, tierOfYears, vohonIndex, formatHonTe, npcDef,
   BONE_ITEM, BONE_SLOTS, parseBone, boneSlotIndex, TIERS,
   BONE_MAX_ENHANCE, BONE_FEED_MAX, boneXp, boneEnhancePreview, parseBoneSubs, boneAddSubs, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, enhanceFee,
   CORE_ITEM, CORE_SETS, parseCore, coreName, coreSetIndex, coreSetName, coreResetFee, CORE_SLOTS, coreSlotOf,
   coreStatText, CORE_MAX_ENHANCE, CORE_FEED_MAX, coreEnhancePreview, coreXp, coreUpgradeSubs } from "../../../shared/data.ts";
-import type { Item } from "../db.ts";
+import type { Item, Character } from "../db.ts";
 import { bagUsed } from "./items.ts";
+import type { PlayerState } from "./schema.ts";
+import type { PData } from "./types.ts";
 import type { MapRoom } from "./MapRoom.ts";
 
 /**
@@ -242,4 +244,24 @@ export function resetCoreSet(room: MapRoom, id: string, rawItem: unknown, rawSet
   const v = it.vohonId !== null ? d.owned.find((x) => x.rowId === it.vohonId) : undefined;
   if (v) room.afterBones(id, v); else room.sendBag(id);
   room.save(id);
+}
+
+/** Luật chung khi gắn / tháo hồn cốt (từ 5.2 cả hồn hạch: `what`), như xếp đội hình: không gục, không hấp thụ, ngoài giao chiến. "" = được. */
+export function boneLock(p: PlayerState, d: PData, what = "hồn cốt") {
+  if (p.dead) return `Đã gục ngã, không thể gắn / tháo ${what}.`;
+  if (d.absorbing) return `Đang hấp thụ hồn hoàn, không thể gắn / tháo ${what}.`;
+  if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới gắn / tháo ${what} được.`;
+  return "";
+}
+
+/**
+ * Sau khi gắn / tháo hồn cốt hoặc hồn hạch (5.2) trên võ hồn `v`: võ hồn ra trận thì tính lại chỉ số (và hiệu ứng bộ) ngay; gửi lại
+ * túi và sinh lực đội (sinh lực tối đa đổi).
+ */
+export function afterBones(room: MapRoom, id: string, v: Character) {
+  const d = room.pdata.get(id)!;
+  if (v === d.ch) room.recalc(id, false);
+  room.resCheck(id); // cộng minh (8.2): hồn cốt +10 / hồn hạch 5★ đang gắn
+  room.sendBag(id);
+  room.sendSquad(id, true);
 }

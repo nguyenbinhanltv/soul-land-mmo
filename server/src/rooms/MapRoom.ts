@@ -8,8 +8,8 @@ import { TICK_RATE,
   MAPS, parseNewLooks, encodeLpc,
   TILE,
   itemDef, formatHonTe, type ItemDef,
-  RING_ITEM, DROP_OWNER_SECS,
-  SHARD_UNLOCK, starCost,
+  RING_ITEM,
+
   BONE_ITEM,
   CORE_ITEM, type CoreData,
   type CoreStat, EQUIP_ITEM, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
@@ -1069,22 +1069,10 @@ export class MapRoom extends Room<MapState> {
   /** Tổng số mảnh mã `code` trong túi (mọi ô). */
   shardCount(d: PData, code: string) { return shardCount(d.bag, code); }
 
-  /** Bớt `n` mảnh mã `code` khỏi túi, lấy từ các ô ít nhất trước (gọi sau khi đã kiểm tra đủ). */
-  takeShards(d: PData, code: string, n: number) {
-    for (const it of d.bag.filter((i) => i.code === code && i.vohonId === null).sort((a, b) => a.qty - b.qty)) {
-      if (n <= 0) break;
-      const k = Math.min(n, it.qty); this.takeItem(d, it, k); n -= k;
-    }
-  }
+  /** Hàm thưởng / túi còn lại, đợt E6a (#702): `takeShards` / `shardNote` ở `bag.ts`, `boneLock` / `afterBones` ở `bones.ts`, `canLoot` / `lootNote` ở `loot.ts`; các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ (E6b còn `addRing` / `addBone` / `addCore` / `addEquip` / `equipRng` / `chestEquip`). */
+  takeShards(d: PData, code: string, n: number) { return bag.takeShards(this, d, code, n); }
 
-  /** Chú thích tiến độ sau khi nhận mảnh: " (12/50)" khi chưa sở hữu, " (8/40 lên 3★)" khi đã sở hữu, "" khi đã tối đa sao. */
-  shardNote(d: PData, code: string) {
-    const vohon = itemDef(code)?.vohon; if (!vohon) return "";
-    const n = this.shardCount(d, code), v = d.owned.find((x) => x.vohon === vohon);
-    if (!v) return ` (${n}/${SHARD_UNLOCK})`;
-    const cost = starCost(v.stars);
-    return cost === null ? "" : ` (${n}/${cost} lên ${v.stars + 1}★)`;
-  }
+  shardNote(d: PData, code: string) { return bag.shardNote(this, d, code); }
 
   /** Mở võ hồn / lên sao bằng mảnh: logic ở `team.ts` (#702), chuyển tiếp cho `onMessage`. */
   unlockVohon(id: string, raw: unknown) { return team.unlockVohon(this, id, raw); }
@@ -1096,25 +1084,9 @@ export class MapRoom extends Room<MapState> {
   boneBonusOf(d: PData, rowId: number) { return stats.boneBonusOf(d, rowId); }
   fillBoneSubs(d: PData) { return stats.fillBoneSubs(d); }
 
-  /** Luật chung khi gắn / tháo hồn cốt (từ 5.2 cả hồn hạch: `what`), như xếp đội hình: không gục, không hấp thụ, ngoài giao chiến. "" = được. */
-  boneLock(p: PlayerState, d: PData, what = "hồn cốt") {
-    if (p.dead) return `Đã gục ngã, không thể gắn / tháo ${what}.`;
-    if (d.absorbing) return `Đang hấp thụ hồn hoàn, không thể gắn / tháo ${what}.`;
-    if (d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới gắn / tháo ${what} được.`;
-    return "";
-  }
+  boneLock(p: PlayerState, d: PData, what = "hồn cốt") { return bones.boneLock(p, d, what); }
 
-  /**
-   * Sau khi gắn / tháo hồn cốt hoặc hồn hạch (5.2) trên võ hồn `v`: võ hồn ra trận thì tính lại chỉ số (và hiệu ứng bộ) ngay; gửi lại
-   * túi và sinh lực đội (sinh lực tối đa đổi).
-   */
-  afterBones(id: string, v: Character) {
-    const d = this.pdata.get(id)!;
-    if (v === d.ch) this.recalc(id, false);
-    this.resCheck(id); // cộng minh (8.2): hồn cốt +10 / hồn hạch 5★ đang gắn
-    this.sendBag(id);
-    this.sendSquad(id, true);
-  }
+  afterBones(id: string, v: Character) { return bones.afterBones(this, id, v); }
 
   // ---------- Trang bị hồn sư (mục 5.15, bước E1) ----------
   /** Trang bị / Thợ rèn: logic ở `equip.ts` (#702), các hàm dưới chỉ chuyển tiếp để `onMessage`, `tick` và hook test gọi như cũ. */
@@ -1306,22 +1278,9 @@ export class MapRoom extends Room<MapState> {
 
   partyNear(by: string, x: number, y: number) { return social.partyNear(this, by, x, y); }
 
-  /** Được nhặt đồ rơi `dr` lúc này không: không ai được ưu tiên, của mình, của tổ đội mình (7.1), hoặc hết DROP_OWNER_SECS giây. */
-  canLoot(dr: DropState, id: string) {
-    if (!dr.owner || dr.owner === id || dr.ownerTtl <= 0) return true;
-    const d = this.pdata.get(id);
-    return !!dr.party && !!d && party.partyIdOf(d.accountId) === dr.party;
-  }
+  canLoot(dr: DropState, id: string) { return loot.canLoot(this, dr, id); }
 
-  /**
-   * Câu báo ai được ưu tiên đồ rơi của `owner`, gửi cho người `id` (một mình / cả tổ đội, mục 5.9). `why`: vì sao `owner` được ưu tiên
-   * (#119: tinh anh mà người đứng đầu bị khóa thưởng thì là người đóng góp nhiều nhất chưa bị khóa).
-   */
-  lootNote(owner: string, id: string, why = "đóng góp nhiều nhất") {
-    const d = this.pdata.get(owner), team = d && party.partyIdOf(d.accountId) ? "tổ đội " : "";
-    if (owner === id) return `${DROP_OWNER_SECS} giây đầu chỉ ${team ? "tổ đội của bạn" : "bạn"} nhặt được (phím E).`;
-    return `${DROP_OWNER_SECS} giây đầu thuộc ${team}${this.state.players.get(owner)?.name ?? ""} (${why}).`;
-  }
+  lootNote(owner: string, id: string, why = "đóng góp nhiều nhất") { return loot.lootNote(this, owner, id, why); }
 
   // ---------- Vòng lặp ----------
   // ---------- Hiệu năng bản đồ lớn (bước 11.4, mục 6 "Đồng bộ xuống client") ----------
