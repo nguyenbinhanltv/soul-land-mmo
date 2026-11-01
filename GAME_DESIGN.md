@@ -22,6 +22,7 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.2 | Hồn hoàn | [docs/design/hon-hoan.md](docs/design/hon-hoan.md) | 5 | Niên hạn là số năm cụ thể; Hồn hoàn là vật phẩm; Hấp thụ; Hồn kỹ theo vòng |
 | 5.3 | Thế giới nhiều bản đồ và hồn thú | [docs/design/the-gioi-ban-do.md](docs/design/the-gioi-ban-do.md) | 5 | Danh sách bản đồ; Cỡ bản đồ; Cổng và chặn mềm; Truyền tống trận; Quy cấp theo niên hạn; Vùng và hồn thú của từng bản đồ săn; Lạc Nhật Sâm Lâm; Hồn thú 10 vạn năm; Rơi đặc trưng theo bản đồ |
 | 5.3 | Thế giới nhiều bản đồ và hồn thú | [docs/design/hon-thu-boss.md](docs/design/hon-thu-boss.md) | 5 | Luật chung của hồn thú |
+| 5.3 | Thế giới nhiều bản đồ và hồn thú | [docs/design/cai-to-luong-di-chuyen-ban-do.md](docs/design/cai-to-luong-di-chuyen-ban-do.md) | 1 | Kế hoạch đề xuất (chờ duyệt): cải tổ luồng di chuyển, chướng ngại, art direction |
 | 5.4 | Bậc hồn thú: thường, tinh anh, thú vương, boss thế giới | [docs/design/hon-thu-boss.md](docs/design/hon-thu-boss.md) | 18 | Bậc hồn thú; Nhận diện; Tinh anh; Tà hóa thú vương; Máu tăng theo số người tham gia; Boss thế giới 100.000 năm |
 | 5.5 | Hồn cốt | [docs/design/hon-cot.md](docs/design/hon-cot.md) | 5 |  |
 | 5.6 | Hồn hạch | [docs/design/hon-hach.md](docs/design/hon-hach.md) | 5 |  |
@@ -69,7 +70,6 @@ Code và tài liệu trích dẫn theo số mục ("mục 5.3", "mục 6 "Nhiề
 | 5.20 | Lịch Hoạt Động (thiết kế, #877) | [docs/design/lich-hoat-dong.md](docs/design/lich-hoat-dong.md) | 5 | Lịch Hoạt Động |
 | 5.21 | Phúc Lợi và điểm danh 21 ngày (thiết kế, #877) | [docs/design/phuc-loi.md](docs/design/phuc-loi.md) | 5 | Phúc Lợi và điểm danh |
 | 5.22 | Bí Cảnh: phụ bản hằng ngày, MVP Luyện Hồn Cảnh (thiết kế, #877) | [docs/design/bi-canh.md](docs/design/bi-canh.md) | 5 | Bí Cảnh |
-| 5.3 | Thế giới nhiều bản đồ và hồn thú | [docs/design/cai-to-luong-di-chuyen-ban-do.md](docs/design/cai-to-luong-di-chuyen-ban-do.md) | 1 | Kế hoạch đề xuất (chờ duyệt): cải tổ luồng di chuyển, chướng ngại, art direction |
 | 5.23 | Thành Tựu: danh mục từ hệ thống có sẵn (thiết kế, #1317) | [docs/design/thanh-tuu.md](docs/design/thanh-tuu.md) | 5 | Thành Tựu |
 | 5.24 | Thư hệ thống: nguồn thư, đính kèm, hạn (thiết kế, #1336) | [docs/design/thu.md](docs/design/thu.md) | 5 | Thư hệ thống |
 | 6 | Kiến trúc (bắt buộc giữ) | (file này) | – | Kiến trúc; Server quyết định mọi thứ; HTTP; Lưu của mỗi người chơi chạy nối tiếp |
