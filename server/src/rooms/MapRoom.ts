@@ -12,7 +12,7 @@ import { TICK_RATE,
   type CoreStat, type EquipData,
   loadoutOf, type BondKey, type SkillDef, type StatusApply, type BuffId,
   type BeastSkillDef, type Tele,
-  BOSSES, bossIndex, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
+  ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
   KING, kingNext, vnDay, type BossDef, type FormDef,
   WORLD, worldNext, worldBossOn, type He,
   npcDef, looksChangeCost, type NpcRole,
@@ -35,7 +35,7 @@ import { friends, FRIEND_TOPIC, type FriendNote } from "../friends.ts";
 import { watchGc, cpuMs } from "../perf.ts";
 import { Interest } from "./interest.ts";
 import { Grounds } from "./ground.ts";
-import { presenceBackend, bg } from "../presence.ts";
+import { presenceBackend } from "../presence.ts";
 import { ColdStacks } from "./cold.ts";
 import { _gmSetAdmin, type GmCmd } from "../gm.ts"; // lệnh GM của admin (#518)
 import { Tide } from "./tide.ts";
@@ -77,13 +77,14 @@ import * as kill from "./kill.ts";
 import * as ava from "./ava.ts";
 import * as tienco from "./tienco.ts";
 import * as stats from "./stats.ts";
+import * as bossEvent from "./bossEvent.ts";
 import * as support from "./support.ts";
 import * as motion from "./motion.ts";
 import * as contrib from "./contrib.ts";
 import type { PData, Hit, AuthData, RecallCast, BData, EliteData, KingData, WorldData, Proj, DmgOpt, FusHit, ChatRoute } from "./types.ts";
 import * as fog from "./fog.ts";
 import { CHAT_TOPIC, accOf, intIn, strIn, saveStats } from "./common.ts";
-import { kingSlotNow, applyEliteLock, eliteKey, eliteLockLeft, CHANNEL_CAP, type KingSeat, startChannelSweep } from "./procState.ts";
+import { kingWarns, kingSlotNow, applyEliteLock, CHANNEL_CAP, type KingSeat, startChannelSweep } from "./procState.ts";
 import { ELITE_LOCK_TOPIC, loadEliteLocks, loadKingState, persistKingSeat } from "./presenceState.ts";
 import { takeChannel, releaseChannel } from "./channel.ts";
 import { seatAdd, seatUsed, seatAccount, joinableMap, mapIdIn, type SeatPass } from "./seat.ts";
@@ -99,11 +100,6 @@ const numIn = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v :
 const ERR_LOG_MS = 10_000;
 
 // ---------- Báo trước thú vương theo bản đồ (mức tiến trình, mục 6); trạng thái suất / khóa ở procState.ts + presenceState.ts ----------
-/**
- * Báo trước thú vương gần nhất theo bản đồ (kênh "boss", `at` = giờ xuất hiện, ms): phòng mở ra trong lúc chờ (kể cả báo trước của
- * hook test) vẫn có đếm ngược. Xóa khi thú vương của bản đồ đó xuất hiện.
- */
-const kingWarns = new Map<string, BossEvent & { at: number }>();
 
 
 
@@ -464,23 +460,8 @@ export class MapRoom extends Room<MapState> {
 
   onJoin(client: Client, o: unknown, auth: AuthData) { join.onJoin(this, client, o, auth); }
 
-  /**
-   * Boss cho người vừa vào (BĐ5, #118): client xin bằng tin `boss` sau khi dựng cảnh (tin gửi ngay lúc onJoin tới trước khi client nghe
-   * nên bị bỏ). Người vào giữa lúc chờ thì nhận đếm ngược còn lại (`join`: client không lặp log / banner); thú vương / boss thế giới
-   * đang ở bản đồ này thì nhận thời gian trước khi rút đi, đồng hồ nổi giận, điểm yếu, chỗ nổi lên của Du Thủy và chiêu toàn sàn đang
-   * báo trước (`t` giây còn lại, `warn` cả chiêu).
-   */
-  sendBossJoin(client: Client) {
-    const w = this.bossWarn;
-    if (w && w.at > Date.now()) client.send("boss", { ...this.bossMsg(w, "warn", (w.at - Date.now()) / 1000), join: true });
-    const bid = this.king?.bid, kb = bid ? this.state.beasts.get(bid) : undefined, bd = bid ? this.bdata.get(bid) : undefined, kd = bd?.elite?.king;
-    // `here`: client chỉ đặt đồng hồ / điểm yếu / chỗ nổi lên của Du Thủy khi có cờ này (như tin "spawn" ở đúng bản đồ).
-    if (kb && kd) client.send("boss", { k: "here", here: true, bid, name: beastName(kb.rank, kb.species), mapId: this.state.mapId, mapName: MAPS[this.state.mapId].name, life: kd.life,
-      phase: kd.phase, title: kd.phase === 2 ? (kd.world ? "Nổi giận" : kd.def.phase2?.name) : "", ...this.worldInfo(kd) });
-    // Chiêu toàn sàn đang báo trước (#118): người vừa vào cũng thấy vùng và vòng an toàn (thời gian còn lại) để kịp né.
-    const kc = kb && kd?.world ? bd?.cast : undefined;
-    if (kc?.def.floor) client.send("fx", { k: "tele", bid, name: kc.def.name, ...kc.teles[0], parts: kc.teles.slice(1), t: kc.t, warn: kc.def.warn, ...(kc.safe ? { safe: kc.safe } : {}) });
-  }
+  /** Sự kiện boss / lịch (báo trước, tin `boss`, mục tiêu tự săn, lượt rương): logic ở `bossEvent.ts` (#702, E7), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ; `tickDowns` ở lại vì `ArenaRoom` / `BiCanhRoom` override. */
+  sendBossJoin(client: Client) { return bossEvent.sendBossJoin(this, client); }
 
   onLeave(client: Client) { return join.onLeave(this, client); }
 
@@ -1126,56 +1107,14 @@ export class MapRoom extends Room<MapState> {
   // ---------- Tà hóa thú vương (mục 5.4, 6; bước BĐ5) ----------
   /** Ngày nhận thưởng boss theo giờ Việt Nam (đổi lúc 00:00; hook test `day` lệch được để thử đặt lại lượt). */
   today() { return vnDay(bossNow() + this.dayShift * 86400000); }
-  /** Tinh anh (theo ô tinh anh) và thú vương / boss thế giới đang sống của phòng: mục tiêu chung của tự săn (#218). */
-  autoBosses(): [string, BeastState][] {
-    const out: [string, BeastState][] = [];
-    for (const bid of [...this.elites.map((s) => s.bid), this.king?.bid]) { const b = bid ? this.state.beasts.get(bid) : undefined; if (b && b.hp > 0) out.push([bid!, b]); }
-    return out;
-  }
-  /**
-   * Tài khoản của `d` còn nhận được thưởng của tinh anh / thú vương / boss thế giới `b` không (#218, mục 5.4): tinh anh chưa bị khóa
-   * ELITE.lock; thú vương / boss thế giới còn lượt hôm nay và chưa nhận rương của khung giờ này ở kênh nào. Tự săn chỉ nhắm con còn nhận
-   * được thưởng (người hết lượt vào đánh chỉ làm boss nhiều máu hơn cho người khác).
-   */
-  autoBossOk(d: PData, b: BeastState) {
-    if (b.rank === 1) return eliteLockLeft(eliteKey(this.state.mapId, b), d.accountId) <= 0;
-    const world = b.rank === 3;
-    return this.claimsToday(d, world) < (world ? WORLD : KING).daily && !this.king?.claimed.has(d.accountId);
-  }
+  autoBosses(): [string, BeastState][] { return bossEvent.autoBosses(this); }
+  autoBossOk(d: PData, b: BeastState) { return bossEvent.autoBossOk(this, d, b); }
 
-  /** Lượt nhận rương thú vương (hoặc boss thế giới khi `world`, BĐ6e) hôm nay của người chơi (sang ngày mới thì về 0). */
-  claimsToday(d: PData, world = false) {
-    const c = world ? d.wclaims : d.claims;
-    if (c.day !== this.today()) { c.day = this.today(); c.n = 0; }
-    return c.n;
-  }
+  claimsToday(d: PData, world = false) { return bossEvent.claimsToday(this, d, world); }
 
-  /** Tin "boss" gửi client cho một sự kiện lịch: tên, bản đồ, còn bao nhiêu giây, thú vương có ở bản đồ của phòng này không. */
-  bossMsg(ev: BossEvent, k: string, secs: number) {
-    const bi = bossIndex(ev.king), m = MAPS[ev.mapId], rank = BOSSES[bi]?.rank ?? 2;
-    return { k, name: beastName(rank, bi), mapId: ev.mapId, mapName: m?.name ?? ev.mapId, in: Math.max(0, Math.round(secs)), life: ev.life,
-      here: ev.mapId === this.state.mapId, col: BOSSES[bi]?.aura, world: rank === 3 };
-  }
+  bossMsg(ev: BossEvent, k: string, secs: number) { return bossEvent.bossMsg(this, ev, k, secs); }
 
-  /**
-   * Sự kiện lịch boss trên presence (schedule.ts hoặc hook test): mọi phòng báo cho người chơi của mình (đếm ngược / xuất hiện); phòng
-   * của đúng bản đồ sinh thú vương khi `spawn` (mỗi khung giờ một lần, mỗi kênh một con).
-   */
-  onBossEvent(ev: BossEvent) {
-    if (!ev || !Object.hasOwn(MAPS, ev.mapId) || bossIndex(ev.king) < 0) return;
-    if (ev.phase === "warn") {
-      this.bossWarn = { ...ev, at: Date.now() + ev.in * 1000 };
-      kingWarns.set(ev.mapId, this.bossWarn);
-      bg(presenceBackend.putJson(`king-warn:${ev.mapId}`, this.bossWarn, (ev.in + ev.life + 60) * 1000), "presence");
-      this.broadcast("boss", this.bossMsg(ev, "warn", ev.in));
-    } else if (ev.phase === "spawn") {
-      if (this.bossWarn?.mapId === ev.mapId) this.bossWarn = null;
-      kingWarns.delete(ev.mapId);
-      bg(presenceBackend.delete(`king-warn:${ev.mapId}`), "presence");
-      this.broadcast("boss", this.bossMsg(ev, "spawn", 0));
-      if (ev.mapId === this.state.mapId) void this.spawnKing(ev.slot, ev.life, ev.king).catch((e) => console.error("Lỗi sinh thú vương", e));
-    }
-  }
+  onBossEvent(ev: BossEvent) { return bossEvent.onBossEvent(this, ev); }
 
 
   /** Thú vương và boss thế giới (tick, giai đoạn 2, cơ chế boss thế giới, rút đi, hạ boss chia thưởng, rương): logic ở `boss.ts` (#702), các hàm dưới chỉ chuyển tiếp để `onMessage` / `tick` / `gm.ts` gọi như cũ. */
