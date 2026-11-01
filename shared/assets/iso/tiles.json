@@ -486,6 +486,7 @@
   },
   "sen_phat_sang": {
    "key": "prop_sen_phat_sang",
+   "clip": { "key": "prop_sen_phat_sang_clip", "frames": 32, "ms": 100 },
    "foot": [16, 28]
   },
   "re_cay_lon": {

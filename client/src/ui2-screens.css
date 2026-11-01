@@ -198,3 +198,6 @@ body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visi
 .ml-note{border-style:solid;border-left:6px solid var(--good)}
 .ml-note.ml-bad{border-left-color:var(--son)}
 :where(body.ui-w640) .ml-cols{grid-template-columns:minmax(0,1fr)}
+
+/* Cảnh báo làm mới cạnh cache: chừa chỗ đọc ở 960×540 và cả ba cỡ chữ. */
+:is(#mail,#achv) .refresh-error{flex-direction:row;flex-wrap:wrap;min-height:0;gap:var(--sp-2) var(--sp-3);padding:var(--sp-2) var(--sp-3)}
