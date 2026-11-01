@@ -286,6 +286,7 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.match(rowNew, /Mới/); assert.match(rowGift, /Có quà/); assert.match(rowGift, /"aria-pressed":"true"/); assert.match(rowSoon, /Sắp hết hạn/, "nhãn hạn bằng chữ"); assert.doesNotMatch(rowNew, /Sắp hết hạn/);
   const dGift = JSON.stringify(mailDetailNode(b, false, now)), dDone = JSON.stringify(mailDetailNode(c, false, now)), dBusy = JSON.stringify(mailDetailNode(b, true, now));
   assert.match(dGift, /ml-claim f2-nut-phu/); assert.doesNotMatch(dGift, /ml-del/, "thư còn quà chưa nhận: không có nút Xóa, có gợi ý"); assert.match(dGift, /Nhận quà rồi mới xóa/);
+  { const { mailFromIconKey, rankGroupIcon } = await import("../src/sourceIcons.ts"); assert.deepEqual(["Phúc Lợi", "Bí Cảnh", "Quản trị", "Hệ thống", "Lạ"].map(mailFromIconKey), ["gi_menu_welfare", "gi_menu_bicanh", "gi_menu_mail", "gi_menu_mail", "gi_menu_mail"], "icon nguồn thư"); assert.equal(rankGroupIcon("Người chơi"), undefined, "Node không có window: không icon, không ném lỗi"); }
   assert.doesNotMatch(dDone, /ml-claim/); assert.match(dDone, /ml-del/); assert.match(dBusy, /disabled/); assert.match(JSON.stringify(mailDetailNode(null, false, now)), /Chọn một thư/);
 }
 

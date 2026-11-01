@@ -12,5 +12,7 @@ export function mailFromIconKey(from: string): string {
   const kind = Object.keys(MAIL_KINDS).find((k) => MAIL_KINDS[k] === from);
   return (kind && MAIL_KIND_ICON[kind]) || "gi_menu_mail";
 }
-export const mailFromIcon = (from: string) => menuIconUrl(mailFromIconKey(from)) ?? undefined;
-export const rankGroupIcon = (group: string) => { const k = RANK_GROUP_ICON[group]; return (k && menuIconUrl(k)) || undefined; };
+/** Node (test thuần) không có `window`: không icon thay vì ném lỗi. */
+const iconUrl = (key: string | undefined) => (key && typeof window !== "undefined" ? menuIconUrl(key) : null) ?? undefined;
+export const mailFromIcon = (from: string) => iconUrl(mailFromIconKey(from));
+export const rankGroupIcon = (group: string) => iconUrl(RANK_GROUP_ICON[group]);
