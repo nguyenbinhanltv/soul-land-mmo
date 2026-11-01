@@ -37,6 +37,10 @@ export const OB_STEPS: readonly ObStep[] = [
 ];
 export const OB_DONE_TEXT = { title: "Xong phần làm quen", body: "Xem mục tiêu và các bài hiện có trong khung Nhiệm vụ. Cần xem lại hướng dẫn thì mở Cẩm Nang trong menu (nút 魂 hoặc Esc)." };
 
+/** Bảng lớn che giữa màn (#1601): đang mở một trong các bảng này thì thẻ thu về một dòng ở đáy và nằm dưới bảng, đóng bảng thì thẻ hiện lại đủ.
+ *  Bảng mà bước hiện tại đang chờ mở (`open`) không cần ở đây: mở xong là bước tự qua. Hub (ngăn kéo z 7) và bản đồ không che thẻ nên không có mặt. */
+export const OB_COVER_PANELS: readonly string[] = ["#char", "#bag", "#roster", "#reso", "#friends", "#audio", "#autoPanel", "#autoSum", "#mail", "#achv", ".ui2-screen"];
+
 /** localStorage an toàn (không import net.ts để test bằng node được). */
 const storage = {
   get(k: string) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -114,6 +118,14 @@ function place(target: HTMLElement | null) {
   spot.dataset.side = y < 28 ? "below" : "above";
 }
 
+/** Đặt / gỡ dạng một dòng theo bảng lớn đang mở; số bước và hướng dẫn đầy đủ nằm ở chú thích (`title`) của thẻ. */
+function syncCover() {
+  if (!card?.isConnected) return;
+  const on = card.dataset.mode === "step" && !!firstShown(OB_COVER_PANELS);
+  if (on) card.dataset.cover = "1"; else delete card.dataset.cover;
+  card.title = on ? [q(card, ".ob-head b").textContent, OB_STEPS[step].body].join("\n") : "";
+}
+
 function paint() {
   const c = root(), s = OB_STEPS[step];
   c.hidden = false; c.dataset.mode = "step"; c.dataset.dock = s.dock ?? "";
@@ -123,6 +135,7 @@ function paint() {
   q(c, ".ob-next").textContent = reviewing ? (step === OB_STEPS.length - 1 ? "Xong" : "Tiếp") : s.id === "ring" ? "Làm sau" : "Bỏ bước";
   q(c, ".ob-skip").hidden = false;
   q(c, ".ob-quest").hidden = true;
+  syncCover();
 }
 
 /** Nhịp kiểm tra (4 lần / giây): bước đang chờ đã xong chưa, nút cần sáng nằm ở đâu. */
@@ -131,6 +144,7 @@ function tick() {
   const s = OB_STEPS[step];
   if (!reviewing && s.open && firstShown(s.open)) return advance();
   place(firstShown(s.target));
+  syncCover();
   if (!reviewing && s.tap) {
     const e = document.querySelector<HTMLElement>(s.tap);
     if (e && e !== tapEl) { tapEl?.removeEventListener("pointerdown", onTap); tapEl = e; e.addEventListener("pointerdown", onTap); }
@@ -144,7 +158,7 @@ function advance() {
   step++; if (saved && !reviewing) { saved.s = step; persist(); }
   paint(); tick();
 }
-function hide() { if (card) card.hidden = true; place(null); }
+function hide() { if (card) { card.hidden = true; delete card.dataset.cover; card.title = ""; } place(null); }
 function stop() { running = false; window.clearInterval(timer); timer = 0; tapEl?.removeEventListener("pointerdown", onTap); tapEl = null; place(null); }
 function finish(st: "done" | "skip") {
   stop();
@@ -156,7 +170,7 @@ function finish(st: "done" | "skip") {
   saved = { s: step, st }; persist();
   if (st === "skip") return hide();
   // Hoàn thành: đường tiếp tục tùy chọn, giữ thẻ để người dùng bàn phím có thời gian đọc / chọn.
-  const c = root(); c.hidden = false; c.dataset.mode = "done"; c.dataset.dock = "";
+  const c = root(); c.hidden = false; c.dataset.mode = "done"; c.dataset.dock = ""; syncCover();
   q(c, ".ob-head b").textContent = "Làm quen · xong"; q(c, ".ob-dots").textContent = OB_STEPS.map(() => "●").join(" ");
   q(c, "h4").textContent = OB_DONE_TEXT.title; q(c, "p").textContent = OB_DONE_TEXT.body;
   q(c, ".ob-next").textContent = "Đóng"; q(c, ".ob-skip").hidden = true;
