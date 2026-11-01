@@ -1,12 +1,14 @@
 // Miền đi cổng và truyền tống phía phòng bản đồ (GAME_DESIGN.md mục 5.3 "Truyền tống trận", mục 6 đi cổng, bước 11.2): xin đi cổng, niệm, transaction đi cổng (beginTravel), truyền tống trận, bản đồ thế giới, Hồi Thành Phù; tách khỏi MapRoom.ts (#702, bước 10).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / arena.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`.
-// MapRoom chỉ chuyển tiếp `travelDeny` / `travel` / `beginTravel` / `waypointTick` / `waypointAction` / `useRecall` / `finishRecall` / `stopCast` (onMessage, tick, gm.ts, useItem gọi như cũ); `freeze`, `portalHint`, đổi kênh (`switchChannel`) còn ở MapRoom.
+// MapRoom chỉ chuyển tiếp `travelDeny` / `travel` / `beginTravel` / `waypointTick` / `waypointAction` / `useRecall` / `finishRecall` / `stopCast` (onMessage, tick, gm.ts, useItem gọi như cũ); `freeze`, `portalHint` nay ở đây (E5b, MapRoom chuyển tiếp); đổi kênh (`switchChannel`) ở `join.ts` (MapRoom chuyển tiếp).
 import type { Client } from "colyseus";
 import { store, type Item } from "../db.ts";
 import { MAPS, TRAVEL_CAST, BOAT_CAST, WAYPOINT_CAST, WAYPOINT_COOLDOWN_S, waypointFee, TRAVEL_LEAVE_SECS, CHANNEL_CD, TEAM_COMBAT_SECS, itemDef, formatHonTe } from "../../../shared/data.ts";
 import { mapHops, mapLinks, allWaypoints, nearestTown, type Portal } from "../map.ts";
 import { presenceBackend, bg } from "../presence.ts";
 import type { PlayerState } from "./schema.ts";
+import * as party from "../party.ts";
+import { arenaQueued, arenaDequeue, arenaReadCancel } from "./arenaQueue.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData, RecallCast } from "./types.ts";
 import { pickChannel } from "./channel.ts";
@@ -262,4 +264,45 @@ export function finishRecall(room: MapRoom, id: string, dest: Portal, wp: Recall
     if (code) room.addItem(d, code, 1);
     room.sendBag(id);
   });
+}
+
+/**
+ * Hộp đi cổng gửi riêng: tên cổng, bản đồ đích, cấp đề xuất và cảnh báo khi võ hồn ra trận dưới cấp tối thiểu (chặn mềm). Bến thuyền
+ * (BĐ6d) kèm `boat` = số giây đi thuyền.
+ */
+export function portalHint(room: MapRoom, id: string, p: PlayerState, d: PData) {
+  const portal = d.travelling || p.dead ? undefined : room.map.portalAt(p.x, p.y);
+  const warn = !!portal?.level && p.level < portal.level[0];
+  const key = portal ? `${portal.name}|${warn}` : "";
+  if (key === d.portalKey) return;
+  d.portalKey = key;
+  room.clients.getById(id)?.send("portal", portal
+    ? { name: portal.name, to: portal.to, toName: MAPS[portal.to].name, level: portal.level, warn, ...(portal.boat ? { boat: BOAT_CAST } : {}) }
+    : { name: "" });
+}
+
+/**
+ * Bật cờ `travelling` (đi cổng bước 2, hoặc client vừa rời phòng): từ đây người chơi không còn tiến độ mới nào trước lần ghi
+ * cuối. Tick bỏ qua người này (không di chuyển, không hấp thụ tiếp), hồn thú bỏ mục tiêu, và đạn hồn kỹ còn bay bị bỏ để
+ * không hạ được hồn thú sau khi đã chụp dữ liệu (mục 6).
+ */
+export function freeze(room: MapRoom, id: string) {
+  const p = room.state.players.get(id)!, d = room.pdata.get(id)!;
+  room.autoStop(id, "rời bản đồ."); // tự săn (Auto 1): đi cổng, truyền tống sang bản đồ khác, vào sân đấu, mất kết nối
+  d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
+  // Rời bản đồ thì bỏ cả bên. Báo cho thành viên còn ở phòng để ô hàng chờ và khóa tổ đội không bị treo.
+  const q = arenaQueued(d.accountId);
+  if (q && arenaDequeue(d.accountId)) {
+    for (const member of q.members) {
+      const row = [...room.pdata.entries()].find(([, x]) => x.accountId === member.accountId);
+      if (!row) continue;
+      room.sendArenaQueue(row[0]);
+      if (row[0] !== id) room.log(row[0], "Đồng đội đã rời phòng, hàng chờ Đại Đấu Hồn Trường đã hủy.", "#ffb35c");
+    }
+  }
+  // Nếu còn ở pha đọc Elo, đánh dấu hủy nhưng giữ arenaBusy tới khi Promise kết thúc (#225/#227).
+  const accounts = party.partyIdOf(d.accountId) ? party.partyMembers(d.accountId) : [d.accountId];
+  accounts.forEach((acc) => arenaReadCancel(acc));
+  room.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
+  room.projs = room.projs.filter((pr) => pr.owner !== id);
 }
