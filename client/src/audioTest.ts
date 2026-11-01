@@ -6,7 +6,7 @@ import { sharedAudioContext } from "./audio/music.ts";
 import { SFX_IDS } from "./audio/sfxData.ts";
 import type { SfxClip } from "./audio/sfxBank.ts";
 import { BEAST_FAMILIES, ELEMENTS, MATERIALS, SKILL_PHASES, SURFACES, UI_GROUP, WEAPONS, type UiSound } from "./audio/soundMap.ts";
-import { AMBIENT_PROFILES } from "./audio/ambientLayers.ts";
+import { AMBIENT_PROFILES, AMBIENT_WIND_GROUPS } from "./audio/ambientLayers.ts";
 import { MAPS } from "../../shared/data.ts";
 
 const NAME: Record<string, string> = {
@@ -39,7 +39,7 @@ function sections(): { title: string; hint: string; rows: Row[] }[] {
     { title: "Giao diện (lô 2)", hint: "tự phát khi mở / đóng panel, kéo thả, trang bị, cường hóa, nhận đồ hiếm; kênh Giao diện",
       rows: (Object.keys(UI_GROUP) as UiSound[]).map((k) => ({ title: label(k), group: UI_GROUP[k], channel: "ui" as AudioChannel })) },
     { title: "Môi trường lớp chồng (lô 2)", hint: "phát ngẫu nhiên theo bản đồ và ngày đêm (nút chạy thử ở trên); kênh Môi trường",
-      rows: (["wind", "wave", "bird", "cricket", "fire", "bell"] as const).map((k) => ({ title: ({ wind: "Gió", fire: "Lửa trại" } as Record<string, string>)[k] ?? label(k), group: `amb-${k}`, channel: "ambient" as AudioChannel })).concat([{ title: "Gió lạnh (chỉ Cực Bắc Chi Địa)", group: "amb-wind-lanh", channel: "ambient" as AudioChannel }]) },
+      rows: (["wind", "wave", "bird", "cricket", "fire", "bell"] as const).map((k) => ({ title: ({ wind: "Gió", fire: "Lửa trại" } as Record<string, string>)[k] ?? label(k), group: `amb-${k}`, channel: "ambient" as AudioChannel })).concat(Object.entries(AMBIENT_WIND_GROUPS).map(([mapId, group]) => ({ title: `Gió riêng (${MAPS[mapId]?.name ?? mapId})`, group, channel: "ambient" as AudioChannel }))) },
     { title: "PK (lô 2): chỉ tiếng + hàm phát, G6 (#397) gọi", hint: "audio.playPkOpen / playPkCountdown(n) / playPkKill(nguồn) / updateLowHpHeartbeat(tỉ lệ máu)",
       rows: [{ title: "Trống mở trận", group: "pk-open", channel: "ui" }, { title: "Đếm ngược (mõ)", group: "pk-count", channel: "ui" }, { title: "Vào trận (chuông / chiêng)", group: "pk-go", channel: "ui" },
         { title: "Kết liễu", group: "pk-kill", channel: "sfx" }, { title: "Nhịp tim máu thấp (1 chậm, 2 nhanh)", group: "pk-heartbeat", channel: "sfx" }] },
