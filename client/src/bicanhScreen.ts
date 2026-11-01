@@ -4,7 +4,8 @@
 import { BICANH, bicanhRunTomes, formatHonTe, itemDef, type BicanhScene } from "../../shared/data.ts";
 import { countdown, screenFrame, mount, addCloseButton, stateBox, formatCountdown, type PNode } from "./uiParts.ts";
 import { confirmDialog } from "./confirmDialog.ts";
-import { artImg } from "./uiArt.ts";
+import { artImg, artUrl } from "./uiArt.ts";
+import { bindGiftImages } from "./giftView.ts";
 
 /** Một dòng phụ bản của tin `bicanh {runs}` (khớp `RunView` ở server/src/rooms/bicanh.ts). */
 export interface BiCanhRun { id: string; name: string; left: number; max: number; bought: number; price: number | null }
@@ -252,9 +253,14 @@ function showEnd(m: BiCanhRoomMsg) {
   const v = endView(m); window.clearInterval(hudTimer); hudTimer = 0; room = newRoomHud(); const hu = hudEl(); if (hu) hu.hidden = true;
   e.className = `bc-end f2-muc-nho ${v.win ? "win" : "lose"}`;
   const endAt = Date.now() + (m.secs ?? 0) * 1000;
-  e.replaceChildren(mount(h("h2", "bc-e-t", { text: v.title })), ...v.lines.map((l) => mount(h("div", `bc-e-l ${l.cls}`, { text: l.text }))),
+  const tome = artUrl(`item_${BICANH.tome}`);
+  e.replaceChildren(mount(h("h2", "bc-e-t", { text: v.title })), ...v.lines.map((l) => mount(h("div", `bc-e-l ${l.cls}`, { kids: [
+    ...(l.cls === "bc-rew" && tome ? [h("img", "gift-icon bc-e-icon", { attrs: { src: tome, alt: "", "aria-hidden": "true", draggable: "false" } })] : []),
+    h("span", "", { text: l.text }),
+  ] }))),
     mount(h("div", "bc-e-row", { kids: [h("button", "bc-e-back f2-nut-chinh", { text: "Về bản đồ cũ", attrs: { type: "button" } })] })), mount(h("small", "bc-e-cd", { attrs: { role: "timer" } })));
   e.hidden = false; e.setAttribute("role", "dialog"); e.setAttribute("aria-label", "Kết quả Bí Cảnh");
+  bindGiftImages(e);
   e.querySelector(".bc-e-back")!.addEventListener("click", () => onBack());
   const cd = e.querySelector<HTMLElement>(".bc-e-cd")!;
   const tick = () => { cd.textContent = `Tự về bản đồ cũ sau ${Math.max(0, Math.ceil((endAt - Date.now()) / 1000))} giây.`; };

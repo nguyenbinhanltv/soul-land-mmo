@@ -37,6 +37,7 @@
 .bc-end.win .bc-e-t{color:var(--qgold)} .bc-end.lose .bc-e-t{color:var(--son-l)}
 .bc-e-l{margin:var(--sp-2) 0;font:var(--fs-m)/1.4 var(--f12);overflow-wrap:anywhere}
 .bc-e-l.bc-rew{padding:var(--sp-2) var(--sp-3);color:var(--qgold);background:var(--track);box-shadow:inset var(--sp-2) 0 0 var(--qgold)}
+.bc-e-icon.gift-icon{width:24px;height:24px;vertical-align:middle;margin-right:var(--sp-3)}
 .bc-e-l.bc-bad{padding:var(--sp-2) var(--sp-3);background:var(--track);box-shadow:inset var(--sp-2) 0 0 var(--son-l)}
 .bc-e-row{display:flex;justify-content:flex-end;margin-top:var(--sp-4)}
 .bc-e-back{min-height:44px;padding:0 var(--sp-6);cursor:pointer;font:var(--fs-m)/1.2 var(--f12)}
