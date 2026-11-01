@@ -188,6 +188,33 @@ GameScene.prototype.create = function(...a) {
   check(res.settingsOverAuto.join() === "audio", `Cài đặt đóng Tự động: ${JSON.stringify(res.settingsOverAuto)}`);
   await page.keyboard.press("Escape"); await sleep(80);
 
+  // 4d. Menu (Hub) bằng bàn phím (#1636): Esc mở → tiêu điểm vào thẻ đầu; Tab / Shift+Tab xoay trong #hub, không đổi mục tiêu game; Enter mở bảng; Esc đóng trả tiêu điểm.
+  const hubFocus = () => page.evaluate(() => { const h = document.getElementById("hub"), a = document.activeElement; return { inHub: !h.hidden && h.contains(a), hubHidden: h.hidden, tag: a?.tagName, hub: a?.dataset?.hub ?? a?.className ?? "" }; });
+  await page.evaluate(() => { document.activeElement?.blur(); });
+  const lock0 = (await counts()).lockId;
+  await page.keyboard.press("Escape"); await sleep(120);
+  const hf0 = await hubFocus();
+  check(hf0.inHub, `Esc mở Hub thì tiêu điểm nằm trong Hub: ${JSON.stringify(hf0)}`);
+  const seen = new Set();
+  for (let i = 0; i < 40; i++) { await page.keyboard.press("Tab"); const f = await hubFocus(); seen.add(f.hub); check(f.inHub, `Tab lần ${i + 1} vẫn trong Hub: ${JSON.stringify(f)}`); }
+  for (let i = 0; i < 40; i++) { await page.keyboard.press("Shift+Tab"); const f = await hubFocus(); check(f.inHub, `Shift+Tab lần ${i + 1} vẫn trong Hub: ${JSON.stringify(f)}`); }
+  check(seen.size >= 5, `Tab đi qua nhiều thẻ khác nhau: ${[...seen].join(",")}`);
+  check((await counts()).lockId === lock0, "Tab trong Hub không đổi mục tiêu game");
+  for (let i = 0; i < 40 && (await hubFocus()).hub !== "bag"; i++) await page.keyboard.press("Tab"); // đi bằng Tab tới thẻ Túi
+  check((await hubFocus()).hub === "bag", "Tab tới được thẻ Túi trong Hub");
+  await page.keyboard.press("Enter"); await sleep(150);
+  res.hubEnter = { open: await open(), hub: await hubFocus() };
+  check(res.hubEnter.hub.hubHidden && res.hubEnter.open.join() === "bag", `Enter trên thẻ mở một bảng và đóng Hub: ${JSON.stringify(res.hubEnter)}`);
+  await page.keyboard.press("Escape"); await sleep(80);
+  // Trả tiêu điểm: nút có sẵn tiêu điểm trước khi mở Hub được trả lại khi đóng bằng Esc.
+  await page.evaluate(() => { const b = document.createElement("button"); b.id = "focusProbe"; b.textContent = "x"; b.style.cssText = "position:fixed;left:0;top:0;z-index:1"; document.body.append(b); b.focus(); });
+  await page.keyboard.press("Escape"); await sleep(120);
+  check((await hubFocus()).inHub, "mở Hub lần hai: tiêu điểm vào Hub");
+  await page.keyboard.press("Escape"); await sleep(120);
+  res.hubBack = await page.evaluate(() => ({ id: document.activeElement?.id, hubHidden: document.getElementById("hub").hidden }));
+  check(res.hubBack.hubHidden && res.hubBack.id === "focusProbe", `Esc đóng Hub trả tiêu điểm: ${JSON.stringify(res.hubBack)}`);
+  await page.evaluate(() => document.getElementById("focusProbe").remove());
+
   // 5. 960×540: hotbar / bảng vẫn chặn bấm xuyên (cùng bài 1).
   await page.setViewportSize({ width: 960, height: 540 }); await sleep(500);
   await page.keyboard.press("KeyB"); await sleep(200);
