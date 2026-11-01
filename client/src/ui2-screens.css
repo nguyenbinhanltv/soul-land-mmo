@@ -111,8 +111,8 @@ body.touch.ui-h460:not(.ui-portrait):has(.ui2-screen:not([hidden])) #hubBtn{visi
 .cal-slot{display:flex;flex-direction:column;gap:var(--sp-1);min-height:32px;box-sizing:border-box;padding:var(--sp-3);text-align:left;cursor:pointer;font:var(--fs-s)/1.3 var(--f10);color:var(--text);background:var(--paper);border:var(--bd-fine) solid var(--line)}
 .cal-slot.sel{border-color:var(--ink);border-width:var(--bd)}
 .cal-name{font:var(--fs-m)/1.2 var(--f12);overflow-wrap:anywhere}
-.cal-heading{display:flex;align-items:center;gap:var(--sp-2);min-width:0}
-.cal-heading .cal-name{min-width:0}
+.cal-heading{display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-2);min-width:0}
+.cal-heading .cal-name{min-width:0;flex:1 1 calc(var(--fs-m) * 5)}
 .cal-icon{width:24px;height:24px;flex:0 0 24px;image-rendering:pixelated}
 .cal-icon[hidden]{display:none}
 .cal-reset{display:inline-flex;align-items:center;gap:var(--sp-2);min-width:0}
