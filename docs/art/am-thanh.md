@@ -51,6 +51,7 @@ Sáu chất liệu trong `MATERIALS` đều có mẫu. `hit-da` dùng ba tiếng
 - Mất kết nối (màn "Đã rời bản đồ") thì ngừng nhạc.
 
 - **Tiếng giao diện đợt 1c (#599):** thêm bốn nhóm vào gói `ui` (mỗi nhóm 2 biến thể, Kenney Interface Sounds CC0): `ui-click` (bấm nút trong bảng, `uiSounds.ts`, tối đa một tiếng mỗi `CLICK_GAP_MS`), `ui-error` (chip lệnh báo lý do / bị từ chối), `ui-reward` (toast nhiệm vụ / lên cấp, nhận đồ hạng ≥ 1 chưa tới "hiếm"), `ui-notify` (toast thường). Phát qua kênh **Giao diện** nên theo thanh "Giao diện" trong Cài đặt. Dựng lại riêng gói `ui`: `node tools/audio/process-sfx.mjs --source-root <nguồn> --pack ui` (giữ nguyên các gói khác trong manifest). Cân âm lượng `GROUP_TRIM_DB`.
+- **Tiếng thưởng nhận quà ở Thư, Thành Tựu, Phúc Lợi (#1577):** tái dùng `ui-reward` (không mẫu mới, không nguồn mới), `GameScene` phát `playUi("reward")` khi `onMail` / `onAchv` / `onWelfare` trả true: tin server có `mail.claimedNow` (count > 0) / chuỗi nhận Thành Tựu vừa xong có ít nhất một mốc nhận thật / `welfare.signed`; làm mới hoặc lỗi không nhận được gì thì im (thư nhận một phần rồi gặp túi đầy vẫn có tiếng), "Nhận tất cả" chỉ một tiếng (`achvRewardStep`). Theo thanh "Giao diện" và Tắt tiếng như các tiếng giao diện khác.
 
 ## Issue liên quan
 #393 (G2, tiếng mẫu CC0), #396 (G5, nhạc động và âm thanh lô 2), #397 (G6, đấu trường), #399 (G8, cân âm lượng), #579 (C4, tiếng tuyệt kỹ), #643 (nhạc tu tiên 10 bản đồ), #599 (tiếng giao diện đợt 1c).

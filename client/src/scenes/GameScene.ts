@@ -1677,9 +1677,9 @@ export class GameScene extends Phaser.Scene {
       else if (m?.k) onBiCanhRoom(m as BiCanhRoomMsg);
       else onBiCanh(m);
     });
-    this.room.onMessage("mail", (m: MailMsg) => onMail(m)); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
-    this.room.onMessage("achv", (m: AchvMsg) => onAchv(m)); // Thành Tựu (#1317): server gửi lúc vào phòng, sau get / claim và khi bộ đếm làm số "nhận được" đổi
-    this.room.onMessage("welfare", (m: WelfareMsg) => onWelfare(m)); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
+    this.room.onMessage("mail", (m: MailMsg) => { if (onMail(m)) this.audio.playUi("reward"); }); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
+    this.room.onMessage("achv", (m: AchvMsg) => { if (onAchv(m)) this.audio.playUi("reward"); }); // Thành Tựu (#1317): server gửi lúc vào phòng, sau get / claim và khi bộ đếm làm số "nhận được" đổi
+    this.room.onMessage("welfare", (m: WelfareMsg) => { if (onWelfare(m)) this.audio.playUi("reward"); }); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("rally", (m: unknown) => { addRally(m); }); // dấu "Tập trung ở đây" của đồng đội (R6)
     this.room.onMessage("party", (m: PartyView) => { this.party = m; pruneRallies(new Set(m.members.map((x) => x.name))); hud.renderParty(m, { send: (op, name, sid) => this.partySend(op, name, sid) }); });
