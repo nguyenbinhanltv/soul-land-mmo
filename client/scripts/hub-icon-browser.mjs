@@ -23,6 +23,8 @@ try {
   const page = await browser.newPage();
   const errors = []; page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(url + "/choi/");
+  // Đợi game vẽ xong màn đăng nhập rồi mới gỡ #overlay: gỡ sớm thì loginScreen() chạy sau getElementById ra null (pageerror, chập chờn trên CI chậm, #1619).
+  await page.waitForSelector("#credits-open", { state: "attached" });
   await page.evaluate(async () => {
     await (await import("/src/uiArt.ts")).loadUiArt();
     document.querySelector("#overlay")?.remove();
