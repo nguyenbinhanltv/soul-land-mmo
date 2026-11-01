@@ -298,6 +298,113 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  # Bài trình duyệt chặn lỗi đã sửa, trước đây chỉ chạy tay nên PR sau làm hỏng lại không ai biết (#1619).
+  # Job riêng (không chung flow-browser) để một bài treo, vd #1617, không kéo cả flow-browser; mỗi bài có timeout riêng, `!cancelled()` nên bài trượt không che bài sau.
+  # Mỗi bài tự dựng server RAM `GAME_TEST=1` + vite dev (không cần build); ở máy mỗi bài 6–25 s, cả job ~2 phút gồm cài đặt. Chỉ để tham khảo như flow-browser.
+  # Chưa đưa vào (lý do ở docs/ops/ci.md): bando, resonance (>2 phút), npc-reply (chập chờn).
+  browser-regress:
+    name: browser-regress
+    needs: changes
+    if: ${{ needs.changes.outputs.level == 'smoke' || needs.changes.outputs.level == 'full' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund --prefix server && npm ci --no-audit --no-fund --prefix client
+      # Cache Chrome của Playwright theo phiên bản trong lock (#933): trúng cache chỉ cài thư viện hệ thống, trượt mới tải lại.
+      - name: Phiên bản Playwright
+        id: pw
+        run: echo "version=$(node -p "require('./client/package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Chrome Playwright
+        id: pw-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Cài Chrome Playwright
+        id: pw-install
+        timeout-minutes: 15
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            npx --prefix client playwright install-deps chromium
+          else
+            npx --prefix client playwright install --with-deps chromium
+          fi
+      # Lưu ngay sau bước cài thành công (kể cả khi bài sau trượt); chỉ lưu khi vừa tải mới, không lưu bản cài dở.
+      - name: Lưu cache Chrome Playwright
+        if: ${{ always() && steps.pw-cache.outputs.cache-hit != 'true' && steps.pw-install.outcome == 'success' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      # Mã mua thật sự gửi khi lọc cửa hàng, Túi cập nhật từ server, đổi NPC (#1520).
+      - run: npm run test:shop-search-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          SHOP_OUTPUT: ${{ runner.temp }}/browser-regress/shop-search
+      # Bàn phím thật / tiêu điểm khi theo dõi nhiệm vụ (#1554).
+      - run: npm run test:quest-focus-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 3
+        env:
+          QUEST_FOCUS_OUTPUT: ${{ runner.temp }}/browser-regress/quest-focus
+      # Thông báo nhận đồ trong chat (#1462, #1509).
+      - run: npm run test:loot-chat-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          LOOT_OUTPUT: ${{ runner.temp }}/browser-regress/loot-chat
+      # Trạng thái Thư và Thành Tựu, sender / đồng hồ giả (#1565 / #1566).
+      - run: npm run test:mail-achv-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          REFRESH_OUTPUT: ${{ runner.temp }}/browser-regress/mail-achv
+      # Bảng xếp hạng chuyển bảng, sender giả (#1526).
+      - run: npm run test:rank-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 3
+        env:
+          RANK_OUTPUT: ${{ runner.temp }}/browser-regress/rank
+      # Lựa chọn trong Thư.
+      - run: npm run test:mail-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 3
+        env:
+          MAIL_OUTPUT: ${{ runner.temp }}/browser-regress/mail
+      # Hồi quy quà Thư / Thành Tựu.
+      - run: npm run test:gift-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 3
+        env:
+          GIFT_OUTPUT: ${{ runner.temp }}/browser-regress/gift
+      # Thẻ kết thúc Làm quen trên game RAM (#1540).
+      - run: npm run test:onboard-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          ONBOARD_OUTPUT: ${{ runner.temp }}/browser-regress/onboard
+      # Icon menu trên thẻ Hub: 19 mục có icon (#1579).
+      - run: npm run test:hub-icon-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 3
+        env:
+          HUB_OUTPUT: ${{ runner.temp }}/browser-regress/hub-icon
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: browser-regress-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/browser-regress
+          retention-days: 7
+          if-no-files-found: ignore
+
   # Kiểm tờ hoạt ảnh hồn thú (#866, theo dõi #861): PR đổi art/src/beast-anim/** hoặc tools/assets/beast-sheet-* thì chạy beast:check cho loài có tờ đổi.
   # Nhẹ: không npm ci (script chỉ dùng node:* và tools/assets), không Chrome / server; không needs nên chạy cả khi mức bot là skip.
   # Chặn chỉ khi cỡ ngoài tập / nền ngoài dung sai / thiếu khung / không dò được lưới; còn lại cảnh báo.
