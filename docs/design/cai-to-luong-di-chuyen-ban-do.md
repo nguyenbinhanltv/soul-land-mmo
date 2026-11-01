@@ -252,25 +252,25 @@ Ghi chú: asset có "Nhập miễn phí" phải qua duyệt ảnh (Q17) và đ�
 
 ### 5.1 Nguyên tắc
 - **Thí điểm trên MỘT bản đồ:** **Tinh Đấu Ngoại vi** (nghẽn nhất ở mọi chỉ số 0.2: ngang TB 3,55; 33,4% hành lang ≤ 2 ô; 25,1% khoảng mở; 36 cổ chai; 2181 ô sau cổ chai). Cũng là bản đồ thứ hai người chơi gặp, và cuối trục dẫn vào Nội địa, nên cải thiện nhìn thấy ngay.
-- Mỗi việc một nhánh / PR. Đề xuất issue dưới đây chỉ để chủ repo tạo (tài liệu này **không** tạo issue). **A:** tự merge khi CI xanh; **B:** chủ repo xem trước ảnh / số đo; **C:** chủ repo quyết (thiết kế hoặc cân bằng); việc rủi ro (SQL, chống gian lận, `MapRoom`, giao thức) thêm `ao review`.
+- Mỗi việc một nhánh / PR. Issue đã tạo sau khi chủ repo duyệt bản thiết kế (mã việc Lx và số issue ở cột đầu). L0 và L1 (loại A, tiền đề của thí điểm) đã mở sẵn cho worker; L2 trở đi chờ chủ repo. **A:** tự merge khi CI xanh; **B:** chủ repo xem trước ảnh / số đo; **C:** chủ repo quyết (thiết kế hoặc cân bằng); việc rủi ro (SQL, chống gian lận, `MapRoom`, giao thức) thêm `ao review`.
 
 ### 5.2 Danh sách issue đề xuất (theo thứ tự ưu tiên tác động / rủi ro)
 
 | # | Việc (một PR) | Làn | Loại | Phụ thuộc | Ghi chú |
 |---|---|---|:-:|---|---|
-| L0 | Đưa script đo vào `tools/maps/do-luong.mjs` (in bảng 0.2, xuất PNG bề ngang); soát `spawn.ts` có sinh thú trong ô sau cổ chai không | code | A | – | Không đổi dữ liệu; chưa vào `npm run check` |
-| L1 | Bài bot đường đi `pathflow` (bot đi trại hồi sinh → từng mốc, đo giây + số lần đứng lại > 1 giây + kẹt) cho mọi bản đồ săn | code | A | L0 | Làm baseline trước / sau |
-| L2 | Bộ dựng `tools/maps`: tùy chọn "cây lẻ → vật mềm" (cụm ≤ 3 ô đổi sang gid trong `gids.walk`) + sửa kẹt chéo; **chỉ bật cho Ngoại vi** | code | B | L0 | Không cần ảnh mới (dùng `vat_deco`, `vat_nam`). Xem trước ảnh trước / sau |
-| L3 | Bộ dựng: "hành lang chính" (nới đường mốc → ≥ 5 ô, gỡ cây / đá nhỏ quanh đường) cho Ngoại vi | code | B | L2 | Mô phỏng ở 5.3: ~215 ô cây |
-| L4 | Cảnh báo ngưỡng chỉ tiêu 1.1 trong `npm run check` (chỉ cảnh báo, không đỏ) | code | A | L0 | Sau L2/L3 có số thực |
-| L5 | Nhân rộng L2 + L3 sang Nội địa, Lạc Nhật; soát Cực Bắc (640 ô sau cổ chai), Hải Thần Đảo, Thiên Đấu Thành (cổ chai tường) | code | A | duyệt L2/L3 | Mỗi bản đồ một PR |
-| L6 | Asset client-only: Tán Linh Thụ, Sương Mê Vụ, Linh Bi, Hồn Hoàn Đăng, Thái Cực Đài, Cổng Động Phủ | art + code | A / B | L2 | Nhập miễn phí hoặc Codex vẽ; duyệt từng ảnh (Q17) |
-| L7 | Bát Quái Trận cho Đại Đấu Hồn Trường (+ trụ phù văn Luyện Hồn Cảnh) | code | B | L1 | Chạy bot đấu trường, kiểm cân bằng bên A / B |
-| L8 | Lớp Tiên Môn lơ lửng cho Nặc Đinh Thành / Thiên Đấu Thành (nền mây, cầu, đảo mây: trang trí + `gids.walk`) | art + code | B | L6 | Chỉ nhìn, không đổi lối đi |
-| L9 | Vùng hồi: Hồn Lực Tầm Gửi, Linh Tuyền, Bãi Lội (có làm chậm hay không) | code | C | L5 | Thêm hằng ở `shared/data.ts`; soát cân bằng và tự săn |
-| L10 | Lớp cản động + Phù Vân Kiều, Thạch Trụ Phong Ấn | code | C | L9 | Server + dự đoán client + giao thức; `ao review`, bot `bigmap` |
-| L11 | Cổ Đằng Đu, Cọc Dịch Chuyển Ngắn (vượt khe) | code | C | L10 | Dùng cơ chế niệm / vị trí của `travel.ts` |
-| L12 | Cập nhật `docs/design/the-gioi-ban-do.md`, `docs/tech/phong-ban-do.md` theo kết quả (luật đã duyệt) | docs | A | L2–L5 | Chuyển chỉ tiêu 1.1 thành luật hiện hành; sửa chỗ bài này trỏ |
+| L0 (#1658) | Đưa script đo vào `tools/maps/do-luong.mjs` (in bảng 0.2, xuất PNG bề ngang); soát `spawn.ts` có sinh thú trong ô sau cổ chai không | code | A | – | Không đổi dữ liệu; chưa vào `npm run check` |
+| L1 (#1659) | Bài bot đường đi `pathflow` (bot đi trại hồi sinh → từng mốc, đo giây + số lần đứng lại > 1 giây + kẹt) cho mọi bản đồ săn | code | A | L0 | Làm baseline trước / sau |
+| L2 (#1660) | Bộ dựng `tools/maps`: tùy chọn "cây lẻ → vật mềm" (cụm ≤ 3 ô đổi sang gid trong `gids.walk`) + sửa kẹt chéo; **chỉ bật cho Ngoại vi** | code | B | L0 | Không cần ảnh mới (dùng `vat_deco`, `vat_nam`). Xem trước ảnh trước / sau |
+| L3 (#1661) | Bộ dựng: "hành lang chính" (nới đường mốc → ≥ 5 ô, gỡ cây / đá nhỏ quanh đường) cho Ngoại vi | code | B | L2 | Mô phỏng ở 5.3: ~215 ô cây |
+| L4 (#1662) | Cảnh báo ngưỡng chỉ tiêu 1.1 trong `npm run check` (chỉ cảnh báo, không đỏ) | code | A | L0 | Sau L2/L3 có số thực |
+| L5 (#1663) | Nhân rộng L2 + L3 sang Nội địa, Lạc Nhật; soát Cực Bắc (640 ô sau cổ chai), Hải Thần Đảo, Thiên Đấu Thành (cổ chai tường) | code | A | duyệt L2/L3 | Mỗi bản đồ một PR |
+| L6 (#1664) | Asset client-only: Tán Linh Thụ, Sương Mê Vụ, Linh Bi, Hồn Hoàn Đăng, Thái Cực Đài, Cổng Động Phủ | art + code | A / B | L2 | Nhập miễn phí hoặc Codex vẽ; duyệt từng ảnh (Q17) |
+| L7 (#1665) | Bát Quái Trận cho Đại Đấu Hồn Trường (+ trụ phù văn Luyện Hồn Cảnh) | code | B | L1 | Chạy bot đấu trường, kiểm cân bằng bên A / B |
+| L8 (#1666) | Lớp Tiên Môn lơ lửng cho Nặc Đinh Thành / Thiên Đấu Thành (nền mây, cầu, đảo mây: trang trí + `gids.walk`) | art + code | B | L6 | Chỉ nhìn, không đổi lối đi |
+| L9 (#1667) | Vùng hồi: Hồn Lực Tầm Gửi, Linh Tuyền, Bãi Lội (có làm chậm hay không) | code | C | L5 | Thêm hằng ở `shared/data.ts`; soát cân bằng và tự săn |
+| L10 (#1668) | Lớp cản động + Phù Vân Kiều, Thạch Trụ Phong Ấn | code | C | L9 | Server + dự đoán client + giao thức; `ao review`, bot `bigmap` |
+| L11 (#1669) | Cổ Đằng Đu, Cọc Dịch Chuyển Ngắn (vượt khe) | code | C | L10 | Dùng cơ chế niệm / vị trí của `travel.ts` |
+| L12 (#1670) | Cập nhật `docs/design/the-gioi-ban-do.md`, `docs/tech/phong-ban-do.md` theo kết quả (luật đã duyệt) | docs | A | L2–L5 | Chuyển chỉ tiêu 1.1 thành luật hiện hành; sửa chỗ bài này trỏ |
 
 ### 5.3 Mô phỏng quy tắc trên bản đồ thật (kết quả đo, chưa sửa file nào)
 
