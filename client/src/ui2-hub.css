@@ -12,7 +12,7 @@
 .hub-r.lock:hover{border-color:var(--ink2)}
 
 /* Hộp Thông báo (Giấy): danh sách mới nhất ở trên, mỗi dòng giờ / nhãn loại / nội dung; vạch trái theo loại (kèm nhãn chữ). */
-#notice{width:min(560px,calc(100vw - var(--sp-6) * 2))}
+#notice,#quests{width:min(560px,calc(100vw - var(--sp-6) * 2))}
 .nt-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;overflow:auto;min-height:0;max-height:300px;background:var(--paper);color:var(--text);border:var(--bd) solid var(--line)}
 .nt-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:var(--sp-4);align-items:baseline;padding:var(--sp-3) var(--sp-4);border-bottom:var(--bd-fine) solid var(--line2);border-left:6px solid var(--line)}
 .nt-row[data-k="loot"]{border-left-color:var(--good)}
@@ -44,3 +44,18 @@
 .p2-card-i[hidden],.hub-r-i[hidden]{display:none}
 .p2-s-lock .p2-card-i,.hub-r.lock .hub-r-i{filter:grayscale(1);opacity:.7}
 .hub-r:has(.hub-r-i:not([hidden])){display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2)}
+
+/* Bảng Nhiệm Vụ (questScreen.ts, #1605): danh sách cuộn, mỗi nhiệm vụ một dòng; nhãn trạng thái bằng chữ. */
+.qj-count{margin:0 0 var(--sp-3);font:var(--fs-m)/1.3 var(--f12);color:var(--text)}
+.qj-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:var(--sp-3);overflow:auto;min-height:0;max-height:min(340px,calc(100vh - 220px));overscroll-behavior:contain}
+.qj-row{display:flex;flex-direction:column;gap:var(--sp-2);align-items:flex-start;padding:var(--sp-3) var(--sp-4);background:var(--paper2);color:var(--text);border:var(--bd-fine) solid var(--line);border-left:6px solid var(--xp)}
+.qj-row[data-status="ready"]{border-left-color:var(--good)}
+.qj-row[data-status="offer"]{border-left-color:var(--son-l)}
+.qj-hd{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-4);align-items:baseline;width:100%}
+.qj-name{font:var(--fs-m)/1.3 var(--f12);overflow-wrap:anywhere}
+.qj-mark{padding:0 var(--sp-2);font:var(--fs-s)/1.4 var(--f10);background:var(--paper);border:var(--bd-fine) solid var(--line)}
+.qj-sub,.qj-desc{font:var(--fs-s)/1.3 var(--f10);color:var(--muted);overflow-wrap:anywhere}
+.qj-hint{font:var(--fs-s)/1.3 var(--f10);overflow-wrap:anywhere}
+.qj-row .qg{width:100%}
+.qj-row .qrew{font:var(--fs-s)/1.3 var(--f10);overflow-wrap:anywhere}
+.qj-go{margin-top:var(--sp-1)}

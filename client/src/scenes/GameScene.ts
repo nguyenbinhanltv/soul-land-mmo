@@ -37,6 +37,7 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
 import { setBadge, badgeOf, resetBadges, starReadyCount, ringReady, questActionable } from "../badges.ts";
 import { openNotice, closeNotice } from "../noticeScreen.ts";
+import { openQuests as openQuestPanel, closeQuests as closeQuestPanel } from "../questScreen.ts";
 import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, endJingle, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScreen.ts";
@@ -973,7 +974,7 @@ export class GameScene extends Phaser.Scene {
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
-      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice }, { id: "quests", close: closeQuestPanel },
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
@@ -984,12 +985,7 @@ export class GameScene extends Phaser.Scene {
   /** Menu hub ngăn kéo (UI v2): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
   setupHub() {
     resetBadges(); // kho chấm tính lại từ tin server gửi lúc vào phòng
-    const openQuests = () => {
-      setHubOpen(false);
-      const n = hud.revealQuestTracker();
-      toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc trái, dưới thông tin nhân vật; gặp NPC có dấu trên đầu để nhận / trả");
-      document.querySelector<HTMLElement>('#sideBox .sb-tab[data-tab="quest"]')?.focus();
-    };
+    const openQuests = () => { setHubOpen(false); this.clearForPanel(); openQuestPanel(); }; // bảng Nhiệm Vụ (questScreen.ts, #1605): danh sách đủ nhiệm vụ, Esc đóng; thay cho toast cũ
     onboardQuestLink(openQuests, this.ac.signal);
     initHub({
       vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
@@ -999,7 +995,7 @@ export class GameScene extends Phaser.Scene {
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
       welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, mail: () => { this.clearForPanel(); openMail(); },
       bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },
-      quest: openQuests, // chỉ mở khung theo dõi; nhận / trả vẫn ở NPC
+      quest: openQuests, // mở bảng Nhiệm Vụ; nhận / trả vẫn ở NPC
       notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
     }, this.ac.signal);
   }

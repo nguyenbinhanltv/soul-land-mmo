@@ -28,6 +28,9 @@ export const questOf = (id: string) => {
 export function questTracked(): QuestMsg[] {
   return QUESTS.map((c) => questMsgs.get(c.id)).filter((q): q is QuestMsg => !!q && q.status !== "done" && questOf(questChain(q.chain)?.giver ?? "") === q);
 }
+/** Người nghe thay đổi dữ liệu nhiệm vụ (bảng Nhiệm Vụ ở hub vẽ lại khi đang mở); trả hàm huỷ. */
+const questListeners = new Set<() => void>();
+export function onQuestChange(fn: () => void) { questListeners.add(fn); return () => { questListeners.delete(fn); }; }
 /** Mở rộng mọi mục của khung theo dõi (thẻ Nhiệm Vụ ở hub, ui2): bỏ trạng thái thu gọn rồi vẽ lại; trả số chuỗi + khảo hạch đang hiện. Không đổi dữ liệu / tin mạng. */
 export function revealQuestTracker(): number {
   questFold.clear(); dailyFold = false; renderQuestTracker(); showSideTab("quest"); // mở khung gộp ở tab Nhiệm vụ
@@ -42,7 +45,7 @@ export function setQuest(q: QuestMsg) {
 }
 const giverOf = (chain: string) => { const c = questChain(chain); return { c, npc: NPCS.find((n) => n.id === c?.giver), where: c ? MAPS[c.map]?.name : "" }; };
 /** Các mục tiêu của bước `s` kèm tiến độ x/N (`prog` null = chưa nhận: chỉ ghi số cần). */
-function questGoals(s: QuestStep, prog: number[] | null) {
+export function questGoals(s: QuestStep, prog: number[] | null) {
   const box = document.createElement("div");
   s.goals.forEach((g, i) => {
     const n = prog ? Math.min(g.n, prog[i] ?? 0) : null, row = document.createElement("div");
@@ -71,6 +74,7 @@ function renderQuestTracker(keepFocus = true) {
   const daily = renderDailyTracker(el);
   el.hidden = !any && !daily;
   sideBoxQuest(!el.hidden); // khung gộp: hiện dòng gợi ý khi không có gì theo dõi
+  questListeners.forEach((fn) => fn());
   if (index >= 0 && active && !active.isConnected && document.activeElement === document.body) {
     const next = [...el.querySelectorAll<HTMLButtonElement>(".qhead")];
     // Mục vừa xong: đi tiếp ở cùng vị trí, hết thì lùi mục cuối; rỗng thì về tab Nhiệm vụ.
@@ -135,7 +139,7 @@ export function questGoBtn(t: NpcGoal | null): HTMLButtonElement | null {
   return b;
 }
 /** Dòng "Phần thưởng: …" của một bài; hồn cốt thưởng (#285) tô màu theo niên hạn như hồn hoàn. */
-function questRewardEl(r: QuestReward, label = "Phần thưởng") {
+export function questRewardEl(r: QuestReward, label = "Phần thưởng") {
   const el = document.createElement("span"); el.className = "qrew";
   const rest = questRewardText({ ...r, bones: [] });
   el.append(`${label}: ${rest}`);
