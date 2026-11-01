@@ -1,0 +1,123 @@
+{
+  "status": "cho-chu-repo-duyet",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-01",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "model_id": null,
+  "seed": null,
+  "reference": "Không gửi ảnh vào tool; prompt mô tả bảng màu và nét của Hub đã xem tại art/src/ui-kit/hub-1580/RAW.png",
+  "variants": {
+    "a": {
+      "RAW.png": "fc969c092e9ed64957aace5de660db9637ac8df67a3fd873a8c2e6c2df56300f",
+      "prompt.txt": "f72a44deec086bbddc0bede37a78636c66e8b91c2d6b0cf80c40a4073261c248",
+      "native": [
+        1254,
+        1254
+      ],
+      "samples": {
+        "a-mail_welfare-24.png": "cfd1f7b68ab8cf26c929064530b95072f804167b0b5a1593eb8c683c46410c4d",
+        "a-mail_welfare-32.png": "842d382a8c88f37a1ee202556142cf85e9ff553fcca452c99e7d35703909578c",
+        "a-mail_bicanh-24.png": "693e16820fc0fe7db72ef2a47b053422c2c1df5528a01215d4ec961e379b96da",
+        "a-mail_bicanh-32.png": "2b8e8e95af14a468d9711a190a474b13f048cf111037357f8b33f6b9748ca57c",
+        "a-mail_gm-24.png": "6bb9611a32e3124c3238311917859f3d406f116b7df181a96539688fa868e189",
+        "a-mail_gm-32.png": "3ba270c014ee3af5d21c6b08a44675f452fd5ca865bba54bc5d750a600d6f60b",
+        "a-rank_cap-24.png": "f63b70b281b4eeba869f30ecd3f7ba2cd231362311ebb00a0a426b7a1ae056b3",
+        "a-rank_cap-32.png": "b4c5cc9aa6e1a211b98d59e499dbcac38da9ae4028afc95af2af277ed7f8a46c",
+        "a-rank_suu_tam-24.png": "04e5c828d5ff3185a3704566f66a90e86bdb4ad223da9883c2667366107a1286",
+        "a-rank_suu_tam-32.png": "8216f86398d05a55366b361bc74e242dace6a55c88f98364b94eaf206f5a16df",
+        "a-rank_suc_manh-24.png": "b776bf3ea1e8450455c1f2213cb1d414e944a2cc2e877ca50cc9d0819986de1d",
+        "a-rank_suc_manh-32.png": "7a3b48e1077d4ef236b38d05f085933266d30882f94f47f91211e55d180c6adf",
+        "a-rank_cong_minh-24.png": "357bd228ccc78cef2c0b008129177a7c9c9180ddd488c7575b14c1ae70246cbb",
+        "a-rank_cong_minh-32.png": "40e32db85679a4f7d7fe3a3f626072000b1f6b209a08452e0e372e1b10411634",
+        "a-rank_elo-24.png": "91695d386e6dd8da14252caad67453d3dee7d5d50d90aadfae75f242e3e93d23",
+        "a-rank_elo-32.png": "e16f4522ad50064195474fb1a5df5cd142735e9ef649cae64c96a85aca673a93",
+        "a-rank_tong_tuan-24.png": "a3f753d0e2b3d35c80e2221ec3fa1a605f798eb20d2e9098b99a8850374138d5",
+        "a-rank_tong_tuan-32.png": "470d8fac630fde37d9bb66c3177d29276d79b7a3b4d00f7697f13f4d401d9e58"
+      }
+    },
+    "b": {
+      "RAW.png": "b0d15781eefb17f9c2f9a9ec269b8d90071b165bd405eeeb920c74089b998a6b",
+      "prompt.txt": "5c30306729202b7fac800fa49eeeeb32c1a0e8b91c974d48e411ac5b9cd70217",
+      "native": [
+        1254,
+        1254
+      ],
+      "samples": {
+        "b-mail_welfare-24.png": "03ce3e1387f2eeefd7d9759657ef6ee5e4f3a8d2f73bfbbb21d5ec41947ef61d",
+        "b-mail_welfare-32.png": "a80c74dd3a77a80ca27f0d0e34d8694af77b2ed9796d2016ece133c99fd3eb03",
+        "b-mail_bicanh-24.png": "e9dc13fbca679a1796400341d0d4b84cf247b8c30c2dd0c6c5cf1d6d9048d8a4",
+        "b-mail_bicanh-32.png": "bcb88c51fbd41dd13c6a4298ac0fb63ad3e725e39c357dbd4e8ca1fc31b5be19",
+        "b-mail_gm-24.png": "ca493e691d3196a709b8e87f4276c437ad45ffbfc37504113c4c9abfdbc20db9",
+        "b-mail_gm-32.png": "30f49d4db89e820a176744e2fa14510cb711712ac38397e7377949d8abff2a55",
+        "b-rank_cap-24.png": "c3b17a0b831e4db6ac9971188de2492592e371a984e0474acc17720ebf1f0cd0",
+        "b-rank_cap-32.png": "4dd83c16a6f36880123bbf935d935a61af18158f4137d12da7ca253023ccc1db",
+        "b-rank_suu_tam-24.png": "7603706204c636139ff0e18043b48665ff3596d9d89c9da94b3ab7886e90f935",
+        "b-rank_suu_tam-32.png": "0b95ce10f32107c35244fdaaca5c39599799b2b8922bbcb1dc03404e37843501",
+        "b-rank_suc_manh-24.png": "3ca5fff56b622ab078a42a4adaea136fb86c138093c064f35d54957776e96e13",
+        "b-rank_suc_manh-32.png": "46b71faf587dfb950e6372b17a07173b1905bd822f92134a78c89629b03e2c7e",
+        "b-rank_cong_minh-24.png": "e0a3c76686aa9fe3506975537b86064761be621fa50133929fbf9214be13d51c",
+        "b-rank_cong_minh-32.png": "25144ff543c8366411ef9e8fa3a028f46bca36a508b85b9152aca2da44f2cea3",
+        "b-rank_elo-24.png": "d2303e1101820484ebf5206774cbeb845a0e184f6810d973c91893321d8600c0",
+        "b-rank_elo-32.png": "4b67dd8162a5ce337c7bb9ffbcefad74ee612aa151be065a2e9f4110d3acc3ec",
+        "b-rank_tong_tuan-24.png": "145961fa7ba077aa3e21d43a821dc2b09575c53f1d1c24490e67edc13ca0b4fd",
+        "b-rank_tong_tuan-32.png": "02238482a3498e9d1b85a8664c640ca6a4d20c605b31e9fe437870d4e0ef8905"
+      }
+    }
+  },
+  "mapping": [
+    {
+      "index": 1,
+      "key": "mail_welfare",
+      "name": "Phúc Lợi",
+      "code": "MAIL_KINDS.welfare"
+    },
+    {
+      "index": 2,
+      "key": "mail_bicanh",
+      "name": "Bí Cảnh",
+      "code": "MAIL_KINDS.bicanh"
+    },
+    {
+      "index": 3,
+      "key": "mail_gm",
+      "name": "Quản trị",
+      "code": "MAIL_KINDS.gm"
+    },
+    {
+      "index": 4,
+      "key": "rank_cap",
+      "name": "Cấp / Người chơi",
+      "code": "cap"
+    },
+    {
+      "index": 5,
+      "key": "rank_suu_tam",
+      "name": "Sưu tầm",
+      "code": "suu_tam"
+    },
+    {
+      "index": 6,
+      "key": "rank_suc_manh",
+      "name": "Sức mạnh",
+      "code": "suc_manh"
+    },
+    {
+      "index": 7,
+      "key": "rank_cong_minh",
+      "name": "Cộng minh",
+      "code": "cong_minh"
+    },
+    {
+      "index": 8,
+      "key": "rank_elo",
+      "name": "Elo / Đấu trường",
+      "code": "elo"
+    },
+    {
+      "index": 9,
+      "key": "rank_tong_tuan",
+      "name": "Tông tuần / Tông môn",
+      "code": "tong_tuan"
+    }
+  ]
+}
