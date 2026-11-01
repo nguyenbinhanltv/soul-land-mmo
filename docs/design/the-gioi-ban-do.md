@@ -138,9 +138,21 @@ Chủ repo đã duyệt (Q55). Mục tiêu là **hết khựng, kẹt, dồn c�
 - **Số hồn thú:** mở diện tích đi được làm tăng số thú theo `BEAST_DENSITY`; giữ tổng số con bằng hệ số bố cục, không sửa mật độ, trừ khi chủ repo chấp nhận tăng.
 
 ### Tình trạng áp dụng
-- **Tinh Đấu Ngoại vi (thí điểm):** chưa đạt chỉ tiêu nào ở cột săn (nghẽn nhất mọi chỉ số); đang dựng lại bằng bộ dựng `tools/maps` (cây lẻ thành vật mềm, hành lang chính).
-- Nội địa, Lạc Nhật Sâm Lâm: chưa đạt, nhân rộng sau khi thí điểm được duyệt. Cực Bắc, Hải Thần Đảo, Thánh Hồn Thôn: gần đạt, chỉ soát vùng sau khe 1 ô. Nặc Đinh Thành, Thiên Đấu Thành: đã đạt phần hình, chỉ soát cổ chai quanh tường / cung. Sân Đại Đấu Hồn Trường, Luyện Hồn Cảnh, Lõi Tinh Đấu: chưa đổi hình.
-- Chỉ ghi "đạt" sau khi chạy lại công cụ đo trên bản dựng mới; chưa có số đo sau thì giữ "chưa đạt".
+**Chưa bản đồ nào được ghi "đạt".** Số đo gốc (bảng 0.2 của `docs/design/cai-to-luong-di-chuyen-ban-do.md`, đo ở `ec680cbc`) so với chỉ tiêu ở trên cho thấy mọi bản đồ còn trượt ít nhất một chỉ tiêu. Chỉ ghi "đạt" sau khi chạy lại công cụ đo trên bản dựng mới.
+
+| Bản đồ | Trạng thái | Chỉ tiêu trượt chính (số đo gốc) |
+|---|---|---|
+| Tinh Đấu Ngoại vi (thí điểm) | chưa đạt | gần như mọi chỉ tiêu: kẹt chéo 30,7, ngõ cụt 31,5, khe ≤ 2 ô 33,4%, khoảng mở 25,1%, 2181 ô sau khe 1 ô, 36 cổ chai |
+| Tinh Đấu Nội địa | chưa đạt | kẹt chéo 22,3, ngõ cụt 20,2, khe ≤ 2 ô 22,2%, khoảng mở 37,5%, chặn 28,0% |
+| Lạc Nhật Sâm Lâm | chưa đạt | kẹt chéo 23,3, ngõ cụt 20,1, khe ≤ 2 ô 23,1%, khoảng mở 37,7%, chặn 21,1% |
+| Cực Bắc Chi Địa | chưa đạt | kẹt chéo 15,0, ngõ cụt 12,3, khe ≤ 2 ô 13,9%, khoảng mở 59,8%, 640 ô sau khe 1 ô |
+| Hải Thần Đảo | chưa đạt | kẹt chéo 9,0, chặn 21,4%, 54 ô sau khe 1 ô, 9 cổ chai |
+| Thánh Hồn Thôn | chưa đạt | kẹt chéo 9,6, 180 ô sau khe 1 ô, 3 cổ chai |
+| Nặc Đinh Thành | chưa đạt | kẹt chéo 1,3 (chỉ tiêu thành ≤ 1), 4 ô sau khe 1 ô |
+| Thiên Đấu Thành | chưa đạt | chặn 35,3% (chỉ tiêu ≤ 35%), 11 cổ chai trên 16 tuyến |
+| Đại Đấu Hồn Trường, Luyện Hồn Cảnh, Lõi Tinh Đấu | chưa đo lại | Đại Đấu Hồn Trường ngõ cụt 23,8 (chỉ tiêu sân 0); Lõi Tinh Đấu kẹt chéo 9,9, ngõ cụt 20,9; chưa ghi đạt |
+
+Tinh Đấu Ngoại vi đang được dựng lại trước bằng bộ dựng `tools/maps` (cây lẻ thành vật mềm, hành lang chính); các bản đồ khác nhân rộng sau khi thí điểm được duyệt.
 
 ## Lịch sử / issue liên quan
 - Bản đồ cỡ lớn (bản ×8, dựng bằng `tools/maps`): giai đoạn 11.5. Mã `tinh_dau` cũ chuyển sang `tinh_dau_ngoai_vi` từ BĐ3. Mảnh UR chuyển sang rương boss thế giới từ BĐ6.
