@@ -152,6 +152,55 @@ GameScene.prototype.create = function(...a) {
     if (touch) { await page.locator('#dualTabs [data-p="char"]').click(); check(await page.locator('#char').isVisible(), "chuyển tab Hồn sư"); }
     await cdp.detach();
   }
+  // #1602: ô "Xếp" và dòng gợi ý chân bảng (Túi, Đội hình) nằm trọn trong bảng, bấm / đọc được; cỡ chữ mặc định và lớn, 1280×720 và 960×540.
+  const fit = [];
+  for (const [width, height] of [[1280,720],[960,540]]) for (const fs of [0, 2]) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate((n) => { document.body.classList.remove("touch", "a11y-fs-1", "a11y-fs-2"); if (n) document.body.classList.add(`a11y-fs-${n}`); }, fs);
+    await page.evaluate(async () => { const { setPanel } = await import("/src/charPanel.ts"); setPanel("char", false); setPanel("bag", true); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(false); });
+    await sleep(500);
+    const probe = (sel, panel, endSel, scroll = true) => page.evaluate(({ sel, panel, endSel, scroll }) => {
+      const p = document.querySelector(panel), el = [...p.querySelectorAll(sel)].pop();
+      if (!el) return { missing: true };
+      if (scroll) el.scrollIntoView({ block: "end", inline: "nearest" }); else { p.scrollTop = 0; p.querySelectorAll(".bfilter").forEach((f) => { f.scrollLeft = 0; }); }
+      const pr = p.getBoundingClientRect(), r = el.getBoundingClientRect();
+      const bf = el.closest(".bfilter"), cr = bf ? bf.getBoundingClientRect() : pr;
+      const inside = r.left >= pr.left && r.right <= pr.right && r.top >= pr.top && r.bottom <= pr.bottom && r.left >= cr.left - 0.5 && r.right <= cr.right + 0.5;
+      const hit = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && (t === el || el.contains(t)); };
+      const pts = [[.1,.2],[.9,.2],[.1,.8],[.9,.8],[.5,.5]];
+      const clear = pts.every(([a, b]) => hit(r.left + r.width * a, r.top + r.height * b));
+      const strip = (() => { const f = p.querySelector(endSel); return f ? Math.max(0, r.bottom - f.getBoundingClientRect().top) : 0; })();
+      return { inside, clear, textCut: el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1, tabs: [...p.querySelectorAll(".bfilter .ui-tab")].map((t) => t.textContent), box: [r.x, r.y, r.width, r.height].map(Math.round), panel: [pr.x, pr.y, pr.width, pr.height].map(Math.round), strip };
+    }, { sel, panel, endSel, scroll });
+    const tag2 = `${tag}-${width}x${height}-fs${fs}`;
+    const sortM = await probe(".bsortsel", "#bag", ".nope", false);
+    await page.screenshot({ path: resolve(out, `${tag2}-tui.png`) });
+    const noteM = await probe(".rnote", "#bag", ".nope");
+    await page.screenshot({ path: resolve(out, `${tag2}-tui-chan.png`) });
+    await page.evaluate(async () => { const { setPanel } = await import("/src/charPanel.ts"); setPanel("bag", false); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(true); });
+    await sleep(500);
+    const rosM = await probe(".rnote", "#roster", ".rtabs");
+    await page.screenshot({ path: resolve(out, `${tag2}-doihinh.png`) });
+    fit.push({ width, height, fs, sort: sortM, bagNote: noteM, rosterNote: rosM });
+    check(sortM.inside && sortM.clear, `ô Xếp trọn trong bảng và bấm được (${tag2}): ${JSON.stringify(sortM)}`);
+    check(!noteM.textCut && noteM.inside && noteM.clear, `chân Túi đọc đủ (${tag2}): ${JSON.stringify(noteM)}`);
+    check(rosM.missing || (!rosM.textCut && rosM.inside && rosM.clear && rosM.strip === 0), `chân Đội hình đọc đủ, không bị tab đè (${tag2}): ${JSON.stringify(rosM)}`);
+  }
+  // Bấm thật (chuột): ô Xếp nhận chuột ở 960×540 chữ lớn; "Xem thêm" mở / thu gọn chân Túi.
+  await page.setViewportSize({ width: 960, height: 540 });
+  await page.evaluate(async () => { document.body.classList.add("a11y-fs-2"); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(false); const { setPanel } = await import("/src/charPanel.ts"); setPanel("bag", true); });
+  await sleep(400);
+  if (!soft) {
+    await page.locator("#bag .bsortsel").click({ trial: true, timeout: 3000 });
+    await page.locator("#bag .rn-more").scrollIntoViewIfNeeded();
+    await page.locator("#bag .rn-more").click();
+    check(await page.locator("#bag .rnote.fold.open").count() === 1, "Xem thêm mở chân Túi");
+    check((await page.locator("#bag .rn-t").evaluate((e) => e.scrollHeight <= e.clientHeight + 1)), "chân Túi mở thì đọc đủ chữ");
+    await page.locator("#bag .rn-more").click();
+    check(await page.locator("#bag .rnote.fold.open").count() === 0, "Thu gọn chân Túi");
+  }
+  await page.evaluate(() => document.body.classList.remove("a11y-fs-1", "a11y-fs-2"));
+  await writeFile(resolve(out, `${tag}-vua.json`), JSON.stringify(fit, null, 2));
   await writeFile(resolve(out, `${tag}-do.json`), JSON.stringify(measures, null, 2));
   console.log(JSON.stringify({ output:out, measures }, null, 2));
 } finally {

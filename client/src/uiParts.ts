@@ -432,3 +432,11 @@ export function lockWhy(b: HTMLButtonElement, reason: string | null | undefined)
   b.setAttribute("aria-describedby", w.id); b.before(w);
   return w;
 }
+
+/** Chân bảng dài (#1602): thu về 2 dòng kèm nút "Xem thêm" / "Thu gọn"; không đổi chữ, chuột và chạm như nhau. Gọi sau khi đã gán `textContent`. */
+export function foldNote(note: HTMLElement) {
+  const text = document.createElement("span"); text.className = "rn-t"; text.textContent = note.textContent;
+  const more = document.createElement("button"); more.type = "button"; more.className = "rn-more"; more.textContent = "Xem thêm"; more.setAttribute("aria-expanded", "false");
+  more.addEventListener("click", () => { const open = note.classList.toggle("open"); more.setAttribute("aria-expanded", String(open)); more.textContent = open ? "Thu gọn" : "Xem thêm"; more.blur(); });
+  note.classList.add("fold"); note.replaceChildren(text, more);
+}
