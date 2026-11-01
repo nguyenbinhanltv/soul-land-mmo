@@ -2895,7 +2895,13 @@ export const MAX_LEVEL = 100;
 export const RING_LIMIT = [423, 764, 1760, 5000, 12000, 20000, 50000, 100000, 100000, 100000];
 /** Số năm tối đa (trong giới hạn) của vòng thứ `slot` (1..MAX_RINGS). */
 export const ringLimit = (slot: number) => RING_LIMIT[Math.max(1, Math.min(MAX_RINGS, Math.floor(slot) || 1)) - 1];
-export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2);
+/**
+ * Hệ số nhịp lên cấp (#909, chủ repo chọn phương án C 2026-11-02): kinh nghiệm cần cho một cấp = (10 + 1,2 × cấp²) với phần cấp² nhân hệ số này.
+ * Mục tiêu: một võ hồn ra trận từ cấp 1 → 100 khoảng 150 giờ săn tích cực (Ủy Thác tính cùng công thức, đội 4 võ hồn khoảng 240 giờ;
+ * số tính ở docs/design/vo-hon-doi-hinh.md mục "Nhịp lên cấp"). Chỉ đổi lượng kinh nghiệm cần, không đổi kinh nghiệm một hồn thú.
+ */
+export const XP_NEED_MULT = 75;
+export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2 * XP_NEED_MULT);
 export const atBottleneck = (level: number, rings: number) => level >= 10 * (rings + 1);
 /** Kinh nghiệm dừng lại: ở bình cảnh (cần hồn hoàn kế tiếp) hoặc đã đạt cấp tối đa. */
 export const xpBlocked = (level: number, rings: number) => level >= MAX_LEVEL || atBottleneck(level, rings);
