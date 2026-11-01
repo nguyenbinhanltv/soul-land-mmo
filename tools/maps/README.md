@@ -24,6 +24,10 @@ Bản dựng lại của một bản đồ đang có ghi ra `<mapId>.v2.json` v�
 
 `node tools/maps/quet-chan.mjs [mapId…]` (có trong `npm run check`): so vật VẼ ở từng file Tiled với lưới ô chặn `collides` (`shared/move.ts`), in danh sách lệch `file [loại] ghi chú: tx,ty` và thoát mã 1 nếu có. Loại: `nhà` (chân nhà / tường cung uyển vẽ mà ô không chặn), `vật` (gid lớp `trees` có vật vẽ nhưng không chặn, và không thuộc `gids.walk` / `plant` của bố cục), `ma` (ô chặn mà vật không có ảnh công khai). Bộ dựng gỡ nhà bị `clearRect` (cổng, điểm đến, waypoint) khoét thành hình chữ L; sửa lệch bằng bố cục, tileset `collides` (qua bộ dựng) hoặc `gids.walk` nếu cố ý đi xuyên.
 
+## Đo luồng di chuyển (L0 #1658)
+
+`npm run map:luong [-- mapId… --tuyen --sinh --png <thư mục> --json]` (chỉ đọc, chưa nằm trong `npm run check`): in bảng chỉ số phần 0.2 của bản thiết kế cải tổ luồng di chuyển bản đồ (PR #1656) cho 11 bản đồ: tỷ lệ chặn, bề ngang ô trung bình (cắt ở 14), % ô đi được trong khe ≤ 2 ô và trong khoảng trống ≥ 5×5, kẹt chéo và ngõ cụt /1000 ô, số ô sau khe 1 ô, và (từ trại hồi sinh tới từng cổng / truyền tống trận / tinh anh / hang, bỏ mốc dưới 20 ô) số đoạn cổ chai, bề ngang tuyến rộng nhất, giây đi bộ. `--tuyen` in từng tuyến; `--sinh` soát chỗ sinh hồn thú theo đúng luật `spawn.ts` (hộp 12×8 px, ngoài vùng an toàn và `SPAWN_CLEAR`) nằm ở ô khe 1 ô / sau khe; `--png` xuất ảnh bề ngang ô (đỏ hẹp → xanh rộng); `--json` để so trước / sau. Hàm đo thuần ở `lib/luong.mjs`, kiểm thử `npm run test:luong`. Các cột về lưới khớp bảng 0.2 trong ±0,1; các cột theo tuyến chỉ cùng thứ tự độ lớn (bộ tuyến của script gốc không còn).
+
 ## Chỉnh tay
 
 1. `npm run map:build -- <mapId> --hand-init` tạo `tools/maps/hand/<mapId>.json`: hai lớp tham khảo đã khóa (`tham_khao_nen`, `tham_khao_vat`, bản đang sinh) và hai lớp rỗng `tay_nen`, `tay_vat`.
