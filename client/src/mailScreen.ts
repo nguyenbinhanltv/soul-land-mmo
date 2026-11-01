@@ -75,13 +75,18 @@ function load() {
 export function openMail() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; busy = false; loading = false; load(); render(); }
 export function closeMail() { const e = el(); if (e) e.hidden = true; reading = 0; loading = false; window.clearTimeout(timer); }
 
-export function onMail(m: MailMsg) {
-  if (!m || !Array.isArray(m.list) || typeof m.pending !== "number") return;
+/** Tin này có xác nhận vừa nhận quà thật không (để phát tiếng thưởng đúng một lần, kể cả "Nhận tất cả"). Làm mới / lỗi thì không. Hàm thuần (test). */
+export const mailRewardClaimed = (m: Pick<MailMsg, "claimedNow" | "err">) => !m.err && !!m.claimedNow && m.claimedNow.count > 0;
+
+/** Trả true khi tin vừa xác nhận nhận quà thật (GameScene phát `reward`). */
+export function onMail(m: MailMsg): boolean {
+  if (!m || !Array.isArray(m.list) || typeof m.pending !== "number") return false;
   msg = m; loading = false; failed = false; window.clearTimeout(timer); busy = false;
   if (m.err) note = { text: m.err, err: true }; else if (m.claimedNow) note = { text: mailClaimedLine(m.claimedNow), err: false };
   if (sel && !m.list.some((x) => x.id === sel)) { sel = 0; reading = 0; }
   onChange(mailBadgeCount(m));
   render();
+  return mailRewardClaimed(m);
 }
 
 /** Gửi một yêu cầu ghi; bộ đếm chờ để màn không treo khi server im (server bỏ tin quá nhịp). */
