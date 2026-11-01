@@ -68,6 +68,8 @@ export interface CardOpts {
   rank?: number;
   /** Nhãn giới hạn ở đầu thẻ (vd "Giới hạn 3/ngày"). */
   limit?: string;
+  /** URL ảnh trang trí đặt trước tiêu đề (`aria-hidden`, nhãn chữ vẫn đủ nghĩa); ảnh lỗi thì tự ẩn (`bindCardIcons`). */
+  icon?: string;
 }
 export const CARD_MARK_LABEL: Record<CardState, string> = { new: "Mới", up: "Nâng được", done: "Đã xong", lock: "Khoá" };
 export const CARD_RANK_MAX = 4;
@@ -88,6 +90,7 @@ export function cardNode(o: CardOpts, clickable = false): PNode {
     kids: [
       i.limit ? h("span", "p2-limit", { text: i.limit }) : null,
       i.state ? h("span", `p2-mark p2-m-${i.state}`, { attrs: { role: "img", "aria-label": CARD_MARK_LABEL[i.state] } }) : null,
+      o.icon ? h("img", "p2-card-i", { attrs: { src: o.icon, alt: "", draggable: "false", "aria-hidden": "true" } }) : null,
       h("span", "p2-card-t", { text: o.title }),
       o.sub ? h("span", "p2-card-s", { text: o.sub }) : null,
       i.reason ? h("span", "p2-why", { text: i.reason }) : null,

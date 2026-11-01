@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:hub-icon-browser": "node scripts/hub-icon-browser.mjs",
     "test:gift-browser": "node scripts/gift-browser.mjs",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
