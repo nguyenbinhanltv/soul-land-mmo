@@ -39,6 +39,7 @@ export const AMBIENT_BEDS: Readonly<Record<string, { gain: number }>> = {
   hai_than_dao: { gain: 0.55 },
   loi_tinh_dau: { gain: 0.7 },
   dai_dau_hon_truong: { gain: 0.8 },
+  lac_nhat_sam_lam: { gain: 0.5 },
 };
 /** Mờ ra / mờ vào chéo nhau khi đổi bản đồ (giây). */
 export const AMBIENT_BED_FADE_S = 2;
