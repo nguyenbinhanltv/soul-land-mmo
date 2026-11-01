@@ -93,19 +93,27 @@ console.log("onboard: ok");
 
 // Vòng đời DOM: xem lại không ghi tiến độ, gắn lại cùng tên giữ bước, đổi tên dừng lần xem cũ.
 {
+  const { keepRing } = await import('../src/onboard.ts');
+  const inPanel = { closest: () => bagEl }, bagEl = { closest: () => bagEl };
+  assert.equal(keepRing(true, inPanel), true, 'nút trong #bag (Hấp thụ) giữ vòng sáng');
+  assert.equal(keepRing(true, bagEl), false, 'đích là chính bảng thì bỏ vòng');
+  assert.equal(keepRing(true, { closest: () => null }), false, 'đích ngoài bảng (dưới bảng) thì bỏ vòng');
+  assert.equal(keepRing(false, { closest: () => null }), true, 'không có bảng che thì giữ vòng');
+  assert.equal(keepRing(true, null), false);
   const { onboardAttach, onboardBegin, onboardReview, onboardActive, onboardQuestLink } = await import('../src/onboard.ts');
   const values = new Map(), elements = new Map();
   class El {
     hidden = true; isConnected = true; dataset = {}; style = {}; textContent = ''; listeners = new Map(); children = new Map();
     set innerHTML(_) { for (const s of ['.ob-quest', '.ob-skip', '.ob-next', '.ob-head b', '.ob-dots', 'h4', 'p']) this.children.set(s, new El()); }
     querySelector(s) { return this.children.get(s) ?? null; }
+    querySelectorAll(s) { const e = this.children.get(s); return e ? [e] : []; }
     setAttribute() {} appendChild(e) { elements.set(e.id, e); } remove() { this.isConnected = false; }
     addEventListener(s, f) { this.listeners.set(s, f); } removeEventListener(s) { this.listeners.delete(s); }
     getClientRects() { return []; } blur() {} focus() {}
     click(s) { const e = this.children.get(s); e.listeners.get('click')({ currentTarget: e }); }
   }
   const hud = new El(); elements.set('hud', hud);
-  globalThis.document = { createElement: () => new El(), getElementById: (id) => elements.get(id), querySelector: () => null, body: hud };
+  globalThis.document = { createElement: () => new El(), getElementById: (id) => elements.get(id), querySelector: () => null, querySelectorAll: () => [], body: hud };
   globalThis.localStorage = { getItem: (k) => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) };
   globalThis.window = { setInterval: () => 1, clearInterval() {}, setTimeout: () => 1 };
   for (const st of ['skip', 'done', 'run']) {
