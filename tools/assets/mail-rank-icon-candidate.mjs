@@ -35,4 +35,3 @@ for (const v of ["a", "b"]) {
   }
   console.log(JSON.stringify({variant:v,native:[img.w,img.h],issues:cut.check.issues}));
 }
-
