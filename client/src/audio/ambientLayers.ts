@@ -2,14 +2,14 @@
 // chồng lên nhạc nền và tiếng nền vùng (ambient/*.ogg). Chỉ là bộ hẹn giờ thuần: AudioManager truyền hàm phát, GameScene truyền ngữ cảnh
 // (bản đồ, mức đêm, khoảng cách tới lửa gần nhất). Bảng dưới là khoảng cách trung bình giữa hai lần phát (giây), không phải số cân bằng game.
 
-export type AmbientKind = "wind" | "wave" | "bird" | "cricket" | "fire" | "bell";
+export type AmbientKind = "wind" | "wave" | "bird" | "cricket" | "fire" | "bell" | "fountain";
 export type AmbientProfile = Partial<Record<AmbientKind, number>>;
 
-/** Trung bình bao nhiêu giây một lần; thiếu = bản đồ không có tiếng đó. Chim chỉ ban ngày, côn trùng chỉ ban đêm, lửa chỉ khi đứng gần vật cháy. */
+/** Trung bình bao nhiêu giây một lần; thiếu = bản đồ không có tiếng đó. Chim chỉ ban ngày, côn trùng chỉ ban đêm, lửa chỉ khi đứng gần vật cháy, tiếng đài phun (#1573) chỉ khi đứng gần đài. */
 export const AMBIENT_PROFILES: Readonly<Record<string, AmbientProfile>> = {
   thanh_hon_thon: { wind: 20, bird: 7, cricket: 6, bell: 55, fire: 4 },
-  nac_dinh_thanh: { wind: 26, bird: 9, cricket: 8, bell: 45, fire: 4 },
-  thien_dau_thanh: { wind: 24, bird: 9, cricket: 8, bell: 40, fire: 4 },
+  nac_dinh_thanh: { wind: 26, bird: 9, cricket: 8, bell: 45, fire: 4, fountain: 6 },
+  thien_dau_thanh: { wind: 24, bird: 9, cricket: 8, bell: 40, fire: 4, fountain: 6 },
   tinh_dau_ngoai_vi: { wind: 14, bird: 6, cricket: 5, fire: 4 },
   tinh_dau_noi_dia: { wind: 13, bird: 9, cricket: 5, fire: 4 },
   lac_nhat_sam_lam: { wind: 20, bird: 12, cricket: 6, fire: 4 },
@@ -51,6 +51,10 @@ export const ambientBedFile = (mapId: string, format: "ogg" | "m4a") => `audio/a
 export const AMBIENT_FIRE_PROPS: ReadonlySet<string> = new Set(["lua_trai", "lo_lua_dong", "lo_ren_lang"]);
 /** Đứng cách vật cháy trong tầm này (pixel iso) mới nghe lửa; càng gần càng to. */
 export const AMBIENT_FIRE_RANGE = 240;
+/** Tên vật (tiles.json) là đài phun nước; tiếng nước chỉ phát khi đứng gần (vị trí lấy từ prop đang hiện ở isoMap.ts). */
+export const AMBIENT_FOUNTAIN_PROPS: ReadonlySet<string> = new Set(["dai_phun_nuoc"]);
+/** Đứng cách đài gần nhất trong tầm này (pixel iso) mới nghe tiếng nước; càng gần càng to. Nhiều đài chỉ tính đài gần nhất. */
+export const AMBIENT_FOUNTAIN_RANGE = 200;
 /** Mức đêm 0..1 từ ngưỡng này thì mới có côn trùng; mức ngày (1 − đêm) từ ngưỡng này mới có chim. */
 export const AMBIENT_DAYNIGHT_MIN = 0.3;
 /** Ngẫu nhiên hóa khoảng hẹn: nhân 0,6 – 1,4. */
@@ -64,6 +68,8 @@ export interface AmbientInput {
   night: number;
   /** Khoảng cách tới vật cháy gần nhất, null = không có vật cháy trong khung. */
   fireDist: number | null;
+  /** Khoảng cách tới đài phun gần nhất, null / thiếu = không có đài trong khung. */
+  fountainDist?: number | null;
 }
 
 /** Một lần phát: loại tiếng, độ to 0..1 theo ngữ cảnh (lửa theo khoảng cách), lệch trái / phải ngẫu nhiên. */
@@ -100,10 +106,11 @@ export class AmbientLayers {
   }
 
   /** Độ to theo ngữ cảnh; 0 = bây giờ không hợp (ban ngày không có côn trùng, xa lửa không có tiếng lửa). */
-  private weight(kind: AmbientKind, { night, fireDist }: AmbientInput): number {
+  private weight(kind: AmbientKind, { night, fireDist, fountainDist }: AmbientInput): number {
     if (kind === "bird") return 1 - night >= AMBIENT_DAYNIGHT_MIN ? 1 - night : 0;
     if (kind === "cricket") return night >= AMBIENT_DAYNIGHT_MIN ? night : 0;
     if (kind === "fire") return fireDist !== null && fireDist < AMBIENT_FIRE_RANGE ? 1 - fireDist / AMBIENT_FIRE_RANGE : 0;
+    if (kind === "fountain") return fountainDist != null && fountainDist < AMBIENT_FOUNTAIN_RANGE ? 1 - fountainDist / AMBIENT_FOUNTAIN_RANGE : 0;
     return 1;
   }
 }

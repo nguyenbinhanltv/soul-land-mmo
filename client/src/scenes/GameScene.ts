@@ -37,7 +37,7 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
 import { setBadge, badgeOf, resetBadges, starReadyCount, ringReady, questActionable } from "../badges.ts";
 import { openNotice, closeNotice } from "../noticeScreen.ts";
-import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
+import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, endJingle, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScreen.ts";
 import { bindMail, openMail, closeMail, onMail, type MailMsg } from "../mailScreen.ts";
@@ -87,7 +87,7 @@ import { SPIRIT_FAMILY, clipOscK, weaponOscK, spiritPose, spiritScale, spiritPha
 import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomOn, hitstopOn, hitstopMs, fxPrefs, fxLevel, fxGov } from "../combatFx.ts";
 import { bindAudioPanel, closeAudioPanel, toggleSettings } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
-import { AMBIENT_FIRE_PROPS } from "../audio/ambientLayers.ts";
+import { AMBIENT_FIRE_PROPS, AMBIENT_PROFILES } from "../audio/ambientLayers.ts";
 import { autoJob, autoJobText, bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, setAutoStatus, toggleAutoPanel } from "../autoPanel.ts";
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
@@ -1674,7 +1674,10 @@ export class GameScene extends Phaser.Scene {
     // Bí Cảnh (mục 5.22, P5): `{runs, resetIn}` = trạng thái lượt (màn danh sách, chấm đỏ); `{k}` = vòng phòng (found = vào phòng riêng, ready / fight / wave / clear / end).
     this.room.onMessage("bicanh", (m: BiCanhMsg & BiCanhRoomMsg) => {
       if (m?.k === "found" && typeof m.roomId === "string") { closeBiCanh(); hud.closeNpc(); hud.log(`Vào ${m.name ?? "Bí Cảnh"}…`, "#ff9a8a"); this.onArena(m.roomId, false, "bicanh"); }
-      else if (m?.k) onBiCanhRoom(m as BiCanhRoomMsg);
+      else if (m?.k) {
+        onBiCanhRoom(m as BiCanhRoomMsg);
+        const j = endJingle(m); if (j) this.audio.music?.jingle(j); // hết phòng: khúc thắng / thua (tái dùng, #1578)
+      }
       else onBiCanh(m);
     });
     this.room.onMessage("mail", (m: MailMsg) => { if (onMail(m)) this.audio.playUi("reward"); }); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
@@ -3677,7 +3680,7 @@ export class GameScene extends Phaser.Scene {
   worldBossHere() { return !!MAPS[this.room.state.mapId]?.world?.length; }
 
   private ambientAt = 0;
-  /** Môi trường lớp chồng (G5, #396): mỗi ~250 ms báo bản đồ, mức đêm, khoảng cách tới vật cháy gần nhất; ambientLayers.ts tự hẹn giờ. */
+  /** Môi trường lớp chồng (G5, #396): mỗi ~250 ms báo bản đồ, mức đêm, khoảng cách tới vật cháy và đài phun gần nhất; ambientLayers.ts tự hẹn giờ. */
   private ambientSound(time: number, mv: { root: { x: number; y: number } } | undefined, glows: ReadonlyArray<{ x: number; y: number; kind: string }>) {
     if (time < this.ambientAt) return;
     this.ambientAt = time + 250;
@@ -3687,7 +3690,9 @@ export class GameScene extends Phaser.Scene {
       const d = Math.hypot(g.x - mv.root.x, g.y - mv.root.y);
       if (fireDist === null || d < fireDist) fireDist = d;
     }
-    this.audio.updateAmbient(time, { mapId: this.room.state.mapId || this.mapId, night: this.light.nightness(), fireDist });
+    const mapId = this.room.state.mapId || this.mapId;
+    const fountainDist = mv && AMBIENT_PROFILES[mapId]?.fountain ? this.isoMap.nearestFountain(mv.root.x, mv.root.y) : null;
+    this.audio.updateAmbient(time, { mapId, night: this.light.nightness(), fireDist, fountainDist });
   }
 
   /**
