@@ -22,6 +22,8 @@ try {
   const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
   const errors = []; page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(url + "/choi/");
+  // Đợi game vẽ xong màn đăng nhập rồi mới gỡ #overlay: gỡ sớm thì loginScreen() chạy sau getElementById ra null (pageerror, chập chờn trên CI chậm, #1619).
+  await page.waitForSelector("#credits-open", { state: "attached" });
   console.log("Chrome mở trang");
   await page.clock.install();
   await page.evaluate(async () => {

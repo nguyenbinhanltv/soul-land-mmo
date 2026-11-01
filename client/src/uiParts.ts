@@ -235,7 +235,7 @@ export function slotNode(o: SlotOpts, clickable = true): PNode {
 // ---- hộp xác nhận (mục thiếu #19 của kiểm kê UI/UX: hành động không đảo ngược) ----
 // ---- khung màn chuẩn ----
 export type Material = "muc" | "giay";
-export interface NavItem { id: string; label: string; active?: boolean; /** chấm đỏ báo mới. */ dot?: boolean }
+export interface NavItem { id: string; label: string; active?: boolean; /** Ảnh trang trí; nhãn chữ luôn giữ nguyên. */ icon?: string; /** chấm đỏ báo mới. */ dot?: boolean }
 export interface CurrencyItem { label: string; value: string }
 export interface FrameOpts {
   material?: Material; title: string;
@@ -261,7 +261,7 @@ export function frameNode(o: FrameOpts): PNode {
     ] }),
     h("nav", "p2-nav", { attrs: { "aria-label": "Điều hướng" }, kids: (o.nav ?? []).map((n) => h("button", `p2-nav-i${n.active ? " sel" : ""}`, {
       attrs: { type: "button", "data-id": n.id, ...(n.active ? { "aria-current": "page" } : {}) },
-      kids: [h("span", "p2-nav-t", { text: n.label }), n.dot ? h("span", "p2-mark p2-m-new", { attrs: { role: "img", "aria-label": CARD_MARK_LABEL.new } }) : null] })) }),
+      kids: [n.icon ? h("img", "p2-nav-icon", { attrs: { src: n.icon, alt: "", "aria-hidden": "true", draggable: "false", width: "24", height: "24" } }) : null, h("span", "p2-nav-t", { text: n.label }), n.dot ? h("span", "p2-mark p2-m-new", { attrs: { role: "img", "aria-label": CARD_MARK_LABEL.new } }) : null] })) }),
     h("div", "p2-body"),
     h("footer", "p2-ft", { kids: p ? [
       p.disabled && p.reason ? h("span", "p2-why", { text: p.reason }) : null,
@@ -289,6 +289,7 @@ export interface Frame { root: HTMLElement; body: HTMLElement; nav: HTMLElement;
 export function screenFrame(o: FrameOpts & { onNav?: (id: string) => void; onPrimary?: () => void }): Frame {
   const root = mount(frameNode(o)), nav = root.querySelector<HTMLElement>(".p2-nav")!, primary = root.querySelector<HTMLButtonElement>(".p2-primary");
   nav.addEventListener("click", (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>(".p2-nav-i"); if (b?.dataset.id) o.onNav?.(b.dataset.id); });
+  for (const img of nav.querySelectorAll<HTMLImageElement>(".p2-nav-icon")) img.addEventListener("error", () => { img.hidden = true; });
   primary?.addEventListener("click", () => { if (!primary.disabled) o.onPrimary?.(); });
   return { root, body: root.querySelector<HTMLElement>(".p2-body")!, nav, primary };
 }

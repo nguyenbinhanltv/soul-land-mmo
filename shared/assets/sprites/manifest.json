@@ -46020,6 +46020,62 @@
       "key": "gi_calendar_weekly_1x",
       "iso": true
     },
+    {
+      "key": "gi_achv_level",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_level_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_collect",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_collect_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_hunt",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_hunt_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_quest",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_quest_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_arena",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_arena_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_bicanh",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_bicanh_1x",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_claimed",
+      "iso": true
+    },
+    {
+      "key": "gi_achv_claimed_1x",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

@@ -3,6 +3,14 @@
 import { ACHV, ACHV_GROUPS, achvReached, formatHonTe, itemDef, type AchvDef, type AchvStats } from "../../shared/data.ts";
 import { abbrevNumber, screenFrame, stateBox, mount, addCloseButton, type PNode } from "./uiParts.ts";
 import { giftNode, bindGiftImages } from "./giftView.ts";
+import { artUrl } from "./uiArt.ts";
+
+const GROUP_ICONS: Record<string, string> = { cap: "level", suu_tam: "collect", hunt: "hunt", quest: "quest", arena: "arena", bicanh: "bicanh" };
+/** Hai bản ảnh đã duyệt: 24px ở DPR1, 32px ở DPR cao; thiếu ảnh vẫn đọc được nhãn. */
+export function achvIconUrl(name: string): string | null {
+  const key = `gi_achv_${name}`;
+  return (typeof window !== "undefined" && window.devicePixelRatio < 1.5 && artUrl(`${key}_1x`)) || artUrl(key);
+}
 
 export interface AchvMsg {
   stats: AchvStats; claimed: string[]; ready: number;
@@ -120,7 +128,10 @@ export function achvRowNode(r: AchvRowView, busyNow = false): PNode {
     h("span", "av-rw", { kids: [giftNode(def.reward)] }),
     r.state === "ready"
       ? h("button", "av-claim f2-nut-phu", { text: "Nhận", attrs: { type: "button", "data-id": def.id, ...(busyNow ? { disabled: "", title: "Đang gửi…" } : {}) } })
-      : h("span", "av-st", { text: MARK[r.state] }),
+      : h("span", "av-st", { kids: [
+        r.state === "claimed" && achvIconUrl("claimed") ? h("img", "av-icon", { attrs: { src: achvIconUrl("claimed")!, alt: "", "aria-hidden": "true", draggable: "false", width: "24", height: "24" } }) : null,
+        h("span", "", { text: MARK[r.state] }),
+      ] }),
   ] });
 }
 
@@ -129,7 +140,7 @@ function render() {
   const groups = msg ? achvGroups(msg) : [], cur = groups.find((g) => g.code === group) ?? groups[0];
   const f = screenFrame({
     material: "giay", title: "Thành Tựu", badge: "績", info: "Mốc đã đạt ở cấp, sưu tầm, săn, nhiệm vụ, đấu trường và Bí Cảnh. Mỗi thành tựu nhận một lần; chỉ số và quà do máy chủ tính.",
-    nav: ACHV_GROUPS.map((g) => { const v = groups.find((x) => x.code === g.code); return { id: g.code, label: v ? `${g.name} ${v.done}/${v.rows.length}` : g.name, active: cur ? cur.code === g.code : g.code === group, dot: !!v?.ready }; }),
+    nav: ACHV_GROUPS.map((g) => { const v = groups.find((x) => x.code === g.code); return { id: g.code, icon: GROUP_ICONS[g.code] ? achvIconUrl(GROUP_ICONS[g.code]) ?? undefined : undefined, label: v ? `${g.name} ${v.done}/${v.rows.length}` : g.name, active: cur ? cur.code === g.code : g.code === group, dot: !!v?.ready }; }),
     primary: achvPrimary(msg, busy), onPrimary: () => { if (msg && !busy) { queue = readyIds(msg); next(); } }, onNav: (id) => { group = id; note = null; render(); },
   });
   if (!msg) f.body.append(failed
@@ -152,5 +163,7 @@ function render() {
   }
   addCloseButton(f.root, closeAchv);
   root.replaceChildren(f.root);
+  if (f.nav.scrollWidth > f.nav.clientWidth) f.nav.querySelector<HTMLElement>(".sel")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  for (const img of root.querySelectorAll<HTMLImageElement>(".av-icon")) img.addEventListener("error", () => { img.hidden = true; });
   bindGiftImages(f.root);
 }

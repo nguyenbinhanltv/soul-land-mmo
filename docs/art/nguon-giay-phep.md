@@ -6,7 +6,7 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 
 ## Nguồn ảnh được phép (hiện hành)
 
-Mẫu icon nhóm Thành Tựu #1596 (PR nháp #1625): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; chỉ tham chiếu tờ menu đã duyệt `art/src/ui-kit/toI-2.png`. RAW nguyên byte native 1254×1254, prompt thật UTF-8 LF, SHA256 và ánh xạ sáu nhóm + huy hiệu đã nhận ở `art/src/ui-kit/achv-1596/NGUON.md`, `nguon.json`. Điều khoản đầu ra OpenAI, không CC0. **Đang chờ duyệt mỹ thuật loại B, chưa nhập manifest/client**; mẫu 24/32px và trang so sánh ở artifacts phiên `soul_land_game-976`.
+Mẫu icon nhóm Thành Tựu #1596 (PR nháp #1625): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; chỉ tham chiếu tờ menu đã duyệt `art/src/ui-kit/toI-2.png`. RAW nguyên byte native 1254×1254, prompt thật UTF-8 LF, SHA256 và ánh xạ sáu nhóm + huy hiệu đã nhận ở `art/src/ui-kit/achv-1596/NGUON.md`, `nguon.json`. Điều khoản đầu ra OpenAI, không CC0. **Chủ repo đã duyệt cả 7 mẫu** qua điều phối ngày 02/11/2026; đã nhập đúng byte 14 PNG 24/32px qua `achv-icon-import.mjs`, đăng ký `gi_achv_*`/`_1x`, nối nav sáu nhóm và huy hiệu cạnh chữ Đã nhận. Mẫu và ảnh sau nhập ở artifacts phiên `soul_land_game-976`.
 
 Sáu icon loại sự kiện Lịch Hoạt Động (#1597, PR #1626): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; chỉ tham chiếu tờ menu đã duyệt `art/src/ui-kit/toI-2.png`. RAW nguyên byte native 1254×1254 có alpha thật, prompt và SHA256 tại `art/src/ui-kit/calendar-1597/NGUON.md`, `nguon.json`. Điều khoản đầu ra OpenAI, không CC0. **Chủ repo đã duyệt cả sáu mẫu**; nhập đúng byte bản 24/32px qua `calendar-icon-import.mjs`, đăng ký `gi_calendar_*`/`_1x`, hiện ở thẻ và mục cố định của Lịch. Trang duyệt và ảnh sau nhập ở artifacts phiên AO `soul_land_game-977`.
 

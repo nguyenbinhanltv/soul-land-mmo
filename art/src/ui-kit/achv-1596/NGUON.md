@@ -1,6 +1,6 @@
-# Icon nhóm Thành Tựu — mẫu chờ duyệt mỹ thuật
+# Icon nhóm Thành Tựu — đã duyệt và nhập chính thức
 
-Closes #1596. Loại B: PR nháp, chờ chủ repo duyệt mỹ thuật trước khi nhập ảnh vào shared/assets, manifest và client.
+Closes #1596. Loại B: chủ repo đã duyệt cả 7 mẫu, điều phối qua soul_land_game-815 ngày 02/11/2026. Đã nhập đúng byte 14 PNG 24/32px, đăng ký manifest và nối màn Thành Tựu.
 
 Phạm vi: Cấp, Sưu tầm, Săn, Nhiệm vụ, Đấu trường, Bí Cảnh và huy hiệu đã nhận. Sinh ngày 01/11/2026 bằng Codex builtin OpenAI image_gen.imagegen, lượt 1/3, tham chiếu duy nhất `art/src/ui-kit/toI-2.png` đã duyệt của dự án; điều khoản đầu ra OpenAI, không CC0. Công cụ không trả model ID hoặc seed.
 
@@ -15,4 +15,4 @@ Cắt thử: `node tools/assets/achv-icon-preview.mjs <thư mục ngoài repo>`.
 
 Trang `duyet-icon-thanh-tuu.html` và `so-sanh-icon-thanh-tuu.png` ở artifacts phiên `soul_land_game-976`. Ảnh so sánh: hàng đầu là bộ menu đã duyệt; bảy hàng dưới theo thứ tự Cấp → Sưu tầm → Săn → Nhiệm vụ → Đấu trường → Bí Cảnh → Đã nhận. Ba cột nền Mực/Giấy/caro, mỗi ô có 24px, 32px và phóng 3× bản 32px. Đây là mẫu asset, chưa phải ảnh chụp màn game.
 
-**Chưa nhập manifest/shared/assets/client.** Sau khi chủ repo duyệt: nhập đúng byte mẫu, nối nav và huy hiệu bên cạnh chữ Đã nhận; chụp màn thật ở desktop/mobile, giữ vùng bấm ≥44px; merge main và sinh lại credits theo #1483, kiểm tra và review lại head nhập chính thức. Không tự merge.
+**Đã nhập chính thức sau duyệt.** Tái tạo: `node tools/assets/achv-icon-import.mjs`; kiểm đúng byte mẫu/manifest: thêm `--check`. SHA256 từng PNG đã duyệt ở `nguon.json` (`approved_files`), đối chiếu trực tiếp với artifacts trước nhập: 14/14 trùng. Nhập bằng validate --register --iso --keep-order, credits sinh bằng công cụ theo #1483 sau merge main. Nav dùng ảnh 24px (bản 24px ở DPR1, 32px ở DPR cao), huy hiệu chỉ cạnh chữ Đã nhận. Ảnh lỗi ẩn, nhãn và thao tác giữ nguyên. Không tự merge.

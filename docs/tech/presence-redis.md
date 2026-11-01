@@ -19,7 +19,7 @@
 - Lệnh presence chạy nền (`void …`) phải qua `bg(op, what)` hoặc có `.catch`. `Presence.publish / subscribe / unsubscribe` của Colyseus đã bọc sẵn (`safePresence`): lỗi chỉ ghi log (giới hạn 10 giây một dòng mỗi loại); tin pub/sub mất lúc Redis mất vốn không đảm bảo giao.
 - Handler `unhandledRejection` ngoài phòng: lỗi kết nối Redis (`isRedisFailure`, chỉ dấu hiệu riêng của ioredis, không nhận mã socket chung của pg / fetch) thì ghi log rồi chạy tiếp; mọi lỗi khác vẫn thoát có kiểm soát (`fatal`).
 - Lần ghi cuối khi rời phòng / tắt server không phụ thuộc Redis (`releaseAccount` chỉ ghi log khi nhả lease lỗi, `write(final)` ghi không khóa món nếu Redis lỗi).
-- Thử: `npm run test:presence-outage --prefix server` (2 server + Redis riêng, tắt / bật Redis, `OUTAGE_SECS`).
+- Thử: `npm run test:presence-outage --prefix server` (2 server + Redis riêng, tắt / bật Redis, `OUTAGE_SECS`). CI chạy bài này trong job `presence-redis` (`docs/ops/ci.md`).
 
 ## Chat xuyên phòng
 - Tổ đội, tin riêng, thế giới, tông môn (mục 4 "Kênh chat"): phòng của người gửi kiểm luật rồi `publish("chatx", {to?, tong?, msg: {ch, name, text, to?}})`.

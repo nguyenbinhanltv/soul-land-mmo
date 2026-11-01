@@ -65,8 +65,16 @@ export function parseSaved(raw: string | null, n = OB_STEPS.length): ObSaved | n
 const shown = (e: Element | null): e is HTMLElement => !!e && !(e as HTMLElement).hidden && (e as HTMLElement).getClientRects().length > 0;
 /** Bộ chọn đầu tiên trong danh sách đang hiện, hoặc null. */
 export const firstShown = (sels: readonly string[], root: ParentNode = document): HTMLElement | null => {
-  for (const s of sels) { const e = root.querySelector(s); if (shown(e)) return e; }
+  for (const s of sels) for (const e of root.querySelectorAll(s)) if (shown(e)) return e; // mọi phần tử khớp, không chỉ cái đầu tiên (#1631: .ui2-screen có nhiều bảng)
   return null;
+};
+
+/** Bảng lớn đang mở thì chỉ giữ vòng sáng cho đích nằm TRONG bảng (vd. nút Hấp thụ ở bước ring); bỏ khi đích là chính bảng (fallback `#bag`) hoặc nằm ngoài, dưới bảng (#1631). */
+export const keepRing = (cover: boolean, t: Element | null): boolean => {
+  if (!t) return false;
+  if (!cover) return true;
+  const panel = t.closest(OB_COVER_PANELS.join(","));
+  return !!panel && panel !== t;
 };
 
 // ---- phần DOM ----
@@ -143,8 +151,9 @@ function tick() {
   if (!running) return;
   const s = OB_STEPS[step];
   if (!reviewing && s.open && firstShown(s.open)) return advance();
-  place(firstShown(s.target));
   syncCover();
+  const t = firstShown(s.target);
+  place(keepRing(card?.dataset.cover === "1", t) ? t : null); // bảng lớn đang mở: không vẽ vòng sáng đè lên bảng, nhưng giữ vòng ở nút bên trong bảng (#1631)
   if (!reviewing && s.tap) {
     const e = document.querySelector<HTMLElement>(s.tap);
     if (e && e !== tapEl) { tapEl?.removeEventListener("pointerdown", onTap); tapEl = e; e.addEventListener("pointerdown", onTap); }

@@ -61,9 +61,13 @@ try {
   for (let i = 0; i < WARPS; i++) {
     const to = MAPS[i % MAPS.length];
     const old = await page.evaluate(() => window.__jbScene.room.roomId);
+    // #1633: đứng trên truyền tống trận rồi đổi phòng thì hộp #wpbox của phòng cũ không được còn.
+    await page.evaluate(() => { window.__jbScene.wpHere = "Trận thử"; const b = document.getElementById("wpbox"); b.textContent = "Truyền tống trận · Trận thử"; b.hidden = false; });
     await page.evaluate((to) => window.__jbScene.room.send("test", { op: "warp", mapId: to }), to);
     await page.waitForFunction(({ old, to }) => window.__jbScene?.room.roomId !== old && window.__jbScene.mapId === to && window.__jbScene.players.size > 0, { old, to }, { timeout: 60000 });
     await sleep(300);
+    assert.equal(await page.evaluate(() => document.getElementById("wpbox").hidden), true, `#wpbox còn hiện sau khi đổi sang ${to}`);
+    assert.equal(await page.evaluate(() => window.__jbScene.wpHere), null, `wpHere còn sót sau khi đổi sang ${to}`);
   }
   // Tin riêng lúc vào phòng phải tới được cảnh: khung tổ đội đã có dữ liệu.
   await page.waitForFunction(() => window.__jbScene.party, null, { timeout: 10000 });
