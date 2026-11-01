@@ -284,6 +284,12 @@ jobs:
         timeout-minutes: 4
         env:
           BAG_OUTPUT: ${{ runner.temp }}/flow-browser/giap-tooltip
+      # Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình (#1601): đo hộp chồng nhau, 4 cỡ màn × 3 cỡ chữ; cùng job.
+      - run: npm run test:onboard-cover-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        env:
+          COVER_OUTPUT: ${{ runner.temp }}/flow-browser/onboard-cover
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ failure() }}
         with:

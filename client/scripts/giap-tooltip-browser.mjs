@@ -55,6 +55,8 @@ try {
 
   browser = await chromium.launch({ headless: true, channel: process.env.FLOW_CHANNEL || undefined, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: Number(process.env.GT_DPR ?? 1) });
+  // `GT_CPU_THROTTLE=<n>`: làm chậm CPU trang n lần (mô phỏng runner CI chậm) để tái hiện lỗi thời điểm.
+  if (Number(process.env.GT_CPU_THROTTLE) > 1) { const cdp = await page.context().newCDPSession(page); await cdp.send("Emulation.setCPUThrottlingRate", { rate: Number(process.env.GT_CPU_THROTTLE) }); }
   page.on("pageerror", (e) => console.error("[trình duyệt]", e.message));
   page.on("websocket", (ws) => { const t0 = Date.now(); clientLog.push(`ws mở ${ws.url().slice(-40)}`); ws.on("close", () => clientLog.push(`ws đóng sau ${Date.now() - t0} ms`)); });
   page.on("console", (m) => { if (["warning", "error"].includes(m.type())) clientLog.push(m.text().slice(0, 200)); });
@@ -114,7 +116,17 @@ GameScene.prototype.create = function(...a) {
     for (const slot of ["ao", "mu"]) {
       const el = page.locator(`#char .ecell[data-slot="${slot}"]`);
       await el.scrollIntoViewIfNeeded().catch(() => {});
-      await el.hover(); await sleep(350);
+      await el.hover();
+      if (process.env.GT_OLD_WAIT) await sleep(350);
+      else {
+        // Chú thích hiện sau HOVER_MS (250 ms, tooltip.ts) tính từ pointerover; máy chậm thì trễ hơn: chờ theo trạng thái, không ngủ cố định.
+        const shown = await page.waitForFunction(() => { const t = document.getElementById("tip"); return !!t && !t.hidden && t.getBoundingClientRect().width > 0; }, null, { timeout: 5000 }).then(() => true, () => false);
+        if (!shown) console.log(`  chú thích ${slot} không hiện ${tag2}: ${JSON.stringify(await page.evaluate((sl) => {
+          const c = document.querySelector(`#char .ecell[data-slot="${sl}"]`), t = document.getElementById("tip"), r = c?.getBoundingClientRect();
+          const at = r ? document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) : null;
+          return { vp: [innerWidth, innerHeight], cell: r && [r.x, r.y, r.width, r.height].map(Math.round), tipped: c?.hasAttribute("data-tipped"), hasTitle: c?.hasAttribute("title"), tipHidden: t?.hidden, tipExists: !!t, atPoint: at ? `${at.tagName}#${at.id}.${at.className}`.slice(0, 80) : null, covered: !!at && !c?.contains(at), charOpen: !!document.getElementById("char")?.offsetParent };
+        }, slot))} | console: ${clientLog.slice(-5).join(" ; ")}`);
+      }
       const tip = await page.evaluate(() => { const t = document.getElementById("tip"); if (!t) return null; const r = t.getBoundingClientRect(), cs = getComputedStyle(t); return { x: r.x, y: r.y, w: r.width, h: r.height, display: cs.display, op: cs.opacity, bg: cs.backgroundColor, bi: cs.borderImageSource.slice(0, 60), bis: cs.borderImageSlice, biw: cs.borderImageWidth, bir: cs.borderImageRepeat, bw: cs.borderTopWidth }; });
       await page.screenshot({ path: resolve(out, `${tag2}-tip-${slot}.png`) });
       if (slot === "ao") results.push({ fs, width, height, cells, tip });

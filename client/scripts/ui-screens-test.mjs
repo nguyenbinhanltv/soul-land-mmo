@@ -16,7 +16,7 @@ assert.match(giftHtml, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; ×4/);
 assert.doesNotMatch(giftHtml, /<(?:button|a|img)\b/);
 assert.equal(giftItemUrl("ma_la"), null);
 assert.deepEqual(giftNode({}).kids, []);
-import { fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
+import { bindCalendar, watchCalendar, fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL } from "../src/calendarScreen.ts";
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
 import { rewardIcons, cellState, signedToday, needsSign, welfareBadgeCount, isMilestone, rewardParts, signedLine, primaryOf, nextMidnightVn, feeText } from "../src/welfareScreen.ts";
 import { CHECKIN } from "../../shared/data.ts";
@@ -303,3 +303,15 @@ assert.equal(tg.sections[0].rows[0].score, 30); assert.equal(JSON.stringify(tg).
 assert.match(tg.meText, /7 điểm tông/); assert.match(tg.note, /không có hạng cá nhân toàn server/);
 assert.equal(rankSource("cong_minh").type, "resonance"); assert.equal(rankSource("elo").type, "arena"); assert.equal(rankSource("tong_tuan").op, "board");
 console.log("✓ Bộ nối Xếp Hạng: điểm, trang, quyền riêng tư");
+
+// #1603: phòng sân đấu / Bí Cảnh chặn tin `calendar`; chấm đỏ nền không được tự gửi ở đó (không sinh dòng `deny`), bản đồ thường vẫn xin lịch sau 1,5 giây.
+{
+  const sent = [], timers = [];
+  globalThis.window = { setTimeout: (f, ms) => timers.push({ f, ms }), setInterval: () => 0, clearTimeout() {}, clearInterval() {} };
+  globalThis.document = { getElementById: () => null };
+  bindCalendar((type, payload) => sent.push([type, payload]));
+  const run = (blocked) => { sent.length = 0; timers.length = 0; watchCalendar(new AbortController().signal, blocked); for (const t of timers) t.f(); return sent.length; };
+  assert.equal(run(true), 0, "phòng sân đấu / Bí Cảnh: không tự gửi calendar");
+  assert.equal(run(false), 1, "bản đồ thường: vẫn xin lịch lúc vào");
+  delete globalThis.window; delete globalThis.document;
+}
