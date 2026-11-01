@@ -239,10 +239,13 @@ export async function friendTest(){
     ok(bOk===BLOCK_MAX&&E.friends.blocks.length===BLOCK_MAX&&E.friends.list.length===0,`chặn ${bOk} người (${FRIEND_MAX} bạn tự bị xóa khỏi danh sách bạn bè)`);
     ok(new RegExp(`đủ ${BLOCK_MAX}`).test(await F(E,"block",names[BLOCK_MAX])),`chặn người thứ ${BLOCK_MAX+1}: từ chối (BLOCK_MAX)`);
     // Chống spam: quá 10 thao tác liền thì bị chặn lượt.
-    let rl=""; for(let i=0;i<12&&!rl;i++){ const r=await F(E,"unblock",names[i]); if(/quá nhanh/.test(r)) rl=r; }
-    ok(/quá nhanh/.test(rl),`thao tác bạn bè dồn dập: báo quá nhanh (${rl})`);
+    // Bộ đếm hồi theo giờ thật (1 lượt / giây): số lần bỏ chặn qua trước khi báo "quá nhanh" tùy tốc độ máy (#1591: 9 hay 10).
+    // Xóa bộ đếm ngay trước vòng này rồi đếm số lần bỏ chặn thật sự thành công, đối chiếu với danh sách sau khi vào lại.
+    await T(E,"friend",{fop:"rlreset"});
+    let rl="", unOk=0; for(let i=0;i<BLOCK_MAX&&!rl;i++){ const r=await F(E,"unblock",names[i]); if(/quá nhanh/.test(r)) rl=r; else if(/Đã bỏ chặn/.test(r)) unOk++; else break; }
+    ok(/quá nhanh/.test(rl)&&unOk>0,`thao tác bạn bè dồn dập: báo quá nhanh sau ${unOk} lần bỏ chặn (${rl})`);
     await E.room.leave(); await sleep(400); E.mapId=(await post("/api/me",{token:E.token})).mapId; await enter(E); await waitFor(()=>E.owned,3000);
-    await list(E); ok(E.friends.list.length===0&&E.friends.blocks.length===BLOCK_MAX-10&&!E.friends.blocks.includes(names[0])&&E.friends.blocks.includes(names[BLOCK_MAX-1]),
-      `vào lại: danh sách chặn còn ${E.friends.blocks.length} người (đã bỏ chặn 10)`);
+    await list(E); ok(E.friends.list.length===0&&E.friends.blocks.length===BLOCK_MAX-unOk&&!E.friends.blocks.includes(names[0])&&!E.friends.blocks.includes(names[unOk-1])&&E.friends.blocks.includes(names[unOk])&&E.friends.blocks.includes(names[BLOCK_MAX-1]),
+      `vào lại: danh sách chặn còn ${E.friends.blocks.length} người (đã bỏ chặn ${unOk}, mong ${BLOCK_MAX-unOk})`);
   } finally { for(const b of all) if(b.room.connection?.isOpen) await b.room.leave().catch(()=>{}); }
 }
