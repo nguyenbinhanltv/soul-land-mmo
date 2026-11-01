@@ -270,7 +270,7 @@ Ghi chú: asset có "Nhập miễn phí" phải qua duyệt ảnh (Q17) và đ�
 | L9 (#1667) | Vùng hồi: Hồn Lực Tầm Gửi, Linh Tuyền, Bãi Lội (có làm chậm hay không) | code | C | L5 | Thêm hằng ở `shared/data.ts`; soát cân bằng và tự săn |
 | L10 (#1668) | Lớp cản động + Phù Vân Kiều, Thạch Trụ Phong Ấn | code | C | L9 | Server + dự đoán client + giao thức; `ao review`, bot `bigmap` |
 | L11 (#1669) | Cổ Đằng Đu, Cọc Dịch Chuyển Ngắn (vượt khe) | code | C | L10 | Dùng cơ chế niệm / vị trí của `travel.ts` |
-| L12 (#1670) | L12 (#1670): luật đã chuyển, còn cập nhật tình trạng sau L2–L5 (`docs/design/the-gioi-ban-do.md`, `docs/tech/phong-ban-do.md`) | docs | A | L2–L5 | Chuyển chỉ tiêu 1.1 thành luật hiện hành; sửa chỗ bài này trỏ |
+| L12 (#1670) | Luật đã chuyển; còn cập nhật tình trạng sau L2–L5 (`docs/design/the-gioi-ban-do.md`, `docs/tech/phong-ban-do.md`) | docs | A | L2–L5 | Chuyển chỉ tiêu 1.1 thành luật hiện hành; sửa chỗ bài này trỏ |
 
 ### 5.3 Mô phỏng quy tắc trên bản đồ thật (kết quả đo, chưa sửa file nào)
 
