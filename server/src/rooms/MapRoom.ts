@@ -84,6 +84,7 @@ import * as kill from "./kill.ts";
 import * as ava from "./ava.ts";
 import * as tienco from "./tienco.ts";
 import * as stats from "./stats.ts";
+import * as contrib from "./contrib.ts";
 import type { PData, Hit, AuthData, RecallCast, BData, EliteData, KingData, WorldData, Proj, DmgOpt, FusHit, ChatRoute } from "./types.ts";
 import * as fog from "./fog.ts";
 import { CHAT_TOPIC, accOf, intIn, strIn, saveStats } from "./common.ts";
@@ -1134,63 +1135,18 @@ export class MapRoom extends Room<MapState> {
     }
   }
 
-  /**
-   * Đóng góp hỗ trợ (9.2, mục 5.4): `id` vừa hồi thực / tạo thêm khiên `v` cho người khác `qid`. Mỗi tinh anh / thú vương / boss thế
-   * giới đang giao chiến mà `qid` đang là người tham gia thì cộng `v` vào `supBy` của `id`, và `id` thành người tham gia (mục 5.4 "Người
-   * tham gia", điều kiện 2; máu tăng theo số người, giữ tỉ lệ). Hồi / khiên cho chính mình không bao giờ tới đây (chống tự buff lấy rương).
-   */
-  supportCredit(id: string, qid: string, v: number) {
-    const pd = this.pdata.get(id);
-    if (id === qid || v <= 0 || !pd || pd.travelling) return;
-    for (const [bid, bd] of this.bdata) {
-      const e = bd.elite, b = this.state.beasts.get(bid);
-      if (!e || !b || b.hp <= 0 || !e.engaged || !e.parts.has(qid)) continue;
-      this.credit(e, "supBy", id, v);
-      this.joinFight(e, id); this.eliteScale(b, e);
-    }
-  }
-
-  /** Cộng `v` vào đóng góp `kind` của `pid` và ghi tài khoản của phiên (#119, `EliteData.acc`). */
-  credit(e: EliteData, kind: "dmgBy" | "supBy", pid: string, v: number) {
-    e[kind].set(pid, (e[kind].get(pid) ?? 0) + v);
-    const d = this.pdata.get(pid); if (d) e.acc.set(pid, d.accountId);
-  }
-
-  /**
-   * Đóng góp theo tài khoản (mục 5.4, #119): tài khoản `acc` vừa vào phòng với phiên `sid`; mọi tinh anh / thú vương / boss thế giới
-   * còn giữ đóng góp của phiên cũ cùng tài khoản (thoát rồi vào lại, đổi kênh rồi quay về khi boss chưa bỏ giao chiến) thì chuyển đóng
-   * góp và lần nhắc hết lượt sang phiên mới. Không thành người tham gia lại: phải đánh / hỗ trợ lại như người vào giữa trận.
-   */
-  rebindContrib(sid: string, acc: number) {
-    for (const bd of this.bdata.values()) {
-      const e = bd.elite; if (!e) continue;
-      for (const [old, a] of [...e.acc]) {
-        if (a !== acc || old === sid) continue;
-        for (const m of [e.dmgBy, e.supBy]) { const v = m.get(old); m.delete(old); if (v !== undefined) m.set(sid, (m.get(sid) ?? 0) + v); }
-        e.acc.delete(old); e.acc.set(sid, acc);
-        if (e.king?.noted.delete(old)) e.king.noted.add(sid);
-      }
-    }
-  }
+  /** Đóng góp lên tinh anh / thú vương / boss thế giới (cộng, hỗ trợ, chuyển phiên, người nhận thưởng): logic ở `contrib.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  supportCredit(id: string, qid: string, v: number) { return contrib.supportCredit(this, id, qid, v); }
+  credit(e: EliteData, kind: "dmgBy" | "supBy", pid: string, v: number) { return contrib.credit(this, e, kind, pid, v); }
+  rebindContrib(sid: string, acc: number) { return contrib.rebindContrib(this, sid, acc); }
 
   /** Đóng góp tổng của `pid` lên tinh anh / thú vương (9.2): sát thương + hỗ trợ × SUPPORT_CONTRIB. */
   contribOf(e: EliteData, pid: string) { return contribOf(e.dmgBy, e.supBy, pid); }
   /** Mọi người có đóng góp (sát thương hoặc hỗ trợ) lên tinh anh / thú vương (9.2). */
   contributors(e: EliteData) { return contributors(e.dmgBy, e.supBy); }
-  /**
-   * Người đóng góp nhiều nhất còn trong phòng (không thì `by`): ưu tiên hồn hoàn của tinh anh / thú vương theo đóng góp tổng;
-   * `dmgOnly` (hồn hoàn đỏ boss thế giới, 9.2) chỉ xếp theo sát thương. `ok` (#119): chỉ xét người thỏa (tinh anh: chưa bị khóa nhận
-   * thưởng); không ai thỏa thì null.
-   */
   topContrib(e: EliteData, by: string, dmgOnly?: boolean): string;
   topContrib(e: EliteData, by: string, dmgOnly: boolean, ok: (pid: string) => boolean): string | null;
-  topContrib(e: EliteData, by: string, dmgOnly = false, ok: (pid: string) => boolean = () => true) {
-    const val = (pid: string) => (dmgOnly ? e.dmgBy.get(pid) ?? 0 : this.contribOf(e, pid));
-    let owner: string | null = ok(by) ? by : null;
-    for (const pid of dmgOnly ? e.dmgBy.keys() : this.contributors(e))
-      if (this.state.players.has(pid) && ok(pid) && (owner === null || val(pid) > val(owner))) owner = pid;
-    return owner;
-  }
+  topContrib(e: EliteData, by: string, dmgOnly = false, ok: (pid: string) => boolean = () => true) { return contrib.topContrib(this, e, by, dmgOnly, ok); }
 
   runSkill(id: string, sk: SkillDef, power: number, bpow: number, col: string, hit?: Hit, share?: string, fus?: FusHit & { at: { x: number; y: number } }) { return skill.runSkill(this, id, sk, power, bpow, col, hit, share, fus); }
 

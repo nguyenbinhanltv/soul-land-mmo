@@ -835,6 +835,8 @@ export class GameScene extends Phaser.Scene {
       }
       const f = document.activeElement;
       if (field(f)) { if (e.code !== "Escape") return; (f as HTMLElement).blur(); } // Esc: rời ô rồi đóng bảng như thường
+      // Khung Nhiệm vụ | Tổ đội ở HUD không thuộc ngăn xếp bảng: để Tab đi tự nhiên và phím kích hoạt nút thuộc trình duyệt.
+      if (f?.closest("#sideBox") && (e.code === "Tab" || ((e.code === "Space" || e.key === "Enter") && f.matches(":focus-visible")))) return;
       // Tiêu điểm đang ở nút / ô trong một bảng (U1 #754): Tab xoay vòng trong bảng, Space / Enter bấm đúng nút đó; không thành đổi mục tiêu / đánh / mở chat.
       // Nút vừa bấm chuột không tính (không `:focus-visible`), nên chơi bằng chuột rồi bấm Space đánh vẫn đánh được.
       if (e.code === "Tab" && panelOf(f) && trapTab(e)) return;
