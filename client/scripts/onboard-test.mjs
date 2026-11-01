@@ -93,6 +93,13 @@ console.log("onboard: ok");
 
 // Vòng đời DOM: xem lại không ghi tiến độ, gắn lại cùng tên giữ bước, đổi tên dừng lần xem cũ.
 {
+  const { keepRing } = await import('../src/onboard.ts');
+  const inPanel = { closest: () => bagEl }, bagEl = { closest: () => bagEl };
+  assert.equal(keepRing(true, inPanel), true, 'nút trong #bag (Hấp thụ) giữ vòng sáng');
+  assert.equal(keepRing(true, bagEl), false, 'đích là chính bảng thì bỏ vòng');
+  assert.equal(keepRing(true, { closest: () => null }), false, 'đích ngoài bảng (dưới bảng) thì bỏ vòng');
+  assert.equal(keepRing(false, { closest: () => null }), true, 'không có bảng che thì giữ vòng');
+  assert.equal(keepRing(true, null), false);
   const { onboardAttach, onboardBegin, onboardReview, onboardActive, onboardQuestLink } = await import('../src/onboard.ts');
   const values = new Map(), elements = new Map();
   class El {

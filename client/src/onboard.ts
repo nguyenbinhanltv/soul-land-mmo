@@ -69,6 +69,14 @@ export const firstShown = (sels: readonly string[], root: ParentNode = document)
   return null;
 };
 
+/** Bảng lớn đang mở thì chỉ giữ vòng sáng cho đích nằm TRONG bảng (vd. nút Hấp thụ ở bước ring); bỏ khi đích là chính bảng (fallback `#bag`) hoặc nằm ngoài, dưới bảng (#1631). */
+export const keepRing = (cover: boolean, t: Element | null): boolean => {
+  if (!t) return false;
+  if (!cover) return true;
+  const panel = t.closest(OB_COVER_PANELS.join(","));
+  return !!panel && panel !== t;
+};
+
 // ---- phần DOM ----
 let who = "", saved: ObSaved | null = null, step = 0, running = false;
 let reviewing = false;
@@ -144,7 +152,8 @@ function tick() {
   const s = OB_STEPS[step];
   if (!reviewing && s.open && firstShown(s.open)) return advance();
   syncCover();
-  place(card?.dataset.cover === "1" ? null : firstShown(s.target)); // bảng lớn đang mở thì không vẽ vòng sáng đè lên bảng (#1631)
+  const t = firstShown(s.target);
+  place(keepRing(card?.dataset.cover === "1", t) ? t : null); // bảng lớn đang mở: không vẽ vòng sáng đè lên bảng, nhưng giữ vòng ở nút bên trong bảng (#1631)
   if (!reviewing && s.tap) {
     const e = document.querySelector<HTMLElement>(s.tap);
     if (e && e !== tapEl) { tapEl?.removeEventListener("pointerdown", onTap); tapEl = e; e.addEventListener("pointerdown", onTap); }
