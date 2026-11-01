@@ -986,8 +986,14 @@ export class GameScene extends Phaser.Scene {
   /** Menu hub ngăn kéo (UI v2): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
   setupHub() {
     resetBadges(); // kho chấm tính lại từ tin server gửi lúc vào phòng
-    const openQuests = () => { setHubOpen(false); this.clearForPanel(); openQuestPanel(); }; // bảng Nhiệm Vụ (questScreen.ts, #1605): danh sách đủ nhiệm vụ, Esc đóng; thay cho toast cũ
-    onboardQuestLink(openQuests, this.ac.signal);
+    const openQuests = () => { setHubOpen(false); this.clearForPanel(); openQuestPanel(); }; // thẻ Hub: bảng Nhiệm Vụ (questScreen.ts, #1605), thay toast cũ
+    const showTracker = () => { // nút "Xem nhiệm vụ" của thẻ Làm quen: mở khung theo dõi, tiêu điểm về tab Nhiệm vụ (bài onboard-browser)
+      setHubOpen(false);
+      const n = hud.revealQuestTracker();
+      toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc trái, dưới thông tin nhân vật; gặp NPC có dấu trên đầu để nhận / trả");
+      document.querySelector<HTMLElement>('#sideBox .sb-tab[data-tab="quest"]')?.focus();
+    };
+    onboardQuestLink(showTracker, this.ac.signal);
     initHub({
       vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
       reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },

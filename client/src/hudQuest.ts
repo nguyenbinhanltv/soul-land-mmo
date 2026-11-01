@@ -31,10 +31,10 @@ export function questTracked(): QuestMsg[] {
 /** Người nghe thay đổi dữ liệu nhiệm vụ (bảng Nhiệm Vụ ở hub vẽ lại khi đang mở); trả hàm huỷ. */
 const questListeners = new Set<() => void>();
 export function onQuestChange(fn: () => void) { questListeners.add(fn); return () => { questListeners.delete(fn); }; }
-/** Mở rộng mọi mục của khung theo dõi (thẻ Nhiệm Vụ ở hub, ui2): bỏ trạng thái thu gọn rồi vẽ lại; trả số chuỗi + khảo hạch đang hiện. Không đổi dữ liệu / tin mạng. */
+/** Mở rộng mọi mục của khung theo dõi (thẻ Nhiệm Vụ ở hub, ui2): bỏ trạng thái thu gọn rồi vẽ lại; trả số mục khung vừa vẽ. Không đổi dữ liệu / tin mạng. */
 export function revealQuestTracker(): number {
   questFold.clear(); dailyFold = false; renderQuestTracker(); showSideTab("quest"); // mở khung gộp ở tab Nhiệm vụ
-  return questTracked().length + (dailyMsg?.list.filter((x) => x.status !== "done").length ?? 0);
+  return $("#quest").querySelectorAll(".qsec").length; // đúng số mục khung đang vẽ (không đếm bài hằng ngày đang ẩn, #1605)
 }
 /** Tin "quest": vẽ lại khung theo dõi, và hộp thoại nếu đang mở với NPC giao nhiệm vụ. */
 export function setQuest(q: QuestMsg) {
