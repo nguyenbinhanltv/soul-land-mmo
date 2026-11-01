@@ -7,8 +7,6 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { buildMidi, loopSeconds, PPQ } from "./lib/midi.mjs";
-import { decodedSamples, encode, renderLoop, renderOnce, writeWav } from "./lib/render.mjs";
 import SONGS from "./songs/index.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -35,12 +33,16 @@ if (!existsSync(args.soundfont)) throw new Error(`Không thấy soundfont: ${arg
 const extraBanks = args["extra-soundfont"] ? [{ path: args["extra-soundfont"], offset: 1 }] : [];
 if (extraBanks.some((b) => !existsSync(b.path))) throw new Error(`Không thấy soundfont phụ: ${args["extra-soundfont"]}`);
 const out = path.resolve(args.out);
+// Chỉ nạp thư viện dựng nhạc khi chạy công cụ; các kiểm tra danh mục không cần cài bộ sáng tác.
+const { buildMidi, loopSeconds, PPQ } = await import("./lib/midi.mjs");
+const { decodedSamples, encode, renderLoop, renderOnce, writeWav } = await import("./lib/render.mjs");
 mkdirSync(out, { recursive: true });
 if (args.midi) mkdirSync(args.midi, { recursive: true });
 
 const wanted = args.song?.split(",");
-const list = wanted ? SONGS.filter((s) => wanted.includes(s.id)) : SONGS;
-if (wanted && list.length !== wanted.length) throw new Error(`Không có bài: ${wanted.filter((w) => !SONGS.some((s) => s.id === w)).join(", ")}. Có: ${SONGS.map((s) => s.id).join(", ")}`);
+const catalog = SONGS;
+const list = wanted ? catalog.filter((s) => wanted.includes(s.id)) : catalog;
+if (wanted && list.length !== wanted.length) throw new Error(`Không có bài: ${wanted.filter((w) => !catalog.some((s) => s.id === w)).join(", ")}. Có: ${catalog.map((s) => s.id).join(", ")}`);
 
 // Đường dẫn trong manifest tính từ shared/assets nếu --out nằm trong đó (như manifest của tools/audio, #133).
 const rel = (file) => {
@@ -49,7 +51,7 @@ const rel = (file) => {
 };
 const manifestPath = path.join(out, "manifest.json");
 const previous = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")).tracks : [];
-const tracks = new Map(previous.filter((t) => SONGS.some((s) => s.id === t.id)).map((t) => [t.id, t]));
+const tracks = new Map(previous.filter((t) => catalog.some((s) => s.id === t.id)).map((t) => [t.id, t]));
 const tmp = mkdtempSync(path.join(os.tmpdir(), "soul-land-compose-"));
 let failed = false;
 

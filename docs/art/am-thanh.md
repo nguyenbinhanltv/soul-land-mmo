@@ -19,7 +19,9 @@
 
 ### Môi trường Luyện Hồn Cảnh
 
-`luyen_hon_canh` dùng lớp gió thưa trong `AMBIENT_PROFILES`, tận dụng bốn mẫu `amb-wind` CC0 đã duyệt (Mild Wind Background Noise, Bashar; URL và SHA256 giữ trong catalog / ghi công). Gió có fade đầu / cuối của mẫu, dùng mức cân nhóm hiện có và kênh Môi trường nên chịu thanh âm lượng, tắt tiếng và hạ nền lúc đông tiếng. Sảnh thí luyện không thêm chim, côn trùng, chuông hoặc nền vòng lặp; đổi bản đồ đặt lại lịch gió. Nhạc đang dùng chung bài Đại Đấu Hồn Trường giữ nguyên. Kiểm tự động bằng lịch phát và phép đo giải mã, không phát âm thanh thật; nghe đối chiếu trong game để chủ repo duyệt.
+Bản nhạc riêng #1553 đã được chủ repo nghe A/B và duyệt: **Tĩnh tâm luyện hồn**, La điệu Vũ, tiêu / cổ tranh thưa, vòng 102,4 giây. Chỉ `luyen_hon_canh` nhận bài này; Đại Đấu Hồn Trường giữ bài và lớp giao chiến cũ. OGG/M4A runtime giữ nguyên byte RAW đã duyệt, nguồn / SHA256 / số đo ở `art/src/audio/luyen_hon_canh/NGUON.md`; tái dựng bằng `--song luyen_hon_canh` của `tools/audio/compose/compose.mjs`. Không thêm lớp giao chiến, không đổi bộ phát hoặc lớp gió.
+
+`luyen_hon_canh` dùng lớp gió thưa trong `AMBIENT_PROFILES`, tận dụng bốn mẫu `amb-wind` CC0 đã duyệt (Mild Wind Background Noise, Bashar; URL và SHA256 giữ trong catalog / ghi công). Gió có fade đầu / cuối của mẫu, dùng mức cân nhóm hiện có và kênh Môi trường nên chịu thanh âm lượng, tắt tiếng và hạ nền lúc đông tiếng. Sảnh thí luyện không thêm chim, côn trùng, chuông hoặc nền vòng lặp; đổi bản đồ đặt lại lịch gió. Nhạc dùng bài riêng Tĩnh tâm luyện hồn đã duyệt ở trên. Kiểm tự động bằng lịch phát và phép đo giải mã, không phát âm thanh thật; nghe đối chiếu trong game để chủ repo duyệt.
 
 ### Hồn thú biển (#1497)
 
