@@ -78,7 +78,7 @@ function cellButton(c: HubCell, cls: string): HTMLElement {
 }
 
 function run(id: string) {
-  setHubOpen(false);
+  setHubOpen(false, false); // bảng được mở tiếp theo nhận tiêu điểm, không trả về chỗ cũ
   actions[id]?.();
 }
 
@@ -86,6 +86,7 @@ function run(id: string) {
 function render() {
   if (!root) return;
   const L = hubLayout(Object.keys(actions), idsOf("new"), idsOf("up"));
+  const keep = root.contains(document.activeElement) ? (document.activeElement as HTMLElement).dataset.hub : undefined; // dựng lại (chấm đỏ đổi) không làm mất tiêu điểm bàn phím
   const sec = (cls: string, cells: HubCell[], cellCls: string) => {
     const d = document.createElement("div"); d.className = cls;
     for (const c of cells) d.append(cellButton(c, cellCls));
@@ -110,6 +111,7 @@ function render() {
   const legend = document.createElement("footer"); legend.className = "hub-legend"; legend.setAttribute("aria-label", "Chú giải dấu");
   for (const [k, t] of [["new", "Mới"], ["up", "Nâng được"], ["lock", "Khoá: đọc lý do trên thẻ"]]) { const s = document.createElement("span"); s.dataset.k = k; s.textContent = t; legend.append(s); }
   root.replaceChildren(hd, main, rail, legend);
+  if (keep) root.querySelector<HTMLElement>(`[data-hub="${keep}"]`)?.focus({ preventScroll: true });
   syncBadges();
 }
 
@@ -119,12 +121,23 @@ function syncBadges() {
 }
 
 export const isHubOpen = () => !!root && !root.hidden;
-export function setHubOpen(open: boolean) {
+let back: HTMLElement | null = null; // nơi giữ tiêu điểm trước khi mở menu, trả lại khi đóng
+/** Thẻ đầu tiên mở khoá (nút bấm được); không có thì nút ×. */
+const firstCard = () => root?.querySelector<HTMLElement>('.hub-main button[data-hub]:not([aria-disabled="true"]):not([disabled]), .hub-r[data-hub]:not([aria-disabled="true"]), .hub-x') ?? null;
+/** `restore=false`: đóng để mở bảng khác (bảng đó tự nhận tiêu điểm), không trả tiêu điểm về chỗ cũ. */
+export function setHubOpen(open: boolean, restore = true) {
   if (!root) return;
   if (open === !root.hidden) return;
-  if (open) render();
+  if (open) {
+    const a = document.activeElement as HTMLElement | null;
+    back = a && a !== document.body && !root.contains(a) ? a : null;
+    render();
+  }
+  const inside = !open && root.contains(document.activeElement);
   root.hidden = !open;
   badge?.setAttribute("aria-expanded", String(open));
+  if (open) firstCard()?.focus({ preventScroll: true }); // Tab xoay trong menu (trapTab), không thành "đổi mục tiêu" của game (#1636)
+  else if (inside) { const b = back; back = null; if (restore && b?.isConnected && b.getClientRects().length > 0) b.focus({ preventScroll: true }); else (document.activeElement as HTMLElement).blur(); }
 }
 export const toggleHub = () => setHubOpen(!isHubOpen());
 
