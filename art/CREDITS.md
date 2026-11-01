@@ -114,7 +114,7 @@ Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm ke
 | `shared/assets/ui/landing/hero.webp`, `logo.webp` | Lấy từ `shared/assets/ui/c6/login-bg.png`, `logo.png` (Codex built-in `imagegen`, xem mục C6) | Xuất WebP | 2026-10-25 |
 | `shared/assets/ui/landing/og.jpg` | Ghép `login-bg.png` và `logo.png` (C6) | Cắt 1200×630, JPEG | 2026-10-25 |
 | `shared/assets/ui/landing/vohon.webp` | 25 chân dung `shared/assets/sprites/iso/portrait/` (Gemini / ComfyUI, xem các mục trên) | Ghép tấm 5×5 ô 64 px, WebP không mất dữ liệu: `tools/landing-sheet.py` | 2026-10-25 |
-| `shared/assets/ui/landing/map_*.webp`, `chup_san.webp`, `the_vo_hon.webp`, `tran.webp` | Ảnh chụp màn hình game thật (Chrome headless, tắt tiếng, máy chủ thử ở RAM) | Thu nhỏ 640×360 hoặc cắt khung, WebP; `tran.webp` là ảnh động 40 khung | 2026-10-25 |
+| `shared/assets/ui/landing/map_*.webp` (kể cả `map_loi_tinh_dau`, `map_dai_dau_hon_truong`, `map_luyen_hon_canh`, #1583: chụp 2026-11-01, tài khoản thử tên hư cấu, GPU thật, máy chủ thử ở RAM), `chup_san.webp`, `the_vo_hon.webp`, `tran.webp` | Ảnh chụp màn hình game thật (Chrome headless, tắt tiếng, máy chủ thử ở RAM) | Thu nhỏ 640×360 hoặc cắt khung, WebP; `tran.webp` là ảnh động 40 khung | 2026-10-25 |
 
 ## Asset tự vẽ
 
@@ -1789,6 +1789,7 @@ Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), r�
 | `shared/assets/sprites/iso/props/lo_lua_dong_clip.png` | `prop_lo_lua_dong_clip` | ChatGPT / Codex builtin OpenAI image_gen.imagegen | Prompt thật: art/src/prop-clip/lo_lua_dong/NGUON.md; chỉ lửa trên bát đồng, tờ 4x2 trong suốt, chân cố định. | 2026-11-01 | Part of #1498; cùng kỹ thuật #1501, nhóm sau #1508; SHA256 RAW/gốc/clip: art/src/prop-clip/lo_lua_dong/nguon.json; đầu ra OpenAI, không CC0. |
 | `shared/assets/sprites/iso/npc/tho_may.png` | `npc_tho_may` | ChatGPT / Codex builtin OpenAI image_gen | Chân dung thợ may tho_may; prompt thật: art/src/npc-portraits/1494/tho_may.prompt.txt | 2026-11-01 | Lượt 1/3; RAW nguyên byte, native size và SHA256 tại art/src/npc-portraits/1494/NGUON.md; điều khoản đầu ra OpenAI, không gán CC0; gemini-import portrait opaque 112×112, tối đa 32 màu. |
 | `shared/assets/sprites/iso/npc/tho_may_thien_dau.png` | `npc_tho_may_thien_dau` | ChatGPT / Codex builtin OpenAI image_gen | Chân dung thợ may tho_may_thien_dau; prompt thật: art/src/npc-portraits/1494/tho_may_thien_dau.prompt.txt | 2026-11-01 | Lượt 1/3; RAW nguyên byte, native size và SHA256 tại art/src/npc-portraits/1494/NGUON.md; điều khoản đầu ra OpenAI, không gán CC0; gemini-import portrait opaque 112×112, tối đa 32 màu. |
+| `shared/assets/sprites/iso/item/hon_kinh_quyen.png` | `item_hon_kinh_quyen` | ChatGPT / Codex builtin OpenAI image_gen.imagegen + gemini-import.mjs | Prompt thật: art/src/item-hon-kinh-quyen-1595/prompt.txt; cuộn Hồn Kinh Quyển xanh nhạt nền trong | 2026-11-01 | Chủ repo đã duyệt 01/11/2026 qua điều phối815; nhập đúng byte mẫu32px đã duyệt,SHA256 tại NGUON.md; RAW native1254 nguyên byte,điều khoản đầu ra OpenAI,không CC0; Bí Cảnh hiện24px,Túi/Thư cùngkey. |
 
 ## Asset tạo bằng AI (Microsoft Copilot)
 
@@ -2347,13 +2348,14 @@ Chỉ dùng thư viện CC0 (Kenney, OpenGameArt). Được sinh từ `shared/as
 
 ## Nền môi trường vòng lặp (#622)
 
-Ba bản thu CC0 (OpenGameArt) cắt thành vòng lặp liền mạch bằng `tools/audio/bed.mjs` (ghép đoạn, crossfade đầu–đuôi, cân -16 LUFS; hầm và hang nén bớt đỉnh), phát ở `client/src/audio/ambientBed.ts`. Không AI. Bảng viết tay: `audio:process` không sinh phần này.
+Bốn bản thu CC0 (OpenGameArt) cắt thành vòng lặp liền mạch bằng `tools/audio/bed.mjs` (ghép đoạn, crossfade đầu–đuôi, cân -16 LUFS; hầm, hang và rừng nén bớt đỉnh), phát ở `client/src/audio/ambientBed.ts`. Không AI. Bảng viết tay: `audio:process` không sinh phần này.
 
 | Tệp output | Track | Tác giả | Giấy phép | Provenance | Xử lý |
 |---|---|---|---|---|---|
 | `shared/assets/audio/ambient/amb_nen_hai_than_dao.ogg`<br>`shared/assets/audio/ambient/amb_nen_hai_than_dao.m4a` | amb_nen_hai_than_dao (Hải Thần Đảo) | jasinski | CC0-1.0 | Beach Ocean Waves — <https://opengameart.org/content/beach-ocean-waves> — SHA-256 wave_01 `fcfca178eca2eac536e8c2a4ed5cf8096e44c921acd587047b3d9f1d7845435c`, wave_02 `53b5c28c0edc36f049e77e65f2cf8a86135103328c44c1507c416e6469d18096`, wave_03 `fc795f95f352b354867d69a587daecb8815334e28e3b56a7798c5f3005349054`, wave_04 `3c490e736365fdd617ce8405470d8878fc6146d9a8dba448d622addb01cfff3b` | 8 đoạn sóng xáo thứ tự, crossfade 0,45 s, khép vòng 0,8 s, 20,6 s |
 | `shared/assets/audio/ambient/amb_nen_loi_tinh_dau.ogg`<br>`shared/assets/audio/ambient/amb_nen_loi_tinh_dau.m4a` | amb_nen_loi_tinh_dau (Lõi Tinh Đấu) | Paul Wortmann | CC0-1.0 | Dark Cavern Ambient — <https://opengameart.org/content/dark-cavern-ambient> — SHA-256 `3e364b94dc1fceff13d8d067af9f034f297cfa5d15ff9cecfbe02fd857801dce` | đoạn 8–68 s (dark_cavern_ambient_001), nén nhẹ, khép vòng 5 s, 55 s |
 | `shared/assets/audio/ambient/amb_nen_dai_dau_hon_truong.ogg`<br>`shared/assets/audio/ambient/amb_nen_dai_dau_hon_truong.m4a` | amb_nen_dai_dau_hon_truong (Đấu Hồn Trường) | JaggedStone | CC0-1.0 | Loopable Dungeon Ambience — <https://opengameart.org/content/loopable-dungeon-ambience> — SHA-256 `df491823e4877371c34dbda4e9321cd83a4a14fa7573cee0ebca1ae423b70e6e` | đoạn 4–64 s, nén 8:1, khép vòng 4 s, 56 s (-19 LUFS vì đỉnh cao) |
+| `shared/assets/audio/ambient/amb_nen_lac_nhat_sam_lam.ogg`<br>`shared/assets/audio/ambient/amb_nen_lac_nhat_sam_lam.m4a` | amb_nen_lac_nhat_sam_lam (Lạc Nhật Sâm Lâm) | TinyWorlds | CC0-1.0 | Forest Ambience — <https://opengameart.org/content/forest-ambience> — SHA-256 `9850aa1d0d5d66bd9c5daf8bb77c6d852e01f2f4de22f283bd5621e8bed13b75` | cả bản thu (Forest_Ambience.mp3, 44,8 s), nén 10:1, khép vòng 3 s, 41,7 s (-17,3 LUFS vì bản gốc rất nhỏ, đỉnh -6 dB) |
 
 ## Biểu tượng vật phẩm và hiệu ứng từ gói LPC (OpenGameArt)
 Vùng này do `tools/assets/lpc-item.mjs` ghi theo `art/src/lpc-item.json`, không sửa tay.
