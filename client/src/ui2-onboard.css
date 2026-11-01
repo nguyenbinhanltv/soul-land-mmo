@@ -19,6 +19,15 @@
 #onboard button:focus-visible{outline:var(--bd) solid var(--son-l);outline-offset:var(--bd-fine)}
 #hud:has(#onboard[data-mode="step"]:not([hidden])) .guide[data-mode="hint"],#hud:has(.guide[data-mode="hint"]:not([hidden])) #onboard[data-mode="done"],#hud:has(.guide[data-mode="review"]:not([hidden])) #onboard,#hud:has(#npc:not([hidden])) #onboard,body.arena #onboard{display:none}   /* đang học thì gợi ý nhường; thẻ xong nhường gợi ý, Cẩm Nang và hộp NPC */
 
+/* (1b) Bảng lớn đang mở (onboard.ts OB_COVER_PANELS, #1601): thẻ thu về MỘT dòng sát đáy và hạ xuống z 3 (< bảng z 4) để không bao giờ phủ lên nội dung bảng;
+   chữ đầy đủ ở chú thích, nút Bỏ bước / Bỏ qua vẫn bấm và Tab được. Chữ + nút giữ nguyên cỡ theo token (không thu cỡ chữ). */
+#hud > #onboard[data-cover="1"]{z-index:3;bottom:var(--sp-5);display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-2) var(--sp-4);max-height:none;overflow:hidden;width:min(440px,calc(100% - 560px));min-width:380px}
+#onboard[data-cover="1"] .ob-main{display:flex;align-items:baseline;gap:var(--sp-3);flex:1 1 auto;min-width:0}
+#onboard[data-cover="1"] .ob-head{display:none} /* số bước nằm ở chú thích; nhường chỗ cho tiêu đề */
+#onboard[data-cover="1"] :is(.ob-dots,p){display:none}
+#onboard[data-cover="1"] h4{margin:0;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#onboard[data-cover="1"] .ob-foot{flex:none;flex-direction:row;gap:var(--sp-2)}
+
 /* (2) Vòng sáng + mũi nhấn bám theo nút cần bấm (onboard.ts đặt left / top / width / height theo nút). Mũi nhấn là ▼ nằm trên nút (hoặc ▲ dưới nút khi sát mép trên). */
 #obSpot{position:absolute;z-index:6;pointer-events:none;box-sizing:border-box}
 #obSpot .ob-ring{position:absolute;inset:calc(var(--sp-2) * -1);border:var(--bd) solid var(--son-l);box-shadow:0 0 0 var(--bd-fine) var(--plate),inset 0 0 0 var(--bd-fine) var(--plate);animation:obPulse 1.2s steps(4,end) infinite}
