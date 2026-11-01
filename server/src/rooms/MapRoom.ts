@@ -3,7 +3,7 @@
 // Client chỉ gửi ý định (hướng di chuyển, bấm đánh...), server quyết định kết quả.
 import { Room, Client, ServerError, OnMessageException, type RoomException } from "colyseus";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
-import { TICK_RATE, tierOfYears, vohonIndex,
+import { TICK_RATE,
   AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
   MAPS, parseNewLooks, encodeLpc,
   BOAT_CAST,
@@ -19,9 +19,9 @@ import { TICK_RATE, tierOfYears, vohonIndex,
   BOSSES, bossIndex, ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
   KING, kingNext, vnDay, type BossDef, type FormDef,
   WORLD, worldNext, worldBossOn, type He,
-  npcDef, NPC_RANGE, looksChangeCost, tongDef, type NpcRole,
+  npcDef, looksChangeCost, type NpcRole,
   QUEST_STARTER, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
-  PARTY_XP_RANGE, PARTY_BUFF_R,
+  PARTY_BUFF_R,
   type AutoSummary,
   type OfflinePower,
   } from "../../../shared/data.ts";
@@ -215,12 +215,8 @@ export class MapRoom extends Room<MapState> {
   };
   /** Bạn bè (presence FRIEND_TOPIC, #195): gửi lại bảng bạn bè và thông báo cho người của phòng này có trong `to`. */
   friendSub = (n: FriendNote) => this.friendNote(n);
-  /** Tông môn của phiên `c` cho chat tông (#198): hồn sư trong phòng đọc `pdata` (đổi tông có hiệu lực ngay); người xem trận không có
-   *  pdata (#278) thì theo tông lúc vào phòng (client.auth). */
-  chatTong(c: Client): string | null {
-    const d = this.pdata.get(c.sessionId);
-    return d ? d.tong : tongDef((c.auth as AuthData | undefined)?.tong?.tong)?.id ?? null;
-  }
+  /** Hàm nhỏ về đúng miền sở hữu (#702, E5a): `chatTong` / `partyNear` ở `social.ts`, `showVohon` / `syncCh` ở `team.ts`, `npcNear` ở `quest.ts`, `shopFor` ở `shop.ts`; các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  chatTong(c: Client): string | null { return social.chatTong(this, c); }
   partyT = 0;
   /** Khung giờ đang lấy suất thú vương (đặt trước `await takeKingSeat`): tin `spawn` tới trùng không lấy thêm suất / sinh thêm thú vương. */
   kingTaking = 0;
@@ -526,17 +522,9 @@ export class MapRoom extends Room<MapState> {
   /** Chỉ số hồn sư (tính lại, tin `stats`, Sức mạnh đội hình): logic ở `stats.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
   recalc(id: string, full: boolean) { stats.recalc(this, id, full); }
 
-  /** Hiện võ hồn `ch` lên trạng thái đồng bộ (người khác thấy võ hồn ra trận, cấp, hồn hoàn). */
-  showVohon(p: PlayerState, ch: Character) {
-    p.vh = Math.max(0, vohonIndex(ch.vohon)); p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
-    p.rings.clear(); ch.rings.forEach((y) => p.rings.push(tierOfYears(y)));
-  }
+  showVohon(p: PlayerState, ch: Character) { return team.showVohon(p, ch); }
 
-  /** Chép tiến độ đang chơi vào võ hồn ra trận (d.ch). */
-  syncCh(id: string) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    Object.assign(d.ch, { level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
-  }
+  syncCh(id: string) { return team.syncCh(this, id); }
 
   // ---------- Lưu người chơi (logic ở `persist.ts`, #702; các hàm dưới chỉ chuyển tiếp, `ArenaRoom` vẫn override `write`) ----------
   chain(d: PData, fn: () => unknown) { return persist.chain(this, d, fn); }
@@ -811,20 +799,7 @@ export class MapRoom extends Room<MapState> {
   useItem(id: string, raw: unknown, vohonId?: unknown) { itemUse.useItem(this, id, raw, vohonId); }
 
   // ---------- NPC, thương nhân, lò rèn (mục 5.8, bước 6.1) ----------
-  /**
-   * NPC trong tầm NPC_RANGE của người chơi: đúng mã `id` (nói chuyện), hoặc NPC gần nhất có vai trò `role` (mua bán ở thương nhân).
-   * Người đã gục / đang chuyển bản đồ thì không có. Client chỉ gửi ý định, vị trí do server giữ.
-   */
-  npcNear(id: string, want: { id?: string; role?: NpcRole }): NpcSpot | undefined {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d || p.dead || d.travelling) return undefined;
-    let best: NpcSpot | undefined, bd = NPC_RANGE;
-    for (const n of this.map.npcs) {
-      if ((want.id && n.id !== want.id) || (want.role && npcDef(n.id)?.role !== want.role)) continue;
-      const k = Math.hypot(n.x - p.x, n.y - p.y);
-      if (k <= bd) { bd = k; best = n; }
-    }
-    return best;
-  }
+  npcNear(id: string, want: { id?: string; role?: NpcRole }): NpcSpot | undefined { return quest.npcNear(this, id, want); }
 
   /** Nói chuyện với NPC (xem rooms/quest.ts): gửi tin riêng `npc {id}` để client mở hộp thoại. */
   talkNpc(id: string, raw: unknown) { quest.talkNpc(this, id, raw); }
@@ -884,18 +859,7 @@ export class MapRoom extends Room<MapState> {
   /** Tin client `tong` (xem rooms/tong.ts): gia nhập / rời tông, tông vụ, bảng tuần, thưởng tuần. */
   tongAction(id: string, op: unknown, raw: unknown, chain?: unknown) { tong.tongAction(this, id, op, raw, chain); }
 
-  /**
-   * Thương nhân để mua / bán / mua lại / mở rộng túi (#111): `rawNpc` là mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân
-   * gần nhất, như bot / client cũ), phải là thương nhân và đứng trong NPC_RANGE. Thương nhân lưu động đứng ở trại cổng (không phải vùng
-   * an toàn) nên ngoài vùng an toàn, đang giao chiến thì không giao dịch. Trả NPC, hoặc lý do từ chối (`verb`: "mua", "bán"…).
-   */
-  shopFor(id: string, d: PData, rawNpc: unknown, verb: string): NpcSpot | string {
-    const p = this.state.players.get(id);
-    const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "shop" });
-    if (!p || !npc || npcDef(npc.id)?.role !== "shop") return `Hãy đứng cạnh thương nhân rồi mới ${verb} được.`;
-    if (!this.map.inSafe(p.x, p.y) && d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới ${verb} được.`;
-    return npc;
-  }
+  shopFor(id: string, d: PData, rawNpc: unknown, verb: string): NpcSpot | string { return shop.shopFor(this, id, d, rawNpc, verb); }
 
   // ---------- Nhiệm vụ: chuỗi tân thủ của Ngọc Tiểu Cương (mục 5.8, bước 6.2) ----------
   /** Nhiệm vụ, khảo hạch hằng ngày, bộ đếm sự kiện, thưởng nhiệm vụ: logic ở `quest.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
@@ -1391,21 +1355,7 @@ export class MapRoom extends Room<MapState> {
 
   rallyNote(r: party.RallyRoute) { return social.rallyNote(this, r); }
 
-  /**
-   * Người cùng chia kinh nghiệm khi `by` hạ hồn thú ở (x, y) (mục 5.9): chính `by`, cùng các thành viên tổ đội của `by` trong phòng này
-   * (cùng bản đồ, cùng kênh), chưa gục, không đang chuyển bản đồ, cách chỗ hồn thú gục dưới PARTY_XP_RANGE pixel. Kênh khác của cùng
-   * bản đồ là phòng khác nên không tính.
-   */
-  partyNear(by: string, x: number, y: number) {
-    const d = this.pdata.get(by), pid = d ? party.partyIdOf(d.accountId) : 0;
-    const out = [by]; if (!pid) return out;
-    for (const [id, o] of this.pdata) {
-      const p = this.state.players.get(id);
-      if (id === by || !p || p.dead || o.travelling || party.partyIdOf(o.accountId) !== pid) continue;
-      if (Math.hypot(p.x - x, p.y - y) < PARTY_XP_RANGE) out.push(id);
-    }
-    return out;
-  }
+  partyNear(by: string, x: number, y: number) { return social.partyNear(this, by, x, y); }
 
   /** Được nhặt đồ rơi `dr` lúc này không: không ai được ưu tiên, của mình, của tổ đội mình (7.1), hoặc hết DROP_OWNER_SECS giây. */
   canLoot(dr: DropState, id: string) {
