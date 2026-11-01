@@ -1,6 +1,6 @@
 // Chia buff / hồi máu đội (GAME_DESIGN.md mục 5.2, 9.1, 9.2; #702, miền E4): hiệu ứng lên bản thân của hồn kỹ (`selfEffect`), hồi sinh lực cả đội (`healTeam`), mã võ hồn gốc để lan (`shareOf`),
 // lan hiệu ứng phụ trợ cho đồng đội tổ đội đứng gần (`partyShare`). Hàm nhận phòng (`room: MapRoom`) như stats.ts / contrib.ts / motion.ts (`shareOf` là hàm thuần); nguyên văn từ MapRoom, không đổi
-// thứ tự áp buff / hằng. `partyBuffNear` và `healMult` bị `ArenaRoom` override nên LUÔN gọi qua `room.partyBuffNear` / `room.healMult`, `partyBuffNear` ở lại MapRoom. MapRoom chỉ chuyển tiếp
+// thứ tự áp buff / hằng. `partyBuffNear` và `healMult` bị `ArenaRoom` override nên LUÔN gọi qua `room.partyBuffNear` / `room.healMult`, `partyBuffNear` ở lại MapRoom. `healTeam` / `partyShare` gọi trực tiếp trong module vì không lớp con hay script nào override (nếu sau này có thì phải đổi sang `room.x`). MapRoom chỉ chuyển tiếp
 // (`skill.ts` / `tienco.ts` / `combat.ts` / `ava.ts` / `team.ts` gọi `room.selfEffect` / `room.healTeam` / `room.partyShare` / `room.shareOf` như cũ).
 import { VOHON, vohonIndex, PARTY_BUFF_MULT, PARTY_BUFF_SKIP, BUFFS, type SkillDef, type BuffId } from "../../../shared/data.ts";
 import type { PlayerState } from "./schema.ts";
