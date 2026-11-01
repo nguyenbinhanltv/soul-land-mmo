@@ -10,6 +10,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { hashF, hashStr, fbm, rng } from "./lib/rand.mjs";
+import { widths } from "./lib/luong.mjs";
 import { shapeTest, rectsOf, spline, astar } from "./lib/geom.mjs";
 import { topdownPreview } from "./lib/preview.mjs";
 import { miniImage, diffImg } from "./lib/mini.mjs";
@@ -322,9 +323,9 @@ export function build(L, hand = null, seedOverride = null) {
         if (x < 1 || y < 1 || x >= MW - 1 || y >= MH - 1) return Infinity;
         const i = at(x, y);
         if (gnd[i] === G.deep || (lock[i] && HARD.has(obj[i])) || (lock[i] && obj[i] === O.cliff)) return Infinity;
-        let c = 1 + 2.2 * fbm(x, y, road.wiggle ?? 10, sR + k, 2);
+        let c = road.straight ? 1 : 1 + 2.2 * fbm(x, y, road.wiggle ?? 10, sR + k, 2); // straight (L3): hành lang đi thẳng, chi phí phẳng
         if (gnd[i] === G.path || gnd[i] === G.bridge) c -= 0.8;
-        if (obj[i] === O.tree) c += 1.5;
+        if (obj[i] === O.tree && !road.straight) c += 1.5;
         if (obj[i] === O.cliff) c += 40;
         if (gnd[i] === G.water || gnd[i] === G.ford) c += road.waterCost ?? 30;
         return Math.max(0.3, c);
@@ -516,6 +517,35 @@ export function build(L, hand = null, seedOverride = null) {
     // Gỡ cây có thể tách một cụm lớn thành cụm nhỏ: lặp tới khi không còn gì đổi.
     for (let round = 0; round < 6; round++) { const before = softN; clusterPass(); fixPass(); if (softN === before) break; }
   }
+  // ---------- 8b. Lấp túi sau khe 1 ô (L3 #1661, tùy chọn `sealPockets`): vùng ô rộng ≥ 2 không nối với vùng rộng chính (chỉ vào qua khe 1 ô)
+  // thì trồng cây, trừ túi có mốc (trại, cổng, trận, tinh anh, hang). Lặp vì lấp túi có thể tách túi mới. ----------
+  let sealN = 0;
+  if (L.sealPockets) {
+    const keep = [L.spawn?.rect, ...(L.portals ?? []).map((o) => o.rect), ...(L.waypoints ?? []).map((o) => [o.at[0] - 2, o.at[1] - 2, 4, 4]),
+      ...(L.elites ?? []).map((o) => o.rect), L.lair ? [L.lair.at[0] - L.lair.rx, L.lair.at[1] - L.lair.ry, L.lair.rx * 2, L.lair.ry * 2] : null].filter(Boolean);
+    const isKeep = (x, y) => keep.some(([kx, ky, kw, kh]) => x >= kx - 2 && y >= ky - 2 && x < kx + kw + 2 && y < ky + kh + 2);
+    for (let round = 0; round < 6; round++) {
+      const g = { MW, MH, solid: Uint8Array.from({ length: N }, (_, i) => (solid(i) ? 1 : 0)) }, Wd = widths(g), comp = new Int32Array(N).fill(-1), sizes = [];
+      for (let s0 = 0; s0 < N; s0++) {
+        if (Wd[s0] < 2 || comp[s0] >= 0) continue;
+        const id = sizes.length, st = [s0]; comp[s0] = id; let n = 0;
+        while (st.length) {
+          const i = st.pop(); n++; const x = i % MW, y = (i / MW) | 0;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (!inside(X, Y)) continue; const j = at(X, Y); if (Wd[j] >= 2 && comp[j] < 0) { comp[j] = id; st.push(j); } }
+        }
+        sizes.push(n);
+      }
+      if (sizes.length < 2) break;
+      const main = sizes.indexOf(Math.max(...sizes)), bad = new Set();
+      for (let i = 0; i < N; i++) if (Wd[i] >= 2 && comp[i] !== main && !isKeep(i % MW, (i / MW) | 0)) bad.add(comp[i]);
+      // Túi có mốc thì bỏ cả túi (không lấp từng phần).
+      for (let i = 0; i < N; i++) if (Wd[i] >= 2 && comp[i] !== main && isKeep(i % MW, (i / MW) | 0)) bad.delete(comp[i]);
+      if (!bad.size) break;
+      let changed = 0;
+      for (let i = 0; i < N; i++) if (bad.has(comp[i]) && !solid(i) && !lock[i]) { trees[i] = pickGid(tier(i).trees, i % MW, (i / MW) | 0, sV + 21); changed++; }
+      sealN += changed; if (!changed) break;
+    }
+  }
   const start = L.spawn ? [Math.floor(L.spawn.rect[0] + L.spawn.rect[2] / 2), Math.floor(L.spawn.rect[1] + L.spawn.rect[3] / 2)] : pt(Object.keys(P)[0]);
   const reach = new Uint8Array(N), q = [at(...start)];
   if (solid(q[0])) throw new Error(`${mapId}: tâm trại ${start} bị chặn`);
@@ -607,7 +637,7 @@ export function build(L, hand = null, seedOverride = null) {
   };
   for (const g of collides) if (g < 1 || g > 8 * rows) throw new Error(`${mapId}: gid ${g} ngoài tileset (${8 * rows} ô)`);
   let walkN = 0; for (let i = 0; i < N; i++) if (reach[i]) walkN++;
-  const stats = { mapId, size: `${MW}×${MH}`, seed, walkable: walkN, walkPct: +(walkN / N * 100).toFixed(1), filled, soft: softN, pinch: pinchN, hand: handN,
+  const stats = { mapId, size: `${MW}×${MH}`, seed, walkable: walkN, walkPct: +(walkN / N * 100).toFixed(1), filled, soft: softN, pinch: pinchN, seal: sealN, hand: handN,
     beasts: zoneStats.reduce((a, z) => a + z.count, 0), zoneRects: zoneStats.reduce((a, z) => a + z.rects, 0), zones: zoneStats, objects: list.length, warn };
   return { json: JSON.stringify(map), map, stats, roads: roadsOut, zoneOf };
 }
@@ -662,7 +692,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     writeFileSync(miniFile(id), encodePng(miniImage(r, L)));
     const s = r.stats;
     console.log(`[maps] Đã sinh ${path.relative(ROOT, out)} ${s.size}, hạt giống ${s.seed}, ${ms} ms: ${s.walkPct}% ô đi được, ${s.beasts} hồn thú thường ` +
-      `trong ${s.zoneRects} mảnh vùng, ${s.objects} object, lấp ${s.filled} ô kẹt, ${s.soft} cây lẻ thành vật mềm (${s.pinch} kẹt chéo), ${s.hand} ô chỉnh tay`);
+      `trong ${s.zoneRects} mảnh vùng, ${s.objects} object, lấp ${s.filled} ô kẹt, ${s.soft} cây lẻ thành vật mềm (${s.pinch} kẹt chéo), lấp ${s.seal} ô túi sau khe, ${s.hand} ô chỉnh tay`);
     for (const z of s.zones) console.log(`  ${z.name} (tầng ${z.tier}): ${z.rects} mảnh, ${z.walk} ô đi được, ${z.count} con`);
     if (previewArg) { writeFileSync(previewArg, topdownPreview(r, L)); console.log(`[maps] Ảnh nhìn thẳng: ${previewArg}`); }
   }
