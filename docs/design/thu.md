@@ -95,6 +95,7 @@ Nguyên tắc: **thư không phải nguồn thưởng.** Test cân bằng kiểm
 | Thư hết hạn | đính kèm bị bỏ: chủ ý, để thư không thành kho vô hạn; người chơi thấy cảnh báo |
 
 ### Giao diện
+- Khi mở lại, giữ nội dung cũ để đọc và báo đang cập nhật; `get` quá hạn thì ghi rõ dữ liệu cũ, lỗi cập nhật và **Thử lại** (chỉ gửi `get`). Tin hợp lệ mới xóa cảnh báo; dùng chung timer với nhận thưởng, không tự retry (#1566).
 Chất liệu **Giấy** (kit gốc, `docs/art/ui-kit.md`): cửa sổ riêng mở từ thẻ `mail` ở hub (`client/src/hubMenu.ts`, hiện `why: "Chờ máy chủ"` → nối bảng, bỏ khóa); Esc đóng theo ngăn xếp (`panelStack.ts`); PC.
 - **Bố cục:** danh sách thư bên trái (mỗi dòng: biểu tượng đọc / chưa đọc, tiêu đề, người gửi, ngày, nhãn hạn), nội dung bên phải (tiêu đề, người gửi, nội dung, lưới đính kèm, nút "Nhận" / "Nhận tất cả", "Xóa"); vùng bấm 32–44 px.
 - **Trạng thái dòng** (hình + chữ, không chỉ màu): *chưa đọc* (đậm + chấm), *đã đọc*, *có đính kèm chưa nhận* (biểu tượng quà + nhãn), *đã nhận* (xám + dấu tick), *sắp hết hạn* (nhãn cảnh báo).
