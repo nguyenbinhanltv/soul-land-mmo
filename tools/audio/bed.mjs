@@ -30,6 +30,12 @@ export const BEDS = [
     fx: "acompressor=threshold=0.02:ratio=8:attack=5:release=150",
     parts: [{ file: "dungeon_ambient_1_0.ogg", from: 4, to: 64 }],
   },
+  {
+    mapId: "lac_nhat_sam_lam", title: "Rừng sâu", source: "forest-ambience", join: 0, loop: 3,
+    // Bản thu rất nhỏ (-46 LUFS) mà có vài tiếng chim đỉnh -6 dB: nén nhẹ để kéo lên -16 LUFS mà không vượt trần đỉnh.
+    fx: "acompressor=threshold=0.01:ratio=10:attack=10:release=250",
+    parts: [{ file: "Forest_Ambience.mp3" }],
+  },
 ];
 
 function run(bin, args) {
