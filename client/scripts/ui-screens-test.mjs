@@ -208,6 +208,13 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.equal(bc.hudSub(bc.newRoomHud()), "");
   // kết quả
   const txt = (v) => v.lines.map((l) => l.text).join("\n");
+  // Khúc hết phòng (#1578): thắng / thua có khúc; hoàn lượt, lỗi, thiếu win, tin không phải end thì im lặng
+  assert.equal(bc.endJingle({ k: "end", win: true }), "arena_win");
+  assert.equal(bc.endJingle({ k: "end", win: false }), "arena_lose");
+  assert.equal(bc.endJingle({ k: "end", win: false, refunded: true, err: "Lỗi hệ thống: đã hoàn lượt" }), null);
+  assert.equal(bc.endJingle({ k: "end", win: true, err: "x" }), null);
+  assert.equal(bc.endJingle({ k: "end" }), null);
+  assert.equal(bc.endJingle({ k: "wave", win: true }), null);
   const win = bc.endView({ k: "end", win: true, reason: "win", why: "hạ hết các sóng", cleared: 3, of: 3, tomes: 2 });
   assert.equal(win.title, "Thắng!"); assert.match(txt(win), /Đã hạ 3\/3 sóng/); assert.match(txt(win), /×2 vào túi/);
   const lose = bc.endView({ k: "end", win: false, reason: "dead", why: "đội võ hồn gục hết", cleared: 1, of: 3, tomes: 1 });
