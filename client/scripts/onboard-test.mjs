@@ -99,13 +99,14 @@ console.log("onboard: ok");
     hidden = true; isConnected = true; dataset = {}; style = {}; textContent = ''; listeners = new Map(); children = new Map();
     set innerHTML(_) { for (const s of ['.ob-quest', '.ob-skip', '.ob-next', '.ob-head b', '.ob-dots', 'h4', 'p']) this.children.set(s, new El()); }
     querySelector(s) { return this.children.get(s) ?? null; }
+    querySelectorAll(s) { const e = this.children.get(s); return e ? [e] : []; }
     setAttribute() {} appendChild(e) { elements.set(e.id, e); } remove() { this.isConnected = false; }
     addEventListener(s, f) { this.listeners.set(s, f); } removeEventListener(s) { this.listeners.delete(s); }
     getClientRects() { return []; } blur() {} focus() {}
     click(s) { const e = this.children.get(s); e.listeners.get('click')({ currentTarget: e }); }
   }
   const hud = new El(); elements.set('hud', hud);
-  globalThis.document = { createElement: () => new El(), getElementById: (id) => elements.get(id), querySelector: () => null, body: hud };
+  globalThis.document = { createElement: () => new El(), getElementById: (id) => elements.get(id), querySelector: () => null, querySelectorAll: () => [], body: hud };
   globalThis.localStorage = { getItem: (k) => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) };
   globalThis.window = { setInterval: () => 1, clearInterval() {}, setTimeout: () => 1 };
   for (const st of ['skip', 'done', 'run']) {
