@@ -1,0 +1,56 @@
+{
+  "issue": 1595,
+  "pr": 1608,
+  "status": "cho-duyet-my-thuat-chua-nhap",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-01",
+  "attempt": 1,
+  "modelId": null,
+  "seed": null,
+  "raw": {
+    "file": "RAW.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "165ba9b119c2f49d8e501784ade58c36d42245469be680ca1f79d28ef1a77013",
+    "originalBytesVerified": true
+  },
+  "prompt": {
+    "file": "prompt.txt",
+    "sha256": "6429a2b58a0a674bcf664a9dbe82f81370d2dab1feec793a5036ab95c18983eb"
+  },
+  "candidates": [
+    {
+      "file": "hon_kinh_quyen.png",
+      "width": 32,
+      "height": 32,
+      "sha256": "baa0249b56e8b72195535236d55451c04314ab00d45a7709da585f81e16d3bfa",
+      "colors": 25,
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "hon_kinh_quyen_24.png",
+      "width": 24,
+      "height": 24,
+      "sha256": "8d6d9a4a9207b59ad970e301bbae85f3a2f36d3513b9fc216e94b59b15286306",
+      "colors": 25,
+      "alpha": [
+        0,
+        255
+      ]
+    }
+  ],
+  "references": [
+    {
+      "file": "shared/assets/sprites/iso/item/hoi_thanh_phu.png",
+      "sha256": "1350771d1856296a56baea20612eb499b3398b2a8889df749900b7bccf348edd"
+    },
+    {
+      "file": "shared/assets/sprites/iso/item/uy_thac_lenh.png",
+      "sha256": "720ca699972660f705109eae2905cf6c29dea2211afa23ddb2e6c013a5d9f5fe"
+    }
+  ],
+  "license": "Điều khoản đầu ra OpenAI, không CC0; giấy phép tham chiếu giữ nguyên trong NGUON.md/art/CREDITS.md"
+}
