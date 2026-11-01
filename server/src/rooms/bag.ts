@@ -1,7 +1,7 @@
 // Túi đồ, vật phẩm và Hồn Tệ (GAME_DESIGN.md mục 5.7, bước 3.1): gửi túi (bag / bagd), thêm / bớt món, cộng đồng, sắp xếp, khoá / bỏ món, ảnh chụp túi để lưu, tách khỏi MapRoom.ts (#702, bước 11).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / shop.ts / travel.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`, `room.saveTrade`.
-// MapRoom chỉ chuyển tiếp (onMessage, tick, các miền khác gọi `room.sendBag` / `room.addItem` như cũ). `useItem` / `pickup` ở `item.ts`, `rewardFits` / `giveItems` ở `quest.ts`; `addRing` / `addBone` / `addEquip` còn ở MapRoom.
-import { itemDef, BEAST_COIN, STARTER_ITEMS } from "../../../shared/data.ts";
+// MapRoom chỉ chuyển tiếp (onMessage, tick, các miền khác gọi `room.sendBag` / `room.addItem` như cũ). `useItem` / `pickup` ở `item.ts`, `rewardFits` / `giveItems` ở `quest.ts`; `takeShards` / `shardNote` (E6a) cũng ở đây, MapRoom chuyển tiếp; `addRing` / `addBone` / `addEquip` còn ở MapRoom (E6b).
+import { itemDef, BEAST_COIN, STARTER_ITEMS, SHARD_UNLOCK, starCost } from "../../../shared/data.ts";
 import { bagDiff } from "../../../shared/bagSync.ts";
 import type { Item, Bag } from "../db.ts";
 import { newItem, bagUsed, bumpItemClock, KIND_ORDER, ITEM_ORDER } from "./items.ts";
@@ -185,4 +185,21 @@ export function lockItem(room: MapRoom, id: string, raw: unknown) {
   room.log(id, `${it.locked ? "Đã khoá" : "Đã mở khoá"} ${room.itemLabel(it)}${it.locked ? ": không bán, bỏ hay làm nguyên liệu được" : ""}.`);
   room.sendBag(id);
   room.saveTrade(id, d);
+}
+
+/** Bớt `n` mảnh mã `code` khỏi túi, lấy từ các ô ít nhất trước (gọi sau khi đã kiểm tra đủ). */
+export function takeShards(room: MapRoom, d: PData, code: string, n: number) {
+  for (const it of d.bag.filter((i) => i.code === code && i.vohonId === null).sort((a, b) => a.qty - b.qty)) {
+    if (n <= 0) break;
+    const k = Math.min(n, it.qty); room.takeItem(d, it, k); n -= k;
+  }
+}
+
+/** Chú thích tiến độ sau khi nhận mảnh: " (12/50)" khi chưa sở hữu, " (8/40 lên 3★)" khi đã sở hữu, "" khi đã tối đa sao. */
+export function shardNote(room: MapRoom, d: PData, code: string) {
+  const vohon = itemDef(code)?.vohon; if (!vohon) return "";
+  const n = room.shardCount(d, code), v = d.owned.find((x) => x.vohon === vohon);
+  if (!v) return ` (${n}/${SHARD_UNLOCK})`;
+  const cost = starCost(v.stars);
+  return cost === null ? "" : ` (${n}/${cost} lên ${v.stars + 1}★)`;
 }
