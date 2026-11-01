@@ -38,6 +38,7 @@ Chuỗi "Sử Lai Khắc Thất Quái" (`QUESTS`, `QUEST_CH2`): nhận và trả
 Chung cho mọi chuỗi trong `QUESTS`, theo `giver` / `map` của chuỗi; chương sau không phải làm lại phía client. Chỉ từ tin riêng `quest` của từng chuỗi, không thêm tin mới.
 
 ### Khung theo dõi và dấu NPC
+- **Bảng Nhiệm Vụ ở Menu (#1605):** thẻ Hub "Nhiệm Vụ" mở bảng `#quests` (`questScreen.ts`, không còn toast): mỗi chuỗi đang theo dõi một dòng và **mỗi bài khảo hạch hằng ngày chưa xong một dòng** (kể cả chưa nhận, khung theo dõi có thể đang ẩn mục Hằng ngày), kèm trạng thái bằng chữ, mục tiêu x/N, mô tả, phần thưởng và nút "Đến". Số ở dòng đếm = số dòng liệt kê; cuộn được, Esc / × đóng. Chỉ hiển thị, đọc đúng dữ liệu của khung theo dõi; nhận / trả vẫn ở NPC. Bài hồi quy: `client/scripts/quest-panel-browser.mjs` (CI job flow-browser).
 - Một chuỗi được **theo dõi** khi đã mở (chuỗi `QUEST_AFTER` của nó đã xong) và chưa xong cả chuỗi. Khung theo dõi có mỗi chuỗi đang theo dõi một mục theo thứ tự `QUESTS` (tên bài, bài x/N, mục tiêu x/N; chưa nhận thì "Gặp <NPC> ở <bản đồ>", đủ thì "quay về gặp…"), rồi mục "Hằng ngày"; bấm / chạm tiêu đề từng mục để thu gọn riêng mục đó (nhận cả chạm trên điện thoại). Điện thoại ngang (màn thấp) thì khung nằm sát bên trái radar, không đè thanh đội hình / nút hồn kỹ.
 - Dấu **"!" / "?"** trên đầu NPC `giver` của chuỗi đang theo dõi như Đại Sư (Triệu Vô Cực chỉ có dấu khi chương 2 đã mở; dấu của Phất Lan Đức chỉ theo khảo hạch hằng ngày).
 ### Chỉ đường trên radar
