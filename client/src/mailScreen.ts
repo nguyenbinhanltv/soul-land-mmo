@@ -56,18 +56,22 @@ let onChange: (n: number) => void = () => {};
 let msg: MailMsg | null = null, filter: MailFilter = "all", sel = 0, busy = false, failed = false, note: { text: string; err: boolean } | null = null, timer = 0;
 const el = () => document.getElementById("mail");
 const BUSY_MS = 6000;
+// Giữ dòng vừa mở trong Chưa đọc để nội dung không biến mất khi read được xác nhận.
+let reading = 0;
+const visibleList = () => !msg ? [] : filter === "unread" && reading
+  ? msg.list.filter((m) => !m.read || m.id === reading) : mailFilter(msg.list, filter);
 
 export function bindMail(sender: (type: string, payload: unknown) => void, changed: (n: number) => void) { send = sender; onChange = changed; }
 export const isMailOpen = () => { const e = el(); return !!e && !e.hidden; };
 function load() { failed = false; send?.("mail", { op: "get" }); window.clearTimeout(timer); timer = window.setTimeout(() => { if (!msg && isMailOpen()) { failed = true; render(); } }, BUSY_MS); }
 export function openMail() { const e = el(); if (!e || !send) return; e.hidden = false; note = null; busy = false; load(); render(); }
-export function closeMail() { const e = el(); if (e) e.hidden = true; window.clearTimeout(timer); }
+export function closeMail() { const e = el(); if (e) e.hidden = true; reading = 0; window.clearTimeout(timer); }
 
 export function onMail(m: MailMsg) {
   if (!m || !Array.isArray(m.list) || typeof m.pending !== "number") return;
   msg = m; failed = false; window.clearTimeout(timer); busy = false;
   if (m.err) note = { text: m.err, err: true }; else if (m.claimedNow) note = { text: mailClaimedLine(m.claimedNow), err: false };
-  if (sel && !m.list.some((x) => x.id === sel)) sel = 0;
+  if (sel && !m.list.some((x) => x.id === sel)) { sel = 0; reading = 0; }
   onChange(mailBadgeCount(m));
   render();
 }
@@ -81,8 +85,10 @@ function act(op: "claim" | "claimAll" | "del", id?: number) {
 }
 /** Mở một thư: chọn, và đánh dấu đã đọc (cập nhật ngay trên màn; server là nguồn đúng, tin trả về ghi đè). */
 function select(id: number) {
+  const m = visibleList().find((x) => x.id === id);
+  if (!m) return;
+  reading = filter === "unread" && (!m.read || reading === id) ? id : 0;
   sel = id; note = null;
-  const m = msg?.list.find((x) => x.id === id);
   if (m && !m.read) { m.read = true; send?.("mail", { op: "read", id }); if (msg) onChange(mailBadgeCount(msg)); }
   render();
 }
@@ -120,12 +126,13 @@ export function mailDetailNode(m: MailView | null, busyNow: boolean, now: number
 
 function render() {
   const root = el(); if (!root || root.hidden) return;
-  const list = msg ? mailFilter(msg.list, filter) : [], now = Date.now(), cur = msg?.list.find((x) => x.id === sel) ?? null;
+  const list = visibleList(), now = Date.now(), cur = list.find((x) => x.id === sel) ?? null;
+  if (!cur) { sel = 0; reading = 0; }
   const dots: Record<MailFilter, boolean> = { all: false, unread: !!msg?.list.some((x) => !x.read), gift: !!msg && mailGiftIds(msg).length > 0 };
   const f = screenFrame({
     material: "giay", title: "Thư", badge: "信", info: `Thư do hệ thống gửi (Phúc Lợi, Bí Cảnh, quản trị). Quà đính kèm nhận một lần, thư giữ ${MAIL.ttlDays} ngày; chỉ máy chủ tạo và kiểm thư.`,
     nav: ([["all", "Tất cả"], ["unread", "Chưa đọc"], ["gift", "Có quà"]] as const).map(([id, label]) => ({ id, label, active: filter === id, dot: dots[id] })),
-    primary: mailPrimary(msg, busy), onPrimary: () => act("claimAll"), onNav: (id) => { filter = id as MailFilter; note = null; render(); },
+    primary: mailPrimary(msg, busy), onPrimary: () => act("claimAll"), onNav: (id) => { if (filter !== id) reading = 0; filter = id as MailFilter; note = null; render(); },
   });
   if (!msg) f.body.append(failed
     ? stateBox({ kind: "error", text: "Không tải được thư (mất kết nối hoặc máy chủ chưa trả lời).", hint: "Kiểm tra mạng rồi bấm Thử lại.", onRetry: () => { load(); render(); } })
