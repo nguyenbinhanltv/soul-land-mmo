@@ -61,4 +61,3 @@ Một bản nhạc nền lặp ngắn riêng cho Luyện Hồn Cảnh, thí luy�
 | M4A | Sau | 134,1 | 103,78 | 10,2 | 10,8 |
 
 Test MusicPlayer dùng AudioContext giả kiểm năm lần vào/ra ở cả OGG/M4A: một bài nền sống sau crossfade, cùng bản đồ không tạo nguồn mới, tái vào dùng cache, mute/bật lại đúng bài. Bộ kiểm cũ vẫn giữ định dạng dự phòng, tải lỗi thử lại, slider và crossfade; không nới checker hoặc thay bộ phát.
-
