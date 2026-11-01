@@ -92,6 +92,14 @@ try {
   assert.match(await page.locator("#onboard .ob-head b").textContent(), /bước 2\/6/);
   await closePanel("#roster");
   await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click());
+  // Bỏ qua ngay trên dải gọn (bảng đang mở) phải tắt hẳn thẻ, kể cả sau khi đóng bảng (review #1611).
+  await page.evaluate(async (n) => { const ob = await import("/src/onboard.ts"); ob.onboardReview(); }, name);
+  await openPanel("mail", "#mail");
+  assert.equal(await page.locator("#onboard").getAttribute("data-cover"), "1");
+  await page.locator("#onboard .ob-skip").click();
+  assert.equal(await page.locator("#onboard:visible").count(), 0, "Bỏ qua trên dải gọn thì thẻ tắt");
+  await closePanel("#mail"); await sleep(350);
+  assert.equal(await page.locator("#onboard:visible").count(), 0, "đóng bảng không làm thẻ hiện lại");
   await page.evaluate(async () => { const ob = await import("/src/onboard.ts"); ob.onboardReview(); });
   for (const [w, h] of [[640, 360], [960, 540], [1280, 720], [1920, 1080]]) for (const fs of [0, 1, 2]) {
     await setSize(w, h, fs);

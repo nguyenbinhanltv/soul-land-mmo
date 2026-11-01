@@ -21,7 +21,7 @@
 
 /* (1b) Bảng lớn đang mở (onboard.ts OB_COVER_PANELS, #1601): thẻ thu về MỘT dòng sát đáy và hạ xuống z 3 (< bảng z 4) để không bao giờ phủ lên nội dung bảng;
    chữ đầy đủ ở chú thích, nút Bỏ bước / Bỏ qua vẫn bấm và Tab được. Chữ + nút giữ nguyên cỡ theo token (không thu cỡ chữ). */
-#hud > #onboard[data-cover="1"]{z-index:3;bottom:var(--sp-5);display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-2) var(--sp-4);max-height:none;overflow:hidden;width:min(440px,calc(100% - 560px));min-width:380px}
+#hud > #onboard[data-cover="1"]{z-index:3;bottom:var(--sp-5);gap:0 var(--sp-4);padding:var(--sp-2) var(--sp-4);max-height:none;overflow:hidden;width:min(440px,calc(100% - 560px));min-width:380px}
 #onboard[data-cover="1"] .ob-main{display:flex;align-items:baseline;gap:var(--sp-3);flex:1 1 auto;min-width:0}
 #onboard[data-cover="1"] .ob-head{display:none} /* số bước nằm ở chú thích; nhường chỗ cho tiêu đề */
 #onboard[data-cover="1"] :is(.ob-dots,p){display:none}

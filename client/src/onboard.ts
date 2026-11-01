@@ -158,7 +158,7 @@ function advance() {
   step++; if (saved && !reviewing) { saved.s = step; persist(); }
   paint(); tick();
 }
-function hide() { if (card) card.hidden = true; place(null); }
+function hide() { if (card) { card.hidden = true; delete card.dataset.cover; card.title = ""; } place(null); }
 function stop() { running = false; window.clearInterval(timer); timer = 0; tapEl?.removeEventListener("pointerdown", onTap); tapEl = null; place(null); }
 function finish(st: "done" | "skip") {
   stop();
