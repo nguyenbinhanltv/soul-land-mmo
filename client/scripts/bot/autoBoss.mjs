@@ -1,7 +1,7 @@
 // Nhóm bot "autoBoss" (#703 bước 6, tách nguyên văn từ bot-test.mjs): Tự săn đánh tinh anh, thú vương, boss thế giới.
 import { readFileSync } from "node:fs";
 import { sleep, waitFor, ok, mapUrl, bot, enter, sendTeam, same, test, needHookSkip } from "./lib.mjs";
-import { BEASTS, VOHON, vohonIndex, STATUS, statusBit, TEAM_COMBAT_SECS, MAPS, beastSkillOf, TELE_PAD, BOSSES, bossIndex, beastIndex, ELITE, beastName, KING, WORLD_SLAM, teleSafe, SWITCH_CD, CHAN_THAN_RING, ringSkill, AWAKEN_CHOICES, TICK_RATE, SYNC_VIEW, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, parseAuto, AUTO_BOSS } from "../../../shared/data.ts";
+import { BEASTS, VOHON, vohonIndex, STATUS, statusBit, TEAM_COMBAT_SECS, MAPS, beastSkillOf, TELE_PAD, BEAST_REGEN, BOSSES, bossIndex, beastIndex, ELITE, beastName, KING, WORLD_SLAM, teleSafe, SWITCH_CD, CHAN_THAN_RING, ringSkill, AWAKEN_CHOICES, TICK_RATE, SYNC_VIEW, AUTO_MAX_PER_CELL, AUTO_DEFAULTS, parseAuto, AUTO_BOSS } from "../../../shared/data.ts";
 
 /**
  * Vùng lưu lại trên mặt đất (#161, mục 5.3; BOT_ONLY=ground chỉ chạy phần này): 4 chiêu vũng / sương độc có `ground` (tinh anh theo
@@ -165,10 +165,10 @@ export async function autoBossTest(){
     const bq=async()=>(await test(A,"auto",{bid:KB}))?.beast;
     const kDiag=async()=>{ const x=await info().catch(()=>({})), k=kb(), q=await test(A,"king").catch(()=>({})), c=await bq().catch(()=>null);
       const aid=[...A.room.state.beasts.values()].filter(b=>b!==k&&Math.hypot(b.x-me().x,b.y-me().y)<400).length;
-      return `[thú vương ${k?`hp ${k.hp}/${k.maxHp} ${k.x.toFixed(0)},${k.y.toFixed(0)}`:"đã hạ"}, calm ${c?.calm?.toFixed(1)} mục tiêu ${c?.target===sid?"A":c?.target}; A ${me().x?.toFixed(0)},${me().y?.toFixed(0)} ${inL(me().x,me().y)?"trong":"ngoài"} hang ${me().hp}/${me().maxHp} `
+      return `[thú vương ${k?`hp ${k.hp}/${k.maxHp} ${k.x.toFixed(0)},${k.y.toFixed(0)}`:"đã hạ"}, calm ${c?.calm?.toFixed(1)} mục tiêu ${c?.target===sid?"A":c?.target}; A ${me()?`${me().x.toFixed(0)},${me().y.toFixed(0)} ${inL(me().x,me().y)?"trong":"ngoài"} hang ${me().hp}/${me().maxHp}`:"không có trong state"} `
         +`tự săn ${JSON.stringify({target:x.target===KB?"thú vương":x.target,boss:x.boss,away:x.away,pace:x.pace,secs:x.secs,anchor:x.anchor})}; đóng góp ${JSON.stringify(q.dmgBy)}; ${aid} hồn thú quanh]`; };
     let engaged=false; for(let t=Date.now();Date.now()-t<30000&&!engaged;){ ai=await info(); ki=await test(A,"king"); const c=await bq();
-      engaged=ai.target===KB&&!ai.away&&inL(me().x,me().y)&&ki.dmgBy?.[sid]>0&&c?.calm<1.5; if(!engaged) await sleep(200); }
+      engaged=ai.target===KB&&!ai.away&&inL(me().x,me().y)&&ki.dmgBy?.[sid]>0&&c?.calm<BEAST_REGEN.delay; if(!engaged) await sleep(200); }
     ok(engaged,"tự săn đang giao chiến thú vương (trong hang, đã trúng) trước khi hạ máu"+(engaged?"":" "+await kDiag()));
     await lowHp(KB);
     const kDone=await waitFor(()=>!kb(),30000);
