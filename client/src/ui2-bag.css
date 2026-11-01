@@ -116,3 +116,6 @@ body.touch #bag .bgrid{grid-template-columns:repeat(5,minmax(40px,52px))}
 :is(#bag,#roster) .rn-more{flex:none;min-height:32px;box-sizing:border-box;padding:0 var(--sp-4);cursor:pointer;font:var(--fs-s)/1.2 var(--f10);color:var(--plate-text);background:var(--track);border:var(--bd-fine) solid var(--ink2)}
 :is(#bag,#roster) .rn-more:hover{border-color:var(--plate-text)}
 body.touch :is(#bag,#roster) .rn-more{min-height:40px}
+/* Chân Túi ghim đáy vùng cuộn: luôn thấy dù hàng lọc 1–3 hàng; lưới cuộn bên dưới. Mở "Xem thêm" thì tối đa 35% cao màn, dài hơn thì cuộn trong chân. */
+#bag .rnote.fold{position:sticky;bottom:calc(var(--sp-4) * -1);z-index:2;margin:0 calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);padding:var(--sp-3) var(--sp-4);background:var(--plate);border-top:var(--bd-fine) solid var(--ink2)}
+#bag .rnote.fold.open .rn-t{max-height:35vh;overflow-y:auto}

@@ -157,6 +157,30 @@ GameScene.prototype.create = function(...a) {
   await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3, enhance: 1 }); // món đang mặc không nằm trong túi: thêm một món rời để đủ 8 tab lọc
   await sleep(300);
   const fit = [];
+  // Chân Túi thấy ngay ở scrollTop = 0 (không cuộn trước khi đo) với 3 / 5 / 8 tab lọc, 2 cỡ màn × 2 cỡ chữ.
+  const variants = [{ n: 3, keep: ["hon_hoan", "tieu_hao"] }, { n: 5, keep: ["hon_hoan", "hon_cot", "tieu_hao"] }, { n: 8, keep: null }];
+  for (const [width, height] of [[1280,720],[960,540]]) for (const fs of [0, 2]) for (const v of variants) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate((n) => { document.body.classList.remove("touch", "a11y-fs-1", "a11y-fs-2"); if (n) document.body.classList.add(`a11y-fs-${n}`); }, fs);
+    await page.evaluate(async () => { const { setPanel } = await import("/src/charPanel.ts"); setPanel("char", false); setPanel("bag", true); const { toggleRoster } = await import("/src/hudRoster.ts"); toggleRoster(false); });
+    const saved = await page.evaluate(async (keep) => {
+      const { inGroup } = await import("/src/bag.ts"), sc = window.__u1, b = sc.bag;
+      window.__u1saved = b; if (keep) sc.bag = { ...b, items: b.items.filter((i) => keep.some((g) => inGroup(i, g))) };
+      sc.renderBag(); return sc.bag.items.length;
+    }, v.keep);
+    await sleep(400);
+    const m = await page.evaluate(() => {
+      const p = document.querySelector("#bag"); p.scrollTop = 0; p.querySelector(".bfilter").scrollLeft = 0;
+      const pr = p.getBoundingClientRect(), n = p.querySelector(".rnote"), r = n.getBoundingClientRect(), tabs = p.querySelectorAll(".bfilter .ui-tab").length;
+      const hit = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && n.contains(t); };
+      const t = n.querySelector(".rn-t"), mb = n.querySelector(".rn-more").getBoundingClientRect();
+      const bottom = document.querySelector("#hotbar, #skillbar, .hotbar");
+      return { tabs, inside: r.top >= pr.top && r.bottom <= pr.bottom + 0.5, clear: [[.1,.5],[.5,.5]].every(([a, c]) => hit(r.left + r.width * a, r.top + r.height * c)), moreOk: mb.bottom <= pr.bottom + 0.5 && mb.top >= pr.top, box: [r.x, r.y, r.width, r.height].map(Math.round), panel: [pr.x, pr.y, pr.width, pr.height].map(Math.round) };
+    });
+    await page.screenshot({ path: resolve(out, `${tag}-chan-${v.n}tab-${width}x${height}-fs${fs}.png`) });
+    check(m.inside && m.clear && m.moreOk, `chân Túi thấy ngay với ${v.n} tab (${width}x${height} fs${fs}, ${m.tabs} tab thật): ${JSON.stringify(m)}`);
+    await page.evaluate(() => { const sc = window.__u1; sc.bag = window.__u1saved; sc.renderBag(); });
+  }
   for (const [width, height] of [[1280,720],[960,540]]) for (const fs of [0, 2]) {
     await page.setViewportSize({ width, height });
     await page.evaluate((n) => { document.body.classList.remove("touch", "a11y-fs-1", "a11y-fs-2"); if (n) document.body.classList.add(`a11y-fs-${n}`); }, fs);
@@ -178,7 +202,7 @@ GameScene.prototype.create = function(...a) {
     const tag2 = `${tag}-${width}x${height}-fs${fs}`;
     const sortM = await probe(".bsortsel", "#bag", ".nope", false);
     await page.screenshot({ path: resolve(out, `${tag2}-tui.png`) });
-    const noteM = await probe(".rnote", "#bag", ".nope");
+    const noteM = await probe(".rnote", "#bag", ".nope", false); // scrollTop = 0: chân phải thấy ngay, không cuộn
     await page.screenshot({ path: resolve(out, `${tag2}-tui-chan.png`) });
     // Đủ 8 tab lọc: mọi tab nằm trong bảng, bấm trúng (hit-test), ô Xếp không đè tab nào.
     const tabsM = await page.evaluate(() => {
