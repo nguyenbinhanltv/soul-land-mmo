@@ -7,8 +7,6 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { buildMidi, loopSeconds, PPQ } from "./lib/midi.mjs";
-import { decodedSamples, encode, renderLoop, renderOnce, writeWav } from "./lib/render.mjs";
 import SONGS from "./songs/index.mjs";
 import luyenHonCanh from "./candidates/luyen_hon_canh.mjs";
 
@@ -37,7 +35,12 @@ if (!existsSync(args.soundfont)) throw new Error(`Không thấy soundfont: ${arg
 const extraBanks = args["extra-soundfont"] ? [{ path: args["extra-soundfont"], offset: 1 }] : [];
 if (extraBanks.some((b) => !existsSync(b.path))) throw new Error(`Không thấy soundfont phụ: ${args["extra-soundfont"]}`);
 const out = path.resolve(args.out);
-if (args.candidate && !path.relative(ASSETS, out).startsWith(`..${path.sep}`)) throw new Error("Bản nghe thử phải xuất ngoài shared/assets; chưa được thay manifest đang chạy.");
+const relativeOut = path.relative(ASSETS, out);
+const outsideAssets = path.isAbsolute(relativeOut) || relativeOut === ".." || relativeOut.startsWith(`..${path.sep}`);
+if (args.candidate && !outsideAssets) throw new Error("Bản nghe thử phải xuất ngoài shared/assets; chưa được thay manifest đang chạy.");
+// Kiểm đầu ra trước khi nạp thư viện dựng nhạc: test an toàn chạy được trên CI không cài bộ sáng tác.
+const { buildMidi, loopSeconds, PPQ } = await import("./lib/midi.mjs");
+const { decodedSamples, encode, renderLoop, renderOnce, writeWav } = await import("./lib/render.mjs");
 mkdirSync(out, { recursive: true });
 if (args.midi) mkdirSync(args.midi, { recursive: true });
 
