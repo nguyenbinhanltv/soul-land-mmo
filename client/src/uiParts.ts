@@ -68,7 +68,7 @@ export interface CardOpts {
   rank?: number;
   /** Nhãn giới hạn ở đầu thẻ (vd "Giới hạn 3/ngày"). */
   limit?: string;
-  /** URL ảnh trang trí đặt trước tiêu đề (`aria-hidden`, nhãn chữ vẫn đủ nghĩa); ảnh lỗi thì tự ẩn (`bindCardIcons`). */
+  /** URL ảnh trang trí đặt trước tiêu đề (`aria-hidden`, nhãn chữ vẫn đủ nghĩa); ảnh lỗi thì nơi gọi tự ẩn (vd `guardIcon` ở `hubMenu.ts`). */
   icon?: string;
 }
 export const CARD_MARK_LABEL: Record<CardState, string> = { new: "Mới", up: "Nâng được", done: "Đã xong", lock: "Khoá" };

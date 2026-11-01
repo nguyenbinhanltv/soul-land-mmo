@@ -41,8 +41,7 @@
 .hub-legend [data-k="lock"]::before{border:var(--bd-fine) dashed var(--paper3)}
 
 /* Icon menu trên thẻ / rail hub (#1579): ảnh trang trí xếp trên nhãn chữ (aria-hidden, nhãn không đổi); ảnh lỗi thì [hidden] và thẻ về dạng chữ. Thẻ khoá: icon xám. */
-.p2-card-i,.hub-r-i{width:24px;height:24px;object-fit:contain;image-rendering:pixelated;flex:none}
-.p2-card-i{align-self:flex-start}
+.hub-r-i{width:24px;height:24px;object-fit:contain;image-rendering:pixelated;flex:none}
 .hub-c-big .p2-card-i{width:48px;height:48px}
 .p2-card-i[hidden],.hub-r-i[hidden]{display:none}
 .p2-s-lock .p2-card-i,.hub-r.lock .hub-r-i{filter:grayscale(1);opacity:.7}
