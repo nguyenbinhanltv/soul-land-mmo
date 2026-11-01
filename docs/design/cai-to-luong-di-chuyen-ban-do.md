@@ -7,9 +7,9 @@
 
 ### 0.1 Phương pháp (đọc `shared/move.ts`, `server/src/map.ts`, `shared/path.ts`)
 - Ô logic `TILE` = 16 px. Ô chặn = gid có `collides` ở **mọi lớp** của file Tiled (`solidGrid`); server và client dùng chung lưới. Hộp va chạm hồn sư `PLAYER_HW` × `PLAYER_HH` = 10×8 px (chưa tới 1 ô): khe 1 ô vẫn lọt nếu căn đúng; góc ô được `MOVE_NUDGE` lách giúp, **riêng tự săn tắt lách** (`moveNudge(true)` = 0) nên tự săn kẹt ở cổ chai dễ hơn người bấm phím.
-- **Bề ngang ô** = w lớn nhất mà ô nằm trong một hình vuông w×w toàn ô đi được (chính xác trên lưới). Hồn thú Đỏ có thân 22 px (`TIERS`) nên cần khe ≥ 2 ô.
+- **Bề ngang ô** = w lớn nhất mà ô nằm trong một hình vuông w×w toàn ô đi được (chính xác trên lưới). Hộp va chạm hồn thú thường có nửa rộng `max(3, size / 3)` px (`server/src/rooms/tick.ts`, `TIERS`): thú Đỏ rộng ≈ 14,7 px (< `TILE`) nên **lọt khe 1 ô**, cỡ thân thú **không** là lý do đòi khe ≥ 2 ô. Lý do của chỉ tiêu khe ≥ 2 ô: trong khe 1 ô hai thực thể (hồn sư với hồn thú truy đuổi, hoặc hai hồn sư) không tránh nhau được, và tự săn tắt lách góc. (Hộp của thú vương / boss chưa kiểm.)
 - **Cổ chai (choke):** đoạn liên tiếp ≥ 3 ô có bề ngang ≤ 2 trên đường ngắn nhất (A* 8 hướng) giữa điểm mốc: trại hồi sinh, cổng, truyền tống trận, tinh anh, hang thú vương (đúng object trong file Tiled). **Đường rộng nhất** = bề ngang lớn nhất mà vẫn đi được từ mốc này tới mốc kia (nếu chỉ 2 thì không có tuyến nào rộng hơn 2 ô).
-- **Kẹt chéo (pinch):** hai ô chặn chéo nhau, hai ô còn lại trống (hộp 10×8 px không lách chéo được). **Ngõ cụt:** ô trống có ≥ 3 ô kề chặn. **Sau cổ chai:** ô chỉ vào được qua khe 1 ô (thú to, hồn sư khác không vào được qua khe đó).
+- **Kẹt chéo (pinch):** hai ô chặn chéo nhau, hai ô còn lại trống (hộp 10×8 px không lách chéo được). **Ngõ cụt:** ô trống có ≥ 3 ô kề chặn. **Sau cổ chai:** ô chỉ vào được qua khe 1 ô (vùng dễ bị chặn lối, khó tránh nhau và khó kéo đồng đội tới).
 - Thời gian đi = quãng đường (ô) × `TILE` ÷ (`PLAYER_SPEED` = 95 px/s đi bộ; × `RUN_MULT` khi chạy ngoài giao chiến). Không đo được "nơi người chơi hay kẹt" từ log thật (không có log chạy chung); dùng ba chỉ báo thay thế: kẹt chéo, ngõ cụt, cổ chai; bằng chứng lịch sử ở 0.4.
 
 ### 0.2 Bảng đo 11 bản đồ (file đang dùng, mặc định `.v2`)
@@ -35,7 +35,7 @@
 2. **Thủ phạm là cây lẻ.** Ở Ngoại vi cây là 83% ô chặn; trong phần chặn bên trong, **21% là cụm 1 ô, 15% là cụm 2–3 ô** (36% là cây đứng lẻ / đôi), nên cứ ~33 ô lại có một kẹt chéo và 1/3 ô đi được nằm trong khe ≤ 2 ô. Nội địa 20% + 12%, Lạc Nhật 27% + 18%, Thánh Hồn Thôn 35% + 12% (nhưng Thôn có 75% khoảng trống nên vẫn thoáng); thành trấn ≤ 8%.
 3. **Ngoại vi không có hành lang chính nào rộng:** tuyến rộng nhất giữa các mốc trung bình chỉ 2,7 ô, có tuyến chỉ 2 ô (tới Hắc Sát Quỷ Hổ, Ảnh Trảo Linh Miêu, Hang Huyết Nguyệt); 36 đoạn cổ chai trên 12 tuyến, tập trung dọc trục đông–tây `y ≈ 85–90` (các cụm quanh x ≈ 35, 69, 96, 115, 124, 194). Đây là chính con đường mọi người chơi đi (trại cổng → Rừng thưa → trạm gác → Nội địa), mất 42–44 giây đi bộ.
 4. **Thời gian không phải vấn đề, ma sát mới là.** Sau khi mô phỏng gỡ cây lẻ, thời gian đi trung bình chỉ giảm ~3,5% (24,8 → 24,0 giây ở tuyến từ trại hồi sinh), vì A* đã đi gần thẳng (độ cong tuyến ~1,1). Cái được là: ô cổ chai 1 ô trên tuyến 48 → 5, ngang tuyến hẹp nhất 2,8 → 4,6, kẹt chéo 30,7 → 1,3 /1000 ô. Mục tiêu cải tổ là **hết khựng / kẹt / dồn cục ở khe**, không phải rút ngắn đường.
-5. **2181 ô (6,9% ô đi được) của Ngoại vi chỉ vào được qua khe 1 ô:** thú Đỏ (22 px) không vào / không ra, hồn thú sinh trong đó thành "thú kẹt" và đồng đội không kéo tới được. Chưa kiểm xem `server/src/rooms/spawn.ts` có chặn sinh thú trong các ô này (cần soát, mục 5 việc L0).
+5. **2181 ô (6,9% ô đi được) của Ngoại vi chỉ vào được qua khe 1 ô:** hồn thú lọt khe này nhưng hồn sư và hồn thú không tránh nhau được, đồng đội dễ chặn lối nhau, tự săn (không lách góc) dễ kẹt. Chưa kiểm xem `server/src/rooms/spawn.ts` có sinh thú trong các ô này (cần soát, việc L0).
 6. **Vật cản đã có cách mềm hóa nhưng ít dùng:** `plant` và danh sách `gids.walk` trong bố cục (cỏ, bụi hoa, cầu, vật trang trí, nấm) đi xuyên được; client đã khoét lỗ elip + mờ khi vật cao che hồn sư (mục 5.11 "Sắp lớp theo độ sâu"). Tức làm mềm **không cần cơ chế mới**, chỉ cần dùng nhiều hơn.
 
 ### 0.4 Bằng chứng lịch sử về kẹt (từ `git log`)
@@ -79,12 +79,12 @@ Trang HTML kèm theo (thư mục artifacts của phiên) có: ảnh isometric th
 | Ô trong khoảng trống ≥ 5×5 | ≥ 60% | ≥ 70% | ≥ 80% | 25,1% |
 | Kẹt chéo /1000 ô | ≤ 2 | ≤ 1 | 0 | 30,7 |
 | Ngõ cụt /1000 ô đi được | ≤ 8 (chỉ do lair / túi thú có chủ đích) | ≤ 2 | 0 | 31,5 |
-| Ô sau cổ chai | 0 (thú Đỏ phải ra vào được) | 0 | 0 | 2181 |
+| Ô sau cổ chai | 0 (không để vùng săn nằm sau khe 1 ô) | 0 | 0 | 2181 |
 | **Hành lang chính** (trại hồi sinh → cổng / trận / tinh anh / hang) rộng tối thiểu | **5 ô**, TB ≥ 7 | 6 ô, TB ≥ 9 | không áp | 2 ô, TB 2,7 |
 | Đường nhánh tới bãi săn / ngõ phụ | ≥ 3 ô | ≥ 3 ô | ≥ 3 ô | 1–2 ô |
 | Cổ chai trên tuyến mốc (đoạn ≤ 2 ô dài ≥ 3) | 0 trên đường chính | 0 | – | 36 |
 
-Lý do chọn **5 ô**: chứa 2 hồn sư đi song song + 1 hồn thú truy đuổi (thân ≤ 22 px) mà không dính nhau; khớp cách đo "ô trong khoảng trống ≥ 5×5" ở trên. Mô phỏng ở 5.3 cho thấy đạt được mà chỉ gỡ ~215 ô cây (0,5% diện tích).
+Lý do chọn **5 ô**: chứa 2 hồn sư đi song song + 1 hồn thú truy đuổi mà không chặn nhau; khớp cách đo "ô trong khoảng trống ≥ 5×5" ở trên. Mô phỏng ở 5.3 cho thấy đạt được mà chỉ gỡ ~215 ô cây (0,5% diện tích).
 
 ### 1.2 Làm bản đồ dày chiều sâu mà không cản (lớp S)
 - **Thay vì xóa rừng, đổi "cây lẻ" thành vật mềm:** mọi cụm cây 1–3 ô (36% ô chặn ở Ngoại vi) đổi gid sang vật cùng gam màu nhưng thuộc `gids.walk` (bụi rậm, cây non, nấm lớn: ngoại vi đã có `vat_deco`, `vat_nam` đi xuyên được, nên **vòng thí điểm không cần ảnh mới**). Rừng vẫn rậm trong mắt, nhưng chỉ còn cổ thụ **thành cụm lớn** làm vách.
