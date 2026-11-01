@@ -30,6 +30,7 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | Q14 | 2026-10-24 | Đổi ngoại hình sau khi tạo chỉ qua **thợ may**; `LOOKS_CHANGE.free` lần đầu miễn phí, sau đó tốn Hồn Tệ; lần tạo đầu miễn phí, một lần | #511 | `docs/design/giao-dien.md`, `docs/art/hon-su-lpc.md` |
 | Q15 | 2026-10-24 | Pháp tướng Võ Hồn Chân Thân cho cả 25 võ hồn: hồn sư giữ nguyên, hư ảnh võ hồn sau lưng, khung 160×160, 5 hướng + lật, hai hoạt ảnh (thở, đánh) | #482, #483 | `docs/art/phap-tuong.md`, `docs/design/ky-nang-combat-phap-tuong.md` |
 | Q16 | 2026-10-25 | **Hồn sư = LPC** (Mẫu dựng sẵn LPC + Tự tạo, cả hai lưu `mode = lpc`); bỏ sprite preset PixelLab; tài khoản preset cũ tự chuyển sang LPC lúc nạp. Thay Q21 | #564, #565, #571–#573 | `docs/art/hon-su-lpc.md` |
+| Q54 | 2026-11-02 | **Nhịp lên cấp** (chủ repo chọn phương án C): một võ hồn ra trận từ cấp 1 → 100 khoảng 150 giờ săn tích cực (cả đội 4 võ hồn khoảng 240 giờ), bằng hằng `XP_NEED_MULT` nhân phần cấp² của `xpNeed`; Ủy Thác giữ công thức, không thêm hằng riêng; mục tiêu cho võ hồn chính / đội 4, không ép 24 võ hồn; `XP_SHARE_*` giữ nguyên; bậc `XP_LEVEL_STEPS` mới chưa làm | #909, PR #1657 | `docs/design/vo-hon-doi-hinh.md` (mục "Nhịp lên cấp") |
 
 ## Nguồn ảnh và mỹ thuật
 
@@ -85,7 +86,6 @@ Thêm quyết định mới: cộng mã `Q` kế tiếp ở cuối bảng đúng
 | P6 | 2026-10-25 | Chủ nhân và tên hồn kỹ trong truyện của 6 võ hồn: giữ mở (`ROADMAP.md` mục 8) | `ROADMAP.md` |
 | P7 | 2026-10-26 | Cân bằng (mức C): Hồn Tệ cấp cao dư khi treo; Ủy Thác Lệnh quá rẻ (#907) | `docs/trang-bi-kinh-te.md` |
 | P8 | 2026-10-26 | Cân bằng (mức C): `BEAST_COIN` bậc thang có vách đá ở 10.000 / 100.000 năm (#908) | `docs/trang-bi-kinh-te.md` |
-| P9 | 2026-10-26 | Cân bằng (mức C): nhịp lên cấp, cần mục tiêu thời gian cấp 1 → 100 (#909) | `docs/trang-bi-kinh-te.md` |
 
 P2 (NV0 chờ duyệt bố cục) đã đóng: NV0 đến NV5 xong, ghi ở Q13.
 
