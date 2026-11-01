@@ -1,0 +1,86 @@
+{
+  "issue": 1596,
+  "date": "2026-11-01",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "model": null,
+  "seed": null,
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "native": [
+    1254,
+    1254
+  ],
+  "raw": "RAW.png",
+  "raw_sha256": "becb8e4f3d9c7269125b9b52bd170088a57be79e5810246afd907867577cbd11",
+  "prompt": "prompt.txt",
+  "prompt_sha256": "0e0fad67e2b1005b9bb56fdab28ee4138a3aac817f264ec57d0828bb97ec0fa6",
+  "raw_copy_byte_identical": true,
+  "references": [
+    "art/src/ui-kit/toI-2.png"
+  ],
+  "attempt": 1,
+  "imported_into_game": true,
+  "approved_by": "Chủ repo duyệt cả 7 mẫu, điều phối qua soul_land_game-815 ngày 02/11/2026",
+  "mapping": [
+    {
+      "index": 1,
+      "key": "gi_achv_level",
+      "label": "Cấp"
+    },
+    {
+      "index": 2,
+      "key": "gi_achv_collect",
+      "label": "Sưu tầm"
+    },
+    {
+      "index": 3,
+      "key": "gi_achv_hunt",
+      "label": "Săn"
+    },
+    {
+      "index": 4,
+      "key": "gi_achv_quest",
+      "label": "Nhiệm vụ"
+    },
+    {
+      "index": 5,
+      "key": "gi_achv_arena",
+      "label": "Đấu trường"
+    },
+    {
+      "index": 6,
+      "key": "gi_achv_bicanh",
+      "label": "Bí Cảnh"
+    },
+    {
+      "index": 7,
+      "key": "gi_achv_claimed",
+      "label": "Đã nhận"
+    }
+  ],
+  "check": {
+    "blocking": 0,
+    "light": 1,
+    "pieces": 16,
+    "fringe_before": 0,
+    "fringe_after": 0,
+    "notes": [
+      "Khoảng cách vài ô dưới 5%; đã kiểm bằng mắt bản24px trên Mực/Giấy/caro."
+    ]
+  },
+  "approved_files": {
+    "gi_achv_level-24.png": "018432d225c4c02f8e3cc34e17f2085d7aca2e6f0835ec8e685809f2fa3b475d",
+    "gi_achv_level-32.png": "3f1d091a2a6363d59373420b1be3bd0c11678f96492f01fc5cd5bf60386624b5",
+    "gi_achv_collect-24.png": "6f96b312a08ab49146aea740601b5a37f4aae630d2886c064285ba48ceff04c6",
+    "gi_achv_collect-32.png": "d4cdf6e9ac5a3f1c9c82673160d26fd248d66a655295d2f66bdca7446c1c04c8",
+    "gi_achv_hunt-24.png": "6246b901239e3ddf6d23348dd5e992b9b8cd52d1c960fd5b7629e3173cd580b4",
+    "gi_achv_hunt-32.png": "6c87afd322a93db61f7a9bfa8bc0b285c4dea31ae305572d63340f71cabcef26",
+    "gi_achv_quest-24.png": "23ae462c8fcdb25f5346fc708543c44eccbb0fa70fe429ca7ae15df89a9e249c",
+    "gi_achv_quest-32.png": "ff7da8b15203a14b5eaa8bbbad3fdd70989573d04d3ca8dc76dcd7a1b9d16e17",
+    "gi_achv_arena-24.png": "bf996569777785c3a99aaccab677ecf639502b449f4cf90dc7d000601dfffc53",
+    "gi_achv_arena-32.png": "86fdbfa798dcc316418ae439ab020e4c0d124025ed0c0039aa6f192aeacfc9eb",
+    "gi_achv_bicanh-24.png": "ac48c721e1c52abb68008cb8322e9afcfeb67cb2c1d5160ad7c0f979aa47fcb9",
+    "gi_achv_bicanh-32.png": "836ca8b41a4f470723517a47ca23544b7580a7d55a9060e26df7a4ff172af95c",
+    "gi_achv_claimed-24.png": "a056ea50210301ba4250791ceb00747599c923deca1944d36d458e53064fa598",
+    "gi_achv_claimed-32.png": "e7d1bf924ab444cdf6c561d11711c003c02e65d1903ce42166beb13605d8e1e2"
+  }
+}

@@ -468,6 +468,7 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
   if ((m = key.match(/^gi_(menu_[a-z0-9]+_1x)$/))) return { file: `iso/gi/${m[1]}.png`, size: [24, 24], kind: "portrait", iso: true };
   // Sáu loại sự kiện Lịch (#1597): bản 1× 24px đã duyệt; bản không hậu tố giữ 32px.
   if ((m = key.match(/^gi_(calendar_(?:king|world|arena|auto|daily|weekly)_1x)$/))) return { file: `iso/gi/${m[1]}.png`, size: [24, 24], kind: "portrait", iso: true };
+  if ((m = key.match(/^gi_(achv_(?:level|collect|hunt|quest|arena|bicanh|claimed)_1x)$/))) return { file: `iso/gi/${m[1]}.png`, size: [24, 24], kind: "portrait", iso: true };
   if ((m = key.match(/^gi_([a-z0-9_]+)$/))) return { file: `iso/gi/${m[1]}.png`, size: [ISO_SKILL_ICON, ISO_SKILL_ICON], kind: "portrait", iso: true }; // game-icons.net (#625): Chân Thân, dung hợp, menu HUD
   if ((m = key.match(/^item_([a-z0-9_]+)$/))) return { file: `iso/item/${m[1]}.png`, size: [ISO_ITEM_ICON, ISO_ITEM_ICON], kind: "portrait", iso: true, item: m[1] };
   if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };

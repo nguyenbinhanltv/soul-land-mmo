@@ -53,6 +53,7 @@
     "test:uiparts": "node --experimental-strip-types scripts/ui-parts-test.mjs",
     "test:rank-browser": "node scripts/rank-browser.mjs",
     "test:mail-browser": "node scripts/mail-browser.mjs",
+    "test:achv-icon-browser": "node scripts/achv-icon-browser.mjs",
     "test:uiscreens": "node --experimental-strip-types scripts/ui-screens-test.mjs",
     "test:confirm": "node --experimental-strip-types scripts/confirm-test.mjs",
     "test:onboard": "node --experimental-strip-types scripts/onboard-test.mjs",
