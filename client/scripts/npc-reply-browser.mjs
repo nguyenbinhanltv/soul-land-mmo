@@ -1,4 +1,5 @@
 // NPC #1552: cử chỉ đáp lời, kiểm trên game thật với server RAM riêng và Chrome --mute-audio.
+// NPC_REPLY_ID / NPC_REPLY_MAP chọn NPC và bản đồ; mặc định kiểm hồi quy Đại Sư.
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { mkdir, mkdtemp } from "node:fs/promises";
@@ -76,8 +77,19 @@ GameScene.prototype.create = function(...a) {
   await page.waitForFunction(to => window.__npcReplyScene?.mapId === to && window.__npcReplyScene.npcs.some(n => n.id === window.__npcReplyTarget), npcMap);
   await page.waitForTimeout(1200);
   const move = async (dx, dy) => {
-    await page.evaluate(({dx,dy}) => { const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); s.room.send('test',{op:'goto',x:n.x+dx,y:n.y+dy}); }, {dx,dy});
-    await page.waitForTimeout(250);
+    // Một số NPC sát tường: giảm khoảng cách trên cùng tia, không đổi hướng kiểm.
+    const point = await page.evaluate(async ({dx,dy,moveUrl}) => {
+      const { hits, PLAYER_HW, PLAYER_HH } = await import(moveUrl);
+      const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);
+      for (const k of [1, .5, .25, .125, .1]) {
+        const x=n.x+dx*k,y=n.y+dy*k;
+        if (Math.hypot(dx*k,dy*k)>2 && !hits(s.grid,x,y,PLAYER_HW,PLAYER_HH)) {
+          s.room.send('test',{op:'goto',x,y}); return {x,y};
+        }
+      }
+      throw new Error(`Không có điểm đứng cho hướng ${dx},${dy}`);
+    }, {dx,dy,moveUrl:'/@fs/'+root.replaceAll('\\','/')+'shared/move.ts'});
+    await page.waitForFunction(({x,y}) => { const s=window.__npcReplyScene,p=s.room.state.players.get(s.me); return Math.hypot(p.x-x,p.y-y)<.1; },point);
   };
   const close = async () => { await page.evaluate(async()=> (await import('/src/hudNpc.ts')).closeNpc()); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===null); };
   const talk = async () => { await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>!!window.__npcReplyScene.npcReply.active, null, {timeout:5000}).catch(async e=>{console.log(await page.evaluate(async()=>({id:(await import('/src/hudNpc.ts')).npcOpenId(), stamp:(await import('/src/hudNpc.ts')).npcOpenStamp(), sceneStamp:window.__npcReplyScene.talkingNpcStamp,reduce:(await import('/src/combatFx.ts')).fxPrefs.reduce,texture:window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.texture.key})));throw e;}); };
