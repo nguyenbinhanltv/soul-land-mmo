@@ -9,7 +9,6 @@ import { TICK_RATE,
   TILE,
   itemDef, formatHonTe, type ItemDef,
   RING_ITEM,
-
   BONE_ITEM,
   CORE_ITEM, type CoreData,
   type CoreStat, EQUIP_ITEM, equipName, rollEquipDrop, rollEquipCharm, EQUIP_CHARM, type EquipData, type EquipDrop,
@@ -1069,9 +1068,10 @@ export class MapRoom extends Room<MapState> {
   /** Tổng số mảnh mã `code` trong túi (mọi ô). */
   shardCount(d: PData, code: string) { return shardCount(d.bag, code); }
 
-  /** Hàm thưởng / túi còn lại, đợt E6a (#702): `takeShards` / `shardNote` ở `bag.ts`, `boneLock` / `afterBones` ở `bones.ts`, `canLoot` / `lootNote` ở `loot.ts`; các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ (E6b còn `addRing` / `addBone` / `addCore` / `addEquip` / `equipRng` / `chestEquip`). */
+  /** Mảnh võ hồn trong túi (bớt mảnh, chú thích tiến độ): logic ở `bag.ts` (#702, E6a), hàm dưới chỉ chuyển tiếp (E6b còn `addRing` / `addBone` / `addCore` / `addEquip` / `equipRng` / `chestEquip`). */
   takeShards(d: PData, code: string, n: number) { return bag.takeShards(this, d, code, n); }
 
+  /** Chú thích tiến độ sau khi nhận mảnh: logic ở `bag.ts` (#702, E6a), chuyển tiếp. */
   shardNote(d: PData, code: string) { return bag.shardNote(this, d, code); }
 
   /** Mở võ hồn / lên sao bằng mảnh: logic ở `team.ts` (#702), chuyển tiếp cho `onMessage`. */
@@ -1084,8 +1084,10 @@ export class MapRoom extends Room<MapState> {
   boneBonusOf(d: PData, rowId: number) { return stats.boneBonusOf(d, rowId); }
   fillBoneSubs(d: PData) { return stats.fillBoneSubs(d); }
 
+  /** Luật chung khi gắn / tháo hồn cốt / hồn hạch (hàm thuần): logic ở `bones.ts` (#702, E6a), chuyển tiếp. */
   boneLock(p: PlayerState, d: PData, what = "hồn cốt") { return bones.boneLock(p, d, what); }
 
+  /** Sau khi gắn / tháo hồn cốt / hồn hạch: tính lại chỉ số, gửi túi / đội: logic ở `bones.ts` (#702, E6a), chuyển tiếp. */
   afterBones(id: string, v: Character) { return bones.afterBones(this, id, v); }
 
   // ---------- Trang bị hồn sư (mục 5.15, bước E1) ----------
@@ -1278,8 +1280,10 @@ export class MapRoom extends Room<MapState> {
 
   partyNear(by: string, x: number, y: number) { return social.partyNear(this, by, x, y); }
 
+  /** Được nhặt đồ rơi lúc này không: logic ở `loot.ts` (#702, E6a), chuyển tiếp. */
   canLoot(dr: DropState, id: string) { return loot.canLoot(this, dr, id); }
 
+  /** Câu báo ai được ưu tiên đồ rơi: logic ở `loot.ts` (#702, E6a), chuyển tiếp. */
   lootNote(owner: string, id: string, why = "đóng góp nhiều nhất") { return loot.lootNote(this, owner, id, why); }
 
   // ---------- Vòng lặp ----------
