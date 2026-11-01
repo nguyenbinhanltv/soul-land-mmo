@@ -6,6 +6,8 @@ import { itemDef, npcDef, questChain, questStart, questStatus, questRewardText, 
 import { mapRoute } from "../map.ts";
 import { bossNow } from "../schedule.ts";
 import { progressFor, giveCandidates } from "./calc.ts";
+import { NPC_RANGE, type NpcRole } from "../../../shared/data.ts";
+import type { NpcSpot } from "../map.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { CLAIM_BUSY, claimHeld, testShift } from "./common.ts";
@@ -269,4 +271,19 @@ export function dailyBag(room: MapRoom, id: string) {
   const { changed, ready } = dailyGive(d); if (!changed) return;
   if (ready >= 0) room.log(id, `Đã đủ đồ cho khảo hạch "${questChain(d.daily[ready].chain)?.steps[0].name}": mang tới nộp cho ${npcDef(DAILY.giver)?.name} ở ${MAPS[DAILY.map].name}.`, "#86e0b0");
   sendDaily(room, id, ready >= 0 ? "ready" : undefined, ready);
+}
+
+/**
+ * NPC trong tầm NPC_RANGE của người chơi: đúng mã `id` (nói chuyện), hoặc NPC gần nhất có vai trò `role` (mua bán ở thương nhân).
+ * Người đã gục / đang chuyển bản đồ thì không có. Client chỉ gửi ý định, vị trí do server giữ.
+ */
+export function npcNear(room: MapRoom, id: string, want: { id?: string; role?: NpcRole }): NpcSpot | undefined {
+  const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d || p.dead || d.travelling) return undefined;
+  let best: NpcSpot | undefined, bd = NPC_RANGE;
+  for (const n of room.map.npcs) {
+    if ((want.id && n.id !== want.id) || (want.role && npcDef(n.id)?.role !== want.role)) continue;
+    const k = Math.hypot(n.x - p.x, n.y - p.y);
+    if (k <= bd) { bd = k; best = n; }
+  }
+  return best;
 }

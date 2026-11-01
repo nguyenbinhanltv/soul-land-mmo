@@ -9,6 +9,9 @@ import { rallyPoint, type RallyMsg } from "../../../shared/rally.ts";
 import { friends, FRIEND_TOPIC, type FriendNote, type FriendResult } from "../friends.ts";
 import { presenceBackend } from "../presence.ts";
 import { arenaQueueLocked, arenaReadActive } from "./arenaQueue.ts";
+import type { Client } from "colyseus";
+import { tongDef, PARTY_XP_RANGE } from "../../../shared/data.ts";
+import type { AuthData } from "./types.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { ChatRoute } from "./types.ts";
 import { worldChatKey, CHAT_TOPIC, FRIEND_COL, accOf, strIn } from "./common.ts";
@@ -264,4 +267,27 @@ export function rallyNote(room: MapRoom, r: party.RallyRoute) {
     const at = here ? "" : ` (${r.map}${r.msg.ch ? ` · Kênh ${r.msg.ch}` : ""})`;
     c.send("chat", { ch: "party", sys: true, name: "Hệ thống", text: `${r.msg.from} đánh dấu Tập trung ở đây${at}.` });
   }
+}
+
+/** Tông môn của phiên `c` cho chat tông (#198): hồn sư trong phòng đọc `pdata` (đổi tông có hiệu lực ngay); người xem trận không có
+ *  pdata (#278) thì theo tông lúc vào phòng (client.auth). */
+export function chatTong(room: MapRoom, c: Client): string | null {
+  const d = room.pdata.get(c.sessionId);
+  return d ? d.tong : tongDef((c.auth as AuthData | undefined)?.tong?.tong)?.id ?? null;
+}
+
+/**
+ * Người cùng chia kinh nghiệm khi `by` hạ hồn thú ở (x, y) (mục 5.9): chính `by`, cùng các thành viên tổ đội của `by` trong phòng này
+ * (cùng bản đồ, cùng kênh), chưa gục, không đang chuyển bản đồ, cách chỗ hồn thú gục dưới PARTY_XP_RANGE pixel. Kênh khác của cùng
+ * bản đồ là phòng khác nên không tính.
+ */
+export function partyNear(room: MapRoom, by: string, x: number, y: number) {
+  const d = room.pdata.get(by), pid = d ? party.partyIdOf(d.accountId) : 0;
+  const out = [by]; if (!pid) return out;
+  for (const [id, o] of room.pdata) {
+    const p = room.state.players.get(id);
+    if (id === by || !p || p.dead || o.travelling || party.partyIdOf(o.accountId) !== pid) continue;
+    if (Math.hypot(p.x - x, p.y - y) < PARTY_XP_RANGE) out.push(id);
+  }
+  return out;
 }

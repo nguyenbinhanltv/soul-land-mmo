@@ -7,6 +7,8 @@ import { itemDef, formatHonTe, shopOf, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, AUT
 import { store, type SoldRow } from "../db.ts";
 import { presenceBackend } from "../presence.ts";
 import { newItem, bagUsed } from "./items.ts";
+import { TEAM_COMBAT_SECS } from "../../../shared/data.ts";
+import type { NpcSpot } from "../map.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { editBuyback, claimBuyback } from "./presenceState.ts";
@@ -246,4 +248,17 @@ export function expandBag(room: MapRoom, id: string, rawNpc?: unknown) {
   room.log(id, `Mở rộng túi đồ: ${from} → ${d.bagSlots} ô, −${formatHonTe(cost)} (còn ${formatHonTe(d.honTe)}).`, "#f2c84b");
   room.sendBag(id);
   room.saveTrade(id, d);
+}
+
+/**
+ * Thương nhân để mua / bán / mua lại / mở rộng túi (#111): `rawNpc` là mã thương nhân client đang mở hộp thoại (thiếu thì thương nhân
+ * gần nhất, như bot / client cũ), phải là thương nhân và đứng trong NPC_RANGE. Thương nhân lưu động đứng ở trại cổng (không phải vùng
+ * an toàn) nên ngoài vùng an toàn, đang giao chiến thì không giao dịch. Trả NPC, hoặc lý do từ chối (`verb`: "mua", "bán"…).
+ */
+export function shopFor(room: MapRoom, id: string, d: PData, rawNpc: unknown, verb: string): NpcSpot | string {
+  const p = room.state.players.get(id);
+  const npc = typeof rawNpc === "string" ? room.npcNear(id, { id: rawNpc }) : room.npcNear(id, { role: "shop" });
+  if (!p || !npc || npcDef(npc.id)?.role !== "shop") return `Hãy đứng cạnh thương nhân rồi mới ${verb} được.`;
+  if (!room.map.inSafe(p.x, p.y) && d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới ${verb} được.`;
+  return npc;
 }

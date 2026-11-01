@@ -8,6 +8,8 @@ import { VOHON, vohonIndex, TEAM_SIZE, SWITCH_CD, TEAM_COMBAT_SECS, TIEN_CO_MAX,
   SHARD_UNLOCK, MAX_STARS, starCost, shardCode,
   RESONANCE, RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CD, resonanceProgress, resonanceLevels, resonanceBonus, resonanceText } from "../../../shared/data.ts";
 import { itemStacks } from "./items.ts";
+import { tierOfYears } from "../../../shared/data.ts";
+import type { PlayerState } from "./schema.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { fusionCdLeft } from "./procState.ts";
@@ -270,4 +272,16 @@ export function starUp(room: MapRoom, id: string, raw: unknown) {
     try { await store.saveVohonsBag(d.accountId, list, bag); }
     catch (e) { for (const x of list) if (x.rowId !== d.ch.rowId) d.dirty.add(x.rowId); d.bagDirty = true; throw e; }
   });
+}
+
+/** Hiện võ hồn `ch` lên trạng thái đồng bộ (người khác thấy võ hồn ra trận, cấp, hồn hoàn). */
+export function showVohon(p: PlayerState, ch: Character) {
+  p.vh = Math.max(0, vohonIndex(ch.vohon)); p.level = ch.level; p.xp = ch.xp; p.kills = ch.kills;
+  p.rings.clear(); ch.rings.forEach((y) => p.rings.push(tierOfYears(y)));
+}
+
+/** Chép tiến độ đang chơi vào võ hồn ra trận (d.ch). */
+export function syncCh(room: MapRoom, id: string) {
+  const p = room.state.players.get(id), d = room.pdata.get(id); if (!p || !d) return;
+  Object.assign(d.ch, { level: p.level, xp: p.xp, rings: [...d.ringYears], kills: p.kills });
 }
