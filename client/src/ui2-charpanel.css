@@ -28,6 +28,8 @@
 #char .ui-tab::before{width:var(--sp-4);height:var(--sp-4)}
 #char .ui-tab.ui-tab[aria-selected="true"]{color:var(--plate-text);box-shadow:inset 0 calc(var(--bd) * -2) 0 var(--accent)}
 #char .cdtabs .ui-tab small,#char .cdtabs .ui-tab[aria-selected="true"] small{font:var(--fs-s)/1.2 var(--f10);color:var(--paper2)}
+/* Nút Mặc tốt nhất (f2-nut-chinh / f2-nut-phu) là <button> trần: không kế thừa font nên cố định 13,33 px, không theo cỡ chữ (#1634). */
+#char :is(.f2-nut-chinh,.f2-nut-phu){font:var(--fs-m)/1.2 var(--f12)}
 #char .cgo{min-height:44px;min-width:96px;padding:0 var(--sp-5);color:var(--plate-text);text-shadow:none}
 #char .cgo:disabled{cursor:not-allowed}
 
