@@ -1,6 +1,6 @@
 // Cửa hàng / thương nhân (GAME_DESIGN.md mục 5.7, 9.8): mua, bán, mua lại, đổi mảnh võ hồn, tự bán từ xa, mở rộng túi, tách khỏi MapRoom.ts (#702, bước 5).
 // Hàm nhận phòng (`room: MapRoom`) như equip.ts / social.ts; nguyên văn từ MapRoom, không đổi hành vi / thứ tự ghi DB qua `room.chain`, `room.saveTrade`.
-// MapRoom chỉ chuyển tiếp (đăng ký `onMessage` giữ nguyên ở đó; ArenaRoom vẫn override `forgetBuyback`). `shopFor` nay ở đây (E5a, MapRoom chuyển tiếp); `bagRoom` ở `bag.ts` (MapRoom chuyển tiếp); chỉ `saveTrade` (dùng `this.chain`) còn ở MapRoom, sẽ chuyển ở E5b.
+// MapRoom chỉ chuyển tiếp (đăng ký `onMessage` giữ nguyên ở đó; ArenaRoom vẫn override `forgetBuyback`). `shopFor` nay ở đây (E5a, MapRoom chuyển tiếp); `bagRoom` ở `bag.ts` (MapRoom chuyển tiếp); `saveTrade` (E5b) cũng ở đây, MapRoom chuyển tiếp: mọi ghi DB vẫn qua `room.chain(d, …)` đúng thứ tự.
 import { randomUUID } from "node:crypto";
 import { itemDef, TEAM_COMBAT_SECS, formatHonTe, shopOf, SHOP_MAX_QTY, sellPrice, BUYBACK_MAX, AUTO_SELL_BUYBACK, AUTO_SELL_FREE, autoSellable, parseSell, shopExpands, npcDef,
   bagExpandCost, BAG_MAX_SLOTS, BAG_EXPAND, SHARD_BUY, ARENA_SHARDS, VOHON, vohonIndex, shardCode, shardBuyCost } from "../../../shared/data.ts";
@@ -260,4 +260,11 @@ export function shopFor(room: MapRoom, id: string, d: PData, rawNpc: unknown, ve
   if (!p || !npc || npcDef(npc.id)?.role !== "shop") return `Hãy đứng cạnh thương nhân rồi mới ${verb} được.`;
   if (!room.map.inSafe(p.x, p.y) && d.fight < TEAM_COMBAT_SECS) return `Đang giao chiến: rời xa hồn thú ${TEAM_COMBAT_SECS} giây rồi mới ${verb} được.`;
   return npc;
+}
+
+/** Lưu túi đồ sau mua / bán qua chuỗi lưu (mục 6); bấm dồn dập thì chỉ một lần chờ trong chuỗi, lần đó chụp túi mới nhất. */
+export function saveTrade(room: MapRoom, id: string, d: PData) {
+  if (d.tradeQueued) return;
+  d.tradeQueued = true;
+  room.chain(d, () => { d.tradeQueued = false; return room.write(id); });
 }

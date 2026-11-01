@@ -6,7 +6,7 @@ import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TICK_RATE,
   AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
   MAPS, parseNewLooks, encodeLpc,
-  BOAT_CAST,
+
   TILE,
   itemDef, formatHonTe, type ItemDef,
   RING_ITEM, DROP_OWNER_SECS,
@@ -37,7 +37,6 @@ import * as join from "./join.ts";
 import * as autoRun from "./autoRun.ts";
 import { friends, FRIEND_TOPIC, type FriendNote } from "../friends.ts";
 import { watchGc, cpuMs } from "../perf.ts";
-import { arenaDequeue, arenaQueued, arenaReadCancel } from "./arenaQueue.ts";
 import { Interest } from "./interest.ts";
 import { Grounds } from "./ground.ts";
 import { presenceBackend, bg } from "../presence.ts";
@@ -569,51 +568,15 @@ export class MapRoom extends Room<MapState> {
   sendOffline(id: string): void { autoRun.sendOffline(this, id); }
 
   // ---------- Cổng (mục 5.3 "Cổng và chặn mềm", mục 6 "Đi qua cổng và lưu vị trí") ----------
-  /**
-   * Hộp đi cổng gửi riêng: tên cổng, bản đồ đích, cấp đề xuất và cảnh báo khi võ hồn ra trận dưới cấp tối thiểu (chặn mềm). Bến thuyền
-   * (BĐ6d) kèm `boat` = số giây đi thuyền.
-   */
-  portalHint(id: string, p: PlayerState, d: PData) {
-    const portal = d.travelling || p.dead ? undefined : this.map.portalAt(p.x, p.y);
-    const warn = !!portal?.level && p.level < portal.level[0];
-    const key = portal ? `${portal.name}|${warn}` : "";
-    if (key === d.portalKey) return;
-    d.portalKey = key;
-    this.clients.getById(id)?.send("portal", portal
-      ? { name: portal.name, to: portal.to, toName: MAPS[portal.to].name, level: portal.level, warn, ...(portal.boat ? { boat: BOAT_CAST } : {}) }
-      : { name: "" });
-  }
+  /** Hàm nhỏ về đúng miền sở hữu (#702, E5b): `portalHint` / `freeze` ở `travel.ts`, `saveTrade` ở `shop.ts` (ghi DB vẫn qua `room.chain`), `foesNear` / `nearestFoe` ở `combat.ts` (`foesOf` ở lại vì `ArenaRoom` override); các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */
+  portalHint(id: string, p: PlayerState, d: PData) { return travel.portalHint(this, id, p, d); }
 
   /** Đi cổng / truyền tống / Hồi Thành Phù (xem rooms/travel.ts, #702): các hàm dưới chỉ chuyển tiếp để `onMessage`, `tick`, `useItem`, gm.ts gọi như cũ. */
   travelDeny(id: string, name: string): string | null { return travel.travelDeny(this, id, name); }
 
   travel(c: Client, name: string) { travel.travel(this, c, name); }
 
-  /**
-   * Bật cờ `travelling` (đi cổng bước 2, hoặc client vừa rời phòng): từ đây người chơi không còn tiến độ mới nào trước lần ghi
-   * cuối. Tick bỏ qua người này (không di chuyển, không hấp thụ tiếp), hồn thú bỏ mục tiêu, và đạn hồn kỹ còn bay bị bỏ để
-   * không hạ được hồn thú sau khi đã chụp dữ liệu (mục 6).
-   */
-  freeze(id: string) {
-    const p = this.state.players.get(id)!, d = this.pdata.get(id)!;
-    this.autoStop(id, "rời bản đồ."); // tự săn (Auto 1): đi cổng, truyền tống sang bản đồ khác, vào sân đấu, mất kết nối
-    d.travelling = true; d.input = { x: 0, y: 0 }; p.moving = false;
-    // Rời bản đồ thì bỏ cả bên. Báo cho thành viên còn ở phòng để ô hàng chờ và khóa tổ đội không bị treo.
-    const q = arenaQueued(d.accountId);
-    if (q && arenaDequeue(d.accountId)) {
-      for (const member of q.members) {
-        const row = [...this.pdata.entries()].find(([, x]) => x.accountId === member.accountId);
-        if (!row) continue;
-        this.sendArenaQueue(row[0]);
-        if (row[0] !== id) this.log(row[0], "Đồng đội đã rời phòng, hàng chờ Đại Đấu Hồn Trường đã hủy.", "#ffb35c");
-      }
-    }
-    // Nếu còn ở pha đọc Elo, đánh dấu hủy nhưng giữ arenaBusy tới khi Promise kết thúc (#225/#227).
-    const accounts = party.partyIdOf(d.accountId) ? party.partyMembers(d.accountId) : [d.accountId];
-    accounts.forEach((acc) => arenaReadCancel(acc));
-    this.bdata.forEach((bd) => { if (bd.target === id) bd.target = null; });
-    this.projs = this.projs.filter((pr) => pr.owner !== id);
-  }
+  freeze(id: string) { return travel.freeze(this, id); }
 
   beginTravel(id: string, portal: Portal, to?: { roomId: string; ch: number }, undo?: () => void) { travel.beginTravel(this, id, portal, to, undo); }
 
@@ -898,12 +861,7 @@ export class MapRoom extends Room<MapState> {
   sendArenaQueue(id: string) { arena.sendArenaQueue(this, id); }
   arenaTop(id: string) { arena.arenaTop(this, id); }
 
-  /** Lưu túi đồ sau mua / bán qua chuỗi lưu (mục 6); bấm dồn dập thì chỉ một lần chờ trong chuỗi, lần đó chụp túi mới nhất. */
-  saveTrade(id: string, d: PData) {
-    if (d.tradeQueued) return;
-    d.tradeQueued = true;
-    this.chain(d, () => { d.tradeQueued = false; return this.write(id); });
-  }
+  saveTrade(id: string, d: PData) { return shop.saveTrade(this, id, d); }
 
 
   // ---------- Cửa hàng / thương nhân (mục 5.7, 9.8) ----------
@@ -1075,20 +1033,8 @@ export class MapRoom extends Room<MapState> {
   // ---------- Đối thủ người chơi (PvP chỉ có trong Đại Đấu Hồn Trường, mục 5.9, bước 7.2) ----------
   /** Người chơi mà `id` đánh được lúc này. MapRoom: không ai (PvP ngoài rừng không có, mục 5.9); ArenaRoom ghi đè khi đang giao đấu. */
   foesOf(_id: string): string[] { return []; }
-  /** Đối thủ chưa gục đứng trong bán kính `r` quanh (x, y) (tính tới chân), kể cả đang tàng hình (đòn diện rộng vẫn trúng). */
-  foesNear(id: string, r: number, x: number, y: number) {
-    return this.foesOf(id).filter((f) => { const q = this.state.players.get(f); return !!q && !q.dead && Math.hypot(q.x - x, q.y - y) < r; });
-  }
-  /** Đối thủ gần `id` nhất trong bán kính `r` mà khóa mục tiêu được (chưa gục, không tàng hình). */
-  nearestFoe(id: string, r: number) {
-    const p = this.state.players.get(id); if (!p) return undefined;
-    let best: string | undefined, bd = r;
-    for (const f of this.foesOf(id)) {
-      const q = this.state.players.get(f), dd = q ? Math.hypot(q.x - p.x, q.y - p.y) : Infinity;
-      if (q && !q.dead && !this.pdata.get(f)?.buffs.has("hide") && dd < bd) { bd = dd; best = f; }
-    }
-    return best;
-  }
+  foesNear(id: string, r: number, x: number, y: number) { return combat.foesNear(this, id, r, x, y); }
+  nearestFoe(id: string, r: number) { return combat.nearestFoe(this, id, r); }
   damageFoe(fid: string, dmg: number, by: string, _col: string, hit?: Hit, o: DmgOpt = {}) { return combat.damageFoe(this, fid, dmg, by, _col, hit, o); }
 
   /** Lãnh vực Phượng Hoàng khuếch đại sát thương lên hồn thú: logic ở `motion.ts` (#702). */
