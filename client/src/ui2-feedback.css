@@ -3,10 +3,10 @@
    mảnh kit có thật (lớp `ui2-k-*`). Khung do lớp `f2-tooltip` / `f2-muc-nho` của ui2.css lo (gắn bởi tooltip.ts / cmdChip.ts / feedback.ts); file này lặp lại
    đúng bộ viền kit cho các `#id` (độ ưu tiên cao hơn helper) và chỉnh màu theo token. Chữ 10 / 12 (Galmuri), không ký tự ngoài phông nhúng. */
 
-/* Chú thích: tấm Mực của kit; màu bậc (tiêu đề `--tip-cg`, viền `--tip-c` do tooltip.ts đặt) chuyển thành vạch trong mép trên (hình, không chỉ màu viền). */
-.ui2-k-khung-tooltip #tip.f2-tooltip{box-sizing:border-box;padding:var(--sp-3) var(--sp-5);border-style:solid;border-color:transparent;border-width:var(--frame-bw);
-  border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;background:none;background-color:var(--plate);image-rendering:pixelated;
-  box-shadow:inset 0 var(--bd) 0 var(--tip-c,transparent);color:var(--plate-text)}
+/* Chú thích: tấm Mực LIỀN (không dùng 9-slice của mảnh khung_tooltip). Chú thích cao 160-310 px nên border-image kéo giãn hoa văn giữa cạnh thành thanh dài, nhìn như nền ghép nhiều ô
+   (ui-kit.md: "thân cạnh không phẳng ... lộ khi kéo giãn"). Viền = màu bậc (`--tip-c`, hình: vạch trong mép trên), thêm một nét Mực trong để giữ vẻ khung kit. */
+#tip.f2-tooltip{box-sizing:border-box;padding:var(--sp-3) var(--sp-5);border-image:none;border:var(--bd) solid var(--tip-c,var(--ink2));background:var(--plate);color:var(--plate-text);
+  box-shadow:inset 0 0 0 var(--bd) var(--plate),inset 0 0 0 calc(var(--bd) + var(--bd-fine)) var(--ink2),inset 0 calc(var(--bd) * 3) 0 var(--tip-c,transparent),var(--sh-pop)}
 
 /* Chip lệnh: tấm Mực, vạch trái đỏ son khi đang chạy (hình, không chỉ màu), vạch giấy khi chỉ báo lý do; nút × là nút giấy nhỏ (vùng bấm ≥ 32 px). */
 .ui2-k-khung-muc-nho #hud #cmdChip.f2-muc-nho{padding:0 0 0 var(--sp-5);min-height:36px;background-color:var(--plate);color:var(--plate-text);
