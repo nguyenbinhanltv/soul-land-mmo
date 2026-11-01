@@ -114,7 +114,7 @@ Mỗi asset một dòng. Thêm ảnh vào `shared/assets/sprites/` thì thêm ke
 | `shared/assets/ui/landing/hero.webp`, `logo.webp` | Lấy từ `shared/assets/ui/c6/login-bg.png`, `logo.png` (Codex built-in `imagegen`, xem mục C6) | Xuất WebP | 2026-10-25 |
 | `shared/assets/ui/landing/og.jpg` | Ghép `login-bg.png` và `logo.png` (C6) | Cắt 1200×630, JPEG | 2026-10-25 |
 | `shared/assets/ui/landing/vohon.webp` | 25 chân dung `shared/assets/sprites/iso/portrait/` (Gemini / ComfyUI, xem các mục trên) | Ghép tấm 5×5 ô 64 px, WebP không mất dữ liệu: `tools/landing-sheet.py` | 2026-10-25 |
-| `shared/assets/ui/landing/map_*.webp`, `chup_san.webp`, `the_vo_hon.webp`, `tran.webp` | Ảnh chụp màn hình game thật (Chrome headless, tắt tiếng, máy chủ thử ở RAM) | Thu nhỏ 640×360 hoặc cắt khung, WebP; `tran.webp` là ảnh động 40 khung | 2026-10-25 |
+| `shared/assets/ui/landing/map_*.webp` (kể cả `map_loi_tinh_dau`, `map_dai_dau_hon_truong`, `map_luyen_hon_canh`, #1583: chụp 2026-11-01, tài khoản thử tên hư cấu, GPU thật, máy chủ thử ở RAM), `chup_san.webp`, `the_vo_hon.webp`, `tran.webp` | Ảnh chụp màn hình game thật (Chrome headless, tắt tiếng, máy chủ thử ở RAM) | Thu nhỏ 640×360 hoặc cắt khung, WebP; `tran.webp` là ảnh động 40 khung | 2026-10-25 |
 
 ## Asset tự vẽ
 
