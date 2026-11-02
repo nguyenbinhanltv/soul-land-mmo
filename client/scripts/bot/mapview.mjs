@@ -288,7 +288,10 @@ export async function waypointTest(){
   ok(w&&w.links.some(([a,b])=>[a,b].sort().join()==="nac_dinh_thanh,thanh_hon_thon"),"bản đồ thế giới có nét nối Thánh Hồn Thôn – Nặc Đinh Thành");
   ok(w?.list.find(x=>x.key===nd)?.fee===waypointFee(1)&&w.list.find(x=>x.key===lang)?.fee===waypointFee(0),"phí theo số lần đi cổng từ bản đồ đang ở");
   ok(w?.list.find(x=>x.key===nd)?.feeRemote===waypointFee(1,true)&&w.remoteCdMax===WAYPOINT_COOLDOWN_S,"bản đồ thế giới gửi phí từ xa (feeRemote) và hồi tối đa");
-  ok(/Chưa mở khóa/.test(await go(lang)),"không đứng trên trận, trận chưa mở: từ chối (từ xa chỉ tới trận đã mở)");
+  // Trận thử là Nặc Đinh, KHÔNG phải trận làng: điểm sinh của hồn sư mới ngẫu nhiên trong vùng "Quảng trường làng", mà trận `lang` nằm trọn
+  // trong vùng đó (khoảng 15% lần sinh ngay trên trận → đã mở khóa, #1685). Nặc Đinh ở bản đồ khác nên chắc chắn chưa mở lúc này.
+  const g0=await go(nd);
+  ok(/Chưa mở khóa/.test(g0),"không đứng trên trận, trận chưa mở: từ chối (từ xa chỉ tới trận đã mở)"+(/Chưa mở khóa/.test(g0)?"":` [server trả: ${JSON.stringify(g0)}]`));
   // Bước lên trận làng: mở khóa.
   T.wpUnlock=[]; await stand(lang);
   ok(await waitFor(()=>T.wpUnlock.includes(lang)||T.world?.list.find(x=>x.key===lang)?.open,1500),"bước lên trận Quảng trường làng: mở khóa (tin wp unlock)");
