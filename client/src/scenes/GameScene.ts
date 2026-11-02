@@ -4,7 +4,7 @@ import type { Room } from "colyseus.js";
 import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
-  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
+  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, beastNameSeen, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_TIERS, equipName, coreStatText, type CoreSubUp, type CoreStat, KING,
   AUTOWALK, AUTO_MOVE, WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
@@ -1127,10 +1127,13 @@ export class GameScene extends Phaser.Scene {
     if (by) { const t = stoppedText(c, by); if (c !== "hunt") hud.log(t, "#ffb35c"); flashWhy(t); }
   }
 
+  /** Khoảng cách (pixel) từ mình tới một hồn thú trong state; chưa có mình thì coi như rất xa. */
+  meDist(b: { x: number; y: number }) { const m = this.room.state.players.get(this.me); return m ? Math.hypot(b.x - m.x, b.y - m.y) : Infinity; }
+
   /** Chữ và lệnh của chip trạng thái (lệnh ưu tiên cao nhất đang chạy), vẽ mỗi khung hình ở updateStats. */
   drawCmdChip() {
     const c = topCmd(this.activeCmds()), lk = this.lockId ? this.room.state.beasts.get(this.lockId) : null;
-    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastName(lk.rank, lk.species) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
+    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastNameSeen(lk.rank, lk.species, this.meDist(lk)) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
   }
 
   act(a: string) {
@@ -3156,7 +3159,7 @@ export class GameScene extends Phaser.Scene {
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
-        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastNameSeen(b.rank, b.species, this.meDist(b)) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
         const top = beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2);
         lb.setPosition(s.x, top).setDepth(99984).setScale(this.txtK);
@@ -3870,7 +3873,7 @@ export class GameScene extends Phaser.Scene {
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
     // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
     hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
-      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastName(tb.rank, tb.species), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
+      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastNameSeen(tb.rank, tb.species, Math.hypot(tb.x - me.x, tb.y - me.y)), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
         beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.
