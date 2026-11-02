@@ -386,8 +386,8 @@
   }
  },
  "props": {
-  "cong_thanh_vom_y": { "key": "prop_cong_thanh_vom_y", "foot": [176, 95], "flip": false },
-  "cong_thanh_vom_x": { "key": "prop_cong_thanh_vom_x", "foot": [48, 103], "flip": false },
+  "cong_thanh_vom_y": { "key": "prop_cong_thanh_vom_y", "foot": [176, 127], "flip": false },
+  "cong_thanh_vom_x": { "key": "prop_cong_thanh_vom_x", "foot": [48, 119], "flip": false },
   "nha_khung_go_2tang": { "key": "prop_nha_khung_go_2tang", "foot": [48, 108], "flip": false },
   "nha_khung_go_3tang": { "key": "prop_nha_khung_go_3tang", "foot": [48, 124], "flip": false },
   "cay_la_rong": {
