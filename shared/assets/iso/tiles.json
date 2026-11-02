@@ -391,6 +391,7 @@
   "cong_thanh_vom_y": { "key": "prop_cong_thanh_vom_y", "foot": [176, 127], "flip": false },
   "cong_thanh_vom_x": { "key": "prop_cong_thanh_vom_x", "foot": [48, 119], "flip": false },
   "nha_khung_go_2tang": { "key": "prop_nha_khung_go_2tang", "foot": [48, 108], "flip": false },
+  "nha_mai_xam_xanh": { "key": "prop_nha_mai_xam_xanh", "foot": [48, 108], "flip": false },
   "nha_khung_go_3tang": { "key": "prop_nha_khung_go_3tang", "foot": [48, 124], "flip": false },
   "cay_la_rong": {
    "key": "prop_cay_la_rong",
@@ -1131,11 +1132,11 @@
     "compounds": {
      "4,44": { "main": ["nha_khung_go_2tang"], "walls": false },
      "10,44": { "main": ["nha_khung_go_3tang"], "walls": false },
-     "17,44": { "main": ["nha_khung_go_2tang"], "walls": false },
+     "17,44": { "main": ["nha_mai_xam_xanh"], "walls": false },
      "33,44": { "main": ["nha_khung_go_3tang"], "walls": false },
-     "40,44": { "main": ["nha_khung_go_2tang"], "walls": false },
+     "40,44": { "main": ["nha_mai_xam_xanh"], "walls": false },
      "47,44": { "main": ["nha_khung_go_3tang"], "walls": false },
-     "54,44": { "main": ["nha_khung_go_2tang"], "walls": false },
+     "54,44": { "main": ["nha_mai_xam_xanh"], "walls": false },
      "100,10": {
       "main": ["xuong_ren", "lo_ren_lang"],
       "gate": "cong_sat",
