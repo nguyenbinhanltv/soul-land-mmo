@@ -1382,7 +1382,7 @@
     "19": ["cay_dua", "bui_hoa_nhiet_doi", "cay_la_tron~#b0c0a8"],
     "20": ["cay_dua_cao", "cay_dua", "cay_la_tron~#c8d4c0"],
     "27": "so_thu_khong_lo",
-    "28": ["bui_hoa_nhiet_doi", "cum_san_ho", "duong_xi_sang~#c0d0b0"],
+    "28": ["bui_hoa_nhiet_doi", "nam_xanh_cum~#b8d8c8", "duong_xi_sang~#c0d0b0"],
     "29": "bien_chi_duong",
     "32": "vach_da_nho~#c8c0b0",
     "36": ["da_ngam", "da_ngam", "cum_san_ho"],
@@ -1395,7 +1395,7 @@
     "43": "cot_den_hai_than",
     "44": "vo_oc_khong_lo",
     "45": "tuong_hai_than",
-    "46": ["bui_hoa_nhiet_doi", "cum_san_ho", "duong_xi_sang~#c0d0b0"]
+    "46": ["bui_hoa_nhiet_doi", "vat_bui_cay~#c8dca8|duong_xi_sang~#c0d0b0", "vat_bui_cay~#d8e8b8|duong_xi_sang~#c0d0b0", "vat_bui_cay~#c8dca8|duong_xi_sang~#c0d0b0"]
    },
    "build": {
     "wallKind": "plaster",
@@ -1481,7 +1481,7 @@
     "44": ["vat_cay_thong_1~#f0c8a0|thong_cao~#f0c8a0", "vat_cay_thong_2~#f0c8a0|thong_cao~#f0c8a0"],
     "45": ["vat_cay_soi_1~#f0c8a0|cay_la_tron~#f0c8a0", "vat_cay_soi_2~#f0c8a0|cay_la_rong~#f0c8a0"],
     "46": "vat_khuc_go~#e8c8a8|khuc_go_rong",
-    "47": ["vat_bui_cay~#f0c8a0", "vat_da_rung_1~#e8c8b0", "vat_da_rung_2~#e8c8b0", "vat_da_rung_3~#e8c8b0", "vat_bui_cay~#f0c8a0"],
+    "47": ["vat_bui_cay~#f0c8a0|duong_xi_sang~#d0a090", "vat_bui_cay~#e8b890|duong_xi_sang~#d0a090", "vat_bui_cay~#f0c8a0|duong_xi_sang~#d0a090", "vat_bui_cay~#f4d0a8|duong_xi_sang~#d0a090", "vat_bui_cay~#e8b890|duong_xi_sang~#d0a090"],
     "48": "vat_nam_do"
    },
    "build": {
@@ -1533,7 +1533,7 @@
     "18": ["cay_la_rong~#d0dcc8", "cay_la_tron~#c8d4c0", "cay_la_rong~#d0dcc8", "tang_da_reu"],
     "19": ["cay_la_rong~#98a8a0", "cay_rung_dem", "thong_cao"],
     "27": "so_thu_khong_lo",
-    "28": ["duong_xi_sang", "goc_cay_nam", "nam_xanh_cum", "duong_xi_sang"],
+    "28": ["duong_xi_sang", "bui_qua_sang", "nam_xanh_cum", "duong_xi_sang"],
     "29": "bien_chi_duong",
     "30": "co_thu_phat_quang",
     "32": "vach_da_nho",
@@ -1547,7 +1547,7 @@
     "43": ["vat_cay_thong_1|thong_cao", "vat_cay_thong_2|thong_cao"],
     "44": ["vat_cay_soi_1|cay_la_tron", "vat_cay_soi_2|cay_la_rong"],
     "45": "vat_khuc_go|khuc_go_rong",
-    "46": ["vat_bui_cay", "vat_da_rung_1", "vat_da_rung_2", "vat_da_rung_3", "vat_bui_cay"],
+    "46": ["vat_bui_cay|duong_xi_sang", "vat_bui_cay~#d8e8c8|duong_xi_sang", "vat_bui_cay|duong_xi_sang", "vat_bui_cay~#c8dcc0|duong_xi_sang", "vat_bui_cay~#e0ecd0|duong_xi_sang"],
     "47": "vat_nam_do"
    },
    "build": {
@@ -1600,7 +1600,7 @@
     "19": ["cay_rung_dem~x1.35", "cay_la_rong~#a8bcc0", "cay_rung_dem~x1.35", "bui_gai"],
     "20": ["cay_rung_dem~x1.35", "cay_rung_dem~x1.2", "cay_u_minh~x1.5", "cay_rung_dem~x1.35", "mang_nhen_khong_lo"],
     "27": ["so_thu_khong_lo", "mang_nhen_khong_lo"],
-    "28": ["goc_cay_nam", "nam_xanh_cum", "duong_xi_sang~#a0b0b8", "nam_xanh_cum", "bui_qua_sang"],
+    "28": ["duong_xi_sang~#98a8b0", "nam_xanh_cum", "duong_xi_sang~#a0b0b8", "nam_xanh_cum", "bui_qua_sang"],
     "29": "bien_chi_duong",
     "30": "co_thu_phat_quang~#b8a8d0",
     "32": "vach_da_nho~#a0a0b0",
@@ -1705,7 +1705,7 @@
     "39": "vom_da~#c8d0e0",
     "40": "khuc_go_rong~#c0c8d8",
     "41": "nhu_bang",
-    "42": ["da_phu_tuyet", "bui_gai~#c8d0e0", "da_phu_tuyet"]
+    "42": ["vat_bui_cay~#c8d4e4|bui_gai~#c8d0e0", "vat_bui_cay~#d8e2f0|bui_gai~#c8d0e0", "vat_bui_cay~#c0ccdc|bui_gai~#c8d0e0", "vat_bui_cay~#d0dcec|bui_gai~#d8e0ee", "vat_bui_cay~#c8d4e4|bui_gai~#c8d0e0"]
    },
    "build": {
     "wallKind": "plaster",
