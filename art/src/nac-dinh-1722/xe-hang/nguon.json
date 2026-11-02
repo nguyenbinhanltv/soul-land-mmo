@@ -1,0 +1,80 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "timezone": "+07:00",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "baseline": "3670c0c745347a7555ff69ea08c7c6ca51cdfbcb",
+  "units": 16,
+  "items": [
+    {
+      "name": "xe_hang_khong_ngua",
+      "artifact": "xe_hang_khong_ngua-raw.png",
+      "rawSize": [
+        1774,
+        887
+      ],
+      "sha256": "5c3e684362ee714889ef938ac3fd44fdd9654cd8da701a7a358ce574f0e5cae8",
+      "modelSha256": "03dfdae02744fe8d84c970df3f3e32682e06cef57c8bc678bb638c340e1c89ad",
+      "spriteSha256": "872fa287f496deb8f1598eef9642ce7d9b31ab95dc29274ae68cf4e33d91cf19",
+      "frame": [
+        80,
+        80
+      ],
+      "foot": [
+        40,
+        64
+      ],
+      "solidRect": [
+        164,
+        65,
+        3,
+        3
+      ]
+    },
+    {
+      "name": "xe_ngua_hang",
+      "artifact": "xe_ngua_hang-raw.png",
+      "rawSize": [
+        1774,
+        887
+      ],
+      "sha256": "e57331f6c1b2979ab18a08b07420cf1cfb80428b0f9a75fc463fd306eee89985",
+      "modelSha256": "14af3542bd06c957dc580ed4568ace7a24602e7cf8fc3a876c618084abacd30a",
+      "spriteSha256": "93a98493a52beb4ea02ed8a57554602ab64e7bea25e0e5834078e3f9a3d52c93",
+      "frame": [
+        128,
+        112
+      ],
+      "foot": [
+        59,
+        82
+      ],
+      "solidRect": [
+        9,
+        74,
+        7,
+        3
+      ]
+    }
+  ],
+  "blocking": {
+    "added": 30,
+    "removed": 0,
+    "addedPercent": 0.15616866215512754,
+    "routeWidthsBefore": [
+      16,
+      16,
+      7,
+      16,
+      16
+    ],
+    "routeWidthsAfter": [
+      16,
+      16,
+      7,
+      16,
+      16
+    ]
+  }
+}

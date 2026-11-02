@@ -1,0 +1,17 @@
+{
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "transparent_background": true,
+  "prompts": {
+    "xe_hang_khong_ngua": "Paint the provided precise 2:1 orthographic isometric 3D guide into a high quality pixel-art medieval fantasy FREIGHT WAGON without horse, isolated on transparent background. Keep its exact three-quarter camera, geometry, wheel locations and body proportions. Four wooden spoked wheels with thin dark iron rims, two near wheels and one far wheel visible as guide; all wheel bottoms on same projected ground plane. Weathered dark honey-brown wooden planks, iron corner brackets/rivets, coarse dusty beige canvas arched canopy over rear cargo, tied ropes, a few wooden crates and burlap sacks visible through the open front. No passenger or driver, NO horse, no detached shafts. Roof is stretched CANVAS with stitched seams, not wooden boards; remove guide tessellation black stripes, replace with subtle cloth folds along correct curved surface. Muted Nac Dinh town palette, crisp dark #1a1020 contours, upper-left light, generous transparent margins. Preserve isometric2:1 axis lines and realistic wagon construction, no leaning walls, perspective vanishing points or extra wheel. Suitable for downsampling to roughly80x64 game pixels, readable clusters and rich material textures. NO ground base, NO terrain/shadow plane, NO glow, NO lettering/logo. Transparent background alpha0 outside wagon.",
+    "xe_ngua_hang": "Create the HORSE-HITCHED version of the freight wagon. IMAGE1 is the strict 2:1 orthographic camera/composition/vehicle geometry/hoof positions guide; IMAGE2 is the EXACT wagon material and construction reference. Keep that same wagon with dusty beige stitched canvas, honey-brown planks, iron brackets, spoked wooden wheels, visible crates/sacks at rear. Horse stands in front to upper-left, attached to wagon via twin wooden shafts and practical dark leather harness/trace straps; no rider/driver. IMPORTANT image1 horse is only a crude 3D pose proxy: replace box anatomy with a beautiful natural adult chestnut draft horse, rounded muscular torso, correct long equine head and muzzle, dark mane/tail, four slender jointed legs/hooves resting firmly on same projected ground plane, normal ears, no horns. Preserve horse size, overall placement and foot contacts from guide, not blocky toy appearance. Realistic horse anatomy in crisp hand-painted PIXEL GAME art matching wagon; muted colors, clean dark #1a1020 silhouette, upper-left light. Keep cart axes true2:1 and wheels aligned, don't rotate horse across shaft direction, don't change wagon design. Canvas is cloth not wood slats; no guide tessellation lines. Entire horse and cart visible with margin, no detached objects. NO ground base, no terrain, no painted shadow plane, no glow, text or logos. Transparent background alpha0 outside assembly."
+  },
+  "referenceRoles": {
+    "xe_hang_khong_ngua": [
+      "Khung 3D tự dựng"
+    ],
+    "xe_ngua_hang": [
+      "Khung 3D tự dựng có vị trí ngựa",
+      "Ảnh Codex xe không ngựa để giữ thiết kế và vật liệu"
+    ]
+  }
+}

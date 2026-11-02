@@ -386,6 +386,8 @@
   }
  },
  "props": {
+  "xe_hang_khong_ngua": { "key": "prop_xe_hang_khong_ngua", "foot": [40,64], "flip": false },
+  "xe_ngua_hang": { "key": "prop_xe_ngua_hang", "foot": [59,82], "flip": false },
   "linh_canh_giap_giao": { "key": "prop_linh_canh_giap_giao", "foot": [16,44], "flip": false },
   "linh_canh_giap_khien": { "key": "prop_linh_canh_giap_khien", "foot": [16,44], "flip": false },
   "cong_thanh_vom_y": { "key": "prop_cong_thanh_vom_y", "foot": [176, 127], "flip": false },
@@ -1129,6 +1131,8 @@
     },
 
     "compounds": {
+     "9,74": { "main": ["xe_ngua_hang"], "walls": false },
+     "164,65": { "main": ["xe_hang_khong_ngua"], "walls": false },
      "4,44": { "main": ["nha_khung_go_2tang"], "walls": false },
      "10,44": { "main": ["nha_khung_go_3tang"], "walls": false },
      "17,44": { "main": ["nha_khung_go_2tang"], "walls": false },
