@@ -72,3 +72,6 @@
    Nền plate che dòng cuộn qua; huy hiệu 魂 (giữa trên) nhường hộp khi nó mở ở màn thấp / hẹp, như bảng lớn (#1645). */
 #hud #arenaEnd .brow{position:sticky;bottom:0;z-index:1;padding:var(--sp-3) 0;background:var(--plate)}
 body:is(.ui-h560,.ui-w640):has(#arenaEnd:not([hidden])) #hubBtn{visibility:hidden}
+/* Trong sân (body.arena do showArena gắn): 魂 (giữa trên, fixed) phủ lên đồng hồ đếm ngược và nút "Rời sân" của thanh trận (#1687). Ẩn 魂, rời sân là hiện lại;
+   Menu vẫn mở bằng Esc (docs/design/giao-dien.md). */
+body.arena #hubBtn{visibility:hidden}

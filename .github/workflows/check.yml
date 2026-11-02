@@ -285,6 +285,11 @@ jobs:
         timeout-minutes: 4
         env:
           HUB_OUTPUT: ${{ runner.temp }}/flow-browser/hub-ten
+      - run: npm run test:xp-bar-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        env:
+          XP_OUTPUT: ${{ runner.temp }}/flow-browser/xp-bar
       - run: npm run test:quest-panel-browser --prefix client
         if: ${{ !cancelled() }}
         timeout-minutes: 4
@@ -380,6 +385,18 @@ jobs:
         timeout-minutes: 4
         env:
           ARENA_END_OUTPUT: ${{ runner.temp }}/browser-regress/arena-end
+      # Thẻ Hướng dẫn / Gợi ý nằm trọn trong màn thấp (#1688).
+      - run: npm run test:guide-fit-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          GUIDE_FIT_OUTPUT: ${{ runner.temp }}/browser-regress/guide-fit
+      # Thanh trận đấu trường: 魂 không che đồng hồ / Rời sân (#1687).
+      - run: npm run test:arena-clock-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          ARENA_CLOCK_OUTPUT: ${{ runner.temp }}/browser-regress/arena-clock
       # Mã mua thật sự gửi khi lọc cửa hàng, Túi cập nhật từ server, đổi NPC (#1520).
       - run: npm run test:shop-search-browser --prefix client
         if: ${{ !cancelled() }}

@@ -358,6 +358,19 @@ function statusChip(id: string, name: string, col: string, cls = "") {
   return c;
 }
 let leiTipSet = false;
+let lastXpFull = ""; // chú thích thanh kinh nghiệm chỉ gán lại khi chữ đổi
+/** Số gọn cho thanh: dưới 10000 giữ nguyên, từ đó viết `12,3k` (bỏ `,0`). */
+export const shortNum = (n: number) => n < 10000 ? String(n) : `${(Math.round(n / 100) / 10).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}k`;
+/** Chữ thanh kinh nghiệm (#1677): `text` ngắn trên thanh, `short` cho màn ≤ 640 px, `full` cho aria-label, `tip` các dòng chú thích. `need` = 0 là bình cảnh (cần hồn hoàn thứ `rings + 1`) hoặc cấp tối đa. */
+export function xpBarText(level: number, rings: number, xp: number, need: number) {
+  if (!need) {
+    const n = rings + 1, full = `Bình cảnh: cần hồn hoàn thứ ${n}`;
+    return { text: `Bình cảnh · hoàn ${n}`, short: `Hoàn ${n}`, full, tip: [`Đang ở bình cảnh cấp ${level}.`, `Cần hấp thụ hồn hoàn thứ ${n} để lên cấp tiếp.`] };
+  }
+  const pct = Math.floor((xp / need) * 1000) / 10, left = Math.max(0, need - xp).toLocaleString("vi-VN");
+  const full = `Kinh nghiệm ${xp.toLocaleString("vi-VN")} / ${need.toLocaleString("vi-VN")}`;
+  return { text: `KN ${shortNum(xp)} / ${shortNum(need)}`, short: `${pct.toLocaleString("vi-VN")}%`, full, tip: [full, `Còn ${left} để lên cấp ${level + 1}.`] };
+}
 let lastVhName = ""; // updateStats chạy mỗi khung: chỉ ghi tên + chú thích khi tên đổi (không gán lại title mỗi khung)
 /** `v`: dữ liệu riêng của chính mình (tin `vit`, đã đếm lùi hồi chiêu tới khung này): hồn lực, kinh nghiệm, hồi chiêu (#949). */
 export function updateStats(p: any, v: Vitals) {
@@ -371,17 +384,19 @@ export function updateStats(p: any, v: Vitals) {
   $("#mpFill").style.width = (v.mp / Math.max(1, v.maxMp)) * 100 + "%"; $("#mpTxt").textContent = `Hồn lực ${v.mp} / ${v.maxMp}`;
   const xpBar = $(".stats .bar.xp"), maxed = !v.xpNeed && !atBottleneck(p.level, p.rings.length);
   xpBar.hidden = maxed; // cấp tối đa: ẩn cả thanh kinh nghiệm (không còn gì để tích)
-  if (!v.xpNeed) {
-    $("#xpFill").style.width = "100%";
-    if (!maxed) $("#xpTxt").textContent = `Bình cảnh: cần hồn hoàn thứ ${p.rings.length + 1}`;
+  // Chữ trên thanh viết gọn để vừa ở cỡ chữ 2 (số 6 chữ số, nhãn dài bị cắt: #1677); số thật + lý do ở chú thích / aria-label; màn ≤ 640 px hiện dạng ngắn `#xpPct` (CSS).
+  const xp = xpBarText(p.level, p.rings.length, v.xp, v.xpNeed);
+  if (!v.xpNeed) $("#xpFill").style.width = "100%"; else $("#xpFill").style.width = (v.xp / v.xpNeed) * 100 + "%";
+  if (!maxed) {
+    $("#xpTxt").textContent = xp.text; $("#xpPct").textContent = xp.short;
+    if (xp.full !== lastXpFull) { lastXpFull = xp.full; xpBar.setAttribute("role", "img"); xpBar.setAttribute("aria-label", xp.full); setTip(xpBar, { title: "Kinh nghiệm", lines: xp.tip }); }
   }
-  else { $("#xpFill").style.width = (v.xp / v.xpNeed) * 100 + "%"; $("#xpTxt").textContent = `Kinh nghiệm ${v.xp} / ${v.xpNeed}`; }
   // Phong Lôi Chi Lực (2.5c): chỉ hiện khi Lam Điện Bá Vương Long ra trận; đầy thì sáng viền (tự tung Lôi Động Minh Thiên khi đánh trúng).
   const lei = VOHON[p.vh].id === PHONG_LOI.vohon, bar = $("#leiBar");
-  bar.hidden = !lei; if (!leiTipSet) { leiTipSet = true; setTip(bar, PHONG_LOI.skill.desc); } // chú thích đặt một lần, không gán lại mỗi khung
+  bar.hidden = !lei; if (!leiTipSet) { leiTipSet = true; setTip(bar, PHONG_LOI.skill.desc); bar.setAttribute("role", "img"); } // chú thích đặt một lần, không gán lại mỗi khung
   if (lei) {
     $("#leiFill").style.width = (p.lei / PHONG_LOI.max) * 100 + "%"; bar.classList.toggle("full", p.lei >= PHONG_LOI.max);
-    $("#leiTxt").textContent = `${PHONG_LOI.name} ${p.lei} / ${PHONG_LOI.max}`;
+    $("#leiTxt").textContent = `Phong Lôi ${p.lei} / ${PHONG_LOI.max}`; bar.setAttribute("aria-label", `${PHONG_LOI.name} ${p.lei} / ${PHONG_LOI.max}`);
   }
   const rings: number[] = [...p.rings];
   const key = rings.join(",") + "|" + p.level;
