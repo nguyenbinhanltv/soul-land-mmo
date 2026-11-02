@@ -320,6 +320,12 @@ jobs:
         timeout-minutes: 5
         env:
           COVER_OUTPUT: ${{ runner.temp }}/flow-browser/onboard-cover
+      # Nút đầu bảng (Sắp xếp của Túi...) không bị huy hiệu 魂 / HUD chặn khi bảng toàn màn mở (#1638): hit-test tâm nút, 4 cỡ màn × 3 cỡ chữ; cùng job.
+      - run: npm run test:hub-badge-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        env:
+          BADGE_OUTPUT: ${{ runner.temp }}/flow-browser/hub-badge
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ failure() }}
         with:
