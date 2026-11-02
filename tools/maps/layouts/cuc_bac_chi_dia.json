@@ -13,10 +13,12 @@
       "bank": 5, "deep": 35, "stony": 4, "glow": 6, "bridge": 7
     },
     "objects": { "roof": 14, "wall": 15,
-      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 1, "tent": 11, "fire": 12, "skull": 33, "ice_spire": 41
+      "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 1, "tent": 11, "fire": 12, "skull": 33, "ice_spire": 41, "vat_tuyet": 42
     },
+    "walk": ["vat_tuyet"],
     "canopy": { "30": 31 }
   },
+  "softSingles": { "_": "L5 #1663: cụm chặn ≤ 3 ô cách biên ≥ 4 ô: cây / đá lẻ thành vật mềm; hết kẹt chéo / ngõ cụt (như Ngoại vi, L2 #1660)", "maxCluster": 3, "edge": 4, "diag": true, "alsoKinds": ["log", "rock"], "kinds": { "vat_tuyet": 1 } },
   "tiers": [
     { "name": "Tuyết nguyên", "years": "20000-35000", "hint": "Hồn thú 20.000 – 35.000 năm", "beasts": "tuyet_lang:2,bang_nguyen_cu_tuong:1,bang_vu_ung:1",
       "trees": { "30": 3, "18": 1 }, "denseTrees": { "30": 2, "17": 1 }, "density": 0.05, "cluster": 0.6, "clusterDensity": 0.85,
