@@ -1050,7 +1050,9 @@
       "walls": false
      },
      "79,83": {
-      "main": ["lo_ren_lang"],
+      "main": ["xuong_ren", "lo_ren_lang"],
+      "deco": ["thung_go_chong", "cay_chay_than"],
+      "floor": "dat_chay",
       "walls": false
      },
      "117,83": {
@@ -1084,7 +1086,7 @@
     "50": ["vat_cay_thong_1|thong_cao", "vat_cay_thong_2|thong_cao"],
     "51": ["vat_cay_soi_1|cay_la_tron", "vat_cay_soi_2|cay_la_rong"],
     "52": "vat_khuc_go|khuc_go_rong",
-    "53": ["vat_bui_cay", "vat_da_rung_1", "vat_da_rung_2", "vat_da_rung_3", "vat_bui_cay"],
+    "53": ["vat_bui_cay|duong_xi_sang", "vat_bui_cay~#d8e8c8|duong_xi_sang", "vat_bui_cay|duong_xi_sang", "vat_bui_cay~#c8dcc0|duong_xi_sang", "vat_bui_cay~#e0ecd0|duong_xi_sang"],
     "54": "vat_nam_do"
    }
   },

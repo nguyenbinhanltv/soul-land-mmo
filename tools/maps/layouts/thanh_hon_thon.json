@@ -65,7 +65,10 @@
       "plank_bridge",
       "reeds",
       "vat_deco",
-      "vat_nam"
+      "vat_nam",
+      "haystack",
+      "stele",
+      "sign"
     ],
     "canopy": {
       "17": 21,
@@ -102,8 +105,8 @@
       "hint": "Hồn thú 80 – 250 năm",
       "beasts": "phong_lang_con:2,doc_cham_phong:1,thiet_giap_xuyen_son_giap:2",
       "trees": {
-        "18": 2,
-        "17": 1
+        "17": 1,
+        "18": 2
       },
       "denseTrees": {
         "18": 1,
@@ -241,6 +244,30 @@
     "thach_dien": [
       111,
       39
+    ],
+    "lang": [
+      102,
+      72
+    ],
+    "bai_tap": [
+      156,
+      75
+    ],
+    "tay_tho": [
+      24,
+      28
+    ],
+    "doi_dong": [
+      173,
+      119
+    ],
+    "lon_rung": [
+      100,
+      15
+    ],
+    "doi_tam": [
+      183,
+      45
     ]
   },
   "features": [
@@ -2243,6 +2270,434 @@
       "r": 7
     },
     {
+      "type": "cliff",
+      "pts": [
+        [
+          12,
+          14
+        ],
+        [
+          36,
+          10
+        ],
+        [
+          60,
+          9
+        ]
+      ],
+      "rows": 2,
+      "spacing": 2,
+      "gapLen": 0,
+      "side": -1,
+      "_n": 1
+    },
+    {
+      "type": "cliff",
+      "pts": [
+        [
+          118,
+          6
+        ],
+        [
+          150,
+          10
+        ],
+        [
+          176,
+          12
+        ],
+        [
+          196,
+          18
+        ]
+      ],
+      "rows": 2,
+      "spacing": 2,
+      "gapLen": 0,
+      "side": -1,
+      "_n": 1
+    },
+    {
+      "type": "cliff",
+      "pts": [
+        [
+          197,
+          22
+        ],
+        [
+          199,
+          60
+        ],
+        [
+          198,
+          96
+        ]
+      ],
+      "rows": 2,
+      "spacing": 2,
+      "gapLen": 0,
+      "side": -1,
+      "_n": 1
+    },
+    {
+      "type": "cliff",
+      "pts": [
+        [
+          196,
+          112
+        ],
+        [
+          198,
+          130
+        ],
+        [
+          190,
+          144
+        ]
+      ],
+      "rows": 2,
+      "spacing": 2,
+      "gapLen": 0,
+      "side": -1,
+      "_n": 1
+    },
+    {
+      "type": "cliff",
+      "pts": [
+        [
+          10,
+          146
+        ],
+        [
+          40,
+          148
+        ],
+        [
+          70,
+          147
+        ]
+      ],
+      "rows": 1,
+      "spacing": 2,
+      "gapLen": 0,
+      "side": -1,
+      "_n": 1
+    },
+    {
+      "type": "cliff",
+      "pts": [
+        [
+          134,
+          148
+        ],
+        [
+          160,
+          148
+        ],
+        [
+          182,
+          146
+        ]
+      ],
+      "rows": 1,
+      "spacing": 2,
+      "gapLen": 0,
+      "side": -1,
+      "_n": 1
+    },
+    {
+      "type": "river",
+      "name": "Suối Làng",
+      "pts": [
+        [
+          62,
+          2
+        ],
+        [
+          58,
+          22
+        ],
+        [
+          64,
+          44
+        ],
+        [
+          60,
+          66
+        ],
+        [
+          66,
+          88
+        ],
+        [
+          62,
+          112
+        ],
+        [
+          70,
+          134
+        ],
+        [
+          84,
+          150
+        ]
+      ],
+      "width": 2,
+      "wobble": 0.7,
+      "bank": 1,
+      "fords": [
+        [
+          62,
+          78,
+          2
+        ]
+      ],
+      "_n": 1
+    },
+    {
+      "type": "area",
+      "name": "Mỏm Đường Tam",
+      "ground": "stony",
+      "circle": [
+        183,
+        40,
+        6
+      ],
+      "edge": 2,
+      "clear": true,
+      "lock": true,
+      "_n": 1
+    },
+    {
+      "type": "cliff",
+      "pts": [
+        [
+          172,
+          28
+        ],
+        [
+          183,
+          26
+        ],
+        [
+          194,
+          31
+        ]
+      ],
+      "rows": 2,
+      "spacing": 2,
+      "gapLen": 0,
+      "side": -1,
+      "_n": 1
+    },
+    {
+      "type": "objects",
+      "kind": "rock",
+      "at": [
+        [
+          186,
+          36
+        ],
+        [
+          187,
+          41
+        ]
+      ],
+      "_n": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        186,
+        72,
+        9
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        152,
+        104,
+        6
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        190,
+        125,
+        8
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        150,
+        56,
+        7
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        170,
+        46,
+        6
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        192,
+        50,
+        6
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        44,
+        22,
+        8
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        30,
+        138,
+        9
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        120,
+        136,
+        9
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        150,
+        138,
+        8
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        86,
+        134,
+        7
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "tree",
+      "circle": [
+        130,
+        112,
+        7
+      ],
+      "p": 0.52,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_thong",
+      "circle": [
+        188,
+        22,
+        8
+      ],
+      "p": 0.5,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_thong",
+      "circle": [
+        134,
+        12,
+        8
+      ],
+      "p": 0.5,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_thong",
+      "circle": [
+        20,
+        8,
+        7
+      ],
+      "p": 0.5,
+      "_n": 1,
+      "_g": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_thong",
+      "circle": [
+        100,
+        6,
+        6
+      ],
+      "p": 0.5,
+      "_n": 1,
+      "_g": 1
+    },
+    {
       "type": "area",
       "name": "Sân tập 1",
       "ground": "camp",
@@ -2626,7 +3081,7 @@
         95,
         92
       ],
-      "step": 3
+      "step": 1
     },
     {
       "type": "row",
@@ -2639,7 +3094,18 @@
         123,
         92
       ],
-      "step": 3
+      "step": 1
+    },
+    {
+      "type": "objects",
+      "kind": "arch",
+      "at": [
+        [
+          96,
+          71
+        ]
+      ],
+      "_n": 1
     },
     {
       "type": "objects",
@@ -2704,7 +3170,7 @@
         4,
         72
       ],
-      "step": 2
+      "step": 1
     },
     {
       "type": "row",
@@ -2717,7 +3183,7 @@
         4,
         140
       ],
-      "step": 2
+      "step": 1
     },
     {
       "type": "row",
@@ -2730,7 +3196,7 @@
         69,
         146
       ],
-      "step": 2
+      "step": 1
     },
     {
       "type": "scatter",
@@ -2784,17 +3250,179 @@
         ]
       ]
     },
-    { "type": "row", "kind": "bamboo_fence", "from": [8, 42], "to": [56, 42], "step": 3 },
-    { "type": "scatter", "kind": "vat_thong", "rect": [2, 2, 200, 53], "p": 0.0035, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_soi", "rect": [2, 2, 200, 53], "p": 0.0025, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_khuc_go", "rect": [2, 2, 200, 53], "p": 0.0012, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_deco", "rect": [2, 2, 200, 53], "p": 0.01, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_nam", "rect": [2, 2, 200, 53], "p": 0.004, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_thong", "rect": [132, 57, 70, 92], "p": 0.0035, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_soi", "rect": [132, 57, 70, 92], "p": 0.0025, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_khuc_go", "rect": [132, 57, 70, 92], "p": 0.0012, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_deco", "rect": [132, 57, 70, 92], "p": 0.01, "on": ["grass", "leaf", "moss"] },
-    { "type": "scatter", "kind": "vat_nam", "rect": [132, 57, 70, 92], "p": 0.004, "on": ["grass", "leaf", "moss"] }
+    {
+      "type": "row",
+      "kind": "bamboo_fence",
+      "from": [
+        8,
+        42
+      ],
+      "to": [
+        56,
+        42
+      ],
+      "step": 1
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_thong",
+      "rect": [
+        2,
+        2,
+        200,
+        53
+      ],
+      "p": 0.0035,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_soi",
+      "rect": [
+        2,
+        2,
+        200,
+        53
+      ],
+      "p": 0.0025,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_khuc_go",
+      "rect": [
+        2,
+        2,
+        200,
+        53
+      ],
+      "p": 0.0012,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_deco",
+      "rect": [
+        2,
+        2,
+        200,
+        53
+      ],
+      "p": 0.01,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_nam",
+      "rect": [
+        2,
+        2,
+        200,
+        53
+      ],
+      "p": 0.004,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_thong",
+      "rect": [
+        132,
+        57,
+        70,
+        92
+      ],
+      "p": 0.0035,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_soi",
+      "rect": [
+        132,
+        57,
+        70,
+        92
+      ],
+      "p": 0.0025,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_khuc_go",
+      "rect": [
+        132,
+        57,
+        70,
+        92
+      ],
+      "p": 0.0012,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_deco",
+      "rect": [
+        132,
+        57,
+        70,
+        92
+      ],
+      "p": 0.01,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    },
+    {
+      "type": "scatter",
+      "kind": "vat_nam",
+      "rect": [
+        132,
+        57,
+        70,
+        92
+      ],
+      "p": 0.004,
+      "on": [
+        "grass",
+        "leaf",
+        "moss"
+      ]
+    }
   ],
   "roads": [
     {
@@ -2811,6 +3439,56 @@
         "thach_dien"
       ],
       "width": 2
+    },
+    {
+      "via": [
+        "lang",
+        "bai_tap"
+      ],
+      "width": 5,
+      "straight": true
+    },
+    {
+      "via": [
+        "lang",
+        [
+          102,
+          148
+        ]
+      ],
+      "width": 5,
+      "straight": true
+    },
+    {
+      "via": [
+        "lang",
+        "tay_tho"
+      ],
+      "width": 5,
+      "straight": true
+    },
+    {
+      "via": [
+        "bai_tap",
+        "doi_dong"
+      ],
+      "width": 5,
+      "straight": true
+    },
+    {
+      "via": [
+        "cong_bac",
+        "lon_rung"
+      ],
+      "width": 5,
+      "straight": true
+    },
+    {
+      "via": [
+        "bai_tap",
+        "doi_tam"
+      ],
+      "width": 3
     }
   ],
   "spawn": {
@@ -2931,5 +3609,23 @@
         68.5
       ]
     }
-  ]
+  ],
+  "softSingles": {
+    "_": "#1706: cụm chặn ≤ 3 ô cách biên ≥ 3 ô: cây / đá lẻ thành vật mềm, hết kẹt chéo",
+    "maxCluster": 3,
+    "edge": 3,
+    "alsoKinds": [
+      "vat_thong",
+      "vat_soi",
+      "vat_khuc_go",
+      "log",
+      "rock"
+    ],
+    "kinds": {
+      "vat_deco": 3,
+      "vat_nam": 1
+    }
+  },
+  "sealPockets": true,
+  "_compoundsNote": "#1706: 79,83 là tiệm rèn Đường Hạo (xuong_ren)"
 }
