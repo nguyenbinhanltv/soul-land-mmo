@@ -67,3 +67,8 @@
 .ui-h460 #hud #arenaEnd .arank small,.ui-h460 #hud #arenaEnd .atable .ar:nth-child(n+5){display:none}
 .ui-h460 #hud #arenaEnd .brow{margin-top:var(--sp-2)}
 #hud #deathScreen{top:38%}
+
+/* Hộp kết quả thấp hơn nội dung (màn thấp, cỡ chữ lớn): hàng nút ghim ở đáy vùng cuộn, nên "Về bản đồ cũ" / "Xem lại bảng xếp hạng" luôn thấy mà không cần cuộn (#1686).
+   Nền plate che dòng cuộn qua; huy hiệu 魂 (giữa trên) nhường hộp khi nó mở ở màn thấp / hẹp, như bảng lớn (#1645). */
+#hud #arenaEnd .brow{position:sticky;bottom:0;z-index:1;padding:var(--sp-3) 0;background:var(--plate)}
+body:is(.ui-h560,.ui-w640):has(#arenaEnd:not([hidden])) #hubBtn{visibility:hidden}
