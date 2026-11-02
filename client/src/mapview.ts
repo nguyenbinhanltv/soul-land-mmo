@@ -128,6 +128,9 @@ class MapViewUi implements DotSink {
     press(el("mapviewOut"), () => this.zoomAt(1 / MAPVIEW.zoomStep, 0, 0));
     press(el("mapviewMe"), () => this.recenter());
     press(el("mapviewFit"), () => this.fit());
+    // Màn thấp: chú giải gập, nút "?" bật / tắt (CSS chỉ hiện nút này ở `ui-h500` không chạm); thanh một hàng cuộn ngang nên lăn chuột trên thanh = cuộn ngang.
+    press(el("mapviewHelpBtn"), () => { const on = this.root.classList.toggle("mv-help"); el("mapviewHelpBtn").setAttribute("aria-pressed", String(on)); });
+    el("mapviewBar").addEventListener("wheel", (e) => { const b = e.currentTarget as HTMLElement; if (b.scrollWidth > b.clientWidth && e.deltaY) { b.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
     press(el("mapviewGo"), () => this.goFlag());
     press(el("mapviewClear"), () => { this.flagActs?.clear(); this.syncFlag(); });
     press(this.modeBtn, () => { radar().setMode(radar().mode === "iso" ? "flat" : "iso"); this.view = { ...this.view, mode: radar().mode }; this.syncUi(); this.redraw(); });
@@ -149,7 +152,7 @@ class MapViewUi implements DotSink {
       primary: { label: "Đi tới cờ", disabled: true, reason: NO_FLAG_WHY }, onPrimary: () => this.onPrimary() });
     this.frame = f; f.root.classList.add("mv-frame"); f.body.classList.add("mv-body");
     this.areaPane.className = "mv-area"; this.areaPane.id = "mapviewArea";
-    this.areaPane.append(this.cv, el("mapviewBar"), el("mapviewHelp"), this.tip, this.menu);
+    this.areaPane.append(this.cv, el("mapviewBar"), this.findList, el("mapviewHelp"), this.tip, this.menu);
     f.body.append(worldMap().root, this.areaPane);
     this.root.prepend(f.root); this.root.classList.add("mv-ui2");
     this.modeTabs = tabs({ label: "Chế độ bản đồ", tabs: [{ id: "world", label: "Thế giới (M)", active: this.mode === "world" }, { id: "area", label: "Khu vực (N)", active: this.mode === "area" }],
@@ -472,8 +475,10 @@ class MapViewUi implements DotSink {
   private static readonly FIND_MAX = 6;
   /** Xoá chữ + kết quả tìm (nhãn cũ thuộc bản đồ khác); gọi khi đổi bản đồ. */
   private findReset: (() => void) | null = null;
+  /** Danh sách kết quả tìm: con của khung vẽ (không của thanh công cụ, thanh này cuộn ngang ở màn thấp nên cắt mất danh sách). */
+  private readonly findList = document.createElement("ul");
   private findBox() {
-    const list = document.createElement("ul"); list.className = "mv-find"; list.setAttribute("role", "listbox"); list.setAttribute("aria-label", "Kết quả tìm"); list.hidden = true;
+    const list = this.findList; list.className = "mv-find"; list.setAttribute("role", "listbox"); list.setAttribute("aria-label", "Kết quả tìm"); list.hidden = true;
     const paint = (q: string) => {
       list.replaceChildren();
       if (!q.trim()) { list.hidden = true; return; }
@@ -487,13 +492,13 @@ class MapViewUi implements DotSink {
         list.append(li);
       }
       if (!hit.length) { const li = document.createElement("li"); li.className = "none"; li.textContent = "Không có nơi nào khớp. Xoá bớt chữ để xem lại."; list.append(li); }
-      list.hidden = false;
+      list.style.top = `${el("mapviewBar").offsetHeight}px`; list.hidden = false;
     };
     const { root, input } = searchField({ label: "Tìm nơi trên bản đồ", placeholder: "Tìm nơi / NPC (không cần dấu)", onInput: paint });
     root.classList.add("mv-search");
     this.findReset = () => { input.value = ""; list.replaceChildren(); list.hidden = true; };
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") (list.querySelector("li:not(.none)") as HTMLElement | null)?.click(); });
-    return [root, list];
+    return [root];
   }
   /** Căn khung nhìn vào một nhãn; phóng tới mức nhìn rõ nhãn nhưng không thu nhỏ nếu đang gần hơn. */
   private focusOn(l: MapLabel) {
