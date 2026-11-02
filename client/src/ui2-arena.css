@@ -67,3 +67,7 @@
 .ui-h460 #hud #arenaEnd .arank small,.ui-h460 #hud #arenaEnd .atable .ar:nth-child(n+5){display:none}
 .ui-h460 #hud #arenaEnd .brow{margin-top:var(--sp-2)}
 #hud #deathScreen{top:38%}
+
+/* Trong sân (body.arena do showArena gắn): 魂 (giữa trên, fixed) phủ lên đồng hồ đếm ngược và nút "Rời sân" của thanh trận (#1687). Ẩn 魂, rời sân là hiện lại;
+   Menu vẫn mở bằng Esc (docs/design/giao-dien.md). */
+body.arena #hubBtn{visibility:hidden}
