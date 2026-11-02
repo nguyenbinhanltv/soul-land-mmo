@@ -103,7 +103,8 @@ try {
   assert.equal(await page.locator("#onboard").getAttribute("data-cover"), "1");
   await page.locator("#onboard .ob-skip").click();
   assert.equal(await page.locator("#onboard:visible").count(), 0, "Bỏ qua trên dải gọn thì thẻ tắt");
-  await closePanel("#mail"); await waitCover(false);
+  // Kiểm tra "không có gì xảy ra": hide() đã xoá data-cover từ lúc Bỏ qua nên waitCover(false) xong ngay, trước mọi nhịp tick. Phải quan sát cố định ≥ 2 nhịp (250 ms) để bắt lỗi tick sau khi đóng bảng làm thẻ hiện lại (#1611).
+  await closePanel("#mail"); await sleep(600);
   assert.equal(await page.locator("#onboard:visible").count(), 0, "đóng bảng không làm thẻ hiện lại");
   await page.evaluate(async () => { const ob = await import("/src/onboard.ts"); ob.onboardReview(); });
   for (const [w, h] of [[640, 360], [844, 390], [960, 540], [1280, 720]]) for (const fs of [0, 1, 2]) {
