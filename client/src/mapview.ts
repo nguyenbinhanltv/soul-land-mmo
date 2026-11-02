@@ -60,6 +60,20 @@ interface Hit { x: number; y: number; prio: number; name: string; sub: string; w
 /** Bấm nút: cảm ứng chạy ngay lúc chạm (một số máy / giả lập không sinh `click`), chuột và bàn phím chạy ở `click`; không chạy hai lần. */
 function press(b: HTMLElement, fn: () => void) {
   let touched = 0;
+  const bar = b.closest<HTMLElement>("#mapviewBar");
+  if (bar) {
+    // Nút trong thanh công cụ (cuộn ngang ở màn thấp): chạm thì chạy khi nhả tay, bỏ qua nếu ngón đã trượt > 8 px hoặc thanh đã cuộn (vuốt để cuộn không được bấm nhầm nút dưới ngón).
+    let from: { x: number; y: number; sl: number; id: number } | null = null;
+    b.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") from = { x: e.clientX, y: e.clientY, sl: bar.scrollLeft, id: e.pointerId }; });
+    b.addEventListener("pointercancel", () => { from = null; });
+    b.addEventListener("pointerup", (e) => {
+      const f = from; from = null; if (!f || f.id !== e.pointerId || e.pointerType === "mouse") return;
+      if (Math.hypot(e.clientX - f.x, e.clientY - f.y) > 8 || bar.scrollLeft !== f.sl) { touched = performance.now(); return; }  // chặn cả `click` theo sau
+      touched = performance.now(); fn();
+    });
+    b.addEventListener("click", () => { if (performance.now() - touched < 800) return; fn(); });
+    return;
+  }
   b.addEventListener("pointerdown", (e) => { if (e.pointerType === "mouse") return; touched = performance.now(); fn(); });
   b.addEventListener("click", () => { if (performance.now() - touched < 800) return; fn(); });
 }
@@ -513,11 +527,12 @@ class MapViewUi implements DotSink {
     for (const l of MAPVIEW.layers) {
       const b = document.createElement("button"); b.type = "button"; b.className = "mvchip"; b.textContent = l.name; b.dataset.layer = l.id;
       b.setAttribute("aria-pressed", String(!this.hidden.has(l.id)));
+      box.appendChild(b);  // trước `press`: nút trong thanh được chạy khi nhả tay
       press(b, () => {
         if (this.hidden.has(l.id)) this.hidden.delete(l.id); else this.hidden.add(l.id);
         b.setAttribute("aria-pressed", String(!this.hidden.has(l.id))); ls.set(LS_HIDDEN, JSON.stringify([...this.hidden])); this.redraw();
       });
-      this.chips.set(l.id, b); box.appendChild(b);
+      this.chips.set(l.id, b);
     }
   }
 }

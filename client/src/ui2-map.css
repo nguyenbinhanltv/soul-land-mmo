@@ -55,7 +55,7 @@ body.touch.ui-h500 #hud #worldBtn::before{display:none}
 #mapview #mapviewMenu .mvbtn{min-height:44px;padding:0 var(--sp-5);background:var(--plate)}
 
 /* #1708 màn thấp (ui-h500: 640×360, 844×390): thanh nút một hàng cuộn ngang (tên bản đồ đã có ở khung), chú giải gập vào nút "?" (máy chạm đã ẩn sẵn) để chừa tranh bản đồ */
-body.ui-h500 #mapview .mv-body #mapviewBar{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:var(--sp-2) var(--sp-3);gap:var(--sp-2)}
+body.ui-h500 #mapview .mv-body #mapviewBar{touch-action:pan-x;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:var(--sp-2) var(--sp-3);gap:var(--sp-2)}
 body.ui-h500 #mapview #mapviewTitle{display:none}
 body.ui-h500 #mapview #mapviewBar :is(#mapviewLayers,.mvtools){flex:0 0 auto;flex-wrap:nowrap}
 body.ui-h500 #mapview #mapviewBar :is(.mvchip,.mvbtn){flex:0 0 auto;white-space:nowrap}
