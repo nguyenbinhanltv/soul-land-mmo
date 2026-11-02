@@ -11,6 +11,10 @@ Columns: 8
 # Ngói xám
  74  80  96	Ngói tối #4a5060
 106 112 128	Ngói #6a7080
+# Đá tường thành (khớp build.fence.wall của Nặc Đinh Thành)
+143 140 134	Đá #8f8c86
+109 106 102	Đá tối #6d6a66
+168 164 156	Đá sáng #a8a49c
 # Đèn lồng
 216  64  42	Đèn lồng đỏ #d8402a
 255 176  74	Ánh đèn lồng #ffb04a

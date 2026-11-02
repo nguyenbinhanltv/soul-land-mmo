@@ -1,0 +1,72 @@
+{
+  "issue": 1722,
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "date": "2026-11-02",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "transparent_background": true,
+  "items": [
+    {
+      "name": "cong_thanh_vom",
+      "artifact": "cong_thanh_vom-raw.png",
+      "width": 1374,
+      "height": 1145,
+      "sha256": "bee2695611746ef8f79fab22cf1ab566fe1d22cd88ae31d59a3818ab10adb449",
+      "superseded": true
+    },
+    {
+      "name": "nha_khung_go_2tang",
+      "artifact": "nha_khung_go_2tang-raw.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "653f637e07f919494a3059633f555113ac634943638a2affd823d30e8d2d1f68"
+    },
+    {
+      "name": "nha_khung_go_3tang",
+      "artifact": "nha_khung_go_3tang-raw.png",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "c9ad5301812faf6082dc236e4b9ed6a3ffbb3ca6abfb01e910e6aa74af7a55da"
+    }
+  ],
+  "gateRevision": "khung-3d-hai-truc",
+  "gateVariants": [
+    {
+      "name": "cong_thanh_vom_x",
+      "artifact": "cong_thanh_vom_x-raw.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "0e310b0cfdc1f3019d5a62baadd85a3ed43392720d919b4a361f9444051853d0",
+      "model": "gate-x-guide.json",
+      "modelSha256": "c9cbf40ea3c7a23187004148f87107ca378eddc9d744ee41a53f6d1c087776fc",
+      "worldUnitPx": 16,
+      "foot": [
+        48,
+        103
+      ],
+      "secondFoot": [
+        192,
+        175
+      ],
+      "flip": false
+    },
+    {
+      "name": "cong_thanh_vom_y",
+      "artifact": "cong_thanh_vom_y-raw.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3c0935860dafc1b93c94100d1f13ae35ec124d4af08fe973e634c115d2a38f47",
+      "model": "gate-y-guide.json",
+      "modelSha256": "bc7bc8f36d38aababcce2270ec5cdf1983b61f4bda5cc7eb3d79e698d564b00b",
+      "worldUnitPx": 16,
+      "foot": [
+        176,
+        95
+      ],
+      "secondFoot": [
+        48,
+        159
+      ],
+      "flip": false
+    }
+  ]
+}

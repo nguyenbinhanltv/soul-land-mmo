@@ -474,7 +474,7 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
   if ((m = key.match(/^npc_([a-z_]+)$/))) return { file: `iso/npc/${m[1]}.png`, size: [ISO_NPC_PORTRAIT, ISO_NPC_PORTRAIT], kind: "portrait", iso: true, npc: m[1] };
   if ((m = key.match(/^thu_([a-z_]+)$/))) return { file: `iso/thu/${m[1]}.png`, size: [ISO_BEAST_PORTRAIT, ISO_BEAST_PORTRAIT], kind: "portrait", iso: true, beast: m[1] };
   if ((m = key.match(/^skill_([a-z_]+)_(\d)$/))) return { file: `iso/skill/${m[1]}_${m[2]}.png`, size: [ISO_SKILL_ICON, ISO_SKILL_ICON], kind: "portrait", iso: true, skill: m[1] };
-  if ((m = key.match(/^prop_([a-z_]+)$/))) return { file: `iso/props/${m[1]}.png`, kind: "prop", iso: true };
+  if ((m = key.match(/^prop_([a-z][a-z0-9_]*)$/))) return { file: `iso/props/${m[1]}.png`, kind: "prop", iso: true };
   return null;
 }
 

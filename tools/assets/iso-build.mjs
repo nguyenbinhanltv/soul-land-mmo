@@ -144,7 +144,7 @@ export function checkIsoTiles(log = console.error) {
       if (!Array.isArray(p.foot)) err(`vật riêng ${name}: thiếu foot`);
       continue;
     }
-    if (!/^prop_[a-z_]+$/.test(p.key ?? "")) { err(`vật ${name}: key "${p.key}" sai quy ước prop_{vật}`); continue; }
+    if (!/^prop_[a-z][a-z0-9_]*$/.test(p.key ?? "")) { err(`vật ${name}: key "${p.key}" sai quy ước prop_{vật}`); continue; }
     if (!keys.has(p.key)) err(`vật ${name}: ${p.key} chưa đăng ký trong manifest (validate.mjs --register ${p.key} --iso)`);
     const s = size(path.join("..", "sprites", "iso", "props", `${p.key.slice(5)}.png`));
     if (s && (!Array.isArray(p.foot) || p.foot[0] < 0 || p.foot[1] < 0 || p.foot[0] > s[0] || p.foot[1] > s[1])) err(`vật ${name}: chân ${JSON.stringify(p.foot)} ngoài ảnh ${s.join("×")}`);
