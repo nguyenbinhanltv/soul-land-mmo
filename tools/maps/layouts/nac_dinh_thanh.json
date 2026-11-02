@@ -83,7 +83,7 @@
     { "type": "row", "kind": "shopsign", "from": [7, 52], "to": [64, 52], "step": 12 },
     { "type": "row", "kind": "shopsign", "from": [109, 60], "to": [160, 60], "step": 12 },
     { "type": "objects", "kind": "well", "at": [[70, 46], [100, 66]] },
-    { "type": "objects", "kind": "tent", "at": [[69, 48], [101, 48], [69, 66], [101, 56]] },
+    { "type": "objects", "kind": "tent", "at": [[69, 48], [101, 48], [69, 66], [101, 65]] },
     { "type": "objects", "kind": "barrel", "at": [[8, 67], [44, 67], [8, 88], [48, 88], [30, 66], [14, 87]] },
     { "type": "objects", "kind": "hay", "at": [[12, 67], [40, 88]] },
     { "type": "row", "kind": "tent", "from": [10, 88], "to": [28, 88], "step": 6 },
