@@ -285,6 +285,11 @@ jobs:
         timeout-minutes: 4
         env:
           HUB_OUTPUT: ${{ runner.temp }}/flow-browser/hub-ten
+      - run: npm run test:xp-bar-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        env:
+          XP_OUTPUT: ${{ runner.temp }}/flow-browser/xp-bar
       - run: npm run test:quest-panel-browser --prefix client
         if: ${{ !cancelled() }}
         timeout-minutes: 4
