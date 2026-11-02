@@ -1,0 +1,129 @@
+{
+  "issue": 1722,
+  "date": "2026-11-02",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "reference": "Nhân vật lính vô danh tự mô tả, không dùng ảnh/gói ngoài",
+  "items": [
+    {
+      "name": "linh_canh_giap_giao",
+      "artifact": "linh_canh_giap_giao-raw.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "8e6e1c7bfb9fa74a32ae7a199e4d71913e73250f66dc4c5f62003576aee20dc8",
+      "foot": [
+        16,
+        44
+      ],
+      "import": {
+        "kind": "object",
+        "size": [
+          32,
+          48
+        ],
+        "key": "#000000",
+        "logo": null,
+        "period": 1,
+        "palette": "none",
+        "items": [
+          {
+            "name": "linh_canh_giap_giao",
+            "box": [
+              222,
+              160,
+              579,
+              1224
+            ],
+            "cell": [
+              1,
+              1
+            ],
+            "native": [
+              579,
+              1224
+            ],
+            "colors": 373
+          }
+        ],
+        "scale": 0.037
+      }
+    },
+    {
+      "name": "linh_canh_giap_khien",
+      "artifact": "linh_canh_giap_khien-raw.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "e9df0fc14897734ab505672ce818a42d8a7a27b2dfb1e8c9af9d5c6b2def015b",
+      "foot": [
+        16,
+        44
+      ],
+      "import": {
+        "kind": "object",
+        "size": [
+          32,
+          48
+        ],
+        "key": "#000000",
+        "logo": null,
+        "period": 1,
+        "palette": "none",
+        "items": [
+          {
+            "name": "linh_canh_giap_khien",
+            "box": [
+              241,
+              61,
+              559,
+              1415
+            ],
+            "cell": [
+              1,
+              1
+            ],
+            "native": [
+              559,
+              1415
+            ],
+            "colors": 333
+          }
+        ],
+        "scale": 0.032
+      }
+    }
+  ],
+  "blocking": {
+    "added": 6,
+    "removed": 0,
+    "positions": {
+      "giao": [
+        [
+          10,
+          48
+        ],
+        [
+          167,
+          65
+        ],
+        [
+          76,
+          7
+        ]
+      ],
+      "khien": [
+        [
+          2,
+          65
+        ],
+        [
+          159,
+          48
+        ],
+        [
+          94,
+          7
+        ]
+      ]
+    }
+  }
+}
