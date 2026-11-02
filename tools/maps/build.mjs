@@ -464,6 +464,62 @@ export function build(L, hand = null, seedOverride = null) {
   for (const g of [...WALK].flatMap((k) => gidsOf(GO[k] ?? []))) { if (groundGids.has(g)) throw new Error(`${mapId}: gid ${g} vừa là nền vừa là vật`); collides.delete(g); }
   for (const g of groundGids) if (!wetG(g)) collides.delete(g);
   const solid = (i) => collides.has(ground[i]) || collides.has(trees[i]);
+  // ---------- 8a. Cây lẻ → vật mềm (L2 #1660, tùy chọn `softSingles`): cụm chặn ≤ `maxCluster` ô (nối 4 hướng, `diag: true` thì 8 hướng), cách biên ≥ `edge` ô, thì cây
+  // trong cụm đổi sang gid vật mềm (`gids.walk`); rồi mỗi cặp chéo (kẹt chéo) và mỗi ngõ cụt gỡ một cây kề (vòng này chỉ chừa biên 2 ô, không theo `edge`), lặp tới ổn định. Ô khóa (rễ cổ thụ, đồ trại) và vật khác (đá, vách, nhà) giữ nguyên. ----------
+  let softN = 0, pinchN = 0;
+  if (L.softSingles) {
+    const ss = L.softSingles, maxC = ss.maxCluster ?? 3, edge = ss.edge ?? 4, diag = ss.diag ?? false; // diag: nối cụm cả hướng chéo
+    const kinds = Array.isArray(ss.kinds) ? Object.fromEntries(ss.kinds.map((k) => [k, 1])) : ss.kinds;
+    const softW = {};
+    for (const [k, w] of Object.entries(kinds ?? {})) {
+      if (!WALK.has(k) || k === "plant") throw new Error(`${mapId}: softSingles.kinds "${k}" phải khai ở gids.walk`);
+      for (const g of gidsOf(GO[k])) softW[g] = w;
+    }
+    if (!Object.keys(softW).length) throw new Error(`${mapId}: softSingles cần kinds (loại vật trong gids.walk)`);
+    const isTree = new Set([...L.tiers.flatMap((t) => [...gidsOf(t.trees), ...gidsOf(t.denseTrees ?? [])]), ...(ss.alsoKinds ?? []).flatMap((k) => (kind(k), gidsOf(GO[k] ?? [])))]);
+    const sS = sub("softSingles"), inner = (i) => { const x = i % MW, y = (i / MW) | 0; return x >= edge && y >= edge && x < MW - edge && y < MH - edge; };
+    const soften = (i) => { trees[i] = pickW(softW, i % MW, (i / MW) | 0, sS); softN++; };
+    const clusterPass = () => {
+      const seen = new Uint8Array(N);
+      for (let s0 = 0; s0 < N; s0++) {
+        if (seen[s0] || !solid(s0)) continue;
+        const comp = [s0]; seen[s0] = 1;
+        for (let k = 0; k < comp.length; k++) {
+          const x = comp[k] % MW, y = (comp[k] / MW) | 0;
+          for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+            if ((!dx && !dy) || (!diag && dx && dy)) continue; const X = x + dx, Y = y + dy; if (!inside(X, Y)) continue;
+            const j = at(X, Y); if (!seen[j] && solid(j)) { seen[j] = 1; comp.push(j); }
+          }
+        }
+        if (comp.length <= maxC && comp.every(inner)) for (const i of comp) if (isTree.has(trees[i]) && !lock[i] && !collides.has(ground[i])) soften(i);
+      }
+    };
+    // Kẹt chéo còn lại (khối 2×2 có hai ô chặn chéo nhau): gỡ một cây của cặp, ưu tiên ô có ít láng giềng chặn.
+    const sol = (x, y) => inside(x, y) && solid(at(x, y)), nb = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => sol(x + dx, y + dy)).length;
+    const fixPass = () => {
+      let fixed = 0;
+      for (let y = 2; y < MH - 2; y++) for (let x = 2; x < MW - 2; x++) {
+        const a = sol(x, y), b = sol(x + 1, y), c = sol(x, y + 1), d = sol(x + 1, y + 1);
+        const pair = a && d && !b && !c ? [[x, y], [x + 1, y + 1]] : b && c && !a && !d ? [[x + 1, y], [x, y + 1]] : null;
+        if (!pair) continue;
+        const cand = pair.filter(([px, py]) => isTree.has(trees[at(px, py)]) && !lock[at(px, py)] && !collides.has(ground[at(px, py)])).sort((p, q) => nb(...p) - nb(...q));
+        if (cand.length) { soften(at(...cand[0])); pinchN++; fixed++; }
+      }
+      // Ngõ cụt (ô trống ≥ 3 ô kề chặn): gỡ một cây kề, ưu tiên cây có ít láng giềng chặn.
+      for (let y = 2; y < MH - 2; y++) for (let x = 2; x < MW - 2; x++) {
+        if (sol(x, y) || nb(x, y) < 3) continue;
+        const cand = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [x + dx, y + dy]).filter(([px, py]) => sol(px, py) && isTree.has(trees[at(px, py)]) && !lock[at(px, py)] && !collides.has(ground[at(px, py)]) && px > 1 && py > 1 && px < MW - 2 && py < MH - 2).sort((p, q) => nb(...p) - nb(...q));
+        if (cand.length) { soften(at(...cand[0])); fixed++; }
+      }
+      return fixed;
+    };
+    // Gỡ cây có thể tách một cụm lớn thành cụm nhỏ: lặp tới khi không còn gì đổi.
+    for (let round = 0; round < 6; round++) {
+      const before = softN; clusterPass(); fixPass();
+      if (softN === before) break;
+      if (round === 5) warn.push("softSingles: chưa ổn định sau 6 lượt");
+    }
+  }
   const start = L.spawn ? [Math.floor(L.spawn.rect[0] + L.spawn.rect[2] / 2), Math.floor(L.spawn.rect[1] + L.spawn.rect[3] / 2)] : pt(Object.keys(P)[0]);
   const reach = new Uint8Array(N), q = [at(...start)];
   if (solid(q[0])) throw new Error(`${mapId}: tâm trại ${start} bị chặn`);
@@ -555,7 +611,7 @@ export function build(L, hand = null, seedOverride = null) {
   };
   for (const g of collides) if (g < 1 || g > 8 * rows) throw new Error(`${mapId}: gid ${g} ngoài tileset (${8 * rows} ô)`);
   let walkN = 0; for (let i = 0; i < N; i++) if (reach[i]) walkN++;
-  const stats = { mapId, size: `${MW}×${MH}`, seed, walkable: walkN, walkPct: +(walkN / N * 100).toFixed(1), filled, hand: handN,
+  const stats = { mapId, size: `${MW}×${MH}`, seed, walkable: walkN, walkPct: +(walkN / N * 100).toFixed(1), filled, soft: softN, pinch: pinchN, hand: handN,
     beasts: zoneStats.reduce((a, z) => a + z.count, 0), zoneRects: zoneStats.reduce((a, z) => a + z.rects, 0), zones: zoneStats, objects: list.length, warn };
   return { json: JSON.stringify(map), map, stats, roads: roadsOut, zoneOf };
 }
@@ -610,7 +666,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     writeFileSync(miniFile(id), encodePng(miniImage(r, L)));
     const s = r.stats;
     console.log(`[maps] Đã sinh ${path.relative(ROOT, out)} ${s.size}, hạt giống ${s.seed}, ${ms} ms: ${s.walkPct}% ô đi được, ${s.beasts} hồn thú thường ` +
-      `trong ${s.zoneRects} mảnh vùng, ${s.objects} object, lấp ${s.filled} ô kẹt, ${s.hand} ô chỉnh tay`);
+      `trong ${s.zoneRects} mảnh vùng, ${s.objects} object, lấp ${s.filled} ô kẹt, ${s.soft} cây lẻ thành vật mềm (${s.pinch} kẹt chéo), ${s.hand} ô chỉnh tay`);
     for (const z of s.zones) console.log(`  ${z.name} (tầng ${z.tier}): ${z.rects} mảnh, ${z.walk} ô đi được, ${z.count} con`);
     if (previewArg) { writeFileSync(previewArg, topdownPreview(r, L)); console.log(`[maps] Ảnh nhìn thẳng: ${previewArg}`); }
   }
