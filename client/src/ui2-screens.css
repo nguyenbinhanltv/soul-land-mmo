@@ -37,7 +37,7 @@ body.ui-h460:not(.ui-portrait) .ui2-screen .p2-nav{overflow-y:auto;overscroll-be
 body.touch .ui2-screen :is(.scr-x,.p2-nav-i){min-height:44px;min-width:44px}
 /* Màn thấp / hẹp (logic ≤ 560 cao hoặc ≤ 640 rộng, vd 960×540 chữ 2, 640×360): bảng lớn phủ lên chỗ huy hiệu 魂 (giữa-trên, fixed) nên 魂 che nút "Sắp xếp" / đầu bảng (#1632).
    Có bảng nào trong ngăn xếp mở thì ẩn 魂; đóng bảng là hiện lại. Vẫn mở Hub bằng Esc, ở bản đồ lớn đã có luật riêng (ui2-map.css). Danh sách đúng `OB_COVER_PANELS` (onboard.ts). */
-body:is(.ui-h560,.ui-w640):has(:is(#char,#bag,#roster,#reso,#friends,#audio,#autoPanel,#autoSum,#mail,#achv,.ui2-screen):not([hidden])) #hubBtn{visibility:hidden}
+body:is(.ui-h560,.ui-w640):has(:is(#char,#bag,#roster,#reso,#friends,#audio,#autoPanel,#autoSum,#mail,#achv,#dex,.ui2-screen):not([hidden])) #hubBtn{visibility:hidden}
 .ui2-screen .p2-man{flex:1;min-width:0;max-height:inherit;grid-template-rows:auto minmax(0,1fr) auto}
 .ui2-screen .p2-nav:empty{display:none}
 .scr-x{flex:none;width:32px;height:32px;box-sizing:border-box;margin-left:var(--sp-4);cursor:pointer;font:var(--fs-l)/1 var(--f12);color:var(--p2-fg);background:var(--track);border:var(--bd) solid var(--p2-fg2)}
@@ -223,9 +223,9 @@ body:is(.ui-h560,.ui-w640):has(:is(#char,#bag,#roster,#reso,#friends,#audio,#aut
 .ml-note.ml-bad{border-left-color:var(--son)}
 :where(body.ui-w640) .ml-cols{grid-template-columns:minmax(0,1fr)}
 /* Màn thấp vẫn dành vùng đọc quà; thanh điều hướng cuộn riêng khi chữ lớn. */
-:where(body.ui-h500) :is(#mail,#achv){inset:var(--sp-3);transform:none;width:auto;max-height:calc(100vh - var(--sp-3) * 2)}
-:where(body.ui-h500) :is(#mail,#achv) .p2-man{height:100%;max-height:100%}
-:where(body.ui-h500) :is(#mail,#achv) .p2-nav{min-height:0;overflow:auto}
+:where(body.ui-h500) :is(#mail,#achv,#dex){inset:var(--sp-3);transform:none;width:auto;max-height:calc(100vh - var(--sp-3) * 2)}
+:where(body.ui-h500) :is(#mail,#achv,#dex) .p2-man{height:100%;max-height:100%}
+:where(body.ui-h500) :is(#mail,#achv,#dex) .p2-nav{min-height:0;overflow:auto}
 
 /* Cảnh báo làm mới cạnh cache: chừa chỗ đọc ở 960×540 và cả ba cỡ chữ. */
-:is(#mail,#achv) .refresh-error{flex-direction:row;flex-wrap:wrap;min-height:0;gap:var(--sp-2) var(--sp-3);padding:var(--sp-2) var(--sp-3)}
+:is(#mail,#achv,#dex) .refresh-error{flex-direction:row;flex-wrap:wrap;min-height:0;gap:var(--sp-2) var(--sp-3);padding:var(--sp-2) var(--sp-3)}

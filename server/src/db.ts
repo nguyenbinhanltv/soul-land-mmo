@@ -9,7 +9,7 @@ import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE, RANK_PAGE_MAX, RANK_PAGE_DEPTH, rankCompare, tongDef,
-  ACHV_COUNTERS, achvDef, itemDef, RING_ITEM, MAIL, MAIL_KINDS, type MailItem, type AchvCounter, type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
+  ACHV_COUNTERS, achvDef, BEASTS, itemDef, RING_ITEM, MAIL, MAIL_KINDS, type MailItem, type AchvCounter, type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -128,7 +128,7 @@ const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] =
   return items.map(({ vohon, ...i }, k): Item => ({ ...copyItem({ ...i, id: "", created: 0, vohonId: null }), id: randomUUID(), created: t0 + k, vohonId: vohon === undefined ? null : rowOf(vohon) }));
 };
 /** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
-const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state", "achv_state", "mail",
+const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state", "achv_state", "bestiary", "mail",
   "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
@@ -363,6 +363,12 @@ export interface Store {
    * rồi thêm `id` vào `claimed` chỉ khi chưa có. Trả "ok"; "dup" = đã nhận ở tab / tiến trình khác; "low" = chưa đạt. Hai trường hợp sau không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
    */
   achvClaim(accountId: number, id: string, reached: (counters: AchvCounters) => boolean, bag: Bag): Promise<"ok" | "dup" | "low">;
+  /** Sổ tay hồn thú của `accountId` (bảng `bestiary`, #1720): mã loài (BEASTS[].id) -> số lần đã hạ; có khóa = đã gặp. Chưa có dòng = {}. */
+  dexGet(accountId: number): Promise<Record<string, number>>;
+  /** Ghi "đã gặp" loài `species` (mã BEASTS): chỉ tạo dòng nếu chưa có (kills giữ nguyên). Mã lạ thì ném. */
+  dexSee(accountId: number, species: string): Promise<void>;
+  /** Tăng số lần hạ loài `species` thêm 1; tạo dòng nếu chưa có (upsert một câu, không mất lượt khi hai ghi cùng lúc). Mã lạ thì ném. */
+  dexKill(accountId: number, species: string): Promise<void>;
   /** Thư của `accountId` (bảng `mail`, mục 5.24), mới nhất trước, tối đa MAIL.boxMax; dọn thư hết hạn của người này trước khi đọc, bỏ thư đã xóa. */
   mailList(accountId: number): Promise<MailRow[]>;
   /**
@@ -468,6 +474,8 @@ function checkinPatchOk(p: CheckinPatch) {
 export type AchvCounters = Partial<Record<AchvCounter, number>>;
 /** Một dòng `achv_state` (Thành Tựu, mục 5.23). */
 export interface AchvRow { claimed: string[]; counters: AchvCounters }
+/** Kiểm mã loài của sổ tay ở cả hai store (lỗi lập trình). */
+function dexSpeciesOk(species: string) { if (!BEASTS.some((b) => b.id === species)) throw new Error("Sổ tay hồn thú: mã loài không có."); }
 /** Kiểm đầu vào `achvBump` / `achvClaim` ở cả hai store (lỗi lập trình). */
 function achvBumpOk(key: string, n: number) {
   if (!(ACHV_COUNTERS as readonly string[]).includes(key) || !Number.isSafeInteger(n) || n < 1 || n > 1e6) throw new Error("Thành Tựu: bộ đếm không hợp lệ.");
@@ -593,6 +601,7 @@ export class MemoryStore implements Store {
   rankRows = new Map<string, { score: number; tie: number; extra: RankLineupSlot[] | null; t: number }>(); // "board|period|accountId" -> điểm (bảng rank_scores); t = thứ tự đạt mốc
   rankT = 0;
   checkin = new Map<number, CheckinRow>(); // accountId -> Sổ Điểm Danh (bảng checkin_state, mục 5.21)
+  dex = new Map<number, Map<string, number>>(); // accountId -> loài -> số lần hạ (bảng bestiary, #1720)
   achv = new Map<number, AchvRow>(); // accountId -> Thành Tựu (bảng achv_state, mục 5.23)
   mails = new Map<number, MailStored[]>(); // accountId -> Thư (bảng mail, mục 5.24)
   mailSeq = 1;
@@ -944,6 +953,19 @@ export class MemoryStore implements Store {
     this.putBag(accountId, bag);
     return ver;
   }
+  async dexGet(accountId: number) { return Object.fromEntries(this.dex.get(accountId) ?? []); }
+  async dexSee(accountId: number, species: string) {
+    dexSpeciesOk(species);
+    const m = this.dex.get(accountId) ?? new Map<string, number>();
+    if (!m.has(species)) m.set(species, 0);
+    this.dex.set(accountId, m);
+  }
+  async dexKill(accountId: number, species: string) {
+    dexSpeciesOk(species);
+    const m = this.dex.get(accountId) ?? new Map<string, number>();
+    m.set(species, (m.get(species) ?? 0) + 1);
+    this.dex.set(accountId, m);
+  }
   async achvGet(accountId: number) { const r = this.achv.get(accountId); return { claimed: [...(r?.claimed ?? [])], counters: { ...(r?.counters ?? {}) } }; }
   async achvBump(accountId: number, key: string, n: number) {
     achvBumpOk(key, n);
@@ -1078,7 +1100,7 @@ export class MemoryStore implements Store {
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
     Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
       quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
-      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0, achv_state: this.achv.has(id) ? 1 : 0, mail: this.mails.get(id)?.length ?? 0,
+      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0, achv_state: this.achv.has(id) ? 1 : 0, bestiary: this.dex.get(id)?.size ?? 0, mail: this.mails.get(id)?.length ?? 0,
       friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
     for (const c of owned) this.rows.delete(c.rowId);
     for (const k of tp) this.tongPts.delete(k);
@@ -1086,7 +1108,7 @@ export class MemoryStore implements Store {
     for (const k of pairs) this.pairs.delete(k);
     for (const k of eloDays) this.eloDay.delete(k);
     for (const k of rankKeys) this.rankRows.delete(k);
-    this.checkin.delete(id); this.achv.delete(id); this.mails.delete(id);
+    this.checkin.delete(id); this.achv.delete(id); this.dex.delete(id); this.mails.delete(id);
     for (const t of tokens) this.sessions.delete(t);
     for (const [k, a] of this.identities) if (a === id) this.identities.delete(k);
     for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
@@ -1911,6 +1933,18 @@ export class PgStore implements Store {
       await db.query("ROLLBACK").catch(() => {});
       throw e;
     } finally { db.release(); }
+  }
+  async dexGet(accountId: number) {
+    const r = await this.pool.query("SELECT species, kills FROM bestiary WHERE account_id=$1", [accountId]);
+    return Object.fromEntries(r.rows.map((x) => [x.species as string, Number(x.kills)]));
+  }
+  async dexSee(accountId: number, species: string) {
+    dexSpeciesOk(species);
+    await this.pool.query("INSERT INTO bestiary(account_id, species) VALUES ($1, $2) ON CONFLICT (account_id, species) DO NOTHING", [accountId, species]);
+  }
+  async dexKill(accountId: number, species: string) {
+    dexSpeciesOk(species);
+    await this.pool.query("INSERT INTO bestiary(account_id, species, kills) VALUES ($1, $2, 1) ON CONFLICT (account_id, species) DO UPDATE SET kills = bestiary.kills + 1", [accountId, species]);
   }
   async achvGet(accountId: number) {
     const r = await this.pool.query("SELECT claimed, counters FROM achv_state WHERE account_id=$1", [accountId]);

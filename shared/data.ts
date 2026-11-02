@@ -4311,9 +4311,11 @@ export const TILE = 16;
  * Chỉ là cách hiển thị ở client: loài vẫn nằm trong state đồng bộ (BeastState.species) vì client cần nó để chọn hình.
  */
 export const BEAST_REVEAL = { r: 6 * TILE, unknown: "???" };
-/** Tên hồn thú cho người đứng cách nó `dist` pixel: xa hơn BEAST_REVEAL.r thì ẩn tên loài của hồn thú thường (rank 0). */
-export const beastNameSeen = (rank: number, species: number, dist: number) =>
-  rank === 0 && dist > BEAST_REVEAL.r ? BEAST_REVEAL.unknown : beastName(rank, species);
+/** Sổ tay hồn thú (#1720): loài đã gặp / đã hạ thì tên hiện từ xa. Server xét hồn thú quanh người chơi cứ `scanSecs` giây một lần. */
+export const DEX = { scanSecs: 0.5 };
+/** Tên hồn thú cho người đứng cách nó `dist` pixel: xa hơn BEAST_REVEAL.r thì ẩn tên loài của hồn thú thường (rank 0), trừ loài đã có trong sổ tay (`known`, tin riêng `dex` của server). */
+export const beastNameSeen = (rank: number, species: number, dist: number, known = false) =>
+  rank === 0 && dist > BEAST_REVEAL.r && !known ? BEAST_REVEAL.unknown : beastName(rank, species);
 /** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
 export const MOVE_NUDGE = 4;
 /** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */

@@ -13,6 +13,7 @@ import * as party from "../party.ts";
 import { rankSync } from "./rank.ts";
 import { sendState as sendWelfare } from "./welfare.ts";
 import { sendState as sendAchv } from "./achv.ts";
+import { dexLoad } from "./dex.ts";
 import { sendState as sendMail } from "./mail.ts";
 import { sendState as sendBicanh, nowOf as bicanhNow } from "./bicanh.ts";
 import { gearLook, gearStats, itemStacks } from "./items.ts";
@@ -131,7 +132,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
     vit: null, vitAt: 0, coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
     quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
     chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...room.dailyOf(bag.quests), ...room.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
-    res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, rankTopAt: 0, rankSig: "", rankAt: 0, welfareDay: room.today(), achvReady: -1, bicanhDay: bicanhDay(bicanhNow(room)), arenaGone: false,
+    res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, rankTopAt: 0, rankSig: "", rankAt: 0, welfareDay: room.today(), dex: new Map(), dexLoaded: false, dexT: 0, achvReady: -1, bicanhDay: bicanhDay(bicanhNow(room)), arenaGone: false,
     auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: room.today(), autoUsed: auth.auto.day === room.today() ? auth.auto.used : 0,
     autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], autoHintC: null, offMsg: null, offAsk: false,
     tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };
@@ -160,6 +161,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
   room.friendAfter(online, auth.accountId);
   void sendBicanh(room, client.sessionId); // Bí Cảnh: chấm đỏ "còn lượt" ngay lúc vào phòng
   void sendMail(room, client.sessionId); // Thư: chấm đỏ "có thư chưa đọc / chưa nhận" ngay lúc vào phòng
+  void dexLoad(room, client.sessionId, d); // Sổ tay hồn thú: nạp loài đã gặp / đã hạ rồi gửi cho chủ
   void sendAchv(room, client.sessionId); // Thành Tựu: chấm đỏ "có thành tựu chưa nhận" ngay lúc vào phòng
   void sendWelfare(room, client.sessionId); // Phúc Lợi: chấm đỏ "chưa điểm danh" ngay lúc vào phòng
   void room.chain(d, () => rankSync(room, client.sessionId, d, true)); // Bảng Xếp Hạng: người mới / chưa có điểm lên bảng ngay, không chờ lần lưu đầu

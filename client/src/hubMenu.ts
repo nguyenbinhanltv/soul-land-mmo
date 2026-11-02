@@ -21,6 +21,7 @@ export const HUB_ITEMS: HubItem[] = [
   { id: "shop", label: "Cửa Hàng", size: "grid", icon: "gi_menu_shop", why: "Tại NPC" },
   { id: "rank", label: "Xếp Hạng", size: "grid", icon: "gi_menu_rank" },
   { id: "achv", label: "Thành Tựu", size: "grid", icon: "gi_menu_achv" },
+  { id: "dex", label: "Sổ Tay Thú", size: "grid" },
   { id: "quest", label: "Nhiệm Vụ", size: "grid", icon: "gi_menu_quest" },
   { id: "world", label: "Bản Đồ", size: "grid", icon: "gi_menu_world", key: "M" },
   { id: "friends", label: "Bạn Bè", size: "grid", icon: "gi_menu_friends", key: "L" },
