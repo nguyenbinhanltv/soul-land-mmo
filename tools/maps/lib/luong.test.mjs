@@ -98,3 +98,13 @@ test("gridStats: số đếm khớp tay trên lưới nhỏ", () => {
   assert.equal(s.narrowPct, 100);
   assert.equal(s.pinchPer1000, 0);
 });
+
+test("cụm chặn lẻ: cụm 1–3 ô trong lòng bản đồ, bỏ viền và khối lớn", async () => {
+  const { smallBlockPct } = await import("./luong.mjs");
+  const rows = Array.from({ length: 12 }, () => ".".repeat(12).split(""));
+  for (const [x, y] of [[4, 4], [7, 5], [8, 5]]) rows[y][x] = "#"; // cây lẻ + cây đôi: 3 ô lẻ
+  for (const [x, y] of [[4, 7], [5, 7], [4, 8], [5, 8]]) rows[y][x] = "#"; // khối 2×2 = 4 ô, không lẻ
+  const g = gridFromRows(rows.map((r) => r.join("")));
+  assert.equal(smallBlockPct(g), (100 * 3) / 7);
+  assert.equal(smallBlockPct(gridFromRows(["...", "..."])), 0);
+});
