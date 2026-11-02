@@ -43,10 +43,6 @@ try {
   const serverLog = start(["server/node_modules/tsx/dist/cli.mjs", "--tsconfig", "server/tsconfig.json", "server/src/index.ts"], { PORT: String(apiPort), GAME_TEST: "1" });
   start(["client/node_modules/vite/bin/vite.js", "client", "--host", "127.0.0.1", "--port", String(webPort)], { VITE_SERVER_URL: api });
   await Promise.all([ready(`${api}/health`), ready(web)]);
-  // Manifest kho riêng phải là JSON hợp lệ kể cả checkout công khai không có kho, thay vì HTML fallback làm Phaser treo tải.
-  const privateManifest = await fetch(`${web}/private/present.json`);
-  assert.ok(privateManifest.ok && (privateManifest.headers.get("content-type") ?? "").includes("application/json"), "manifest kho riêng trả JSON");
-  assert.ok(Array.isArray((await privateManifest.json()).files), "manifest kho riêng có danh sách files");
   const post = async (path, body) => {
     const r = await fetch(api + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const data = await r.json(); assert.ok(r.ok, data.error); return data;

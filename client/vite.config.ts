@@ -39,13 +39,7 @@ function choiDevRoute(): Plugin {
     name: "choi-dev-route",
     apply: "serve",
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        // Kho riêng là tùy chọn: tránh HTML fallback của Vite làm Phaser lỗi khi đọc manifest JSON không có trong checkout công khai.
-        if (req.url?.split("?")[0] === "/private/present.json" && !existsSync(resolve(__dirname, "../shared/assets/private/present.json"))) {
-          res.setHeader("Content-Type", "application/json"); res.end('{"files":[]}'); return;
-        }
-        if (req.url && /^\/choi(\?|$)/.test(req.url)) req.url = req.url.replace("/choi", "/choi/"); next();
-      });
+      server.middlewares.use((req, _res, next) => { if (req.url && /^\/choi(\?|$)/.test(req.url)) req.url = req.url.replace("/choi", "/choi/"); next(); });
     },
   };
 }
