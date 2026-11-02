@@ -38,8 +38,8 @@ export const OB_STEPS: readonly ObStep[] = [
 export const OB_DONE_TEXT = { title: "Xong phần làm quen", body: "Xem mục tiêu và các bài hiện có trong khung Nhiệm vụ. Cần xem lại hướng dẫn thì mở Cẩm Nang trong menu (nút 魂 hoặc Esc)." };
 
 /** Bảng lớn che giữa màn (#1601): đang mở một trong các bảng này thì thẻ thu về một dòng ở đáy và nằm dưới bảng, đóng bảng thì thẻ hiện lại đủ.
- *  Bảng mà bước hiện tại đang chờ mở (`open`) không cần ở đây: mở xong là bước tự qua. Hub (ngăn kéo z 7) và bản đồ không che thẻ nên không có mặt. */
-export const OB_COVER_PANELS: readonly string[] = ["#char", "#bag", "#roster", "#reso", "#friends", "#audio", "#autoPanel", "#autoSum", "#mail", "#achv", ".ui2-screen"];
+ *  Bảng mà bước hiện tại đang chờ mở (`open`) không cần ở đây: mở xong là bước tự qua. Hub (ngăn kéo z 7) không che thẻ nên không có mặt; bản đồ lớn `#mapview` (M / N, z 5) phủ cả màn nên thu thẻ như bảng (#1676). */
+export const OB_COVER_PANELS: readonly string[] = ["#char", "#bag", "#roster", "#reso", "#friends", "#audio", "#autoPanel", "#autoSum", "#mail", "#achv", "#mapview", ".ui2-screen"];
 
 /** localStorage an toàn (không import net.ts để test bằng node được). */
 const storage = {
