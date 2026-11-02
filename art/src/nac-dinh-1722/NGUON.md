@@ -29,8 +29,20 @@ node tools/assets/normal.mjs shared/assets/sprites/iso/props/<tên>.png
 node tools/assets/validate.mjs --register prop_<tên> --iso --keep-order --tool "ChatGPT / Codex (OpenAI image_gen.imagegen)" --prompt "<prompt>" --note "Đợt 1 #1722; điều khoản đầu ra OpenAI, không CC0; PR nháp chờ chủ repo duyệt."
 ```
 
-Cỡ nhập: cổng 192×160, nhà 2 tầng 112×112, nhà 3 tầng 112×128. Cổng thêm `--foot-x 96` ở `iso-build`; tự dò theo chân trụ phải sẽ nới sai khung. Công cụ cắt khoảng trống hai bên nhà, giữ tỷ lệ nên ảnh cuối 96×112 và 96×128. Nhà có `foot` đúng kết quả công cụ. Cổng có chân ảnh gốc [96,156]; ánh xạ tây/đông dùng [160,124] và lật ngang, bắc dùng [16,116] để neo từ ô đầu tường sang tâm lối mở, không phải thêm ô chặn giữa đường. Không vẽ bóng đổ vào sprite.
+Nhà 2 tầng nhập 112×112, nhà 3 tầng 112×128; công cụ cắt khoảng trống hai bên giữ tỷ lệ thành 96×112 và 96×128. Foot nhà đúng kết quả iso-build. Quy trình và chân của cổng thay mới ở mục sửa cổng bên dưới.
 
 ## Phạm vi bố cục
 
-Bảy khối nhà phố hiện có tại hàng 44 dùng xen kẽ hai nhà mới qua `build.compounds`, không đổi lưới chặn. Ba cổng thay gid tường chặn sẵn tại [0,52], [169,52], [80,0] bằng `citygate`/`citygateNorth`; phần trụ neo ở đầu tường, phần vòm trải qua lối mở không chặn. So trực tiếp lưới va chạm trước/sau: không ô nào đổi. Bỏ tháp giữ chỗ ở góc/đầu tường (`build.tower`) để không chồng hai tháp rời lên cổng mới. Các sân cổng, điểm đến và đại lộ giữ nguyên. Các asset còn lại trong #1722 làm đợt sau.
+Bảy khối nhà phố hiện có tại hàng 44 dùng xen kẽ hai nhà mới qua `build.compounds`, không đổi lưới chặn. Ba cổng thay gid tường chặn sẵn tại [0,52], [169,52], [80,0] bằng `citygate`/`citygateNorth`; phần trụ neo ở đầu tường, phần vòm trải qua lối mở không chặn. Bản sửa sau phản hồi bỏ hai ô tường giữ chỗ phía trong; các lối qua cổng giữ nguyên, chỉ tiêu luồng không xấu đi. Bỏ tháp giữ chỗ ở góc/đầu tường (`build.tower`) để không chồng hai tháp rời lên cổng mới. Các sân cổng, điểm đến và đại lộ giữ nguyên. Các asset còn lại trong #1722 làm đợt sau.
+
+## Sửa cổng theo phản hồi chủ repo (02/11/2026)
+
+Cổng cũ bị loại do hình học lệch. Hai biến thể mới cong_thanh_vom_x/y dùng khung khối tự dựng bằng comfy-shape.mjs, phép chiếu sx=x-y, sy=(x+y)/2-z; không lật ngang. Codex chỉ tô vân đá/ngói/gỗ trên ảnh khung, không dùng tham chiếu ngoài. Mặt vòm là một khối liên tục, không phải dãy thanh rời.
+
+Model ở gate-x-guide.json và gate-y-guide.json; tham số chiếu/chân ở gate-x-meta.json và gate-y-meta.json. render-cong.mjs dựng lại silhouette ở 16 pixel mỗi đơn vị thế giới và lấy màu/vân từ RAW Codex; chỉ khóa đường bao ngoài, bỏ các đường chia khối dựng bên trong. Chạy từ gốc repo với thư mục RAW và đầu ra tạm ngoài repo. Sau đó iso-build prop --foot-x 128, normal và validate như trên.
+
+Chân sprite cuối: X [48,103] → [192,175], chênh [144,72] đúng 9 bước trục x; Y [176,95] → [48,159], chênh [-128,64] đúng 8 bước trục y. Mọi cạnh ngang có hướng chiếu 2:1. tiles.json neo từ tâm trụ thứ nhất; không suy chân theo đáy ảnh. Ảnh lưới 32×16 đánh dấu cả hai tâm trụ ở artifacts để chủ repo kiểm bằng mắt.
+
+Cổng bắc dùng X, tây/đông dùng Y. Bỏ hai prop tường xám xanh giữ chỗ ở [78,2]/[92,2], nối trực tiếp với tường biên chính; chỉ tiêu luồng không xấu đi. Nhà khung gỗ giữ nguyên. PR vẫn nháp loại B.
+
+Màu đá bổ sung đúng build.fence.wall (#8f8c86, #6d6a66, #a8a49c) vào bảng nhấn Nặc Đinh trước khi iso-build lượng tử, tránh bị đưa sang xám ngói ngả lam. Prompt thật của hai texture cuối ở gate-prompts.json. Không sửa ảnh nhà phố.

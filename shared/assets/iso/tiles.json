@@ -386,8 +386,8 @@
   }
  },
  "props": {
-  "cong_thanh_vom": { "key": "prop_cong_thanh_vom", "foot": [160, 124], "flip": true },
-  "cong_thanh_vom_bac": { "key": "prop_cong_thanh_vom", "foot": [16, 116], "flip": false },
+  "cong_thanh_vom_y": { "key": "prop_cong_thanh_vom_y", "foot": [176, 95], "flip": false },
+  "cong_thanh_vom_x": { "key": "prop_cong_thanh_vom_x", "foot": [48, 103], "flip": false },
   "nha_khung_go_2tang": { "key": "prop_nha_khung_go_2tang", "foot": [48, 108], "flip": false },
   "nha_khung_go_3tang": { "key": "prop_nha_khung_go_3tang", "foot": [48, 124], "flip": false },
   "cay_la_rong": {
@@ -1199,8 +1199,8 @@
     "49": "thung_go_chong",
     "50": "dong_rom",
     "51": "cay_hoa_anh_dao",
-    "52": "cong_thanh_vom",
-    "53": "cong_thanh_vom_bac"
+    "52": "cong_thanh_vom_y",
+    "53": "cong_thanh_vom_x"
    }
   },
   "thien_dau_thanh": {

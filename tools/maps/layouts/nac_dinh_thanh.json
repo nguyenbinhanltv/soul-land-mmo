@@ -95,7 +95,6 @@
     { "type": "fence", "rect": [0, 0, 170, 113], "gates": [[0.5, 56.5], [169.5, 56.5], [85, 0.5]], "gate": 7 },
     { "type": "objects", "kind": "academy_gate", "at": [[42, 34]] },
     { "type": "objects", "kind": "practice_pillar", "at": [[20, 31], [38, 31], [20, 37], [38, 37]] },
-    { "type": "objects", "kind": "citywall", "at": [[78, 2], [92, 2]] },
     { "type": "objects", "kind": "citygate", "at": [[0, 52], [169, 52]] },
     { "type": "objects", "kind": "citygateNorth", "at": [[80, 0]] },
     { "type": "house", "rect": [130, 36, 16, 10], "margin": 1, "ground": "pave" }

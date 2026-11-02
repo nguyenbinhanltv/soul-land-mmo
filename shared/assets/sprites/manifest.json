@@ -46077,15 +46077,19 @@
       "iso": true
     },
     {
-      "key": "prop_cong_thanh_vom",
-      "iso": true
-    },
-    {
       "key": "prop_nha_khung_go_2tang",
       "iso": true
     },
     {
       "key": "prop_nha_khung_go_3tang",
+      "iso": true
+    },
+    {
+      "key": "prop_cong_thanh_vom_x",
+      "iso": true
+    },
+    {
+      "key": "prop_cong_thanh_vom_y",
       "iso": true
     },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },

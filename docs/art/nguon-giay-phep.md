@@ -6,7 +6,7 @@ Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skil
 
 ## Nguồn ảnh được phép (hiện hành)
 
-Nặc Đinh Thành đợt 1 (#1722, PR nháp #1723): cổng thành vòm và nhà khung gỗ 2/3 tầng do Codex builtin OpenAI `image_gen.imagegen` vẽ ngày 02/11/2026, không dùng ảnh tham chiếu ngoài. Điều khoản đầu ra OpenAI, không CC0. Prompt thật, hash SHA256 và lệnh nhập ở `art/src/nac-dinh-1722/NGUON.md`, `nguon.json`; RAW và bốn cặp ảnh đối chiếu renderer game ở artifacts phiên `soul_land_game-1016`. Đã nhập sprite/normal map để chủ repo xem trong PR nháp; **chưa duyệt mỹ thuật, không tự gộp**.
+Nặc Đinh Thành đợt 1 (#1722, PR nháp #1723): cổng thành vòm hai biến thể trục x/y (khung 3D tự dựng, Codex tô texture) và nhà khung gỗ 2/3 tầng do Codex builtin OpenAI `image_gen.imagegen` vẽ ngày 02/11/2026, không dùng ảnh tham chiếu ngoài. Điều khoản đầu ra OpenAI, không CC0. Prompt thật, hash SHA256 và lệnh nhập ở `art/src/nac-dinh-1722/NGUON.md`, `nguon.json`; RAW và bốn cặp ảnh đối chiếu renderer game ở artifacts phiên `soul_land_game-1016`. Đã nhập sprite/normal map để chủ repo xem trong PR nháp; **chưa duyệt mỹ thuật, không tự gộp**.
 
 Mẫu icon nhóm Thành Tựu #1596 (PR nháp #1625): Codex builtin OpenAI `image_gen.imagegen`, 01/11/2026; chỉ tham chiếu tờ menu đã duyệt `art/src/ui-kit/toI-2.png`. RAW nguyên byte native 1254×1254, prompt thật UTF-8 LF, SHA256 và ánh xạ sáu nhóm + huy hiệu đã nhận ở `art/src/ui-kit/achv-1596/NGUON.md`, `nguon.json`. Điều khoản đầu ra OpenAI, không CC0. **Chủ repo đã duyệt cả 7 mẫu** qua điều phối ngày 02/11/2026; đã nhập đúng byte 14 PNG 24/32px qua `achv-icon-import.mjs`, đăng ký `gi_achv_*`/`_1x`, nối nav sáu nhóm và huy hiệu cạnh chữ Đã nhận. Mẫu và ảnh sau nhập ở artifacts phiên `soul_land_game-976`.
 
