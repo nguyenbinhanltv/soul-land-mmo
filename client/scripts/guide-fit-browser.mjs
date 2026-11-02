@@ -1,5 +1,5 @@
 // #1688: thẻ #guide (Hướng dẫn, Gợi ý ngữ cảnh "Bạn bị đánh", xem lại) ở màn thấp: đầu thẻ không được tụt khỏi mép trên màn (top >= 0), đáy không quá mép dưới, 魂 không che thẻ;
-// nội dung dài thì cuộn trong thẻ. Quét 640x360, 844x390, 960x540, 1280x720 x cỡ chữ 0-2.
+// nội dung dài thì cuộn trong thẻ. Quét 640x360, 844x390, 960x540, 1280x720 x cỡ chữ 0-2, khi lời nhắc Nói chuyện hiện / ẩn.
 // GUIDE_FIT_OUTPUT: thư mục ảnh; GUIDE_FIT_TIMEOUT_MS: trần thời gian (mặc định 180 s).
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
@@ -58,13 +58,23 @@ try {
   await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
   await page.locator(".g-skip").waitFor(); await page.locator(".g-skip").click();
   await page.locator(".ob-skip").click();
+  // NPC gần trại có thể đổi khi state đầu tiên tới: cố định ngữ cảnh CSS, không phụ thuộc thời điểm showTalk chạy.
+  await page.evaluate(() => {
+    const talk = document.getElementById("talk");
+    let shown = false;
+    const sync = () => talk.toggleAttribute("hidden", !shown);
+    new MutationObserver(sync).observe(talk, { attributes: true, attributeFilter: ["hidden"] });
+    window.setGuideTalkFixture = (visible) => { shown = visible; sync(); };
+    sync();
+  });
   const failures = [];
   for (const [w, h] of SIZES) {
     await page.setViewportSize({ width: w, height: h });
     for (const fs of [0, 1, 2]) {
       const tag = `${w}x${h} chữ ${fs}`;
-      for (const mode of ["hint", "review"]) {
-        const m = await page.evaluate(async ({ fs, mode }) => {
+      for (const talkShown of [false, true]) for (const mode of ["hint", "review"]) {
+        const m = await page.evaluate(async ({ fs, mode, talkShown }) => {
+          window.setGuideTalkFixture(talkShown);
           document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (fs) document.body.classList.add(`a11y-fs-${fs}`);
           const g = await import("/src/guide.ts");
           const c = document.getElementById("guide");
@@ -84,24 +94,27 @@ try {
           const next = card.querySelector(".g-next").getBoundingClientRect();
           const hubOver = !(hub.right <= r.left || hub.left >= r.right || hub.bottom <= r.top || hub.top >= r.bottom) && getComputedStyle(hubEl).visibility !== "hidden";
           return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), right: Math.round(r.right), vh: innerHeight, vw: innerWidth, hubOver, scroll: card.scrollHeight, client: card.clientHeight,
-            maxH: getComputedStyle(card).maxHeight, u: getComputedStyle(document.documentElement).getPropertyValue("--u") || getComputedStyle(document.body).getPropertyValue("--u"), hudH: document.getElementById("hud").getBoundingClientRect().height, hidden: card.hidden, mode: card.dataset.mode, nextIn: next.top >= Math.max(0, r.top) - 1 && next.bottom <= Math.min(r.bottom, innerHeight) + 1 };
-        }, { fs, mode });
-        const t = `${tag} ${mode}`;
+            maxH: getComputedStyle(card).maxHeight, u: getComputedStyle(document.documentElement).getPropertyValue("--u") || getComputedStyle(document.body).getPropertyValue("--u"), hudH: document.getElementById("hud").getBoundingClientRect().height, hidden: card.hidden, mode: card.dataset.mode,
+            talkShown: !document.getElementById("talk").hidden, nextTop: next.top, nextBottom: next.bottom,
+            nextIn: next.width > 0 && next.height > 0 && next.top >= Math.max(0, r.top) - 1 && next.bottom <= Math.min(r.bottom, innerHeight) + 1 };
+        }, { fs, mode, talkShown });
+        const t = `${tag} ${mode} talk ${talkShown ? "hiện" : "ẩn"}`;
+        if (m.talkShown !== talkShown) failures.push(`${t}: lời nhắc không đúng trạng thái (${JSON.stringify(m)})`);
         if (m.hidden || m.mode !== mode) failures.push(`${t}: thẻ không hiện đúng chế độ (${JSON.stringify(m)})`);
         else {
           if (m.top < 0) failures.push(`${t}: đầu thẻ tụt khỏi mép trên (${JSON.stringify(m)})`);
           if (m.bottom > m.vh + 1) failures.push(`${t}: đáy thẻ quá mép dưới (${m.bottom} > ${m.vh})`);
           if (m.left < 0 || m.right > m.vw + 1) failures.push(`${t}: thẻ tràn ngang (${m.left}–${m.right} / ${m.vw})`);
           if (m.hubOver) failures.push(`${t}: 魂 đè lên thẻ`);
-          if (!m.nextIn) failures.push(`${t}: nút chính khuất`);
+          if (!m.nextIn) failures.push(`${t}: nút chính khuất (${JSON.stringify(m)})`);
         }
-        await page.screenshot({ path: resolve(out, `guide-${mode}-${w}x${h}-fs${fs}.png`) });
+        await page.screenshot({ path: resolve(out, `guide-${mode}-${w}x${h}-fs${fs}-talk${+talkShown}.png`) });
         await page.evaluate(() => { const c = document.getElementById("guide"); if (c && !c.hidden) { const s = c.querySelector(".g-skip"); (s.hidden ? c.querySelector(".g-next") : s).click(); } });
       }
     }
   }
   if (failures.length) { console.error(failures.join("\n")); throw new Error(`${failures.length} lỗi bố cục thẻ Hướng dẫn / Gợi ý`); }
-  console.log("✓ Thẻ Hướng dẫn / Gợi ý nằm trọn trong màn, 魂 không đè (4 cỡ màn × 3 cỡ chữ × hint / review)");
+  console.log("✓ Thẻ Hướng dẫn / Gợi ý nằm trọn trong màn, 魂 không đè (4 cỡ màn × 3 cỡ chữ × hint / review × Nói chuyện hiện / ẩn)");
   console.log(`Ảnh: ${out}`);
 } catch (e) { console.error(clientLog.join("\n")); throw e; }
 finally { clearTimeout(watchdog); await browser?.close().catch(() => {}); killChildren(); }
