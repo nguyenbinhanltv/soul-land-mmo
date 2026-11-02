@@ -29,7 +29,14 @@ export async function dexTest(){
     // 3) Hạ quái: cộng số lần hạ.
     F.room.send("target",{id:far}); await sleep(200);
     await test(F,"bhp",{pct:1,bid:far});
-    ok(await waitFor(()=>!bs(far),8000),"quái chết"); ok(await waitFor(()=>book()[sp]===1,3000),`hạ ${sp}: kills 1 (${book()[sp]})`);
+    // Quái 1% sinh lực chết bằng đòn thường của F khi F trong tầm; quái đi lang thang / lùi nên F lùi xa tầm thì đòn trễ (#1748: CI nhóm 1 ba lượt, quái chết
+    // sau ~10 giây, sổ cộng muộn hơn mốc chờ). Cứ mỗi giây áp sát lại và khoá lại quái, tổng vẫn chờ tối đa 20 giây rồi mới ✗.
+    let dead=false;
+    for(const t0=Date.now();!dead&&Date.now()-t0<20000;){
+      dead=await waitFor(()=>!bs(far),1000);
+      if(!dead&&bs(far)){ await test(F,"goto",{x:bs(far).x-24,y:bs(far).y}); F.room.send("target",{id:far}); await test(F,"bhp",{pct:1,bid:far}); }
+    }
+    ok(dead,"quái chết"); ok(await waitFor(()=>book()[sp]===1,3000),`hạ ${sp}: kills 1 (${book()[sp]})`);
     // 4) Client không khai tay được: tin lạ không đổi sổ.
     const before=JSON.stringify(book());
     for(const bad of [{op:"set",set:{[BEASTS[BEASTS.length-1].id]:9}},{op:"see",id:BEASTS[BEASTS.length-1].id},{set:{x:1}},null,7,"x"]){ F.room.send("dex",bad); }
