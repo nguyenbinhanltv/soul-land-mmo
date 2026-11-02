@@ -1,0 +1,20 @@
+{
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-03",
+  "license": "Đầu ra OpenAI, không CC0; hình gốc Gemini giữ nguồn/điều khoản hiện có trong art/CREDITS.md",
+  "nativeSize": [
+    1774,
+    887
+  ],
+  "originalSHA256": "05c9515c6e2661e050dabf939e94879ac41e04220e3fe5804d571b25d6d2a921",
+  "rawSHA256": "75a7159d774564e9fa4420b25c21b2774c4277c756d56e39284c99f5ffaee6f4",
+  "clipSHA256": "5785dff43fd4a6dea1bbb1c1f9e524ed005cab7a7a49cd9189c6f35ccc09130b",
+  "normalSHA256": "fb4f0cd76c34f430a56f5ab27fadebd80746a1f9d7d0867bc6588aea3b4344be",
+  "frames": 16,
+  "ms": 100,
+  "foot": [
+    24,
+    46
+  ],
+  "mask": "Mặt tím bên trong, y < 39, bảo vệ viền giáp alpha; RAW ô 5 dẫn ngưỡng sáng"
+}

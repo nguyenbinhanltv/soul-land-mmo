@@ -483,6 +483,7 @@
   },
   "tinh_the_tim": {
    "key": "prop_tinh_the_tim",
+   "clip": { "key": "prop_tinh_the_tim_clip", "frames": 16, "ms": 100 },
    "foot": [24, 46]
   },
   "rao_tre": {

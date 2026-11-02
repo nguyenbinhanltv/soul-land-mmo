@@ -46100,6 +46100,15 @@
       "key": "prop_linh_canh_giap_khien",
       "iso": true
     },
+    {
+      "key": "prop_tinh_the_tim_clip",
+      "frame": [
+        48,
+        48
+      ],
+      "iso": true,
+      "map": "tinh_dau_noi_dia"
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
