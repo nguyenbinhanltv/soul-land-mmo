@@ -650,7 +650,7 @@ export async function autoTest(){
     const lt=(await test(A,"spawn",{tier:0,dx:200,dy:0,years:15,hpx:50}))?.bid;
     await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); A.autost.length=0;
     const seq=[], note=async x=>{ const k=x.target===lt?"lt":x.target?"khác "+x.target:"-"; if(seq.at(-1)===k) return; seq.push(k);
-      if(k.startsWith("khác")){ const o=A.room.state.beasts.get(x.target), q=await test(A,"auto",{bid:x.target}); seq.push({sp:o?.species,rank:o?.rank,tier:o?.tier,d:o&&Math.round(Math.hypot(o.x-me(A).x,o.y-me(A).y)),dlt:Math.round(Math.hypot(A.room.state.beasts.get(lt)?.x-me(A).x,0)),tgt:q?.target,hitBy:q?.hitBy,pace:x.pace,loot:x.loot,hit:x.hit}); } };
+      if(k.startsWith("khác")){ const o=A.room.state.beasts.get(x.target), q=await test(A,"auto",{bid:x.target}); seq.push({sp:o?.species,rank:o?.rank,tier:o?.tier,d:o&&Math.round(Math.hypot(o.x-me(A).x,o.y-me(A).y)),dlt:Math.round(Math.hypot(A.room.state.beasts.get(lt)?.x-me(A).x,0)),tgt:q?.beast?.target,hitBy:q?.beast?.hitBy,pace:x.pace,loot:x.loot,hit:x.hit}); } };
     let tg=false; for(let t=0;t<3000&&!tg;t+=100){ const x=await infoA(); await note(x); tg=x.target===lt; if(!tg) await sleep(100); }
     // Hook loop chỉ có tác dụng lúc bộ tự săn ĐANG đi tới mục tiêu (checkLoop xóa vết khi đã trong tầm đánh). Máy tải thì bài đo chậm vài trăm ms, người đã tới sát con thử (hạ nó, rồi đổi sang con tự nhiên) trước khi vết kịp đầy:
     // tung hook mỗi nhịp đo tới khi lý do "loop" hiện, không tung một lần rồi chờ.
