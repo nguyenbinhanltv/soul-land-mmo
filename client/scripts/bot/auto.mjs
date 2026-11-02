@@ -618,13 +618,19 @@ export async function autoTest(){
     }
   }
   // ---- AH4 (#611): gợi ý niên hạn hợp sức, chống kẹt đi vòng lặp, tổ đội cùng treo ----
+  // Gốc chập chờn (#1678): bài trước (đánh trả, gục, tiên cơ) có thể để võ hồn khác ra trận (Lam Ngân Thảo cấp 5) → mọi vùng quá sức, best=null. Đặt lại đúng fixture đầu bài (võ hồn chính, cấp 21, 2 hồn hoàn) trước khi khẳng định gợi ý.
+  await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"rest",{s:10});
+  { // swCd không đồng bộ qua state (tin riêng `vit`): gửi lại `switch` mỗi 500 ms tới khi võ hồn chính ra trận (hết hồi chiêu đổi thì server nhận).
+    const slot=Math.max(0,A.owned.team.indexOf(act)); const t0=Date.now();
+    while(A.owned.active!==act&&Date.now()-t0<SWITCH_CD*1000+4000){ A.room.send("switch",{slot}); await waitFor(()=>A.owned.active===act,500); } }
+  await test(A,"set",{rowId:act,level:21,rings:[423,812]}); await test(A,"goto",home);
   { const strong={atk:3000,crit:0.2,critMult:2,maxHp:60000,def:1}, weak={atk:20,crit:0.1,critMult:1.8,maxHp:300,def:1}, zs=[{name:"Vùng thấp",years:[10,300],species:["phong_lang"]},{name:"Vùng cao",years:[2000,20000],species:["phong_lang"]}];
     const hs=autoHint(strong,zs), hw=autoHint(weak,zs);
     ok(hs.best?.zone==="Vùng cao"&&hs.best.years[0]===2000&&hs.best.years[1]>2000&&offlineFight(strong,hs.best.years[1],"phong_lang").secs<=AUTO_HINT.maxSecs&&offlineFight(strong,hs.best.years[1]+1,"phong_lang").secs>AUTO_HINT.maxSecs||hs.best?.full,
       `AH4 gợi ý: võ hồn mạnh được vùng cao, tới mức hạ một con ≤ ${AUTO_HINT.maxSecs} giây (${JSON.stringify(hs.best)})`);
     ok(hw.best?.zone==="Vùng thấp"&&hw.rows.find(r=>r.zone==="Vùng cao").years===null,`AH4 gợi ý: võ hồn yếu chỉ hợp vùng thấp, vùng cao "quá sức" (${JSON.stringify(hw.rows)})`);
     const g=await autoOp(A,"get"), h=g?.hint;
-    ok(h&&h.rows.length>0&&h.best?.years&&h.best.years[0]<=h.best.years[1],`AH4: tin "auto" ở bản đồ săn kèm gợi ý hợp sức (${JSON.stringify(h?.best)})`);
+    ok(h&&h.rows.length>0&&h.best?.years&&h.best.years[0]<=h.best.years[1],`AH4: tin "auto" ở bản đồ săn kèm gợi ý hợp sức (${JSON.stringify(h?.best)}) [ra trận ${A.owned.active===act?"chính":"khác"}, hàng ${JSON.stringify(A.owned.list.find(v=>v.rowId===A.owned.active))}, rows ${JSON.stringify(h?.rows)}]`);
     // Soát AH3/AH4: tin `auto` vượt nhịp vẫn được trả lời; gợi ý lấy từ bộ nhớ đệm theo chỉ số võ hồn (không tính lại mỗi tin), kết quả phải y nguyên.
     await test(A,"auto",{rate:true}); A.autoMsg=null; let n=0; A.room.onMessage("auto",()=>{n++;});
     for(let i=0;i<60;i++) A.room.send("auto",{op:"get"});
