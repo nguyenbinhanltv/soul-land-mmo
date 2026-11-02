@@ -1106,20 +1106,20 @@
     "35": "nuoc_sau"
    },
    "build": {
-    "wallKind": "brick",
-    "wall": ["#b0654a", "#8a4a32", "#c47a5c"],
-    "trim": "#6a2a20",
-    "base": "#5a5a62",
+    "wallKind": "plaster",
+    "wall": ["#d8ccaa", "#b8a888", "#e6dcc0"],
+    "trim": "#4a2f1e",
+    "base": "#6a6a68",
     "win": "#26323c",
     "roofKind": "tile",
-    "roof": ["#6a7080", "#4a5060", "#8a90a0"],
-    "wallH": 30,
-    "roofMax": 34,
+    "roof": ["#b4583c", "#8a3e2c", "#d0704a"],
+    "wallH": 38,
+    "roofMax": 36,
     "fence": {
-     "kind": "brick",
-     "wall": ["#9a5a42", "#7a3e2c", "#b0654a"],
-     "top": "#8a8478",
-     "h": 30
+     "kind": "stone",
+     "wall": ["#8f8c86", "#6d6a66", "#a8a49c"],
+     "top": "#a6a29a",
+     "h": 36
     },
     "tower": "thap_cong_thanh",
     "compounds": {
@@ -1147,6 +1147,17 @@
       "floor": "pho_da",
       "walls": false
      },
+     "4,11": {
+      "main": ["thuong_hoi"],
+      "gate": "bac_den",
+      "deco": ["cot_vo", "bon_hoa", "cot_vo", "bon_hoa"],
+      "floor": "pho_da"
+     },
+     "4,31": {
+      "main": ["nha_ngu_dan"],
+      "deco": ["thung_go_chong", "dong_rom"],
+      "walls": false
+     },
      "130,36": {
       "main": ["vu_hon_dien_nho"],
       "gate": "bac_den",
@@ -1156,7 +1167,7 @@
     }
    },
    "props": {
-    "11": "sap_cho",
+    "11": ["sap_cho", "sap_cho", "leu_tho_san"],
     "12": "lo_lua_dong",
     "28": ["bon_hoa", "bui_hoa_nhiet_doi~#d8d0c0", "bon_hoa"],
     "29": "bien_chi_duong",
@@ -1168,7 +1179,15 @@
     "40": "khuc_go_rong",
     "41": "cot_vo",
     "42": "cong_hoc_vien",
-    "43": "tuong_thanh"
+    "43": "tuong_thanh",
+    "44": "cot_den_do",
+    "45": "bien_chi_duong",
+    "46": "gieng_da",
+    "47": "co_thu_lon",
+    "48": "hang_rao_go",
+    "49": "thung_go_chong",
+    "50": "dong_rom",
+    "51": "cay_hoa_anh_dao"
    }
   },
   "thien_dau_thanh": {
