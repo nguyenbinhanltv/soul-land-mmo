@@ -211,11 +211,15 @@ export async function autoTest(){
     // Y sinh xa cả B lẫn X (hơn tầm aggro BEAST_AGGRO_R), vẫn trong vùng neo: tự săn dắt A đi dạo khắp quanh đó nên A có thể đang đứng sát B,
     // Y sinh trong tầm B thì nhắm B (người gần nhất), tự săn không cướp quái người khác nên A không đánh Y (#305: CI trượt, Y cạnh B, nhắm B,
     // 15 giây không ai đánh). Đánh A–Y xa X để đòn của A không trúng lan sang X.
-    const yCand=[...Array(24).keys()].flatMap(k=>[100,80].map(r=>{ const a=k*Math.PI/12, dx=Math.round(Math.cos(a)*r), dy=Math.round(Math.sin(a)*r), x=me(A).x+dx, y=me(A).y+dy;
-      return {dx,dy,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
-    const yAt=yCand.filter(c=>!c.solid&&!c.far).sort((u,v)=>v.away-u.away)[0];
+    // Chỗ ứng viên lấy quanh ĐIỂM NEO (home), không quanh A: A đang tự săn nên đứng chỗ nào cũng được (#1517: A sát B, 48 chỗ quanh A xa nhất 104 < 110 pixel).
+    // Spawn nhận dx, dy tính từ A, nên đổi về độ lệch so với A; chọn chỗ gần A nhất trong số chỗ đủ xa B và X.
+    const need=BEAST_AGGRO_R+40, aP=me(A);
+    const yCand=[40,80,120,160,200].flatMap(r=>[...Array(24).keys()].map(k=>{ const a=k*Math.PI/12, x=Math.round(home.x+Math.cos(a)*r), y=Math.round(home.y+Math.sin(a)*r);
+      return {dx:x-Math.round(aP.x),dy:y-Math.round(aP.y),away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),dA:Math.hypot(x-aP.x,y-aP.y),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
+    const yOk=yCand.filter(c=>!c.solid&&!c.far);
+    const yAt=yOk.filter(c=>c.away>need).sort((u,v)=>u.dA-v.dA)[0]??yOk.sort((u,v)=>v.away-u.away)[0];
     // Không có chỗ nào xa hơn tầm aggro: báo ✗ rõ (không lùi về chỗ sinh cũ vốn gây lỗi), vẫn sinh Y để các kiểm tra sau chạy tiếp.
-    ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (xa nhất ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
+    ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (chỗ chọn cách ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
     const ySite=`chỗ sinh Y ${yAt?`dx,dy ${yAt.dx},${yAt.dy}, cách B / X ${yAt.away.toFixed(0)} pixel`:"đường lùi dx,dy -50,0 (không có chỗ hợp lệ)"}`;
     // Nợ nhịp (AUTO_PACE): A vừa hạ một hồn thú hoang đánh trả trong lúc chờ X thì còn nợ vài giây tới hơn chục giây, tự săn đứng nghỉ, không
     // nhắm Y, không dạo (#305 lần 3: CI A đứng yên 15 giây, mục tiêu / đích rỗng, Y đầy máu cách 115 pixel). Bài này thử luật không cướp quái,
