@@ -1,0 +1,41 @@
+{
+  "issue": 1722,
+  "batch": 2,
+  "date": "2026-11-02",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "transparent_background": true,
+  "reference": "Khung 3D tự dựng; ảnh Codex đợt 1 làm mẫu vật liệu, không dùng ảnh bên ngoài",
+  "items": [
+    {
+      "name": "cong_thanh_vom_x",
+      "artifact": "cong_thanh_vom_x-raw.png",
+      "sha256": "b4128817d0902a73c5eabaa1752b6fad3c7452833d8a4adcf2ab8428520f3d7e",
+      "foot": [
+        48,
+        119
+      ],
+      "secondFoot": [
+        192,
+        191
+      ],
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "name": "cong_thanh_vom_y",
+      "artifact": "cong_thanh_vom_y-raw.png",
+      "sha256": "ba5733a668303a2088d56fd855c75954c94037a106fc8fb946ed187ae8eeb0ed",
+      "foot": [
+        176,
+        127
+      ],
+      "secondFoot": [
+        48,
+        191
+      ],
+      "width": 1254,
+      "height": 1254
+    }
+  ]
+}
