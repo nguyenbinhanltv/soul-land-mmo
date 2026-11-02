@@ -620,7 +620,9 @@ export async function autoTest(){
   // ---- AH4 (#611): gợi ý niên hạn hợp sức, chống kẹt đi vòng lặp, tổ đội cùng treo ----
   // Gốc chập chờn (#1678): bài trước (đánh trả, gục, tiên cơ) có thể để võ hồn khác ra trận (Lam Ngân Thảo cấp 5) → mọi vùng quá sức, best=null. Đặt lại đúng fixture đầu bài (võ hồn chính, cấp 21, 2 hồn hoàn) trước khi khẳng định gợi ý.
   await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"rest",{s:10});
-  if(A.owned.active!==act){ await waitFor(()=>A.room.state.players.get(A.room.sessionId)?.swCd===0,3500); const slot=A.owned.team.indexOf(act); A.room.send("switch",{slot:slot<0?0:slot}); await waitFor(()=>A.owned.active===act,2000); }
+  { // swCd không đồng bộ qua state (tin riêng `vit`): gửi lại `switch` mỗi 500 ms tới khi võ hồn chính ra trận (hết hồi chiêu đổi thì server nhận).
+    const slot=Math.max(0,A.owned.team.indexOf(act)); const t0=Date.now();
+    while(A.owned.active!==act&&Date.now()-t0<SWITCH_CD*1000+4000){ A.room.send("switch",{slot}); await waitFor(()=>A.owned.active===act,500); } }
   await test(A,"set",{rowId:act,level:21,rings:[423,812]}); await test(A,"goto",home);
   { const strong={atk:3000,crit:0.2,critMult:2,maxHp:60000,def:1}, weak={atk:20,crit:0.1,critMult:1.8,maxHp:300,def:1}, zs=[{name:"Vùng thấp",years:[10,300],species:["phong_lang"]},{name:"Vùng cao",years:[2000,20000],species:["phong_lang"]}];
     const hs=autoHint(strong,zs), hw=autoHint(weak,zs);
