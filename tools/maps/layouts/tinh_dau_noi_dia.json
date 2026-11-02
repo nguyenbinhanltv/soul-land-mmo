@@ -20,6 +20,8 @@
     },
     "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
   },
+  "softSingles": { "_": "L5 #1663: cụm chặn ≤ 3 ô cách biên ≥ 3 ô (khớp viền 3 ô của map:luong): cây thành vật mềm; ô khóa giữ nguyên", "maxCluster": 3, "edge": 3, "alsoKinds": ["dead_tree", "vines", "big_tree", "log"], "kinds": { "plant": 3, "poison_flower": 1 } },
+  "sealPockets": true,
   "tiers": [
     { "name": "Rừng cổ thụ", "years": "1500-5000", "hint": "Hồn thú 1.500 – 5.000 năm", "beasts": "nhan_dien_ma_chu:1,u_minh_lang:1,quy_dang:1",
       "trees": { "18": 3, "17": 1 }, "denseTrees": { "17": 2, "19": 1 }, "density": 0.11, "cluster": 0.55, "clusterDensity": 0.92,
@@ -51,7 +53,7 @@
   "points": {
     "camp_e": [21, 85], "camp_n": [14, 76], "co_thu_lo": [46, 88], "dam": [92, 80], "loi_tay": [128, 56], "loi_dai": [158, 56], "loi_dong": [186, 58],
     "hac": [206, 80], "ben_ho": [222, 85], "lang_lam": [30, 30], "dam_bac": [92, 28], "loi_bac": [160, 12], "hac_bac": [214, 28], "ben_ho_n": [226, 76],
-    "co_thu": [40, 126], "mieu": [36, 150], "that_tinh": [94, 134], "loi_dai_nam": [158, 138], "doc_coc": [222, 136], "ben_ho_s": [226, 94]
+    "co_thu": [40, 126], "mieu": [36, 150], "that_tinh": [94, 134], "loi_dai_nam": [158, 138], "doc_coc": [222, 136], "ben_ho_s": [226, 94], "hang_thu": [222, 148]
   },
   "features": [
     { "type": "area", "name": "Hồ trung tâm", "ground": "deep", "poly": [[242, 0], [255, 0], [255, 170], [244, 170], [238, 130], [240, 104], [238, 64], [236, 30]], "edge": 3 },
@@ -84,7 +86,7 @@
     { "type": "camp", "rect": [214, 76, 16, 18], "tents": [[216, 91], [225, 77]], "fires": [[221, 89]], "logs": [[223, 89]], "signs": [[214, 82]] },
     { "type": "ancient", "at": [40, 120], "r": 10 },
     { "type": "ruins", "rect": [26, 144, 20, 14], "gates": [[36, 144], [45, 151]], "steles": [[36, 151]], "arches": [[30, 148]], "broken": 0.35 },
-    { "type": "lair", "at": [222, 150], "rx": 8, "ry": 6, "entrance": "n", "wall": "tree", "door": 4, "skulls": [[216, 147], [228, 153]] },
+    { "type": "lair", "at": [222, 150], "rx": 8, "ry": 6, "entrance": "n", "wall": "tree", "door": 6, "skulls": [[216, 147], [228, 153]] },
     { "type": "objects", "kind": "sign", "at": [[60, 92], [126, 60], [190, 62]] },
     { "type": "scatter", "kind": "big_tree", "rect": [0, 60, 62, 110], "p": 0.002, "on": ["grass"] },
     { "type": "scatter", "kind": "vines", "rect": [188, 0, 67, 124], "p": 0.0015, "on": ["grass"] },
@@ -94,11 +96,13 @@
     { "type": "house", "rect": [34, 24, 5, 4], "margin": 1 }
   ],
   "roads": [
-    { "via": ["camp_e", "co_thu_lo", "dam", "loi_tay", "loi_dai", "loi_dong", "hac", "ben_ho"], "width": 3 },
-    { "via": ["camp_n", "lang_lam", "dam_bac", "loi_bac", "hac_bac", "ben_ho_n"], "width": 2 },
-    { "via": ["co_thu_lo", "co_thu", "mieu"], "width": 2 },
-    { "via": ["co_thu", "that_tinh", "loi_dai_nam", "doc_coc", "ben_ho_s"], "width": 2 },
-    { "via": ["dam", "dam_bac"], "width": 2 }
+    { "via": ["camp_e", "co_thu_lo", "dam", "loi_tay", "loi_dai", "loi_dong", "hac", "ben_ho"], "width": 5, "straight": true },
+    { "via": ["camp_n", "lang_lam", "dam_bac", "loi_bac", "hac_bac", "ben_ho_n"], "width": 5, "straight": true },
+    { "via": ["co_thu_lo", "co_thu", "mieu"], "width": 5, "straight": true },
+    { "via": ["co_thu", "that_tinh", "loi_dai_nam", "doc_coc", "ben_ho_s"], "width": 5, "straight": true },
+    { "via": ["dam", "dam_bac"], "width": 5, "straight": true },
+    { "via": ["dam", "ben_ho"], "width": 5, "straight": true },
+    { "via": ["doc_coc", "hang_thu"], "width": 5, "straight": true }
   ],
   "spawn": { "name": "Trại cổng Nội địa", "rect": [5, 77, 13, 16] },
   "portals": [
