@@ -1046,7 +1046,9 @@
       "walls": false
      },
      "79,83": {
-      "main": ["lo_ren_lang"],
+      "main": ["xuong_ren"],
+      "deco": ["thung_go_chong", "cay_chay_than"],
+      "floor": "dat_chay",
       "walls": false
      },
      "117,83": {
