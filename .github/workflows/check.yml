@@ -275,6 +275,11 @@ jobs:
         timeout-minutes: 4
         env:
           PANEL_OUTPUT: ${{ runner.temp }}/flow-browser/panel
+      - run: npm run test:panel-tab-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 6
+        env:
+          TAB_OUTPUT: ${{ runner.temp }}/flow-browser/panel-tab
       - run: npm run test:hub-ten-browser --prefix client
         if: ${{ !cancelled() }}
         timeout-minutes: 4
