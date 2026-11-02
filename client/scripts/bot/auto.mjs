@@ -646,8 +646,8 @@ export async function autoTest(){
   }
   { const LP={...AUTO_DEFAULTS,scope:"map",years:[0,MAX_YEARS],bone:false,core:false,ring:-1,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false};
     await test(A,"goto",home); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:LP});
-    // Con thử đặt trong AUTO_RADIUS quanh mình: cách xa hơn thì săn khắp bản đồ (scope "map") đổi sang con tự nhiên vừa hồi sinh gần hơn (autoHunt.decide, "đang đi tới hồn thú ở xa"), mục tiêu không còn là con thử và vết đi vòng lặp bị xóa (chập chờn ~1/3 lượt, chuỗi mục tiêu ["lt","khác …"]).
-    const lt=(await test(A,"spawn",{tier:0,dx:AUTO_RADIUS*0.8,dy:0,years:15,hpx:50}))?.bid;
+    // dx tối đa 200 (hook spawn kẹp, số không nguyên về mặc định 20): con thử cách ~200 px, vài giây đi tới.
+    const lt=(await test(A,"spawn",{tier:0,dx:200,dy:0,years:15,hpx:50}))?.bid;
     await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); A.autost.length=0;
     const seq=[], note=async x=>{ const k=x.target===lt?"lt":x.target?"khác "+x.target:"-"; if(seq.at(-1)===k) return; seq.push(k);
       if(k.startsWith("khác")){ const o=A.room.state.beasts.get(x.target), q=await test(A,"auto",{bid:x.target}); seq.push({sp:o?.species,rank:o?.rank,tier:o?.tier,d:o&&Math.round(Math.hypot(o.x-me(A).x,o.y-me(A).y)),dlt:Math.round(Math.hypot(A.room.state.beasts.get(lt)?.x-me(A).x,0)),tgt:q?.target,hitBy:q?.hitBy,pace:x.pace,loot:x.loot,hit:x.hit}); } };
