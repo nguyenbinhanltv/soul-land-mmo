@@ -20,6 +20,7 @@
     "walk": ["plank_bridge", "vat_deco", "vat_nam"],
     "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
   },
+  "softSingles": { "_": "L2 #1660: cụm chặn ≤ 3 ô cách biên ≥ 4 ô: cây thành vật mềm; hết kẹt chéo", "maxCluster": 3, "edge": 4, "alsoKinds": ["vat_thong", "vat_soi", "vat_khuc_go", "big_tree", "log"], "kinds": { "vat_deco": 3, "vat_nam": 1 } },
   "tiers": [
     { "name": "Bìa rừng", "years": "300-700", "hint": "Hồn thú 300 – 700 năm", "beasts": "phong_lang:2,man_da_la_xa:1,tu_van_bao:1",
       "trees": { "17": 3, "18": 1 }, "denseTrees": { "17": 1, "18": 1 }, "density": 0.08, "cluster": 0.56, "clusterDensity": 0.9,
