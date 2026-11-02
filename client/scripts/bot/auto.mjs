@@ -154,6 +154,8 @@ export async function autoTest(){
       // Cho đồ cũ hết hạn trước khi bật, như các bài nhặt đồ (ab1.mjs).
       await test(A,"drops",{s:3600}); await waitFor(()=>!A.room.state.drops.size,2000);
       const ways=new Set(), tgs=[]; let st=null; const dg=[];
+      // Nợ nhịp (AUTO_PACE) của bài trước (hạ con) còn tới ~30 giây khiến bộ tự săn đứng nghỉ, không nhắm con thử trong 12 giây chờ (ways = [], lines = 0): xóa nợ trước khi bật như bài AH4.
+      await test(A,"auto",{paceNext:0});
       if(!bid||!(await autoOp(A,"on"))?.on) return null;
       const t00=Date.now(); let hit=false, ms=0; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
       for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); if(dg.length<4&&bb()) dg.push([st?.way,Math.round(me(A).x),Math.round(me(A).y),Math.round(bb().x),Math.round(bb().y),clearLine(g,me(A),bb()),st?.target===bid?"B":st?.target?"other":"-",st?.loot?"loot":"-",st?.pace!=null?+st.pace.toFixed(1):null]); if(st?.target&&st.target!==tgs.at(-1)) tgs.push(st.target); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
@@ -644,12 +646,16 @@ export async function autoTest(){
   }
   { const LP={...AUTO_DEFAULTS,scope:"map",years:[0,MAX_YEARS],bone:false,core:false,ring:-1,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false};
     await test(A,"goto",home); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:LP});
-    const lt=(await test(A,"spawn",{tier:0,dx:300,dy:0,years:15,hpx:50}))?.bid;
+    // Con thử đặt trong AUTO_RADIUS quanh mình: cách xa hơn thì săn khắp bản đồ (scope "map") đổi sang con tự nhiên vừa hồi sinh gần hơn (autoHunt.decide, "đang đi tới hồn thú ở xa"), mục tiêu không còn là con thử và vết đi vòng lặp bị xóa (chập chờn ~1/3 lượt, chuỗi mục tiêu ["lt","khác …"]).
+    const lt=(await test(A,"spawn",{tier:0,dx:AUTO_RADIUS*0.8,dy:0,years:15,hpx:50}))?.bid;
     await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); A.autost.length=0;
-    let tg=false; for(let t=0;t<3000&&!tg;t+=100){ tg=(await infoA()).target===lt; if(!tg) await sleep(100); }
-    await test(A,"auto",{loop:true});
-    let st=null; for(let t=0;t<4000&&st?.why!=="loop";t+=100){ st=await infoA(); await sleep(100); }
-    ok(m?.on&&tg&&st?.why==="loop"&&st.target!==lt,`AH4 chống kẹt: đang đi tới con ${lt} mà ${AUTO_STUCK.window} giây không nhích → lý do "${st?.why}", bỏ mục tiêu đó (nhắm ${st?.target})`);
+    const seq=[], note=async x=>{ const k=x.target===lt?"lt":x.target?"khác "+x.target:"-"; if(seq.at(-1)===k) return; seq.push(k);
+      if(k.startsWith("khác")){ const o=A.room.state.beasts.get(x.target), q=await test(A,"auto",{bid:x.target}); seq.push({sp:o?.species,rank:o?.rank,tier:o?.tier,d:o&&Math.round(Math.hypot(o.x-me(A).x,o.y-me(A).y)),dlt:Math.round(Math.hypot(A.room.state.beasts.get(lt)?.x-me(A).x,0)),tgt:q?.target,hitBy:q?.hitBy,pace:x.pace,loot:x.loot,hit:x.hit}); } };
+    let tg=false; for(let t=0;t<3000&&!tg;t+=100){ const x=await infoA(); await note(x); tg=x.target===lt; if(!tg) await sleep(100); }
+    // Hook loop chỉ có tác dụng lúc bộ tự săn ĐANG đi tới mục tiêu (checkLoop xóa vết khi đã trong tầm đánh). Máy tải thì bài đo chậm vài trăm ms, người đã tới sát con thử (hạ nó, rồi đổi sang con tự nhiên) trước khi vết kịp đầy:
+    // tung hook mỗi nhịp đo tới khi lý do "loop" hiện, không tung một lần rồi chờ.
+    let st=null; for(let t=0;t<4000&&st?.why!=="loop";t+=100){ st=await infoA({loop:true}); await note(st); await sleep(100); }
+    ok(m?.on&&tg&&st?.why==="loop"&&st.target!==lt,`AH4 chống kẹt: đang đi tới con ${lt} mà ${AUTO_STUCK.window} giây không nhích → lý do "${st?.why}", bỏ mục tiêu đó (nhắm ${st?.target}) [chuỗi mục tiêu ${JSON.stringify(seq)}, tới ${JSON.stringify(me(A))}]`);
     ok(await waitFor(()=>A.autost.some(x=>x.w==="loop"),2500),`AH4 chống kẹt: dòng trạng thái ghi lý do đi vòng lặp (${JSON.stringify(A.autost.at(-1))})`);
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
   }
