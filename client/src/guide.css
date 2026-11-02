@@ -1,8 +1,10 @@
 /* Hướng dẫn M6 (#752): thẻ giấy ở giữa dưới màn hình, trên thanh kỹ năng và dòng nhắc nhặt đồ (#prompt), dưới bảng lớn.
    Không đè toast (góc dưới phải), khung nhiệm vụ (trái), mục tiêu / boss (giữa trên). Vùng bấm nút ≥ 44 px theo mockup U0. */
 .guide{--g-bot:132px;position:absolute;left:50%;transform:translateX(-50%);bottom:var(--g-bot);width:min(500px,calc(100% - 560px));min-width:380px;box-sizing:border-box;
-  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 10px;align-items:center;padding:6px 10px 6px 12px;pointer-events:auto;font-size:var(--fs-m);font-family:var(--f12);z-index:2;max-height:calc(100% - var(--g-bot) - 44px - 2 * var(--sp-5));overflow:auto;overscroll-behavior:contain}
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);gap:0 10px;align-items:center;padding:6px 10px 6px 12px;pointer-events:auto;font-size:var(--fs-m);font-family:var(--f12);z-index:2;max-height:calc(100% - var(--g-bot) - 44px - 2 * var(--sp-5));overflow:auto;overscroll-behavior:contain}
 .guide[hidden]{display:none}
+/* Lời nhắc Nói chuyện đẩy thẻ lên trên: chữ cuộn trong hàng còn lại, không kéo nút chính ra ngoài thẻ. */
+.guide .g-main{min-height:0;max-height:100%;overflow:auto;overscroll-behavior:contain}
 .guide .g-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:var(--inkl)}
 .guide .g-head b{font-weight:normal;font-size:var(--fs-s);font-family:var(--f10);letter-spacing:.02em}
 .guide .g-dots{color:var(--son);letter-spacing:2px}
