@@ -21,6 +21,8 @@ try {
   browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--mute-audio"] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await page.goto(url + "/choi/");
+  // Đợi game vẽ xong màn đăng nhập rồi mới gỡ #overlay: gỡ sớm thì loginScreen() chạy sau getElementById ra null (pageerror chập chờn trên CI chậm, #1619 / #1628 / #1704).
+  await page.waitForSelector("#credits-open", { state: "attached" });
   await page.evaluate(async (dataUrl) => {
     window.data = await import(dataUrl);
     await (await import("/src/uiArt.ts")).loadUiArt();

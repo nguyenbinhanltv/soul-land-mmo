@@ -1595,9 +1595,11 @@ body:not(.touch) #bottombar #chatbox{flex:1;min-width:0;width:auto;max-width:380
 /* C8 ở 960px: giữ đủ sáu tab chat, thu nhóm phụ thay vì cắt tên hồn kỹ. */
 body.ui-w1000:not(.touch) #bottombar #chatbox{flex:0 0 270px;min-width:270px}
 /* Guide tránh đội hình cao hơn và chừa vùng báo trước quanh nhân vật giữa màn hình. */
-body:not(.touch) #hud>.guide{bottom:max(130px,calc(50% + 44px))}
+body:not(.touch) #hud>.guide{--g-bot:max(130px,calc(50% + 44px))}
+/* Màn thấp (≤ 460 cao) không còn chỗ cho vùng báo trước giữa màn: thẻ về vị trí mặc định trên thanh hồn kỹ, quá chỗ thì cuộn trong thẻ (#1688). */
+body.ui-h460:not(.touch) #hud>.guide{--g-bot:132px}
 /* Cảm ứng: ô kỹ năng thành lưới hai hàng (cao hơn 132px mặc định của guide) nên guide nằm trên thanh hành động, không che nút Đánh thường. */
-body.touch #hud>.guide{bottom:196px}
+body.touch #hud>.guide{--g-bot:196px}
 
 body.playing #toasts{bottom:130px}
 body.playing.touch #toasts{bottom:200px}

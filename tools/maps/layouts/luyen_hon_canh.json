@@ -1,5 +1,5 @@
 {
-  "_": "Luyện Hồn Cảnh (#1294): một sảnh đá kín, ba dấu sóng và dấu tinh anh chỉ bằng nền đi được; giữ cỡ 40×24 và vùng spawn của sân cũ, không đổi cách sinh sóng. Tái dùng ground isometric, không thêm ảnh.",
+  "_": "Luyện Hồn Cảnh (#1294): một sảnh đá kín, ba dấu sóng và dấu tinh anh chỉ bằng nền đi được; giữ cỡ 40×24 và vùng spawn của sân cũ, không đổi cách sinh sóng. Tái dùng ground isometric, không thêm ảnh. L7 (#1665): thêm 4 trụ phù văn 2×2 (bia đá cổ, hard) quanh sảnh, tránh dấu sóng / tinh anh và chỗ xuất hiện.",
   "map": "luyen_hon_canh",
   "out": "luyen_hon_canh.json",
   "size": [
@@ -167,6 +167,94 @@
         [
           37,
           11
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "stele",
+      "at": [
+        [
+          8,
+          10
+        ],
+        [
+          9,
+          10
+        ],
+        [
+          8,
+          11
+        ],
+        [
+          9,
+          11
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "stele",
+      "at": [
+        [
+          8,
+          16
+        ],
+        [
+          9,
+          16
+        ],
+        [
+          8,
+          17
+        ],
+        [
+          9,
+          17
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "stele",
+      "at": [
+        [
+          32,
+          16
+        ],
+        [
+          33,
+          16
+        ],
+        [
+          32,
+          17
+        ],
+        [
+          33,
+          17
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "stele",
+      "at": [
+        [
+          19,
+          19
+        ],
+        [
+          20,
+          19
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          20,
+          20
         ]
       ]
     },
