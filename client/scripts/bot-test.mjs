@@ -88,6 +88,7 @@ import { googleTest } from "./bot/google.mjs"; // #612
 import { botCFlow } from "./bot/botC.mjs"; // khối botC của INLINE
 import { offlineTest } from "./bot/offline.mjs";
 import { syncViewTest, flagTest, waypointTest, campTest, bigMapTest, fogTest, rallyTest } from "./bot/mapview.mjs";
+import { pathflowTest } from "./bot/pathflow.mjs";
 import { issue121Test } from "./bot/issue121.mjs";
 import { partyBuffTest, partyEffectExpansionTest, supportContribTest, copyPartyTest } from "./bot/party.mjs";
 import { chatTest, friendTest } from "./bot/social.mjs";
@@ -256,6 +257,8 @@ if(process.env.BOT_ONLY==="flag"){ await flagTest(); console.log(failCount()?`�
 if(process.env.BOT_ONLY==="waypoint"){ await waypointTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="camp"){ await campTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="bigmap"){ await bigMapTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+// Đo luồng đường đi trại hồi sinh -> mốc trên bản đồ săn (L1 #1659, pathflowTest; BOT_ONLY=pathflow, không thuộc bot đầy đủ / CI): giây, đứng yên > 1 giây, tính lại đường, kẹt.
+if(process.env.BOT_ONLY==="pathflow"){ await pathflowTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="view"){ await syncViewTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="lock"){ await lockTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="ink"){ await inkTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }

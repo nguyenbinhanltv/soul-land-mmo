@@ -1,6 +1,6 @@
 # Cải tổ luồng di chuyển bản đồ (Level Flow, Pathing, Art Direction)
 
-> **Kế hoạch đề xuất, chờ chủ repo duyệt.** Chưa phải luật hiện hành: không sửa code, `shared/data.ts`, bản đồ hay `docs/quyet-dinh.md` ở giai đoạn này. Luật bản đồ hiện hành: `docs/design/the-gioi-ban-do.md` (mục 5.3), file Tiled và công cụ dựng: `docs/tech/phong-ban-do.md`, quy cách ảnh: `docs/art/quy-cach-isometric.md` (mục 5.11), bảng màu giao diện: `docs/art/ui-kit.md`.
+> **Kế hoạch đã được chủ repo duyệt (Q55); giữ làm căn cứ và lịch sử.** Chỉ tiêu bố cục (phần 1.1 của bài này) nay là luật hiện hành ở `docs/design/the-gioi-ban-do.md` (mục "Chỉ tiêu bố cục bản đồ"); cách đo và dựng ở `docs/tech/phong-ban-do.md`. Phần cơ chế động (1.3), asset (phần 4) và việc loại B / C (L6 trở đi) **chưa phải luật hiện hành**, chỉ thành luật khi từng việc được duyệt và làm xong. Không sửa code, `shared/data.ts`, bản đồ hay `docs/quyet-dinh.md` bằng tài liệu này. Luật bản đồ: `docs/design/the-gioi-ban-do.md` (mục 5.3), file Tiled và công cụ dựng: `docs/tech/phong-ban-do.md`, quy cách ảnh: `docs/art/quy-cach-isometric.md` (mục 5.11), bảng màu giao diện: `docs/art/ui-kit.md`.
 > Số đo lấy từ `origin/main` (`ec680cbc`, 2026-11-02) bằng script ngoài repo (phương pháp ở phần 0.1). Tên hằng viết nghiêng, kèm "(đề xuất)", là hằng chưa có, sẽ thêm ở `shared/data.ts` khi làm thật; không chép số cân bằng vào tài liệu này.
 
 ## 0. Số đo thật làm căn cứ
@@ -69,7 +69,7 @@
 | **S** | Soft / Visual (mềm) | Không (như `plant`, `gids.walk`) | Bụi rậm, cây non, tán thấp, dây leo, nấm, cỏ cao, bia mốc, cột phù văn thấp, bãi lội (`ford`) | Phủ **chiều sâu hình ảnh**; vẽ chân vật ở cùng lớp đứng, client tự khoét lỗ / mờ khi che hồn sư |
 | **D** | Dynamic / Traversal (động) | Đổi theo trạng thái | Cầu mây, trụ phong ấn, dây leo đu, cọc dịch chuyển | **Mới**, phần 1.3; cần server quyết định |
 
-**Chỉ tiêu bố cục theo loại map** (đo bằng đúng các chỉ số ở 0.2; đây là chỉ tiêu thiết kế của công cụ dựng, không phải số cân bằng nên không vào `shared/data.ts`):
+**Chỉ tiêu bố cục theo loại map** (đo bằng đúng các chỉ số ở 0.2; **đã thành luật hiện hành** ở `docs/design/the-gioi-ban-do.md`, bảng này giữ cột "Hiện tại tệ nhất" làm căn cứ; không phải số cân bằng nên không vào `shared/data.ts`):
 
 | Chỉ tiêu | Dã ngoại / săn | Tông môn / thành | PvP / phụ bản | Hiện tại tệ nhất (Ngoại vi) |
 |---|---|---|---|---|
@@ -270,7 +270,7 @@ Ghi chú: asset có "Nhập miễn phí" phải qua duyệt ảnh (Q17) và đ�
 | L9 (#1667) | Vùng hồi: Hồn Lực Tầm Gửi, Linh Tuyền, Bãi Lội (có làm chậm hay không) | code | C | L5 | Thêm hằng ở `shared/data.ts`; soát cân bằng và tự săn |
 | L10 (#1668) | Lớp cản động + Phù Vân Kiều, Thạch Trụ Phong Ấn | code | C | L9 | Server + dự đoán client + giao thức; `ao review`, bot `bigmap` |
 | L11 (#1669) | Cổ Đằng Đu, Cọc Dịch Chuyển Ngắn (vượt khe) | code | C | L10 | Dùng cơ chế niệm / vị trí của `travel.ts` |
-| L12 (#1670) | Cập nhật `docs/design/the-gioi-ban-do.md`, `docs/tech/phong-ban-do.md` theo kết quả (luật đã duyệt) | docs | A | L2–L5 | Chuyển chỉ tiêu 1.1 thành luật hiện hành; sửa chỗ bài này trỏ |
+| L12 (#1670) | Luật đã chuyển; còn cập nhật tình trạng sau L2–L5 (`docs/design/the-gioi-ban-do.md`, `docs/tech/phong-ban-do.md`) | docs | A | L2–L5 | Chuyển chỉ tiêu 1.1 thành luật hiện hành; sửa chỗ bài này trỏ |
 
 ### 5.3 Mô phỏng quy tắc trên bản đồ thật (kết quả đo, chưa sửa file nào)
 

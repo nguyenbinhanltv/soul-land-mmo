@@ -8,6 +8,7 @@
     "test:source-icon-browser": "node scripts/source-icon-browser.mjs",
     "test:hub-icon-browser": "node scripts/hub-icon-browser.mjs",
     "test:hub-ten-browser": "node scripts/hub-ten-browser.mjs",
+    "test:quest-panel-browser": "node scripts/quest-panel-browser.mjs",
     "test:gift-browser": "node scripts/gift-browser.mjs",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
