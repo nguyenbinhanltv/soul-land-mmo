@@ -213,7 +213,15 @@ export async function autoTest(){
     // 15 giây không ai đánh). Đánh A–Y xa X để đòn của A không trúng lan sang X.
     // Chỗ ứng viên lấy quanh ĐIỂM NEO (home), không quanh A: A đang tự săn nên đứng chỗ nào cũng được (#1517: A sát B, 48 chỗ quanh A xa nhất 104 < 110 pixel).
     // Spawn nhận dx, dy tính từ A, nên đổi về độ lệch so với A; chọn chỗ gần A nhất trong số chỗ đủ xa B và X.
-    const need=BEAST_AGGRO_R+40, aP=me(A);
+    const need=BEAST_AGGRO_R+40;
+    // Y nhắm A rồi lao tới A, đòn của A (tầm đánh, vùng lan) trúng X nếu A đứng sát X (#1746: A cách X 43 pixel, X mất 194 sinh lực dù Y sinh xa X 112 pixel).
+    // Đưa A ra xa cả B lẫn X (hơn tầm aggro + 60 pixel) trong vùng neo trước khi sinh Y; X vẫn trong vùng nên bài vẫn thử đúng luật không cướp quái.
+    const aFar=BEAST_AGGRO_R+100, aOk=[0,40,80,120,160,200].flatMap(r=>[...Array(24).keys()].map(k=>{ const a=k*Math.PI/12, x=Math.round(home.x+Math.cos(a)*r), y=Math.round(home.y+Math.sin(a)*r);
+      return {x,y,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),dA:Math.hypot(x-me(A).x,y-me(A).y),bad:hits(gNV,x,y,PLAYER_HW+8,PLAYER_HH+8)||inCamp(x,y)||Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-40}; }))
+      .filter(c=>!c.bad&&c.away>=aFar).sort((u,v)=>u.dA-v.dA);
+    if(aOk[0]) await test(A,"goto",{x:aOk[0].x,y:aOk[0].y});
+    ok(!!aOk[0]&&Math.hypot(me(A).x-xb().x,me(A).y-xb().y)>=aFar-8,`A đứng xa X và B hơn tầm aggro trước khi sinh Y (${aOk.length} chỗ; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
+    const aP=me(A);
     const yCand=[40,80,120,160,200].flatMap(r=>[...Array(24).keys()].map(k=>{ const a=k*Math.PI/12, x=Math.round(home.x+Math.cos(a)*r), y=Math.round(home.y+Math.sin(a)*r);
       return {dx:x-Math.round(aP.x),dy:y-Math.round(aP.y),away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),dA:Math.hypot(x-aP.x,y-aP.y),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
     const yOk=yCand.filter(c=>!c.solid&&!c.far);
