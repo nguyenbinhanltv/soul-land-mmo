@@ -30,6 +30,7 @@
     "test:panel-tab-browser": "node scripts/panel-tab-browser.mjs",
     "test:npc-reply-browser": "node scripts/npc-reply-browser.mjs",
     "test:npc-low-browser": "node scripts/npc-low-browser.mjs",
+    "test:arena-queue-browser": "node scripts/arena-queue-browser.mjs",
     "test:arena-end-browser": "node scripts/arena-end-browser.mjs",
     "test:guide-fit-browser": "node scripts/guide-fit-browser.mjs",
     "test:arena-clock-browser": "node scripts/arena-clock-browser.mjs",
