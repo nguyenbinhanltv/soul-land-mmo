@@ -908,6 +908,7 @@ Tạo bằng PixelLab qua MCP, rồi chuẩn hóa bằng `tools/assets` (normali
 | `shared/assets/sprites/phaptuong/bich_lan_xa_hoang_glow.png` | `pt_bich_lan_xa_hoang_glow` | Codex / OpenAI image_gen + buildGlow | art/src/phap-tuong/bich_lan_xa_hoang/*.prompt.txt | 2026-10-31 | RAW nguyên byte, cutter chuẩn; buildGlow màu #3ad98a |
 | `shared/assets/sprites/iso/props/cot_co_do_vang_clip.png` | `prop_cot_co_do_vang_clip` | Codex builtin OpenAI image_gen.imagegen | Hoạt ảnh phần vải cờ đỏ viền vàng; prompt đầy đủ và RAW tại art/src/prop-clip/cot_co_do_vang/NGUON.md | 2026-11-01 | 16 khung 48x80, 100 ms; cột/chân cố định, chỉ phần vải đổi |
 | `shared/assets/sprites/iso/props/cot_den_do_clip.png` | `prop_cot_den_do_clip` | Codex builtin OpenAI image_gen.imagegen | Đèn lồng đỏ 8 pha 4x2, điểm treo cố định; prompt thực tế đầy đủ ở art/src/prop-clip/cot_den_do/NGUON.md | 2026-11-01 | Pha tua Codex; giữ pixel/dáng đèn gốc, nghiêng tối đa 1px, khung0 trùng gốc, chân [24,94]; RAW nguyên byte |
+| `shared/assets/sprites/iso/props/tan_linh_thu.png` | `prop_tan_linh_thu` | Codex builtin OpenAI image_gen.imagegen | Prompt nguyên văn và hash: art/src/tan-linh-thu/NGUON.md; Tán Linh Thụ rêu rậm isometric, ba sắc rêu Ngoại vi + điểm linh khí đom đóm, viền #1a1020, không đế/bóng/quầng. | 2026-11-03 | Lô 1 #1664, PR nháp loại B chờ chủ repo duyệt. Điều khoản đầu ra OpenAI, không CC0; sprite 96x64, chân [48,62]; gid 48 trong gids.walk, đi xuyên. Normal sinh bằng normal.mjs. |
 
 ## Asset tạo bằng AI (Gemini)
 
