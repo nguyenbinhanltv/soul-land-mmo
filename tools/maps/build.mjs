@@ -473,7 +473,7 @@ export function build(L, hand = null, seedOverride = null) {
     const kinds = Array.isArray(ss.kinds) ? Object.fromEntries(ss.kinds.map((k) => [k, 1])) : ss.kinds;
     const softW = {};
     for (const [k, w] of Object.entries(kinds ?? {})) {
-      if (!WALK.has(k) || k === "plant") throw new Error(`${mapId}: softSingles.kinds "${k}" phải khai ở gids.walk`);
+      if (!WALK.has(k)) throw new Error(`${mapId}: softSingles.kinds "${k}" phải khai ở gids.walk`);
       for (const g of gidsOf(GO[k])) softW[g] = w;
     }
     if (!Object.keys(softW).length) throw new Error(`${mapId}: softSingles cần kinds (loại vật trong gids.walk)`);
@@ -526,8 +526,8 @@ export function build(L, hand = null, seedOverride = null) {
   let sealN = 0;
   if (L.sealPockets) {
     const keep = [L.spawn?.rect, ...(L.portals ?? []).map((o) => o.rect), ...(L.waypoints ?? []).map((o) => [o.at[0] - 2, o.at[1] - 2, 4, 4]),
-      ...(L.elites ?? []).map((o) => o.rect), L.lair ? [L.lair.at[0] - L.lair.rx, L.lair.at[1] - L.lair.ry, L.lair.rx * 2, L.lair.ry * 2] : null].filter(Boolean);
-    const isKeep = (x, y) => keep.some(([kx, ky, kw, kh]) => x >= kx - 2 && y >= ky - 2 && x < kx + kw + 2 && y < ky + kh + 2);
+      ...(L.elites ?? []).map((o) => o.rect), L.lair ? [L.lair.at[0] - L.lair.rx, L.lair.at[1] - L.lair.ry, L.lair.rx * 2, L.lair.ry * 2, 0] : null].filter(Boolean); // phần tử thứ 5: lề (mặc định 2; hang 0 vì vòng tường đã nằm trong hình)
+    const isKeep = (x, y) => keep.some(([kx, ky, kw, kh, m = 2]) => x >= kx - m && y >= ky - m && x < kx + kw + m && y < ky + kh + m);
     for (let round = 0; round < 6; round++) {
       const g = { MW, MH, solid: Uint8Array.from({ length: N }, (_, i) => (solid(i) ? 1 : 0)) }, Wd = widths(g), comp = new Int32Array(N).fill(-1), sizes = [];
       for (let s0 = 0; s0 < N; s0++) {

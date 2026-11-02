@@ -16,11 +16,14 @@
     "objects": {
       "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "tent": 11, "fire": 12, "plant": 28, "sign": 29, "skull": 27,
       "roof": 14, "wall": 15,
-      "pier": 41, "lighthouse": 42, "sea_lamp": 43, "shell": 44, "poseidon": 45
+      "pier": 41, "lighthouse": 42, "sea_lamp": 43, "shell": 44, "poseidon": 45, "vat_dao": 46
     },
-    "walk": ["pier"],
+    "walk": ["pier", "vat_dao"],
     "canopy": { "17": 21, "18": 22, "20": 24 }
   },
+  "softSingles": { "_": "L5 #1663: cụm chặn ≤ 3 ô cách biên ≥ 4 ô: cây / đá lẻ thành vật mềm; hết kẹt chéo (như Ngoại vi, L2 #1660)", "maxCluster": 3, "edge": 3, "diag": true, "alsoKinds": ["log", "rock"], "kinds": { "vat_dao": 1 } },
+
+  "sealPockets": true,
   "tiers": [
     { "name": "Bãi san hô", "years": "50000-65000", "hint": "Hồn thú 50.000 – 65.000 năm", "beasts": "thiet_giap_cu_giai:1,lam_lan_hai_xa:1,kiem_ngu:1",
       "trees": { "17": 2, "18": 1 }, "denseTrees": { "17": 1, "20": 1 }, "density": 0.025, "cluster": 0.66, "clusterDensity": 0.6,
@@ -50,7 +53,7 @@
   "points": {
     "ben": [22, 85], "san_ho": [44, 88], "mqh": [92, 84], "vach_chan": [132, 88], "vach": [164, 92], "uyen": [206, 86],
     "san_ho_n": [30, 30], "mqh_n": [92, 30], "den": [153, 72], "uyen_n": [214, 30],
-    "san_ho_s": [34, 136], "loi_quang": [92, 138], "vach_s": [160, 136], "uyen_s": [212, 122]
+    "san_ho_s": [34, 136], "loi_quang": [92, 138], "vach_s": [160, 136], "uyen_s": [212, 122], "hang_thu": [222, 138]
   },
   "features": [
     { "type": "area", "name": "Rạn quanh đảo", "ground": "ford", "invert": true, "edge": 3, "clear": true,
@@ -97,12 +100,13 @@
     { "type": "house", "rect": [97, 131, 5, 4], "margin": 1 }
   ],
   "roads": [
-    { "via": ["ben", "san_ho", "mqh", "vach_chan", "vach", "uyen"], "width": 3, "waterCost": 6 },
-    { "via": ["san_ho", "san_ho_n", "mqh_n", "den"], "width": 2, "waterCost": 6 },
+    { "via": ["ben", "san_ho", "mqh", "vach_chan", "vach", "uyen"], "width": 5, "straight": true, "waterCost": 6 },
+    { "via": ["san_ho", "san_ho_n", "mqh_n", "den"], "width": 3, "waterCost": 6 },
     { "via": ["vach", "den"], "width": 3 },
-    { "via": ["den", "uyen_n"], "width": 2 },
-    { "via": ["san_ho", "san_ho_s", "loi_quang", "vach_s", "uyen_s"], "width": 2, "waterCost": 6 },
-    { "via": ["uyen", "uyen_s"], "width": 2 }
+    { "via": ["den", "uyen_n"], "width": 3 },
+    { "via": ["san_ho", "san_ho_s", "loi_quang", "vach_s", "uyen_s"], "width": 5, "straight": true, "waterCost": 6 },
+    { "via": ["uyen", "uyen_s"], "width": 3 },
+    { "via": ["uyen_s", "hang_thu"], "width": 5, "straight": true }
   ],
   "spawn": { "name": "Bến Hải Thần", "rect": [13, 77, 13, 16] },
   "portals": [
