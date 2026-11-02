@@ -276,8 +276,15 @@ export async function waypointTest(){
   }
   /** Đứng lên trận `key` (hook goto) và chờ tin `wp {k: "here"}`. */
   async function stand(key){ const w=wps[key]; T.wpHere=null; await test(T,"goto",{x:w.x,y:w.y}); await waitFor(()=>T.wpHere?.key===key,1500); return w; }
-  /** Xin truyền tống tới `key`, chờ log trả lời (bắt đầu niệm hoặc từ chối). */
-  async function go(key){ const l=T.logs.length; T.recall=null; T.room.send("wp",{op:"go",key}); await waitFor(()=>T.logs.length>l,1500); return T.logs.at(-1)??""; }
+  /** Xin truyền tống tới `key`, chờ log trả lời của đúng lượt gửi (bắt đầu niệm hoặc từ chối). Chỉ xét log đến SAU lúc gửi và đúng loại
+   *  trả lời truyền tống: log khác (chào, mở khóa, bị đánh…) tới xen giữa khi máy tải không bị đọc nhầm làm kết quả (#1561, #1533).
+   *  Không có trả lời thì trả log mới nhất sau lúc gửi (hoặc "") để dòng ✗ còn chẩn đoán, không bao giờ trả log cũ của bước trước. */
+  async function go(key){
+    const l=T.logs.length, isReply=t=>/truyền tống|Hồn Tệ|giao chiến|đang hồi|tự săn|không tồn tại|Chưa mở khóa|chính trận|Không tới được|gục ngã|hấp thụ|Đang bị/.test(t);
+    T.recall=null; T.room.send("wp",{op:"go",key});
+    await waitFor(()=>T.logs.slice(l).some(isReply),1500);
+    const fresh=T.logs.slice(l); return fresh.find(isReply)??fresh.at(-1)??"";
+  }
   const coin=async n=>{ await test(T,"coin",{n}); await waitFor(()=>T.bag?.honTe===n,1500); };
 
   // Thánh Hồn Thôn: bản đồ thế giới khi không đứng trên trận chỉ để xem.
