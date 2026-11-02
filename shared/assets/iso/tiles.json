@@ -1319,6 +1319,7 @@
    "ground": {
     "1": "san_da_nut",
     "7": "cat_dau_truong~#f0e8d8",
+    "8": "san_da~#5c5e70",
     "13": "san_da~#8c8e9c",
     "16": "san_da_nut~#e0c890"
    },
@@ -1349,7 +1350,8 @@
     "17": ["cot_co_do_vang", "lo_lua_dong"],
     "12": "lo_lua_dong",
     "37": "su_tu_vang",
-    "38": "cot_co_do_vang"
+    "38": "cot_co_do_vang",
+    "39": "bia_da_co"
    }
   },
   "hai_than_dao": {

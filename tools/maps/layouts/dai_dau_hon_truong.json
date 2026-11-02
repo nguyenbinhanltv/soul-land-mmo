@@ -1,5 +1,5 @@
 {
-  "_": "Đại Đấu Hồn Trường (11.5, giữ cỡ 40×24 hợp trận 1v1, chỉ làm đẹp). Tường đá, khán đài phía bắc (công trình khan_dai) và phía nam, sân cát viền quanh sàn đá có huy hiệu giữa, cột cờ và lò lửa đồng hai bên, sư tử vàng ở bốn góc sân. Định dạng: tools/maps/README.md.",
+  "_": "Đại Đấu Hồn Trường (11.5, giữ cỡ 40×24 hợp trận 1v1, chỉ làm đẹp). Tường đá, khán đài phía bắc (công trình khan_dai) và phía nam, sân cát viền quanh sàn đá có huy hiệu giữa, cột cờ và lò lửa đồng hai bên, sư tử vàng ở bốn góc sân. Định dạng: tools/maps/README.md. L7 (#1665): Bát Quái Trận, 8 trụ bia đá 2×2 (hard) tại 8 phương quanh Thái Cực Đài (nền đá tối, đi được); giữ nguyên sân cát, sàn đá, huy hiệu, vạch giữa, vùng spawn.",
   "map": "dai_dau_hon_truong",
   "out": "dai_dau_hon_truong.v2.json",
   "size": [
@@ -24,7 +24,7 @@
       "ford": 34,
       "bank": 25,
       "deep": 35,
-      "stony": 26,
+      "stony": 8,
       "glow": 5,
       "bridge": 33
     },
@@ -33,7 +33,8 @@
       "fire": 12,
       "ruin": 37,
       "roof": 14,
-      "wall": 15
+      "wall": 15,
+      "tru": 39
     }
   },
   "tiers": [
@@ -60,6 +61,19 @@
         24
       ],
       "clear": true
+    },
+    {
+      "type": "area",
+      "name": "Thái Cực Đài",
+      "ground": "stony",
+      "rect": [
+        18,
+        11,
+        4,
+        3
+      ],
+      "clear": true,
+      "lock": true
     },
     {
       "type": "area",
@@ -197,11 +211,11 @@
       "type": "row",
       "kind": "stele",
       "from": [
-        1,
+        0,
         6
       ],
       "to": [
-        1,
+        0,
         18
       ],
       "step": 4
@@ -210,11 +224,11 @@
       "type": "row",
       "kind": "stele",
       "from": [
-        38,
+        39,
         6
       ],
       "to": [
-        38,
+        39,
         18
       ],
       "step": 4
@@ -223,11 +237,11 @@
       "type": "row",
       "kind": "fire",
       "from": [
-        1,
+        0,
         8
       ],
       "to": [
-        1,
+        0,
         16
       ],
       "step": 4
@@ -236,11 +250,11 @@
       "type": "row",
       "kind": "fire",
       "from": [
-        38,
+        39,
         8
       ],
       "to": [
-        38,
+        39,
         16
       ],
       "step": 4
@@ -250,20 +264,196 @@
       "kind": "ruin",
       "at": [
         [
-          2,
+          1,
           5
         ],
         [
-          37,
+          38,
           5
         ],
         [
-          2,
+          1,
           20
         ],
         [
-          37,
+          38,
           20
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          19,
+          7
+        ],
+        [
+          20,
+          7
+        ],
+        [
+          19,
+          8
+        ],
+        [
+          20,
+          8
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          19,
+          17
+        ],
+        [
+          20,
+          17
+        ],
+        [
+          19,
+          18
+        ],
+        [
+          20,
+          18
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          6,
+          12
+        ],
+        [
+          7,
+          12
+        ],
+        [
+          6,
+          13
+        ],
+        [
+          7,
+          13
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          32,
+          12
+        ],
+        [
+          33,
+          12
+        ],
+        [
+          32,
+          13
+        ],
+        [
+          33,
+          13
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          11,
+          8
+        ],
+        [
+          12,
+          8
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          27,
+          8
+        ],
+        [
+          28,
+          8
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          11,
+          16
+        ],
+        [
+          12,
+          16
+        ],
+        [
+          11,
+          17
+        ],
+        [
+          12,
+          17
+        ]
+      ]
+    },
+    {
+      "type": "objects",
+      "kind": "tru",
+      "at": [
+        [
+          27,
+          16
+        ],
+        [
+          28,
+          16
+        ],
+        [
+          27,
+          17
+        ],
+        [
+          28,
+          17
         ]
       ]
     },
