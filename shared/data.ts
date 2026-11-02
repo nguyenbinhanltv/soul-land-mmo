@@ -5613,7 +5613,7 @@ function jobText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
     case "go": return `Đi tới${n}${s.d ? ` (${s.d} ô)` : ""}`;
     case "dodge": return "Đang né";
     case "back": return "Đang lùi hồi sức";
-    case "rest": return "Đang nghỉ";
+    case "rest": return "Chờ nhịp săn, tìm con tiếp"; // nợ nhịp AUTO_PACE hoặc hồi sức: không phải treo (#1713)
     case "spawn": return "Đi tới chỗ hồi sinh";
     default: return "Đang đi dạo";
   }
