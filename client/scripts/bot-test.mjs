@@ -92,6 +92,7 @@ import { pathflowTest } from "./bot/pathflow.mjs";
 import { issue121Test } from "./bot/issue121.mjs";
 import { partyBuffTest, partyEffectExpansionTest, supportContribTest, copyPartyTest } from "./bot/party.mjs";
 import { chatTest, friendTest } from "./bot/social.mjs";
+import { dexTest } from "./bot/dex.mjs";
 import { lockTest, inkTest, coldTest, splitTest, boneSubTest, comboTest } from "./bot/combat.mjs";
 import { autoBossTest, autoBossPerf } from "./bot/autoBoss.mjs";
 import { channelTest, testAccTest } from "./bot/channel.mjs";
@@ -146,6 +147,7 @@ let vil, blocked;
 // Bài độc lập (tự tạo bot, gọi được ở bất kỳ đâu): [khóa, nhóm, hàm, cần hook test]. Thứ tự là thứ tự chạy; số giây đo trên runner CI.
 const STANDALONE=[
   ["cold",1,coldTest],                        //  18 #163 Cực Hàn
+  ["dex",1,dexTest],                         //  ~10 #1720 sổ tay hồn thú
   ["lock",1,lockTest],                        //  ~12 M3 #750 khoá mục tiêu
   ["ink",1,inkTest],                          //   6 #175 Phun Mực che tầm nhìn
   ["boneSub",1,boneSubTest],                  //   3 #187 dòng phụ hồn cốt
@@ -247,6 +249,7 @@ function finish(){
 if(process.env.BOT_ONLY==="equipbest"){ await equipBestTest(); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="bicanh"){ await bicanhTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="mail"){ await mailTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
+if(process.env.BOT_ONLY==="dex"){ await dexTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="achv"){ await achvTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="welfare"){ await welfareTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }
 if(process.env.BOT_ONLY==="rank"){ await rankTest(); console.log(failCount()?`✗ ${failCount()} kiểm tra thất bại`:"✓ Mọi kiểm tra đều qua"); process.exit(failCount()?1:0); }

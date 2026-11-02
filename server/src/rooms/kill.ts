@@ -6,6 +6,7 @@ import { type MapRoom } from "./MapRoom.ts";
 import { persistEliteLock } from "./presenceState.ts";
 import { eliteLocks, eliteKey, eliteLockLeft } from "./procState.ts";
 import { uid } from "./common.ts";
+import { dexKilled } from "./dex.ts";
 
 /**
  * Hạ hồn thú: kinh nghiệm, Hồn Tệ, và hồn hoàn rơi xuống đất mang đúng số năm của hồn thú (mục 5.2); người hạ được ưu tiên nhặt.
@@ -44,6 +45,7 @@ export function killBeast(room: MapRoom, bid: string, by: string) {
   for (const pid of team) {
     const full = !!e && free(pid); if (full) got.add(pid);
     room.rewardKill(pid, b.years, (full ? ELITE.xp : 1) * share);
+    if (!b.rank) dexKilled(room, pid, b.species); // Sổ tay hồn thú (#1720): hạ loài thường thì ghi (cả đồng đội cùng chia kinh nghiệm)
   }
   if (owner) got.add(owner);
   if (e) {

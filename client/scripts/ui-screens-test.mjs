@@ -6,6 +6,8 @@ import { logNotice, notices, clearNotices, LOG_MAX } from "../src/noticeLog.ts";
 import { noticeNode, noticeTime } from "../src/noticeScreen.ts";
 import { toHtml } from "../src/uiParts.ts";
 import { giftNode, giftItemUrl } from "../src/giftView.ts";
+import { dexRows, dexSummary, dexRowNode } from "../src/dexScreen.ts";
+import { BEASTS } from "../../shared/data.ts";
 
 // Quà dùng chữ làm nghĩa chính; chưa tải manifest vẫn đọc đủ và mã lạ không tạo ảnh.
 const giftHtml = toHtml(giftNode({ honTe: 120, shards: 2, items: [{ code: "hoi_huyet_dan", qty: 3 }, { code: '<img src=x onerror="alert(1)">', qty: 4 }] }));
@@ -28,7 +30,7 @@ import { playerCard, rankGroups, podiumOf, lineupText, meLine, pageLabel, tongNa
 const ids = HUB_ITEMS.map((i) => i.id);
 assert.equal(new Set(ids).size, ids.length, "id mục hub không trùng");
 const sizes = (l) => ({ big: l.big.length, mid: l.mid.length, grid: l.grid.length, rail: l.rail.length });
-assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 13, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
+assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 14, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
 const L = hubLayout(["char", "bag", "rank", "settings"], ["rank"]);
 const cell = (l, id) => [...l.big, ...l.mid, ...l.grid, ...l.rail].find((c) => c.item.id === id);
 assert.equal(cell(L, "char").enabled, true);
@@ -317,4 +319,17 @@ console.log("✓ Bộ nối Xếp Hạng: điểm, trang, quyền riêng tư");
   assert.equal(run(true), 0, "phòng sân đấu / Bí Cảnh: không tự gửi calendar");
   assert.equal(run(false), 1, "bản đồ thường: vẫn xin lịch lúc vào");
   delete globalThis.window; delete globalThis.document;
+}
+
+// ---- Sổ Tay Hồn Thú (dexScreen.ts, #1720): hàm thuần ----
+{
+  const rows = dexRows(new Map([[BEASTS[0].id, 0], [BEASTS[1].id, 5]]));
+  assert.equal(rows.length, BEASTS.length, "đủ mọi loài theo BEASTS");
+  assert.equal(rows[0].name, BEASTS[0].name); assert.equal(rows[0].seen, true); assert.equal(rows[0].kills, 0);
+  assert.equal(rows[1].kills, 5);
+  assert.ok(rows.slice(2).every((r) => r.name === "???" && !r.seen), "loài chưa gặp giấu tên");
+  assert.equal(dexSummary(rows), `Đã gặp 2 / ${BEASTS.length} loài · đã hạ 1 loài`);
+  const html = toHtml(dexRowNode(rows[2]));
+  assert.ok(html.includes("???") && html.includes("Chưa gặp") && !html.includes(BEASTS[2].name), "dòng chưa gặp không lộ tên");
+  assert.match(toHtml(dexRowNode(rows[1])), /Đã hạ 5 lần/); assert.match(toHtml(dexRowNode(rows[0])), /Đã gặp, chưa hạ/);
 }
