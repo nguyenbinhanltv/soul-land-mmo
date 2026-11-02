@@ -46076,6 +46076,18 @@
       "key": "gi_achv_claimed_1x",
       "iso": true
     },
+    {
+      "key": "prop_cong_thanh_vom",
+      "iso": true
+    },
+    {
+      "key": "prop_nha_khung_go_2tang",
+      "iso": true
+    },
+    {
+      "key": "prop_nha_khung_go_3tang",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

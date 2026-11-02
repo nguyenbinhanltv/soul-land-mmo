@@ -1,0 +1,30 @@
+{
+  "issue": 1722,
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "date": "2026-11-02",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "transparent_background": true,
+  "items": [
+    {
+      "name": "cong_thanh_vom",
+      "artifact": "cong_thanh_vom-raw.png",
+      "width": 1374,
+      "height": 1145,
+      "sha256": "bee2695611746ef8f79fab22cf1ab566fe1d22cd88ae31d59a3818ab10adb449"
+    },
+    {
+      "name": "nha_khung_go_2tang",
+      "artifact": "nha_khung_go_2tang-raw.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "653f637e07f919494a3059633f555113ac634943638a2affd823d30e8d2d1f68"
+    },
+    {
+      "name": "nha_khung_go_3tang",
+      "artifact": "nha_khung_go_3tang-raw.png",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "c9ad5301812faf6082dc236e4b9ed6a3ffbb3ca6abfb01e910e6aa74af7a55da"
+    }
+  ]
+}
