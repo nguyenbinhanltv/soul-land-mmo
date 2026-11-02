@@ -374,6 +374,12 @@ jobs:
         timeout-minutes: 4
         env:
           NPC_LOW_OUTPUT: ${{ runner.temp }}/browser-regress/npc-low
+      # Xếp hàng đấu trường: hộp NPC đóng, ô Đang tìm đối thủ + Hủy thấy đủ (#1689).
+      - run: npm run test:arena-queue-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          ARENA_QUEUE_OUTPUT: ${{ runner.temp }}/browser-regress/arena-queue
       # Mã mua thật sự gửi khi lọc cửa hàng, Túi cập nhật từ server, đổi NPC (#1520).
       - run: npm run test:shop-search-browser --prefix client
         if: ${{ !cancelled() }}
