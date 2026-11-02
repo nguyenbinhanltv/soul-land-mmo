@@ -4,6 +4,7 @@
 #hud .stats .bar{height:calc(var(--fs-s) + 2px);margin-top:var(--sp-2);border:var(--bd-fine) solid var(--ink2)}
 #hud .stats .bar span{font:var(--fs-s)/1 var(--f10);z-index:1}
 #hud .stats .bar[hidden]{display:none}
+#hud .stats .bar #xpPct{display:none}
 #hud .stats .who{gap:var(--sp-4);padding-bottom:var(--sp-3);border-bottom:var(--bd-fine) solid var(--ink2)}
 #hud .stats .portrait{border-color:var(--paper3)}
 #hud #lvl{font:var(--fs-m)/1.2 var(--f12);color:var(--qgold);text-shadow:none}
@@ -42,5 +43,8 @@
 :where(body.ui-w640) #hud .stats .who-main{flex-direction:column;align-items:flex-start;gap:0}
 :where(body.ui-w640) #hud .stats .bar{grid-column:2;height:8px;margin-top:var(--sp-1)}
 :where(body.ui-w640) #hud .stats .bar span{inset:auto;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+:where(body.ui-w640) #hud .stats .bar.xp{position:relative;overflow:visible}  /* chữ ngắn (% hoặc "Hoàn N") nằm ngay bên phải thanh mỏng; chữ dài chỉ ở chú thích / aria-label (#1677) */
+:where(body.ui-w640) #hud .stats .bar.xp #xpPct{display:block;position:absolute;left:calc(100% + var(--sp-2));top:50%;transform:translateY(-50%);font:var(--fs-s)/1 var(--f10);color:var(--ink-text);white-space:nowrap}
+:where(body.ui-w640) #hud .stats:has(.bar.xp:not([hidden])){padding-right:calc(var(--sp-3) + 7ch)}
 :where(body.ui-w640) #hud .stats .chips{grid-column:1 / -1;grid-row:4;margin-top:var(--sp-2)}
 :where(body.ui-w640) #hud .stats .buffs{grid-column:1 / -1}
