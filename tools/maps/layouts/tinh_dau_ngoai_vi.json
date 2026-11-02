@@ -21,6 +21,7 @@
     "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
   },
   "softSingles": { "_": "L2 #1660: cụm chặn ≤ 3 ô cách biên ≥ 4 ô: cây thành vật mềm; hết kẹt chéo", "maxCluster": 3, "edge": 4, "alsoKinds": ["vat_thong", "vat_soi", "vat_khuc_go", "big_tree", "log"], "kinds": { "vat_deco": 3, "vat_nam": 1 } },
+  "sealPockets": true,
   "tiers": [
     { "name": "Bìa rừng", "years": "300-700", "hint": "Hồn thú 300 – 700 năm", "beasts": "phong_lang:2,man_da_la_xa:1,tu_van_bao:1",
       "trees": { "17": 3, "18": 1 }, "denseTrees": { "17": 1, "18": 1 }, "density": 0.08, "cluster": 0.56, "clusterDensity": 0.9,
@@ -54,7 +55,7 @@
     "camp_e": [21, 85], "camp_n": [14, 76], "bia_rung": [58, 92], "rung_thua": [105, 77], "co_thu": [100, 72], "cau_khe_suoi": [152, 88],
     "khe_suoi": [196, 84], "tram_gac": [233, 85], "phong_lang": [32, 30], "quy_dang": [88, 32], "vach_tay": [132, 30], "vach_dong": [182, 30],
     "linh_mieu": [218, 40], "tram_gac_n": [240, 76], "bai_co": [40, 100], "phe_tich": [92, 127], "phe_tich_dong": [106, 137],
-    "suoi_ngan": [124, 140], "lam_hac": [150, 146], "hac_sat": [165, 136], "lang_coc": [222, 139], "tram_gac_s": [240, 94]
+    "suoi_ngan": [124, 140], "lam_hac": [150, 146], "hac_sat": [165, 136], "lang_coc": [222, 139], "tram_gac_s": [240, 94], "hang_thu": [222, 148]
   },
   "features": [
     { "type": "pond", "at": [38, 122], "r": 4 },
@@ -92,11 +93,14 @@
     { "type": "scatter", "kind": "vat_nam", "rect": [24, 2, 226, 166], "p": 0.004, "on": ["grass", "leaf", "moss"] }
   ],
   "roads": [
-    { "via": ["camp_e", "bia_rung", "rung_thua", "cau_khe_suoi", "khe_suoi", "tram_gac"], "width": 3 },
-    { "via": ["rung_thua", "co_thu"], "width": 2 },
-    { "via": ["camp_n", "phong_lang", "quy_dang", "vach_tay", "vach_dong", "linh_mieu", "tram_gac_n"], "width": 2 },
-    { "via": ["bia_rung", "bai_co", "phe_tich", "phe_tich_dong", "suoi_ngan", "lam_hac", "hac_sat", "lang_coc", "tram_gac_s"], "width": 2 },
-    { "via": ["quy_dang", "co_thu"], "width": 2 }
+    { "via": ["camp_e", "rung_thua", "cau_khe_suoi", "khe_suoi", "tram_gac"], "width": 5, "straight": true },
+    { "via": ["rung_thua", "co_thu"], "width": 3 },
+    { "via": ["camp_n", "phong_lang", "quy_dang", "vach_tay", "vach_dong", "linh_mieu", "tram_gac_n"], "width": 5, "straight": true },
+    { "via": ["bia_rung", "bai_co", "phe_tich", "phe_tich_dong", "suoi_ngan", "lam_hac", "hac_sat", "lang_coc", "tram_gac_s"], "width": 5, "straight": true },
+    { "via": ["quy_dang", "co_thu"], "width": 3 },
+    { "via": ["camp_e", "bia_rung"], "width": 5, "straight": true },
+    { "via": ["rung_thua", "linh_mieu"], "width": 5, "straight": true },
+    { "via": ["lang_coc", "hang_thu"], "width": 5, "straight": true }
   ],
   "spawn": { "name": "Trại cổng Ngoại vi", "rect": [5, 77, 13, 16] },
   "portals": [
