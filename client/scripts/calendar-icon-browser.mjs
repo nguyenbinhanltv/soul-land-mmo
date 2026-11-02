@@ -19,6 +19,8 @@ const dataPath = fileURLToPath(new URL("../../shared/data.ts", import.meta.url))
 const setupCalendar = async (page) => {
   await page.goto(`http://127.0.0.1:${port}/choi/`);
   await page.clock.install();
+  // Đợi game vẽ xong màn đăng nhập rồi mới gỡ #overlay: gỡ sớm thì loginScreen() chạy sau getElementById ra null (pageerror chập chờn trên CI chậm, #1619 / #1628 / #1704).
+  await page.waitForSelector("#credits-open", { state: "attached" });
   await page.evaluate(async (dataPath) => {
     await (await import("/src/uiArt.ts")).loadUiArt();
     document.querySelector("#overlay")?.remove();

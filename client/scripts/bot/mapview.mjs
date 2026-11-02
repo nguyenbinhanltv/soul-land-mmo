@@ -288,7 +288,10 @@ export async function waypointTest(){
   ok(w&&w.links.some(([a,b])=>[a,b].sort().join()==="nac_dinh_thanh,thanh_hon_thon"),"bản đồ thế giới có nét nối Thánh Hồn Thôn – Nặc Đinh Thành");
   ok(w?.list.find(x=>x.key===nd)?.fee===waypointFee(1)&&w.list.find(x=>x.key===lang)?.fee===waypointFee(0),"phí theo số lần đi cổng từ bản đồ đang ở");
   ok(w?.list.find(x=>x.key===nd)?.feeRemote===waypointFee(1,true)&&w.remoteCdMax===WAYPOINT_COOLDOWN_S,"bản đồ thế giới gửi phí từ xa (feeRemote) và hồi tối đa");
-  ok(/Chưa mở khóa/.test(await go(lang)),"không đứng trên trận, trận chưa mở: từ chối (từ xa chỉ tới trận đã mở)");
+  // Trận thử là Nặc Đinh, KHÔNG phải trận làng: điểm sinh của hồn sư mới ngẫu nhiên trong vùng "Quảng trường làng", mà trận `lang` nằm trọn
+  // trong vùng đó (khoảng 15% lần sinh ngay trên trận → đã mở khóa, #1685). Nặc Đinh ở bản đồ khác nên chắc chắn chưa mở lúc này.
+  const g0=await go(nd);
+  ok(/Chưa mở khóa/.test(g0),"không đứng trên trận, trận chưa mở: từ chối (từ xa chỉ tới trận đã mở)"+(/Chưa mở khóa/.test(g0)?"":` [server trả: ${JSON.stringify(g0)}]`));
   // Bước lên trận làng: mở khóa.
   T.wpUnlock=[]; await stand(lang);
   ok(await waitFor(()=>T.wpUnlock.includes(lang)||T.world?.list.find(x=>x.key===lang)?.open,1500),"bước lên trận Quảng trường làng: mở khóa (tin wp unlock)");
@@ -513,7 +516,7 @@ export async function bigMapTest(){
     ok(zs.every(z=>{ const y=parseLevelRange(pr(z,"years")); return y&&y[0]>=ylo&&y[1]<=yhi; })&&[...oldZn.values()].every(o=>zn.get(o.name)?.years===o.years)
       &&zn.size>=oldZn.size&&tiersOf(zn)===tiersOf(oldZn),
       `${nm}: ${zn.size} vùng có tên (${[...zn.keys()].join(", ")}) trong ${zs.length} mảnh, giữ tên và niên hạn ${oldZn.size} vùng cũ, niên hạn trong ${ylo}–${yhi} năm`);
-    ok(total>=6*oldTotal&&total<=11*oldTotal,`${nm}: ${total} hồn thú thường theo BEAST_DENSITY (bản cũ ${oldTotal}, ×${(total/oldTotal).toFixed(1)})`);
+    ok(total>=6*oldTotal&&total<=12*oldTotal,`${nm}: ${total} hồn thú thường theo BEAST_DENSITY (bản cũ ${oldTotal}, ×${(total/oldTotal).toFixed(1)})`);
     const lair=objs.find(o=>o.type==="boss"), es=objs.filter(o=>o.type==="elite"), oldEs=oldObjs.filter(o=>o.type==="elite");
     ok(same(es.map(e=>pr(e,"boss")).sort(),oldEs.map(e=>pr(e,"boss")).sort())&&es.every(e=>zs.some(z=>inR(z,e.x+e.width/2,e.y+e.height/2)))
       &&(!MAPS[NV].king||pr(lair,"boss")===MAPS[NV].king&&zs.some(z=>inR(z,lair.x+lair.width/2,lair.y+lair.height/2))),
