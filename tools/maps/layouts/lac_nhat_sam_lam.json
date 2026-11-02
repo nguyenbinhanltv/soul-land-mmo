@@ -20,7 +20,8 @@
     },
     "canopy": { "17": 21, "18": 22, "19": 23, "20": 24 }
   },
-  "softSingles": { "_": "L5 #1663: cụm chặn ≤ 3 ô cách biên ≥ 4 ô: cây thành vật mềm; hết kẹt chéo / ngõ cụt (như Ngoại vi, L2 #1660)", "maxCluster": 3, "edge": 4, "diag": true, "alsoKinds": ["vat_thong", "vat_soi", "vat_khuc_go", "burnt_tree", "log", "rock"], "kinds": { "vat_deco": 3, "vat_nam": 1, "poison_flower": 1 } },
+  "softSingles": { "_": "L5 #1663: cụm chặn ≤ 3 ô cách biên ≥ 4 ô: cây thành vật mềm; hết kẹt chéo / ngõ cụt (như Ngoại vi, L2 #1660)", "maxCluster": 3, "edge": 3, "diag": true, "alsoKinds": ["vat_thong", "vat_soi", "vat_khuc_go", "burnt_tree", "log", "rock"], "kinds": { "vat_deco": 3, "vat_nam": 1, "poison_flower": 1 } },
+  "sealPockets": true,
   "tiers": [
     { "name": "Rừng hoa độc", "years": "5000-10000", "hint": "Hồn thú 5.000 – 10.000 năm", "beasts": "thuc_nhan_hoa:1,cuc_yeu_hoa_linh:1,doc_cuc_dang:1",
       "trees": { "17": 3, "18": 1 }, "denseTrees": { "17": 1, "18": 1 }, "density": 0.09, "cluster": 0.56, "clusterDensity": 0.9,
@@ -52,7 +53,7 @@
   "points": {
     "camp_e": [21, 85], "camp_n": [14, 76], "hoa_lo": [44, 88], "dam": [94, 84], "bang_hoa": [158, 72], "nghi_tay": [200, 72], "nghi": [222, 74],
     "hoa_coc": [30, 30], "dam_bac": [96, 30], "bang_bac": [160, 26], "nghi_bac": [228, 30], "co_thu": [36, 128], "lan_quang": [96, 136],
-    "hoa_diem": [160, 132], "co_dang": [222, 134], "nghi_nam": [214, 96]
+    "hoa_diem": [160, 132], "co_dang": [222, 134], "nghi_nam": [214, 96], "hang_thu": [222, 148]
   },
   "features": [
     { "type": "pond", "at": [76, 50], "r": 4.5 },
@@ -108,11 +109,12 @@
     { "type": "scatter", "kind": "vat_nam", "rect": [22, 2, 110, 166], "p": 0.004, "on": ["grass", "leaf", "moss"] }
   ],
   "roads": [
-    { "via": ["camp_e", "hoa_lo", "dam", "bang_hoa", "nghi_tay", "nghi"], "width": 3 },
-    { "via": ["camp_n", "hoa_coc", "dam_bac", "bang_bac", "nghi_bac", "nghi"], "width": 2 },
-    { "via": ["hoa_lo", "co_thu", "lan_quang", "hoa_diem", "co_dang"], "width": 2 },
-    { "via": ["nghi_tay", "nghi_nam", "co_dang"], "width": 2 },
-    { "via": ["dam", "dam_bac"], "width": 2 }
+    { "via": ["camp_e", "hoa_lo", "dam", "bang_hoa", "nghi_tay", "nghi"], "width": 5, "straight": true },
+    { "via": ["camp_n", "hoa_coc", "dam_bac", "bang_bac", "nghi_bac", "nghi"], "width": 5, "straight": true },
+    { "via": ["hoa_lo", "co_thu", "lan_quang", "hoa_diem", "co_dang"], "width": 5, "straight": true },
+    { "via": ["nghi_tay", "nghi_nam", "co_dang"], "width": 5, "straight": true },
+    { "via": ["dam", "dam_bac"], "width": 3 },
+    { "via": ["co_dang", "hang_thu"], "width": 5, "straight": true }
   ],
   "spawn": { "name": "Trại cổng Lạc Nhật", "rect": [5, 77, 13, 16] },
   "portals": [
