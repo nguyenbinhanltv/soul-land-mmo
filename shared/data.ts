@@ -4305,6 +4305,15 @@ export function honTeParts(dong: number) {
 export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.toLocaleString("vi-VN")} ${p.unit}`).join(" ");
 
 export const TILE = 16;
+/**
+ * Ẩn tên hồn thú thường trên bản đồ (#1714, đề xuất, chờ chủ repo chốt): từ xa chỉ thấy "???" (kích thước, màu bậc và hình vẫn lộ như
+ * mục 5.2), lại gần trong `BEAST_REVEAL.r` pixel mới hiện tên loài. Tinh anh / thú vương / boss thế giới có tên riêng nên luôn hiện.
+ * Chỉ là cách hiển thị ở client: loài vẫn nằm trong state đồng bộ (BeastState.species) vì client cần nó để chọn hình.
+ */
+export const BEAST_REVEAL = { r: 6 * TILE, unknown: "???" };
+/** Tên hồn thú cho người đứng cách nó `dist` pixel: xa hơn BEAST_REVEAL.r thì ẩn tên loài của hồn thú thường (rank 0). */
+export const beastNameSeen = (rank: number, species: number, dist: number) =>
+  rank === 0 && dist > BEAST_REVEAL.r ? BEAST_REVEAL.unknown : beastName(rank, species);
 /** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
 export const MOVE_NUDGE = 4;
 /** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */
