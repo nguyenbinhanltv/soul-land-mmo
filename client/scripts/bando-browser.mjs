@@ -120,6 +120,31 @@ try {
     await page.waitForFunction(() => !document.getElementById("mapview").hidden && document.getElementById("mapview").dataset.mode === "area");
     await sleep(700);
     await page.screenshot({ path: resolve(out, `${size}-1-khu-vuc.png`) });
+    // 2b. #1708: thanh nút + chú giải không được phủ hết khung vẽ; tranh bản đồ còn thấy ≥ 60% chiều cao khung, nút bấm được,
+    // ở cả chuột lẫn chạm (đổi lớp `touch` tại chỗ), ba cỡ chữ. Đo hình học DOM (thanh phủ từ mép trên, chú giải phủ từ đáy).
+    for (const asTouch of [false, true]) for (const fs of [0, 1, 2]) {
+      await page.evaluate(([fs, asTouch]) => {
+        document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (fs) document.body.classList.add(`a11y-fs-${fs}`);
+        document.body.classList.toggle("touch", asTouch); window.dispatchEvent(new Event("resize"));
+      }, [fs, asTouch]);
+      await sleep(250);
+      const m = await page.evaluate(() => {
+        const rect = (e) => e.getBoundingClientRect(), cv = rect(document.getElementById("mapviewCv"));
+        const shown = (e) => { const s = getComputedStyle(e); return s.display !== "none" && s.visibility !== "hidden" && rect(e).width > 0; };
+        const bar = document.getElementById("mapviewBar"), help = document.getElementById("mapviewHelp");
+        const top = Math.max(0, rect(bar).bottom - cv.top), bottom = shown(help) ? Math.max(0, cv.bottom - rect(help).top) : 0;
+        const btns = [...bar.querySelectorAll("button,.mvchip,input")].filter(shown).map((e) => { const r = rect(e); return { id: e.id || e.textContent.trim(), w: Math.round(r.width), h: Math.round(r.height) }; });
+        return { cvH: cv.height, top, bottom, left: Math.round(cv.height - top - bottom), btns };
+      });
+      const frac = m.left / m.cvH, tagm = tag(`Khu vực N ${asTouch ? "chạm" : "chuột"} fs${fs}`);
+      console.log(size, tagm, `tranh còn thấy ${m.left}/${Math.round(m.cvH)}px = ${(frac * 100).toFixed(0)}% (thanh ${Math.round(m.top)}, chú giải ${Math.round(m.bottom)})`);
+      check(frac >= 0.6, `${tagm}: tranh bản đồ còn thấy ${(frac * 100).toFixed(0)}% < 60% chiều cao khung (thanh ${Math.round(m.top)}px, chú giải ${Math.round(m.bottom)}px)`);
+      const min = asTouch ? 43.5 : 27.5;
+      for (const b of m.btns) if (b.id !== "mapviewClose" && b.h > 0) check(b.h >= min, `${tagm}: nút "${b.id}" cao ${b.h}px < ${Math.ceil(min)}`);
+      if (fs === 0 && !asTouch) await page.screenshot({ path: resolve(out, `${size}-1-khu-vuc-chuot.png`) });
+      if (fs === 2 && asTouch) await page.screenshot({ path: resolve(out, `${size}-1-khu-vuc-cham-fs2.png`) });
+    }
+    await page.evaluate((asTouch) => { document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); document.body.classList.toggle("touch", asTouch); window.dispatchEvent(new Event("resize")); }, touch);
     await page.keyboard.press("KeyM");
     await page.waitForFunction(() => document.getElementById("mapview").dataset.mode === "world" && !document.getElementById("world").hidden);
     await page.waitForFunction(() => document.querySelectorAll("#world .wm-node").length >= 11);

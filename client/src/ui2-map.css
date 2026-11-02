@@ -54,6 +54,18 @@ body.touch.ui-h500 #hud #worldBtn::before{display:none}
 #mapview .mvgo,#mapview #mapviewClose{display:none}
 #mapview #mapviewMenu .mvbtn{min-height:44px;padding:0 var(--sp-5);background:var(--plate)}
 
+/* #1708 màn thấp (ui-h500: 640×360, 844×390): thanh nút một hàng cuộn ngang (tên bản đồ đã có ở khung), chú giải gập vào nút "?" (máy chạm đã ẩn sẵn) để chừa tranh bản đồ */
+body.ui-h500 #mapview .mv-body #mapviewBar{touch-action:pan-x;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:var(--sp-2) var(--sp-3);gap:var(--sp-2)}
+body.ui-h500 #mapview #mapviewTitle{display:none}
+body.ui-h500 #mapview #mapviewBar :is(#mapviewLayers,.mvtools){flex:0 0 auto;flex-wrap:nowrap}
+body.ui-h500 #mapview #mapviewBar :is(.mvchip,.mvbtn){flex:0 0 auto;white-space:nowrap}
+body.ui-h500 #mapview #mapviewBar .mv-search{flex:0 0 150px}
+#mapview #mapviewHelpBtn{display:none}
+body.ui-h500:not(.touch) #mapview #mapviewHelpBtn{display:block}
+body.ui-h500:not(.touch) #mapview #mapviewHelp{display:none}
+body.ui-h500:not(.touch) #mapview.mv-help #mapviewHelp{display:block}
+body.touch #mapview .mv-search input{min-height:44px}
+
 /* chú thích điều khiển ở đáy canvas */
 #mapview #mapviewHelp{font:var(--fs-s)/1.4 var(--f10);color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2)}
 @media (max-height:500px){#mapview.mv-ui2{padding:var(--sp-3)}#mapview .mvchip,#mapview .mvbtn{min-height:28px}}

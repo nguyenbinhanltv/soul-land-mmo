@@ -149,10 +149,14 @@ export async function autoTest(){
       // #1421: chọn mục tiêu theo chi phí (đường đi + giây hạ ước lượng, chia hệ số cụm), nên cụm hồn thú tự nhiên ở xa hơn 160 pixel (ngoài vùng dọn
       // của `clear`) có thể thắng con thử và A đi tới đó trước: ways = ["path"] dù đường thẳng tới con thử thông. Dọn cả bản đồ, chỉ giữ con thử.
       await test(A,"clear",{all:true,keep:true,but:bid});
+      // Đồ rơi còn sót từ bài trước (hồn hoàn của con vừa hạ) nằm trong vùng nhặt: tự săn nhặt đồ TRƯỚC khi chọn mục tiêu (đúng luật, autoHunt.decide),
+      // nên đi tới đồ bằng đường A* (ways = ["path"], loot ≠ null) dù đường thẳng tới con thử thông: trượt khoảng 1/3 lượt tùy đồ còn hay đã hết hạn.
+      // Cho đồ cũ hết hạn trước khi bật, như các bài nhặt đồ (ab1.mjs).
+      await test(A,"drops",{s:3600}); await waitFor(()=>!A.room.state.drops.size,2000);
       const ways=new Set(), tgs=[]; let st=null; const dg=[];
       if(!bid||!(await autoOp(A,"on"))?.on) return null;
       const t00=Date.now(); let hit=false, ms=0; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
-      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); if(dg.length<4&&bb()) dg.push([st?.way,Math.round(me(A).x),Math.round(me(A).y),Math.round(bb().x),Math.round(bb().y),clearLine(g,me(A),bb())]); if(st?.target&&st.target!==tgs.at(-1)) tgs.push(st.target); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
+      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); if(dg.length<4&&bb()) dg.push([st?.way,Math.round(me(A).x),Math.round(me(A).y),Math.round(bb().x),Math.round(bb().y),clearLine(g,me(A),bb()),st?.target===bid?"B":st?.target?"other":"-",st?.loot?"loot":"-",st?.pace!=null?+st.pace.toFixed(1):null]); if(st?.target&&st.target!==tgs.at(-1)) tgs.push(st.target); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
       st=await test(A,"auto"); await autoOp(A,"off"); await test(A,"clear");
       return {hit,ms,ways:[...ways],target:st?.target===bid,plans:st?.plans,lines:st?.lines,start:P,beast:Q,bid,tgs,dg};
     };
