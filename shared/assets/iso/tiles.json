@@ -1390,7 +1390,8 @@
     "42": "hai_dang",
     "43": "cot_den_hai_than",
     "44": "vo_oc_khong_lo",
-    "45": "tuong_hai_than"
+    "45": "tuong_hai_than",
+    "46": ["bui_hoa_nhiet_doi", "cum_san_ho", "duong_xi_sang~#c0d0b0"]
    },
    "build": {
     "wallKind": "plaster",

@@ -16,11 +16,13 @@
     "objects": {
       "rock": 36, "cliff": 32, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "tent": 11, "fire": 12, "plant": 28, "sign": 29, "skull": 27,
       "roof": 14, "wall": 15,
-      "pier": 41, "lighthouse": 42, "sea_lamp": 43, "shell": 44, "poseidon": 45
+      "pier": 41, "lighthouse": 42, "sea_lamp": 43, "shell": 44, "poseidon": 45, "vat_dao": 46
     },
-    "walk": ["pier"],
+    "walk": ["pier", "vat_dao"],
     "canopy": { "17": 21, "18": 22, "20": 24 }
   },
+  "softSingles": { "_": "L5 #1663: cụm chặn ≤ 3 ô cách biên ≥ 4 ô: cây / đá lẻ thành vật mềm; hết kẹt chéo (như Ngoại vi, L2 #1660)", "maxCluster": 3, "edge": 4, "diag": true, "alsoKinds": ["log", "rock"], "kinds": { "vat_dao": 1 } },
+
   "tiers": [
     { "name": "Bãi san hô", "years": "50000-65000", "hint": "Hồn thú 50.000 – 65.000 năm", "beasts": "thiet_giap_cu_giai:1,lam_lan_hai_xa:1,kiem_ngu:1",
       "trees": { "17": 2, "18": 1 }, "denseTrees": { "17": 1, "20": 1 }, "density": 0.025, "cluster": 0.66, "clusterDensity": 0.6,
