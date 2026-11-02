@@ -818,12 +818,12 @@ export async function autoTest(){
     // B2: hạ một con rồi hết quái: nhớ vùng hồi sinh, đi dạo trong vùng đó ("Đi tới chỗ hồi sinh"). Dọn liên tục để hồn thú hồi sinh không xen vào.
     await test(A,"goto",home); await autoOp(A,"set",{cfg:P3});
     const k1=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:10}))?.bid;
-    await test(A,"auto",{pace:0}); await autoOp(A,"on"); let remembered=0, sawSpawn=false;
+    await test(A,"auto",{pace:0}); await autoOp(A,"on"); let remembered=0, sawSpawn=false, tKill=null, tSaw=null, last=null; const tB2=Date.now();
     for(let t=0;t<9000&&!(remembered&&sawSpawn);t+=250){
-      if(!A.room.state.beasts.has(k1)){ await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); }
-      const st=await infoA(); remembered=Math.max(remembered,st.spawns); if(st.spawning&&st.patrol) sawSpawn=true; await sleep(250);
+      if(!A.room.state.beasts.has(k1)){ tKill??=Date.now()-tB2; await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); }
+      const st=await infoA(); last=st; remembered=Math.max(remembered,st.spawns); if(st.spawning&&st.patrol){ sawSpawn=true; tSaw=Date.now()-tB2; } await sleep(250);
     }
-    ok(remembered>=1&&sawSpawn,`AH3 B2: hạ con ở vùng sinh → nhớ ${remembered} vùng, hết quái thì đi tới chỗ hồi sinh (thấy ${sawSpawn})`);
+    ok(remembered>=1&&sawSpawn,`AH3 B2: hạ con ở vùng sinh → nhớ ${remembered} vùng, hết quái thì đi tới chỗ hồi sinh (thấy ${sawSpawn}) [hạ con lúc ${tKill}ms, thấy chỗ hồi sinh lúc ${tSaw}ms; cuối: mục tiêu ${last?.target}, đồ ${last?.loot}, nợ nhịp ${last?.pace}, đích ${JSON.stringify(last?.goal)}, dạo ${JSON.stringify(last?.patrol)}, spawning ${last?.spawning}, tới ${JSON.stringify([Math.round(me(A).x),Math.round(me(A).y)])}]`);
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
     // B3: hết đan → nghỉ hồi tới AUTO_REST.resume rồi săn tiếp (không nhắm con mới khi đang nghỉ); stopNoPot thì dừng như cũ.
     for(const it of looseOf(A)) if(ITEMS.find(x=>x.id===it.code)?.hp) A.room.send("discard",{id:it.id});
