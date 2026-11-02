@@ -27,12 +27,12 @@ function stop() {
     if (process.platform === "win32") spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"]); else c.kill("SIGTERM");
   }
 }
-const watchdog = setTimeout(() => { stop(); process.exit(1); }, 270000);
+const watchdog = setTimeout(() => { stop(); process.exit(1); }, 420000);
 async function ready(url) {
   for (let i = 0; i < 150; i++) { if (await fetch(url).then((r) => r.ok).catch(() => false)) return; await sleep(200); }
   throw Error(`Không mở được ${url}`);
 }
-const PANELS = [["char", "#char"], ["bag", "#bag"], ["mail", "#mail"], ["achv", "#achv"], ["vohon", "#roster"], ["calendar", "#calendar"], ["welfare", "#welfare"], ["bicanh", "#bicanh"], ["notice", "#notice"]];
+const PANELS = [["char", "#char"], ["bag", "#bag"], ["mail", "#mail"], ["achv", "#achv"], ["vohon", "#roster"], ["calendar", "#calendar"], ["welfare", "#welfare"], ["bicanh", "#bicanh"], ["notice", "#notice"], ["KeyM", "#mapview"], ["KeyN", "#mapview"]]; // "KeyX": mở bằng phím (bản đồ lớn M / N, #1676), còn lại qua thẻ Menu
 const problems = [];
 try {
   await mkdir(out, { recursive: true });
@@ -62,8 +62,11 @@ try {
     await sleep(200);
   };
   const openPanel = async (hub, sel) => {
-    await page.locator("#hubBtn").click();
-    await page.locator(`[data-hub="${hub}"]`).click();
+    if (hub.startsWith("Key")) await page.keyboard.press(hub);
+    else {
+      await page.locator("#hubBtn").click();
+      await page.locator(`[data-hub="${hub}"]`).click();
+    }
     await page.locator(`${sel}:not([hidden])`).waitFor();
     await sleep(350); // đủ một nhịp tick 250 ms của onboard
   };
@@ -101,7 +104,7 @@ try {
   await closePanel("#mail"); await sleep(350);
   assert.equal(await page.locator("#onboard:visible").count(), 0, "đóng bảng không làm thẻ hiện lại");
   await page.evaluate(async () => { const ob = await import("/src/onboard.ts"); ob.onboardReview(); });
-  for (const [w, h] of [[640, 360], [960, 540], [1280, 720], [1920, 1080]]) for (const fs of [0, 1, 2]) {
+  for (const [w, h] of [[640, 360], [844, 390], [960, 540], [1280, 720]]) for (const fs of [0, 1, 2]) {
     await setSize(w, h, fs);
     for (const [hub, sel] of PANELS) {
       // Bước 1 chờ Đội hình: mở Đội hình thì bước tự qua → đặt lại về bước 1 để mọi bảng đều đo với bước 1 (như ảnh trinh sát).
@@ -125,5 +128,5 @@ try {
   if (problems.length) console.log(problems.join("\n"));
   if (!soft) assert.deepEqual(problems, [], "thẻ Làm quen che bảng đang mở");
   assert.deepEqual(errors, []);
-  console.log(`✓ Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình / Lịch / Phúc Lợi / Bí Cảnh / Thông Báo, 4 cỡ màn × 3 cỡ chữ: ${out}`);
+  console.log(`✓ Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình / Lịch / Phúc Lợi / Bí Cảnh / Thông Báo / Bản đồ lớn (M, N), 4 cỡ màn × 3 cỡ chữ: ${out}`);
 } finally { clearTimeout(watchdog); await browser?.close(); stop(); }
