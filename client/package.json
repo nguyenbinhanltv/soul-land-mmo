@@ -26,6 +26,7 @@
     "test:flow-browser": "node scripts/flow-browser.mjs",
     "test:giap-tooltip-browser": "node scripts/giap-tooltip-browser.mjs",
     "test:panel-browser": "node scripts/panel-browser.mjs",
+    "test:panel-tab-browser": "node scripts/panel-tab-browser.mjs",
     "test:npc-reply-browser": "node scripts/npc-reply-browser.mjs",
     "test:npc-low-browser": "node scripts/npc-low-browser.mjs",
     "test:mail-achv-browser": "node scripts/mail-achv-browser.mjs",

@@ -8,12 +8,16 @@ export type StackPanel = {
   close: () => void;
   /** Cửa nhỏ / dải thông báo (người chơi bấm, kênh, tổng kết tự săn): Esc đóng được nhưng không nâng lớp, không nhả phím khi mở. */
   popup?: boolean;
+  /** Mở bằng bàn phím thì chuyển tiêu điểm vào bảng (mặc định: bảng không phải cửa nhỏ). Bản đồ lớn là cửa nhỏ về lớp nhưng vẫn cần (#1675). */
+  focus?: boolean;
 };
 
 const Z0 = 4; // lớp thấp nhất của các bảng giữa màn hình (style.css: `#roster,#bag,…{z-index:4}`); thẻ / chú thích nằm từ 30 trở lên
 let list: StackPanel[] = [];
 let order: string[] = []; // dưới → trên, chỉ gồm bảng đang mở
 let onOpen: (() => void) | null = null;
+let kbd = false; // lần nhập gần nhất là bàn phím (chuột / cảm ứng thì không kéo tiêu điểm vào bảng, không bật vòng focus)
+const took = new Map<string, HTMLElement | null>(); // bảng đã nhận tiêu điểm lúc mở → phần tử giữ tiêu điểm trước đó (trả lại khi đóng)
 
 const elOf = (id: string) => document.getElementById(id);
 const isOpen = (id: string) => { const e = elOf(id); return !!e && !e.hidden; };
@@ -35,6 +39,32 @@ function sync() {
   for (const p of list) if (isOpen(p.id) && !order.includes(p.id)) { order.push(p.id); if (!p.popup) opened = true; }
   layer();
   if (opened) onOpen?.();
+  for (const p of list) {
+    if (!(p.focus ?? !p.popup)) continue;
+    const e = elOf(p.id); if (!e) continue;
+    if (isOpen(p.id) && kbd && !took.has(p.id)) enter(p.id, e);
+    else if (!isOpen(p.id) && took.has(p.id)) leave(p.id, e);
+  }
+}
+
+/** Bảng vừa mở bằng phím: tiêu điểm vào nút đầu (không phải ô gõ, để phím tắt còn chạy) hoặc chính khung, để Tab xoay trong bảng (`trapTab`) thay vì đổi mục tiêu game (#1675, cùng cách hubMenu #1636). */
+function enter(id: string, root: HTMLElement) {
+  const a = document.activeElement as HTMLElement | null;
+  if (a && root.contains(a)) return; // bảng đã tự nhận tiêu điểm
+  const first = visibleItems(root).find((x) => !x.matches("input,select,textarea"));
+  let to = first;
+  if (!to) { if (!root.hasAttribute("tabindex")) root.tabIndex = -1; to = root; }
+  to.focus({ preventScroll: true });
+  took.set(id, a && a !== document.body && a.isConnected ? a : null);
+}
+
+/** Bảng đóng: nếu tiêu điểm còn ở trong bảng (hoặc đã rơi về body) thì trả về nơi cũ, không có thì bỏ tiêu điểm để Tab lại là đổi mục tiêu. */
+function leave(id: string, root: HTMLElement) {
+  const back = took.get(id) ?? null; took.delete(id);
+  const a = document.activeElement as HTMLElement | null;
+  if (a && a !== document.body && !root.contains(a)) return; // tiêu điểm đã sang chỗ khác (bảng kế)
+  if (back?.isConnected && back.getClientRects().length > 0 && !back.closest("[hidden]")) back.focus({ preventScroll: true });
+  else a?.blur();
 }
 
 /** Nâng bảng lên trên cùng (bấm vào bảng, hoặc dualWindow đổi bảng nổi). Bảng chưa mở thì bỏ qua. */
@@ -70,10 +100,18 @@ export function panelOf(t: Element | null): string | null {
 
 const FOCUSABLE = 'button:not([disabled]),[href],input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
+const visibleItems = (root: HTMLElement) => [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((x) => !x.hidden && x.getClientRects().length > 0 && !x.closest("[hidden]"));
+
 /** Tab / Shift+Tab xoay vòng trong bảng đang giữ tiêu điểm (không thoát ra ngoài bảng, không bị game dùng cho đổi mục tiêu). true nếu đã xử lý. */
 export function trapTab(e: KeyboardEvent): boolean {
-  const id = panelOf(document.activeElement); if (!id) return false;
-  const root = elOf(id)!, items = [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((x) => !x.hidden && x.getClientRects().length > 0);
+  let id = panelOf(document.activeElement);
+  if (!id) { // bảng mở bằng phím nhưng tiêu điểm rơi mất (bảng dựng lại nội dung khi dữ liệu về): Tab kéo lại vào bảng đó thay vì đổi mục tiêu (#1675)
+    id = [...order].reverse().find((x) => took.has(x) && isOpen(x)) ?? null; if (!id) return false;
+    const r = elOf(id)!; (visibleItems(r).find((x) => !x.matches("input,select,textarea")) ?? r).focus({ preventScroll: true });
+    if (panelOf(document.activeElement) !== id) return false;
+    e.preventDefault(); return true;
+  }
+  const root = elOf(id)!, items = visibleItems(root);
   if (!items.length) return false;
   const i = items.indexOf(document.activeElement as HTMLElement), last = items.length - 1;
   const to = e.shiftKey ? (i <= 0 ? items[last] : null) : (i < 0 || i === last ? items[0] : null);
@@ -83,14 +121,24 @@ export function trapTab(e: KeyboardEvent): boolean {
 
 /** Dựng một lần mỗi phòng (GameScene.setupInput). `open` gọi khi một bảng (không phải cửa nhỏ) vừa mở: nhả phím đang giữ. */
 export function initPanelStack(panels: StackPanel[], open: () => void, signal: AbortSignal) {
-  list = panels; order = []; onOpen = open;
+  list = panels; order = []; onOpen = open; kbd = false; took.clear();
+  addEventListener("keydown", () => { kbd = true; }, { signal, capture: true });
+  addEventListener("pointerdown", () => { kbd = false; }, { signal, capture: true });
   const mo = new MutationObserver(sync), opt = { signal, capture: true };
+  // Bảng mở bằng phím dựng lại nội dung (dữ liệu về) làm nút đang giữ tiêu điểm biến mất: kéo tiêu điểm về nút đầu của bảng, không để rơi ra body (#1675).
+  const kept = new MutationObserver(() => {
+    const a = document.activeElement;
+    if (a && a !== document.body) return;
+    const id = [...order].reverse().find((x) => took.has(x) && isOpen(x)); if (!id) return;
+    const r = elOf(id)!; (visibleItems(r).find((x) => !x.matches("input,select,textarea")) ?? r).focus({ preventScroll: true });
+  });
   for (const p of list) {
     const e = elOf(p.id); if (!e) continue;
     mo.observe(e, { attributes: true, attributeFilter: ["hidden"] });
+    if (p.focus ?? !p.popup) kept.observe(e, { childList: true, subtree: true });
     e.addEventListener("pointerdown", () => raiseStack(p.id), opt); // bấm vào bảng nào, bảng đó nổi lên (kể cả bấm khe / viền)
   }
-  signal.addEventListener("abort", () => { mo.disconnect(); list = []; order = []; onOpen = null; });
+  signal.addEventListener("abort", () => { mo.disconnect(); kept.disconnect(); took.clear(); list = []; order = []; onOpen = null; });
   order = list.filter((p) => isOpen(p.id)).map((p) => p.id);
   layer();
 }

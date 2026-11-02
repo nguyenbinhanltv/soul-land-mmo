@@ -847,7 +847,7 @@ export class GameScene extends Phaser.Scene {
       if (f?.closest("#sideBox") && (e.code === "Tab" || ((e.code === "Space" || e.key === "Enter") && f.matches(":focus-visible")))) return;
       // Tiêu điểm đang ở nút / ô trong một bảng (U1 #754): Tab xoay vòng trong bảng, Space / Enter bấm đúng nút đó; không thành đổi mục tiêu / đánh / mở chat.
       // Nút vừa bấm chuột không tính (không `:focus-visible`), nên chơi bằng chuột rồi bấm Space đánh vẫn đánh được.
-      if (e.code === "Tab" && panelOf(f) && trapTab(e)) return;
+      if (e.code === "Tab" && trapTab(e)) return; // cả khi tiêu điểm đã rơi mất khỏi bảng vừa mở bằng phím (#1675)
       if ((e.code === "Space" || e.key === "Enter") && panelOf(f) && (f as HTMLElement).matches(":focus-visible")) return;
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyH" && !e.repeat) { this.clearForPanel(); toggleChar(); return; } // bảng nhân vật (UI-2), độc lập với Túi (NV1 #455); C là kỹ năng hồn cốt tay phải nên không dùng để mở bảng (NV5 #459)
@@ -976,6 +976,7 @@ export class GameScene extends Phaser.Scene {
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
       { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice }, { id: "quests", close: closeQuestPanel },
+      { id: "mapview", close: () => mapview().close(), popup: true, focus: true }, // bản đồ lớn (M / N): vào danh sách để Tab xoay trong bản đồ (#1675)
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
