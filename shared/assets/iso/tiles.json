@@ -1721,7 +1721,8 @@
     "38": "bia_da_co~#d0d8e8",
     "39": "vom_da~#c8d0e0",
     "40": "khuc_go_rong~#c0c8d8",
-    "41": "nhu_bang"
+    "41": "nhu_bang",
+    "42": ["da_phu_tuyet", "bui_gai~#c8d0e0", "da_phu_tuyet"]
    },
    "build": {
     "wallKind": "plaster",

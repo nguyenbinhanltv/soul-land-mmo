@@ -1,5 +1,5 @@
 // Đại Đấu Hồn Trường (hàng đợi, trực tiếp, thanh trận, kết thúc, bảng xếp hạng) của HUD (tách nguyên văn từ hud.ts, Part of #885 bước 0a); hud.ts re-export để nơi gọi giữ nguyên.
-import { NpcActions, npcDefOpen, npcPage, renderNpc } from "./hudNpc.ts";
+import { NpcActions, closeNpc, npcDefOpen, npcPage, renderNpc } from "./hudNpc.ts";
 import { itemDef, formatHonTe, ARENA, type ArenaRecord } from "../../shared/data.ts";
 import { mmss } from "./hudBoss.ts";
 import { stateBox } from "./uiParts.ts";
@@ -33,6 +33,7 @@ const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "±0");
 
 /** Ô "Đang tìm đối thủ…" (tin "arena" k = "queue"): Elo, thời gian chờ, nút Hủy (chuột / chạm). null = ẩn. */
 export function setArenaQueue(q: { elo: number; secs: number } | null, cancel: () => void) {
+  const wasQueued = !!arenaQ;
   arenaQ = q ? { elo: q.elo, t0: performance.now() - q.secs * 1000 } : null;
   const el = $("#arenaQ");
   if (!arenaQ) { el.hidden = true; el.innerHTML = ""; }
@@ -41,7 +42,8 @@ export function setArenaQueue(q: { elo: number; secs: number } | null, cancel: (
     el.querySelector("button")!.addEventListener("pointerdown", (e) => { e.preventDefault(); cancel(); });
     el.hidden = false; updateArenaQueue();
   }
-  if (npcDefOpen?.role === "arena") renderNpc();
+  // Vừa vào hàng chờ khi đang mở hộp Đại Đấu Hồn Trường: đóng hộp để lộ ô "Đang tìm đối thủ…" + Hủy (#1689; mở lại ở NPC vẫn có "Hủy xếp hàng"). Các lần cập nhật sau chỉ vẽ lại.
+  if (npcDefOpen?.role === "arena") { if (arenaQ && !wasQueued) closeNpc(); else renderNpc(); }
 }
 /** Mỗi lần cập nhật HUD: thời gian đã chờ. */
 export function updateArenaQueue() {
