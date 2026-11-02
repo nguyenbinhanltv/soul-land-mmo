@@ -14,7 +14,7 @@
       "rock": 36, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28, "sign": 29,
       "roof": 14, "wall": 15,
       "practice_pillar": 41, "academy_gate": 42, "citywall": 43,
-      "lamp": 44, "shopsign": 45, "well": 46, "oak": 47, "rail": 48, "barrel": 49, "hay": 50, "sakura": 51, "citygate": 52, "citygateNorth": 53
+      "lamp": 44, "shopsign": 45, "well": 46, "oak": 47, "rail": 48, "barrel": 49, "hay": 50, "sakura": 51, "citygate": 52, "citygateNorth": 53, "guardSpear": 54, "guardShield": 55
     },
     "walk": ["lamp", "shopsign", "barrel", "hay"],
     "canopy": { "17": 21, "18": 22 }
@@ -97,6 +97,10 @@
     { "type": "objects", "kind": "practice_pillar", "at": [[20, 31], [38, 31], [20, 37], [38, 37]] },
     { "type": "objects", "kind": "citygate", "at": [[0, 52], [169, 52]] },
     { "type": "objects", "kind": "citygateNorth", "at": [[80, 0]] },
+    { "type": "area", "name": "Khoảng nhìn lính cổng tây", "ground": "pave", "rect": [9, 51, 1, 1], "clear": true, "lock": true },
+    { "type": "area", "name": "Khoảng nhìn lính cổng bắc", "ground": "pave", "rect": [80, 9, 1, 1], "clear": true, "lock": true },
+    { "type": "objects", "kind": "guardSpear", "at": [[10, 48], [167, 65], [76, 7]] },
+    { "type": "objects", "kind": "guardShield", "at": [[2, 65], [159, 48], [94, 7]] },
     { "type": "house", "rect": [130, 36, 16, 10], "margin": 1, "ground": "pave" }
   ],
   "spawn": { "name": "Quảng trường Nặc Đinh", "rect": [76, 50, 18, 14] },

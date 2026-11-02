@@ -46092,6 +46092,14 @@
       "key": "prop_cong_thanh_vom_y",
       "iso": true
     },
+    {
+      "key": "prop_linh_canh_giap_giao",
+      "iso": true
+    },
+    {
+      "key": "prop_linh_canh_giap_khien",
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
