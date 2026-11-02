@@ -153,6 +153,8 @@ export async function autoTest(){
       // nên đi tới đồ bằng đường A* (ways = ["path"], loot ≠ null) dù đường thẳng tới con thử thông: trượt khoảng 1/3 lượt tùy đồ còn hay đã hết hạn.
       // Cho đồ cũ hết hạn trước khi bật, như các bài nhặt đồ (ab1.mjs).
       await test(A,"drops",{s:3600}); await waitFor(()=>!A.room.state.drops.size,2000);
+      // Bài này kiểm tra đường đi, không kiểm trần tốc độ: nợ nhịp từ lần hạ quái trước có thể dài hơn cửa sổ chờ 12 giây.
+      await test(A,"auto",{paceNext:0});
       const ways=new Set(), tgs=[]; let st=null; const dg=[];
       if(!bid||!(await autoOp(A,"on"))?.on) return null;
       const t00=Date.now(); let hit=false, ms=0; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
