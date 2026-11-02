@@ -647,10 +647,13 @@ export async function autoTest(){
   { const LP={...AUTO_DEFAULTS,scope:"map",years:[0,MAX_YEARS],bone:false,core:false,ring:-1,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false};
     await test(A,"goto",home); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:LP});
     const lt=(await test(A,"spawn",{tier:0,dx:300,dy:0,years:15,hpx:50}))?.bid;
-    await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); A.autost.length=0;
-    let tg=false; for(let t=0;t<3000&&!tg;t+=100){ tg=(await infoA()).target===lt; if(!tg) await sleep(100); }
+    // Chỉ thử vòng lặp của con lt: đồ cũ hoặc quái hồi sinh gần hơn sẽ khiến tự săn đổi việc trước khi mẫu vòng lặp được đọc.
+    await test(A,"drops",{s:3600}); await waitFor(()=>!A.room.state.drops.size,2000);
+    await test(A,"clear",{all:true,keep:true,but:lt});
+    await test(A,"auto",{paceNext:0}); m=await autoOp(A,"on"); A.autost.length=0;
+    let tg=false; for(let t=0;t<3000&&!tg;t+=100){ await test(A,"clear",{all:true,keep:true,but:lt}); tg=(await infoA()).target===lt; if(!tg) await sleep(100); }
     await test(A,"auto",{loop:true});
-    let st=null; for(let t=0;t<4000&&st?.why!=="loop";t+=100){ st=await infoA(); await sleep(100); }
+    let st=null; for(let t=0;t<4000&&st?.why!=="loop";t+=100){ await test(A,"clear",{all:true,keep:true,but:lt}); st=await infoA(); await sleep(100); }
     ok(m?.on&&tg&&st?.why==="loop"&&st.target!==lt,`AH4 chống kẹt: đang đi tới con ${lt} mà ${AUTO_STUCK.window} giây không nhích → lý do "${st?.why}", bỏ mục tiêu đó (nhắm ${st?.target})`);
     ok(await waitFor(()=>A.autost.some(x=>x.w==="loop"),2500),`AH4 chống kẹt: dòng trạng thái ghi lý do đi vòng lặp (${JSON.stringify(A.autost.at(-1))})`);
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
