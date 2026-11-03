@@ -112,10 +112,10 @@ const MARK: Record<TitleRowState, string> = { equipped: "■ Đang đeo", owned:
 const hex = (n: number) => `#${n.toString(16).padStart(6, "0")}`;
 
 /** Bảng xem thử: cùng bảng màu `titlePal` với bảng treo trong game, kèm tên hồn sư. Hàm thuần (test). */
-export function previewNode(def: TitleDef | null, name: string, fallback: string): PNode {
+export function previewNode(def: TitleDef | null, name: string, fallback: string, hide = false): PNode {
   const t = def?.tier ?? 1, pal = titlePal(t);
   return h("div", "tt-preview", { attrs: { "aria-label": "Xem thử trên nhân vật" }, kids: [
-    h("span", "tt-plate", { text: def?.name ?? fallback, attrs: { "data-tier": String(t), style: `background:${hex(pal.bg)};border-color:${hex(pal.edge)};color:${pal.text};${t >= 4 ? `box-shadow:0 0 8px ${hex(pal.glow)}` : ""}` } }),
+    h("span", "tt-plate", { text: hide ? "？？？" : def?.name ?? fallback, attrs: { "data-tier": String(t), style: `background:${hex(pal.bg)};border-color:${hex(pal.edge)};color:${pal.text};${t >= 4 ? `box-shadow:0 0 8px ${hex(pal.glow)}` : ""}` } }),
     h("span", "tt-name", { text: name }),
   ] });
 }
@@ -147,7 +147,7 @@ function render() {
     ? stateBox({ kind: "error", text: "Không tải được danh hiệu (mất kết nối hoặc máy chủ chưa trả lời).", hint: "Kiểm tra mạng rồi bấm Thử lại.", onRetry: () => { load(); render(); } })
     : stateBox({ kind: "loading", rows: 5, text: "Đang tải danh hiệu…" }));
   else {
-    const mine = msg.equipped ?? c.defaultId, shown = sel ?? mine, kids: PNode[] = [previewNode(titleDef(shown) ?? null, c.name, c.defaultId)];
+    const mine = msg.equipped ?? c.defaultId, shown = sel ?? mine, shownDef = titleDef(shown) ?? null, hide = !!shownDef && shownDef.group === "bi_an" && groups.some((g) => g.rows.some((r) => r.def.id === shown && r.state === "locked")), kids: PNode[] = [previewNode(shownDef, c.name, c.defaultId, hide)];
     if (note) kids.push(h("div", `av-note${note.err ? " av-bad" : ""}`, { text: note.text, attrs: { role: note.err ? "alert" : "status" } }));
     const noReset = msg.equipped === null || busy;
     kids.push(h("div", "tt-bar", { kids: [h("button", "tt-reset f2-nut-phu", { text: "Về mặc định (theo cấp)", attrs: { type: "button", ...(noReset ? { disabled: "", title: msg.equipped === null ? "Đang dùng danh hiệu theo cấp" : "Đang gửi…" } : {}) } })] }));

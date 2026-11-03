@@ -365,4 +365,6 @@ console.log("✓ Bộ nối Xếp Hạng: điểm, trang, quyền riêng tư");
   assert.ok(JSON.stringify(titleRowNode({ ...g0[0].rows[0], state: "equipped" }, now)).includes("Đang đeo"));
   const secret = g0.find((g) => g.code === "bi_an").rows[0]; if (secret) assert.ok(JSON.stringify(titleRowNode(secret, now)).includes("？？？"), "bí ẩn khoá giấu tên");
   assert.match(JSON.stringify(previewNode(TITLE_DEFS[0], "Tiểu Vũ", "x")), /Tiểu Vũ/);
+  const sd = TITLE_DEFS.find((t) => t.group === "bi_an") ?? TITLE_DEFS[0];
+  { const pv = JSON.stringify(previewNode(sd, "Tiểu Vũ", "x", true)); assert.ok(pv.includes("？？？") && !pv.includes(sd.name), "xem thử danh hiệu bí ẩn khoá không lộ tên"); }
 }
