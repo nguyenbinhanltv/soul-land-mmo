@@ -72,7 +72,7 @@ Phong cách **tiên hiệp rực lửa**: nền tối ấm, viền lửa / kim l
 - Một bảng là một đối tượng ghép sẵn (chữ + khung), không nhiều Text rời; có dòng đo trong bot soak.
 - Tự săn vẫn hiện "Tự động" như hiện nay (nhỏ, dưới bảng).
 
-**Bản vẽ bằng code (P2, đã có):** `client/src/titlePlate.ts` (một Graphics dùng chung, khung / quét sáng / nhấp nháy / hạt tính từ thời gian, không tạo đối tượng mỗi khung) nối ở `GameScene.layoutOverheadLabels`, đặt theo chữ danh hiệu đã bố trí nên không đổi thứ tự xếp chồng. Bảng màu tạm 6 bậc `TITLE_PAL`; số hạt / độ sáng quét / ngưỡng đông (`TITLE_FX.crowd`) ở `shared/data.ts`. Khi P4 nhập ảnh thì thay phần vẽ khung, giữ nguyên chỗ nối.
+**Bản vẽ bằng code (P2, đã có):** `client/src/titlePlate.ts` (một Graphics dùng chung, khung / quét sáng / nhấp nháy / hạt tính từ thời gian, không tạo đối tượng mỗi khung) nối ở `GameScene.layoutOverheadLabels`, đặt theo chữ danh hiệu đã bố trí nên không đổi thứ tự xếp chồng. Bảng màu tạm 6 bậc `TITLE_PAL`; số hạt / độ sáng quét / ngưỡng đông (`TITLE_FX.crowd`) ở `shared/data.ts`. **Ảnh thật (P4, #1792):** `tools/assets/danh-hieu-import.mjs` nhập `danh_hieu_*` vào `shared/assets/sprites/iso/danh_hieu/`; `titlePlate.ts` dùng khung nine-patch `danh_hieu_khung_<bậc>` kéo ngang theo chữ, đầu `danh_hieu_dau_<bậc>` (đầu phải = đầu trái lật ngang), clip `danh_hieu_clip_5/6` ở hai đầu bậc cao và hạt `danh_hieu_hat_lua/tia`, qua hồ đối tượng tái dùng; ngưỡng đông `TITLE_FX.crowd` giữ nguyên. Thiếu ảnh của một bậc thì rơi về khung vẽ bằng code.
 
 ### Giao diện
 - Màn **"Danh Hiệu"** trong Hub (thẻ mới, khung **Giấy**, theo `docs/art/ui-kit.md`; chỉ PC theo Q40).
