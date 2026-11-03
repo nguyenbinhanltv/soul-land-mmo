@@ -1,0 +1,50 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "items": [
+    {
+      "name": "leu_cho_troi_do",
+      "raw": "leu_cho_troi_do-raw.png",
+      "rawSha256": "828d1aa4dd8ce9b092c6ee1274758f21ceb7f60eaa547d2d8456a7a1c1939b38",
+      "spriteSha256": "f6d8346f591882103568a9203a62a4c3154428bfbc0989482ee3651cd641ba2f",
+      "foot": [
+        56,
+        92
+      ],
+      "size": [
+        112,
+        96
+      ]
+    },
+    {
+      "name": "leu_cho_troi_xanh",
+      "raw": "leu_cho_troi_xanh-raw.png",
+      "rawSha256": "2189cd7baf0201d5be836f676c3ec2d9cd5c556af95ff1360e829ee6f2e404fd",
+      "spriteSha256": "7c67b67b4e5e33a0abda7ebc857eba73125617518a0d594315b772276fb2b73a",
+      "foot": [
+        56,
+        92
+      ],
+      "size": [
+        112,
+        96
+      ]
+    },
+    {
+      "name": "leu_cho_troi_vang",
+      "raw": "leu_cho_troi_vang-raw.png",
+      "rawSha256": "13a50046e6e21beae80f0f5121da0f8f440433530bd083d9cfe07997db746ebb",
+      "spriteSha256": "400064c0cd0ae4225fc6c9a07b961c0ece660851f4174d637f54b44abb279ff1",
+      "foot": [
+        56,
+        92
+      ],
+      "size": [
+        112,
+        96
+      ]
+    }
+  ]
+}
