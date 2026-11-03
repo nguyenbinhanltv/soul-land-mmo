@@ -386,6 +386,7 @@
   }
  },
  "props": {
+  "giang_duong_lau_dai": { "key": "prop_giang_duong_lau_dai", "foot": [64,96], "flip": false },
   "hoc_vien_cong_da_trang": { "key": "prop_hoc_vien_cong_da_trang", "foot": [56,86], "flip": false },
   "leu_cho_troi_do": { "key": "prop_leu_cho_troi_do", "foot": [56,92], "flip": false },
   "leu_cho_troi_xanh": { "key": "prop_leu_cho_troi_xanh", "foot": [56,92], "flip": false },
@@ -1162,7 +1163,7 @@
       "floor": "pho_da"
      },
      "22,10": {
-      "main": ["hoc_vien_nac_dinh"],
+      "main": ["giang_duong_lau_dai"],
       "gate": "hoc_vien_cong_da_trang",
       "deco": ["cot_vo", "bon_hoa", "cot_vo", "bon_hoa"],
       "floor": "pho_da"
