@@ -1,0 +1,84 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "assets": [
+    {
+      "name": "bai_co_tia_gon",
+      "rawSha256": "f72a79531e12d55034eb23c97eee5579621baa9cb076d5837808b9aabde1513e",
+      "files": [
+        {
+          "file": "bai_co_tia_gon_0.png",
+          "sha256": "68030d855e2103720ca98439ae4e8f5b801ae8a80cfc1a63bfb565dbbbc4fa14"
+        },
+        {
+          "file": "bai_co_tia_gon_0_lon.png",
+          "sha256": "4695dbfa6ce75a049934d25e8f736e02e3a086f954f38d4466fa8aaf5166ec6c"
+        },
+        {
+          "file": "bai_co_tia_gon_0_lon_n.png",
+          "sha256": "1eb34dedacdd50cb352a63074f41b51ab32408e6086877057a02b226727e691f"
+        },
+        {
+          "file": "bai_co_tia_gon_0_n.png",
+          "sha256": "d6075e6fb9b3da688cc92bd9a9a2edc7df80083e01ec1f13e00f8ff4acb8a7f0"
+        },
+        {
+          "file": "bai_co_tia_gon_1.png",
+          "sha256": "874ebdb5d34a887af4ee4f6b7445e794e12fb198da94f0415fa4e91f7238d721"
+        },
+        {
+          "file": "bai_co_tia_gon_1_lon.png",
+          "sha256": "bb2eed3b0fbff0300071b1eb3b4e23d9c3266d62d7a759d4fc3bed51ce1e5c1f"
+        },
+        {
+          "file": "bai_co_tia_gon_1_lon_n.png",
+          "sha256": "a9d3d28f498b4deda85f46d7b45ebb427cb87cf5f31b0a0b44727a653a6d1840"
+        },
+        {
+          "file": "bai_co_tia_gon_1_n.png",
+          "sha256": "52bb872c47ffcb33861ff421e95a00356dc1da975f1d4920e3b7e0a589aedad8"
+        }
+      ]
+    },
+    {
+      "name": "loi_soi_trang",
+      "rawSha256": "ce1674342d671786bcab1129c0f42b6594cbc6dd22252f31deb42b8846ad66f1",
+      "files": [
+        {
+          "file": "loi_soi_trang_0.png",
+          "sha256": "d438cb85edb92c5dba190628512863329481c37d0e8d9551e25b393ff160537e"
+        },
+        {
+          "file": "loi_soi_trang_0_lon.png",
+          "sha256": "041d0c0c5fde65410f4f30d62c80b54254be8cc0e19ef70067a2493aaf02988b"
+        },
+        {
+          "file": "loi_soi_trang_0_lon_n.png",
+          "sha256": "4e177b5529204523e409d1399e0f69e4bfbbd44007c1936d0092191d3bbd9024"
+        },
+        {
+          "file": "loi_soi_trang_0_n.png",
+          "sha256": "f90a07d4e992590764bb8014253c2b5979c0fc3290cfde8b082da3edea49ad68"
+        },
+        {
+          "file": "loi_soi_trang_1.png",
+          "sha256": "7d41d2322d3a90ead9ad12218ad0573fd9114d6dcd5f58227e2352fabacfedde"
+        },
+        {
+          "file": "loi_soi_trang_1_lon.png",
+          "sha256": "efa70347577df75ce166ba5308d80273ce5f9861244cd3d68168366892768c84"
+        },
+        {
+          "file": "loi_soi_trang_1_lon_n.png",
+          "sha256": "8d7c1a55399ac374c56aca4bdb077db6ddc57987b00f87b7e45aa7c97dd7e35c"
+        },
+        {
+          "file": "loi_soi_trang_1_n.png",
+          "sha256": "67ed72233e2a88c6a14b2068af5a8697f740fb184f6bc933e6945ad164261353"
+        }
+      ]
+    }
+  ]
+}
