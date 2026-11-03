@@ -2960,6 +2960,8 @@ export const TITLE_GROUPS = ["cap", "thanh_tuu", "xep_hang", "boss", "su_kien", 
 export type TitleGroup = (typeof TITLE_GROUPS)[number];
 /** Số bậc hiếm (1 = thường … TITLE_TIER_MAX = cao nhất). */
 export const TITLE_TIER_MAX = 6;
+/** Hiệu ứng vẽ danh hiệu trên đầu (client, bước P2): `crowd` = quá chừng này bảng trong tầm nhìn thì người khác chỉ còn khung tĩnh (tắt quét sáng + hạt; chính mình luôn đủ); `sparks[bậc-1]` = số hạt lửa tối đa mỗi bảng; `sweep[bậc-1]` = độ sáng vệt quét (0 = không quét). Bậc 1–2 kiềm chế. */
+export const TITLE_FX = { crowd: 8, sparks: [0, 0, 1, 3, 5, 8], sweep: [0, 0.14, 0.22, 0.3, 0.38, 0.5] } as const;
 /** Nguồn mở khoá; mọi mở khoá chỉ từ sự kiện / trạng thái server. Kiểu còn lại (thành tựu, xếp hạng tuần, boss…) thêm ở P5 cùng nơi gọi `grantTitle`. */
 export type TitleSource = { kind: "level"; level: number } | { kind: "achv"; id: string } | { kind: "rank"; board: string; top: number } | { kind: "boss"; id: string } | { kind: "event" } | { kind: "tong"; id: string } | { kind: "secret" };
 /** Hạn dùng: vĩnh viễn, hết khi qua tuần (giờ Việt Nam, weekStartVn) hoặc hết ở mốc do nơi cấp truyền vào (sự kiện). */

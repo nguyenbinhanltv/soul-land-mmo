@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { ContextCursor, pickupHintAllowed, resolveCursor } from "../contextCursor.ts";
 import type { Room } from "colyseus.js";
-import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleText, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
+import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleText, titleDef, titleIdOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, beastNameSeen, BEAST_BUFFS, beastBuffBit,
@@ -69,6 +69,7 @@ import { worldToScreen as W2S, screenToWorld, SPR, RX, RY, VIEW_W, VIEW_H, TOPDO
 import { IsoMap, preloadIso, type Focus } from "../isoMap.ts";
 import { Lighting, PRIO, attachNormal, type LightSrc } from "../lighting.ts";
 import { Weather } from "../weather.ts";
+import { TitlePlates, titlePal, type PlateIn } from "../titlePlate.ts";
 import { InkVeil, causesInk } from "../ink.ts";
 import { AudioManager, type AudioEvent, type FxSoundInfo } from "../audio/AudioManager.ts";
 import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, beastSpeciesId, elementOf, materialOfBeast, surfaceOfGround, weaponOf, type Material, type Element } from "../audio/soundMap.ts";
@@ -340,6 +341,7 @@ export class GameScene extends Phaser.Scene {
   weather!: Weather;
   /** Màn mực khi chính mình bị Che tầm nhìn (#175, Phun Mực). */
   ink!: InkVeil;
+  titlePlates!: TitlePlates; // bảng treo danh hiệu vẽ bằng code (titlePlate.ts)
   zones: Zone[] = [];
   safes: Zone[] = [];   // vùng an toàn (object `safe`)
   campRect = { x: 0, y: 0, w: 0, h: 0 };
@@ -560,6 +562,7 @@ export class GameScene extends Phaser.Scene {
 
     this.weather = new Weather(this, this.mapId, this.isoMap, this.light, this.mapH);
     this.ink = new InkVeil(this);
+    this.titlePlates = new TitlePlates(this);
     if (inkHere) this.ink.prewarm();
     this.audio = new AudioManager(this, () => {
       const p = this.room.state.players.get(this.me);
@@ -3073,7 +3076,10 @@ export class GameScene extends Phaser.Scene {
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
       const tt = titleText(p.titleId, p.level);
       title.setText(p.auto ? `${tt} · ${id === this.me && autoJobText() || "Tự động"}` : tt);
-      const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
+      // Màu chữ theo bậc hiếm (bảng màu tạm, titlePlate.ts); tự săn thì chữ lục như cũ.
+      const tier = titleDef(p.titleId)?.tier ?? titleDef(titleIdOf(p.level))?.tier ?? 1;
+      const tcol = p.auto ? "#86e0b0" : titlePal(tier).text; if (title.style.color !== tcol) title.setColor(tcol);
+      title.setData("tier", tier);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
     for (const [id, v] of this.players) if (!seenP.has(id)) { this.pt.drop(id); if (v.lpcKey) this.lpc.release(v.lpcKey); v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); this.players.delete(id); }
@@ -3429,6 +3435,13 @@ export class GameScene extends Phaser.Scene {
       lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(home.x + dx, home.y - up - size.offsets[i]).setVisible(true));
     }
     this.nameplateShown = shown;
+    // Bảng danh hiệu: chỉ người đang hiện chữ danh hiệu (trong tầm nhìn, chưa thu gọn), đặt theo chữ đã bố trí.
+    const plates: PlateIn[] = [];
+    this.players.forEach((v, id) => {
+      if (!v.title.visible || !v.title.text) return;
+      plates.push({ id, tier: v.title.getData("tier") ?? 1, x: v.title.x, y: v.title.y, w: v.title.width * K, h: v.title.height * K, alpha: v.title.alpha, mine: id === this.me });
+    });
+    this.titlePlates.draw(plates, this.time.now, K);
   }
 
   /**
