@@ -1,0 +1,17 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "raw": "giang_duong_lau_dai-raw.png",
+  "rawSha256": "1b6707a9a5c8af3f0e40c9f34ac19f6a9474f2585d0fa22424186d64d9748690",
+  "spriteSha256": "13235d8d20145ffa936f512261cfb31ee62357937eee4e85685e8eee61b54157",
+  "foot": [
+    64,
+    96
+  ],
+  "size": [
+    128,
+    128
+  ]
+}

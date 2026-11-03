@@ -46169,6 +46169,11 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "prop_giang_duong_lau_dai",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
       "key": "prop_that_xa_phong_so_7",
       "iso": true,
       "map": "nac_dinh_thanh"
