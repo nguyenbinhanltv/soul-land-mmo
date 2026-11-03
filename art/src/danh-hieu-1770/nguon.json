@@ -1,0 +1,123 @@
+{
+  "issue": 1770,
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-03",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "modelId": null,
+  "seed": null,
+  "input": "Không ảnh tham chiếu ngoài",
+  "raw": {
+    "file": "danh_hieu_concept_raw.png",
+    "size": [
+      1672,
+      941
+    ],
+    "sha256": "33f319db9ba152479e68e9102da11bebf3f5f50810fa6f648e44bb5e85e996c2"
+  },
+  "prompt": {
+    "file": "danh_hieu_concept.prompt.txt",
+    "sha256": "86170608fbdc3ca616681ff4d2e41e7226f0a3f80c7dd22ecf1a426ea5de7026"
+  },
+  "concept": {
+    "file": "danh_hieu_concept.png",
+    "sha256": "db43fca227528877f33f9df3f9ab6f6ecb5756df728f645635b7b8bda6d0aadd",
+    "bounds": [
+      [
+        180,
+        8,
+        1320,
+        130
+      ],
+      [
+        180,
+        142,
+        1320,
+        130
+      ],
+      [
+        180,
+        274,
+        1320,
+        130
+      ],
+      [
+        180,
+        404,
+        1320,
+        130
+      ],
+      [
+        180,
+        536,
+        1320,
+        130
+      ],
+      [
+        180,
+        668,
+        1320,
+        146
+      ]
+    ],
+    "alphaThreshold": 128,
+    "channelStep": 17,
+    "maxColorsPerTier": 24,
+    "rightEnd": "Lật từ trái",
+    "checks": [
+      {
+        "tier": 1,
+        "size": [
+          192,
+          32
+        ],
+        "transparent": 2416,
+        "colors": 25
+      },
+      {
+        "tier": 2,
+        "size": [
+          192,
+          32
+        ],
+        "transparent": 2346,
+        "colors": 25
+      },
+      {
+        "tier": 3,
+        "size": [
+          192,
+          32
+        ],
+        "transparent": 2324,
+        "colors": 25
+      },
+      {
+        "tier": 4,
+        "size": [
+          192,
+          32
+        ],
+        "transparent": 2266,
+        "colors": 25
+      },
+      {
+        "tier": 5,
+        "size": [
+          192,
+          32
+        ],
+        "transparent": 2288,
+        "colors": 25
+      },
+      {
+        "tier": 6,
+        "size": [
+          192,
+          32
+        ],
+        "transparent": 2192,
+        "colors": 25
+      }
+    ]
+  }
+}

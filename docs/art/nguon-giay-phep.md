@@ -1,5 +1,7 @@
 # Nguồn ảnh và giấy phép
 
+Concept Danh Hiệu P4a (#1770, phần #1766): Codex builtin OpenAI `image_gen.imagegen`, 03/11/2026, tự sinh không ảnh tham chiếu ngoài. Điều khoản đầu ra OpenAI, không CC0; RAW nguyên byte, prompt và SHA256 ở `art/src/danh-hieu-1770/`. Tờ sáu bậc 192×224 có alpha thật, 24 màu hữu hình/bậc; trang đối chiếu 1x/3x ở artifacts phiên AO `soul_land_game-1039`. **Chỉ concept, chưa nhập game; bộ đầy đủ thuộc PR sau.**
+
 Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skill `asset-gen` (mục 2) và `tools/assets/README.md`. Quy tắc chung ở mục 5.11.
 
 **Nguồn và giấy phép**

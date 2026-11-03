@@ -1,5 +1,7 @@
 # Lịch sử lộ trình (đã xong)
 
+- 03/11/2026 — Danh Hiệu P4a (#1770, phần #1766): concept sáu bậc tiên hiệp rực lửa, hậu kỳ lưới 192×32, alpha nhị phân và đầu phải lật từ trái; trang đối chiếu tên thật 1x/3x trên nền sáng/tối ở artifacts phiên AO `soul_land_game-1039`. Chỉ concept, chưa nhập game.
+
 <!-- D3 (#619): rút gọn từ bản đầy đủ; giữ mốc chính, số issue / PR gom ở cuối file. Chi tiết từng bước xem `git log` và issue. Luật hiện hành nằm ở GAME_DESIGN.md và docs/design/; việc còn mở ở ROADMAP.md; quyết định của chủ repo ở docs/quyet-dinh.md. -->
 
 **Giai đoạn 10: Đồ họa isometric** (quy cách mục 5.11).

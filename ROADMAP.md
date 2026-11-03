@@ -3,6 +3,8 @@
 <!-- Tách cơ học từ GAME_DESIGN.md (D1, #619): nguyên văn, chưa viết lại; số mục và tên mục con giữ nguyên. -->
 
 ## 7. Lộ trình
+
+- [x] Danh Hiệu P4a (#1770, phần #1766): tờ concept sáu bậc tiên hiệp rực lửa, mẫu hạt / hướng clip, trang đối chiếu 1x/3x; chưa nhập game, bộ đầy đủ ở P4b.
 Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ tới issue GitHub (`#số`), nhận việc theo `CONTRIBUTING.md`. Xong một bước thì chạy `npm run check` và bot, cập nhật mục thiết kế tương ứng rồi bỏ dòng `[ ]` và thêm vài chữ vào đoạn "Đã có" của giai đoạn (còn phần dở thì giữ dòng, ghi "Còn: …").
 
 **Đã có** (Giai đoạn 2–9, nhóm Bản đồ BĐ1–BĐ6, ảnh nền búp bê NV6 gắn vào giao diện ở C16 #595, nhãn trên đầu C9 #593, biểu tượng + con trỏ C12 #598): mọi luật mô tả ở mục 4–5 và kiến trúc mục 6, trừ các việc còn ghi dưới đây.
