@@ -1,0 +1,140 @@
+{
+  "issue": 1777,
+  "tool": "Codex vẽ pixel bằng code, không gọi model ở lô này",
+  "license": "Ảnh tự tạo của dự án; không gán CC0",
+  "date": "2026-11-03",
+  "reference": "Concept #1770 đã duyệt #1771; bảng màu định hướng docs/design/danh-hieu.md",
+  "method": "Đa giác trên lưới pixel nguyên; clip đổi biên ngọn, lòng và tàn lửa qua bốn pha, không dịch cả ảnh; giữ alpha nhị phân.",
+  "entries": [
+    {
+      "file": "danh_hieu_clip_5.png",
+      "size": [
+        64,
+        24
+      ],
+      "sha256": "fc3b0aaff59148caa1d09848cb12174c708dbd4c177943a4113e0dc6a721c2b5",
+      "visiblePixels": 650,
+      "frame": [
+        16,
+        24
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "anchor": [
+        8,
+        23
+      ],
+      "order": "Trái sang phải, lặp 0→1→2→3",
+      "suggestedFps": 8,
+      "frameSha256": [
+        "98222d81a38c7e2646e214a59893dfb1427c2794c108305b93d9cb5f3b51a676",
+        "b6dd04c8357d03a8d2e52ba4972437ef9fcd3736a5ab72bbd41a6c8c759cb60f",
+        "463d63ad3478190441bdaec8bd0bab76f56e6370275c2cd6872d34c5101a6eef",
+        "b62dbaae74152804fa45a2a572a00bd0fc9bad8bbe7c138824ce9c96bb67f0f9"
+      ],
+      "palette": [
+        "#411000",
+        "#a13009",
+        "#ed6d12",
+        "#ffbc32",
+        "#fff4a5"
+      ]
+    },
+    {
+      "file": "danh_hieu_clip_6.png",
+      "size": [
+        64,
+        24
+      ],
+      "sha256": "b75c72f900439190e6b10697a432abeae2e6b7c089df4e35a2b348bb211bd1b2",
+      "visiblePixels": 654,
+      "frame": [
+        16,
+        24
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "anchor": [
+        8,
+        23
+      ],
+      "order": "Trái sang phải, lặp 0→1→2→3",
+      "suggestedFps": 8,
+      "frameSha256": [
+        "8ff6eaf7eac6807d444ce32f9217cfd824402434cf244157e421b9d4e2b9f721",
+        "6bad5859aadfc89ff732690b096e228b7d076ae35fb42ca7115c6afe5b00543d",
+        "081be1e02c12607b0c1c08630d4c1f5eea703cedee8fbe35795db3dc4c44128b",
+        "b71be8aa97a8b122546fd541e2fa5df53ae8b6ef559ad5b75ca61197004ad1af"
+      ],
+      "palette": [
+        "#4d090c",
+        "#a3121c",
+        "#f1430e",
+        "#ffc037",
+        "#fffce0"
+      ]
+    },
+    {
+      "file": "danh_hieu_hat_lua.png",
+      "size": [
+        32,
+        8
+      ],
+      "sha256": "ab04ffb6d495981e57918df19be42f21f39414f8c7fe2622bbc780aa3d2e4269",
+      "visiblePixels": 64,
+      "frame": [
+        8,
+        8
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "anchor": [
+        4,
+        4
+      ],
+      "order": "Bốn biến thể trái sang phải; không phải clip bắt buộc",
+      "palette": [
+        "#411000",
+        "#a13009",
+        "#ed6d12",
+        "#ffbc32",
+        "#fff4a5"
+      ]
+    },
+    {
+      "file": "danh_hieu_hat_tia.png",
+      "size": [
+        32,
+        8
+      ],
+      "sha256": "c69e68849d66ebdca55496fd1862349f483a798e4b08cdd943f4d80b801f39db",
+      "visiblePixels": 42,
+      "frame": [
+        8,
+        8
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "anchor": [
+        4,
+        4
+      ],
+      "order": "Bốn biến thể trái sang phải; không phải clip bắt buộc",
+      "palette": [
+        "#411000",
+        "#a13009",
+        "#ed6d12",
+        "#ffbc32",
+        "#fff4a5"
+      ]
+    }
+  ]
+}
