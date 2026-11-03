@@ -952,6 +952,10 @@
    "key": "vat_nam_do",
    "private": "packs/vat_nam_do.png",
    "foot": [6, 12]
+  },
+  "tan_linh_thu": {
+   "key": "prop_tan_linh_thu",
+   "foot": [48, 62]
   }
  },
  "maps": {
@@ -1593,7 +1597,8 @@
     "44": ["vat_cay_soi_1|cay_la_tron", "vat_cay_soi_2|cay_la_rong"],
     "45": "vat_khuc_go|khuc_go_rong",
     "46": ["vat_bui_cay|duong_xi_sang", "vat_bui_cay~#d8e8c8|duong_xi_sang", "vat_bui_cay|duong_xi_sang", "vat_bui_cay~#c8dcc0|duong_xi_sang", "vat_bui_cay~#e0ecd0|duong_xi_sang"],
-    "47": "vat_nam_do"
+    "47": "vat_nam_do",
+    "48": "tan_linh_thu"
    },
    "build": {
     "wallKind": "plaster",
