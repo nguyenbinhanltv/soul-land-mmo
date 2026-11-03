@@ -457,6 +457,8 @@ function sheetSpec(key: string, frame?: readonly [number, number], iso = false):
   if (/^halo\d$/.test(key)) return { url: `ring/${key}.png`, frame: [24, 10] };
   // Hiệu ứng (tools/assets/lpc-item.mjs, #201): dải một hàng, manifest ghi `frame`; chạy bằng playFx.
   if ((m = key.match(/^fx_([a-z0-9_]+)$/)) && frame) return { url: `iso/fx/${m[1]}.png`, frame };
+  // Bảng Danh Hiệu (#1792, titlePlate.ts): khung nine-patch, đầu, clip / hạt (manifest ghi `frame`); biểu tượng nhóm do HTML đọc (uiArt.ts).
+  if ((m = key.match(/^danh_hieu_((?:khung|dau|clip|hat)_[a-z0-9_]+)$/))) return { url: `iso/danh_hieu/${key}.png`, frame: /^(clip|hat)_/.test(m[1]) ? frame : undefined };
   // NPC phụ / dân thường ghép từ LPC (mục 5.11 "NPC phụ và dân thường"): một lớp đã tô màu, bố cục sheet hồn sư isometric.
   // Pháp tướng Võ Hồn Chân Thân (#482): sheet 16 cột × 5 hàng, khung 160 (PT_FRAME); không có normal map. Do phapTuong.ts dùng.
   if ((m = key.match(/^pt_([a-z_]+)$/))) return { url: `phaptuong/${m[1]}.png`, frame: [PT_FRAME, PT_FRAME] };
@@ -490,7 +492,7 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts); hiệu ứng `fx_*` (#201) là dải một hàng, chạy bằng playFx.
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
-      if (iso && !/^(vh|vhanim|vkanim|beast|fx|pt)_/.test(key)) continue;
+      if (iso && !/^(vh|vhanim|vkanim|beast|fx|pt|danh_hieu_(khung|dau|clip|hat))_/.test(key)) continue;
       if (typeof e !== "string" && e.anim && /^beast_[a-z_]+_anim$/.test(key)) { const L = parseLayout(e.anim); ANIM_LAYOUTS.set(key, L); markPartialAnim(key, !!L.dirsOk); }
       if (typeof e !== "string" && /^(vhanim|vkanim)_[a-z_]+_[bf]$/.test(key)) { const L = parsePhuLayout(e.anim, e.frame); if (L) PHU_LAYOUTS.set(key, L); else console.warn(`[sprites] anim của ${key} không hợp lệ: phụ thể chạy nhánh cũ`); }
       if (typeof e !== "string" && e.lpc && key.startsWith("beast_")) LPC_BEASTS.add(key);
@@ -506,7 +508,7 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       if (spec.frame) scene.load.spritesheet(key, BASE + spec.url, { frameWidth: spec.frame[0], frameHeight: spec.frame[1] });
       else scene.load.image(key, BASE + spec.url);
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
-      if (iso && !key.startsWith("fx_") && !key.startsWith("pt_") && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
+      if (iso && !key.startsWith("fx_") && !key.startsWith("pt_") && !key.startsWith("danh_hieu_") && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
     }
     lpc?.(lpcNames);
     after?.(); // sau khi manifest đã ghi spec (vohonLazy): nơi gọi xin thêm sheet cần ngay

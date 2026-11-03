@@ -46193,6 +46193,114 @@
       "iso": true,
       "map": "nac_dinh_thanh"
     },
+    {
+      "key": "danh_hieu_dau_1",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_dau_2",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_dau_3",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_dau_4",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_dau_5",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_dau_6",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_khung_1",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_khung_2",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_khung_3",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_khung_4",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_khung_5",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_khung_6",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_nhom_bi_an",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_nhom_cap",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_nhom_san_boss",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_nhom_su_kien",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_nhom_thanh_tuu",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_nhom_tong_mon",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_nhom_xep_hang",
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_clip_5",
+      "frame": [
+        16,
+        24
+      ],
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_clip_6",
+      "frame": [
+        16,
+        24
+      ],
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_hat_lua",
+      "frame": [
+        8,
+        8
+      ],
+      "iso": true
+    },
+    {
+      "key": "danh_hieu_hat_tia",
+      "frame": [
+        8,
+        8
+      ],
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
