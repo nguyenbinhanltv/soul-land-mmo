@@ -1,0 +1,17 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "raw": "that_xa_phong_so_7-raw.png",
+  "rawSha256": "9bb8c1a4f262b8db4ee22946a24bc817d31de564839e2c15da2ee0edad20bbfb",
+  "spriteSha256": "e77fcc9e72f34edbe135c95c04306801a653e1c0e7f3ab3b15853fde16a0b255",
+  "foot": [
+    54,
+    68
+  ],
+  "size": [
+    112,
+    96
+  ]
+}

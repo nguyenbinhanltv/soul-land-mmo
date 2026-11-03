@@ -1,0 +1,302 @@
+{
+  "issue": 1777,
+  "source": "../../danh-hieu-1770/danh_hieu_concept.png",
+  "sourceSha256": "db43fca227528877f33f9df3f9ab6f6ecb5756df728f645635b7b8bda6d0aadd",
+  "method": "Tách pixel nguyên từ concept đã duyệt; rail lấy cột x=80; cạnh đứng vẽ bằng màu rail gốc; không nội suy; alpha 0/255.",
+  "entries": [
+    {
+      "file": "danh_hieu_khung_1.png",
+      "size": [
+        128,
+        32
+      ],
+      "sha256": "b52eafcf416861624a902129581ac80bec105947b663a6fdb60318b41e26ff07",
+      "visiblePixels": 2816,
+      "visibleColors": 6,
+      "nine": {
+        "left": 8,
+        "top": 13,
+        "right": 8,
+        "bottom": 11
+      },
+      "textRect": [
+        8,
+        11,
+        112,
+        13
+      ]
+    },
+    {
+      "file": "danh_hieu_dau_1.png",
+      "size": [
+        36,
+        32
+      ],
+      "sha256": "406de7a4b73e0e1e374d4996e0c0ecc7a5f852e329f7e9972f284d5cde1b329e",
+      "visiblePixels": 526,
+      "visibleColors": 23,
+      "right": "Lật ngang từ ảnh trái; không vẽ lại",
+      "placement": {
+        "left": [
+          -32,
+          0
+        ],
+        "right": [
+          124,
+          0
+        ]
+      },
+      "sourceRect": [
+        0,
+        0,
+        36,
+        32
+      ]
+    },
+    {
+      "file": "danh_hieu_khung_2.png",
+      "size": [
+        128,
+        32
+      ],
+      "sha256": "d8e2a0328a07875c5007eb3bf61a0df484798ff1c0fe9f77ddeb0e98d675dcbb",
+      "visiblePixels": 2816,
+      "visibleColors": 6,
+      "nine": {
+        "left": 8,
+        "top": 13,
+        "right": 8,
+        "bottom": 11
+      },
+      "textRect": [
+        8,
+        11,
+        112,
+        13
+      ]
+    },
+    {
+      "file": "danh_hieu_dau_2.png",
+      "size": [
+        36,
+        32
+      ],
+      "sha256": "a65c4612b3177634bcf8b79d20c053f6a466dfe75034c726a6aca44804499f78",
+      "visiblePixels": 559,
+      "visibleColors": 22,
+      "right": "Lật ngang từ ảnh trái; không vẽ lại",
+      "placement": {
+        "left": [
+          -32,
+          0
+        ],
+        "right": [
+          124,
+          0
+        ]
+      },
+      "sourceRect": [
+        0,
+        32,
+        36,
+        32
+      ]
+    },
+    {
+      "file": "danh_hieu_khung_3.png",
+      "size": [
+        128,
+        32
+      ],
+      "sha256": "bc495f404e764110c11832b06070ad49da2023b34efa3cf32c767830d46a18f2",
+      "visiblePixels": 2816,
+      "visibleColors": 8,
+      "nine": {
+        "left": 8,
+        "top": 13,
+        "right": 8,
+        "bottom": 11
+      },
+      "textRect": [
+        8,
+        11,
+        112,
+        13
+      ]
+    },
+    {
+      "file": "danh_hieu_dau_3.png",
+      "size": [
+        36,
+        32
+      ],
+      "sha256": "54bcaafc02263936db49df58733120e8ac96da38a411e7cd51ff90029e9813b0",
+      "visiblePixels": 571,
+      "visibleColors": 24,
+      "right": "Lật ngang từ ảnh trái; không vẽ lại",
+      "placement": {
+        "left": [
+          -32,
+          0
+        ],
+        "right": [
+          124,
+          0
+        ]
+      },
+      "sourceRect": [
+        0,
+        64,
+        36,
+        32
+      ]
+    },
+    {
+      "file": "danh_hieu_khung_4.png",
+      "size": [
+        128,
+        32
+      ],
+      "sha256": "e4ddb2d4dac249a3e0aa4d1610512b4fb164cc78046e9eb38e9906c6e4503008",
+      "visiblePixels": 2816,
+      "visibleColors": 8,
+      "nine": {
+        "left": 8,
+        "top": 13,
+        "right": 8,
+        "bottom": 11
+      },
+      "textRect": [
+        8,
+        11,
+        112,
+        13
+      ]
+    },
+    {
+      "file": "danh_hieu_dau_4.png",
+      "size": [
+        36,
+        32
+      ],
+      "sha256": "0be70d95e26cb270652356ed0319351d7ff942d79be7740d6e406ad04fc4d4b3",
+      "visiblePixels": 597,
+      "visibleColors": 24,
+      "right": "Lật ngang từ ảnh trái; không vẽ lại",
+      "placement": {
+        "left": [
+          -32,
+          0
+        ],
+        "right": [
+          124,
+          0
+        ]
+      },
+      "sourceRect": [
+        0,
+        96,
+        36,
+        32
+      ]
+    },
+    {
+      "file": "danh_hieu_khung_5.png",
+      "size": [
+        128,
+        32
+      ],
+      "sha256": "3175fe8238bab64123f5a975f9d9660955ee62bd5283a994a1203ef99a4919b1",
+      "visiblePixels": 2816,
+      "visibleColors": 6,
+      "nine": {
+        "left": 8,
+        "top": 13,
+        "right": 8,
+        "bottom": 11
+      },
+      "textRect": [
+        8,
+        11,
+        112,
+        13
+      ]
+    },
+    {
+      "file": "danh_hieu_dau_5.png",
+      "size": [
+        36,
+        32
+      ],
+      "sha256": "52991400d75b9a0394d1a1b0f58ceb665f8cdb79773a9e08e943bd0b6405d416",
+      "visiblePixels": 590,
+      "visibleColors": 24,
+      "right": "Lật ngang từ ảnh trái; không vẽ lại",
+      "placement": {
+        "left": [
+          -32,
+          0
+        ],
+        "right": [
+          124,
+          0
+        ]
+      },
+      "sourceRect": [
+        0,
+        128,
+        36,
+        32
+      ]
+    },
+    {
+      "file": "danh_hieu_khung_6.png",
+      "size": [
+        128,
+        32
+      ],
+      "sha256": "7a74f1d60ba58bda6d753b3f9724b7d5885aafe30d870a63d5b24a45cb695851",
+      "visiblePixels": 2688,
+      "visibleColors": 9,
+      "nine": {
+        "left": 8,
+        "top": 13,
+        "right": 8,
+        "bottom": 11
+      },
+      "textRect": [
+        8,
+        11,
+        112,
+        13
+      ]
+    },
+    {
+      "file": "danh_hieu_dau_6.png",
+      "size": [
+        36,
+        32
+      ],
+      "sha256": "642e537ea6f7f72f946bcb7d23893fda1b8a357f6008c9b77d21d9f882b1e4de",
+      "visiblePixels": 702,
+      "visibleColors": 24,
+      "right": "Lật ngang từ ảnh trái; không vẽ lại",
+      "placement": {
+        "left": [
+          -32,
+          0
+        ],
+        "right": [
+          124,
+          0
+        ]
+      },
+      "sourceRect": [
+        0,
+        160,
+        36,
+        32
+      ]
+    }
+  ]
+}

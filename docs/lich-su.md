@@ -120,3 +120,5 @@
 - Tối ưu tài liệu: #619, #636, #637, #640. Hồn thú v2: #862–#866, #870, #766–#768. UI gốc (kit Mực + Giấy): #878–#880, #887. Di chuyển & giao chiến: #746–#752. Chống gian lận và hiệu năng: #716, #734–#739.
 
 - Bộ nối Xếp Hạng X4: #1524.
+
+- Danh Hiệu P4b (#1777, phần #1766): bàn giao 23 PNG trong ba lô độc lập: sáu khung nine-patch, sáu đầu trái (phải lật), hai clip bốn pha, hai sheet hạt và bảy biểu tượng nhóm; hồ sơ nguồn/hash/prompt, đối chiếu 1x/3x nền sáng/tối. Chưa nhập game; PR khung #1779, hiệu ứng #1781, biểu tượng thuộc lô cuối.
