@@ -99,6 +99,8 @@
 
 - [x] X4 Xếp Hạng: màn chung nối Cộng minh / Elo / Tông tuần bằng tin cũ; giữ giới hạn dữ liệu nguồn và phân trang, không thêm luật tính điểm.
 
+- [x] Danh Hiệu P1 (#1766, #1769): `TITLE_DEFS` (10 danh hiệu cấp từ `TITLES`), `042_danh_hieu.sql`, `PgStore` + `MemoryStore`, `grantTitle`, tin `title`, `PlayerState.titleId`; client đọc `titleId` (chữ như cũ); soát `docs/tech/soat-gian-lan-danh-hieu.md`.
+
 ## Số issue / PR
 
 - Giai đoạn 10: #96, #100–#103, #105, #331, #333, #335, #336–#342, #383, #385–#387, #395, #436, #444, #447, #451, #463, #466, #476, #480–#484, #564.

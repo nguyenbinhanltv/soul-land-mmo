@@ -2954,6 +2954,34 @@ export function xpLevelScale(level: number, beastLv: number) {
 export const TITLES = ["Hồn Sĩ", "Hồn Sư", "Đại Hồn Sư", "Hồn Tôn", "Hồn Tông", "Hồn Vương", "Hồn Đế", "Hồn Thánh", "Hồn Đấu La", "Phong Hào Đấu La"];
 export const titleOf = (level: number) => TITLES[Math.max(0, Math.min(TITLES.length - 1, Math.floor((level - 1) / 10)))];
 
+// ---------- Danh Hiệu (mục 5.25, docs/design/danh-hieu.md, P1): danh mục, mở khoá và hạn dùng. Chỉ trưng bày, một ô đeo ----------
+/** Nhóm danh hiệu (thứ tự hiển thị). `cap` = theo cấp (mặc định, tự đeo). */
+export const TITLE_GROUPS = ["cap", "thanh_tuu", "xep_hang", "boss", "su_kien", "tong_mon", "bi_an"] as const;
+export type TitleGroup = (typeof TITLE_GROUPS)[number];
+/** Số bậc hiếm (1 = thường … TITLE_TIER_MAX = cao nhất). */
+export const TITLE_TIER_MAX = 6;
+/** Nguồn mở khoá; mọi mở khoá chỉ từ sự kiện / trạng thái server. Kiểu còn lại (thành tựu, xếp hạng tuần, boss…) thêm ở P5 cùng nơi gọi `grantTitle`. */
+export type TitleSource = { kind: "level"; level: number } | { kind: "achv"; id: string } | { kind: "rank"; board: string; top: number } | { kind: "boss"; id: string } | { kind: "event" } | { kind: "tong"; id: string } | { kind: "secret" };
+/** Hạn dùng: vĩnh viễn, hết khi qua tuần (giờ Việt Nam, weekStartVn) hoặc hết ở mốc do nơi cấp truyền vào (sự kiện). */
+export type TitleTtl = "forever" | "week" | "event";
+export interface TitleDef { id: string; name: string; group: TitleGroup; tier: number; source: TitleSource; ttl: TitleTtl }
+/** Danh mục danh hiệu. `id` ổn định (đã lưu ở `title_owned` / `title_equipped`): CHỈ thêm, không đổi tên / xoá. 10 danh hiệu cấp tạo từ `TITLES` (không chép chuỗi hai nơi). */
+export const TITLE_DEFS: readonly TitleDef[] = TITLES.map((name, i): TitleDef => ({
+  id: `cap_${i + 1}`, name, group: "cap", tier: Math.min(TITLE_TIER_MAX, Math.ceil(((i + 1) * TITLE_TIER_MAX) / TITLES.length)), source: { kind: "level", level: i * 10 + 1 }, ttl: "forever",
+}));
+export const titleDef = (id: unknown) => typeof id === "string" ? TITLE_DEFS.find((t) => t.id === id) : undefined;
+/** Mã danh hiệu cấp mặc định theo cấp (cùng bậc với `titleOf`). */
+export const titleIdOf = (level: number) => `cap_${TITLES.indexOf(titleOf(level)) + 1}`;
+/** Tên hiển thị trên đầu: danh hiệu đang đeo nếu có mã hợp lệ, ngược lại danh hiệu cấp mặc định (`titleOf`). */
+export const titleText = (titleId: string | undefined, level: number) => titleDef(titleId)?.name ?? titleOf(level);
+/** Mốc hết hạn (ms) của danh hiệu `def` cấp lúc `now`: null = vĩnh viễn; `week` = 00:00 thứ Hai tuần sau; `event` = `eventEnd` (bắt buộc, phải ở tương lai) — thiếu thì ném. */
+export function titleExpiry(def: TitleDef, now: number, eventEnd?: number): number | null {
+  if (def.ttl === "forever") return null;
+  if (def.ttl === "week") return weekStartVn(now, 1);
+  if (!Number.isFinite(eventEnd) || (eventEnd as number) <= now) throw new Error(`Danh hiệu ${def.id}: thiếu mốc hết hạn sự kiện hợp lệ.`);
+  return eventEnd as number;
+}
+
 /**
  * Chỉ số của võ hồn `vh` (chỉ số trong VOHON) ở `level`, hồn hoàn theo bậc `rings`, sao `stars` (1–6, bước 3.4: starMult).
  * `bones` (bước 4.2): tổng chỉ số các hồn cốt đang gắn (boneBonus), cộng thẳng sau hệ số hệ và sao: hồn cốt +118 hồn lực

@@ -9,7 +9,7 @@ import { mapFile } from "./map.ts";
 import { DEFAULT_LOOKS, parseLooks, encodeLpc, decodeLpc, presetToLpc, parseTeam, TEAM_SIZE, MAPS, MAP_MOVED, DEFAULT_MAP, parseQuest, isDaily, isTongTask, type TongRank, parseHerbs, bagSlotsOf, BAG_SLOTS, BAG_MAX_SLOTS,
   BONE_ITEM, CORE_ITEM, EQUIP_ITEM, EQUIP_SLOTS, resonanceProgress, resonanceLevels, resonanceRankValue, resonanceRankCompare,
   RESONANCE_RANK_PAGE_SIZE, RESONANCE_RANK_PAGE_MAX, RESONANCE_RANK_CACHE, RANK_BOARD_CACHE, RANK_PAGE_MAX, RANK_PAGE_DEPTH, rankCompare, tongDef,
-  ACHV_COUNTERS, achvDef, BEASTS, itemDef, RING_ITEM, MAIL, MAIL_KINDS, type MailItem, type AchvCounter, type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
+  ACHV_COUNTERS, achvDef, titleDef, BEASTS, itemDef, RING_ITEM, MAIL, MAIL_KINDS, type MailItem, type AchvCounter, type RankLineupSlot, type Looks, type QuestProgress, type ArenaRecord, type ResonanceRankRow, type ResonanceRankValue } from "../../shared/data.ts";
 
 /** Một võ hồn tài khoản sở hữu (một dòng bảng `vohons`). Mỗi võ hồn có cấp, kinh nghiệm, hồn hoàn riêng. */
 export interface Character {
@@ -128,7 +128,7 @@ const seedItems = (items: SeedItem[], rowOf: (code: string) => number): Item[] =
   return items.map(({ vohon, ...i }, k): Item => ({ ...copyItem({ ...i, id: "", created: 0, vohonId: null }), id: randomUUID(), created: t0 + k, vohonId: vohon === undefined ? null : rowOf(vohon) }));
 };
 /** Các bảng xoá khi `removeTestAccount` (theo thứ tự xoá; kết quả trả số dòng mỗi bảng). */
-const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state", "achv_state", "bestiary", "mail",
+const REMOVE_TABLES = ["items", "teams", "vohons", "quests", "waypoints", "boss_claims", "auto_hunt", "auto_offline", "tong_points", "arena_ratings", "arena_pairs", "arena_elo_day", "rank_scores", "checkin_state", "achv_state", "title_owned", "title_equipped", "bestiary", "mail",
   "friends", "blocks", "map_fog", "sessions", "characters", "inventory", "accounts"] as const;
 const copyItem = (i: Item): Item => ({ ...i, stats: i.stats == null ? null : structuredClone(i.stats) });
 const copyQuest = (q: QuestProgress): QuestProgress => ({ ...q, prog: [...q.prog] });
@@ -363,6 +363,12 @@ export interface Store {
    * rồi thêm `id` vào `claimed` chỉ khi chưa có. Trả "ok"; "dup" = đã nhận ở tab / tiến trình khác; "low" = chưa đạt. Hai trường hợp sau không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
    */
   achvClaim(accountId: number, id: string, reached: (counters: AchvCounters) => boolean, bag: Bag): Promise<"ok" | "dup" | "low">;
+  /** Danh Hiệu của `accountId` (bảng `title_owned` + `title_equipped`, mục 5.25): các danh hiệu CÒN HẠN (hạn tính theo đồng hồ server lúc đọc) và mã đang đeo (null = mặc định theo cấp; đã hết hạn / không còn sở hữu cũng trả null). Đọc mới mỗi lần. */
+  titleGet(accountId: number): Promise<TitleRow>;
+  /** Mở danh hiệu `id` (mã TITLE_DEFS) cho tài khoản, hết hạn lúc `expiresAt` ms (null = vĩnh viễn). Idempotent: đang sở hữu mà còn hạn thì không đổi gì ("dup"); chưa có hoặc đã hết hạn thì ghi mới ("new"). Mã lạ thì ném. */
+  titleGrant(accountId: number, id: string, expiresAt: number | null): Promise<"new" | "dup">;
+  /** Đeo danh hiệu `id` (null = về mặc định theo cấp). Chỉ ghi khi đang sở hữu và còn hạn (kiểm trong cùng câu ghi); trả false = từ chối, không đổi gì. Mã lạ thì ném. */
+  titleEquip(accountId: number, id: string | null): Promise<boolean>;
   /** Sổ tay hồn thú của `accountId` (bảng `bestiary`, #1720): mã loài (BEASTS[].id) -> số lần đã hạ; có khóa = đã gặp. Chưa có dòng = {}. */
   dexGet(accountId: number): Promise<Record<string, number>>;
   /** Ghi "đã gặp" loài `species` (mã BEASTS): chỉ tạo dòng nếu chưa có (kills giữ nguyên). Mã lạ thì ném. */
@@ -470,6 +476,11 @@ function checkinPatchOk(p: CheckinPatch) {
   if (p.bit < 1 || p.bit >= 1 << p.days || (p.bit & (p.bit - 1)) !== 0 || (p.mask & p.bit) === 0 || p.mask < 0 || p.mask >= 1 << 30) throw new Error("Sổ điểm danh: ô ký không hợp lệ.");
   if (p.expect === null && (p.cycle !== 1 || p.mask !== p.bit || p.makeupUsed > 1)) throw new Error("Sổ điểm danh: dòng đầu tiên phải là ô đầu của chu kỳ 1.");
 }
+/** Một danh hiệu đã mở còn hạn: `at` = lúc mở (ms), `exp` = hạn (ms; null = vĩnh viễn). */
+export interface TitleOwned { id: string; at: number; exp: number | null }
+/** Danh Hiệu của một tài khoản (`titleGet`). */
+export interface TitleRow { owned: TitleOwned[]; equipped: string | null }
+function titleIdOk(id: string) { if (!titleDef(id)) throw new Error("Danh hiệu: mã không có."); }
 /** Bộ đếm sự kiện của Thành Tựu (khóa trong ACHV_COUNTERS; khóa thiếu = 0). */
 export type AchvCounters = Partial<Record<AchvCounter, number>>;
 /** Một dòng `achv_state` (Thành Tựu, mục 5.23). */
@@ -602,6 +613,8 @@ export class MemoryStore implements Store {
   rankT = 0;
   checkin = new Map<number, CheckinRow>(); // accountId -> Sổ Điểm Danh (bảng checkin_state, mục 5.21)
   dex = new Map<number, Map<string, number>>(); // accountId -> loài -> số lần hạ (bảng bestiary, #1720)
+  titles = new Map<number, Map<string, { at: number; exp: number | null }>>(); // accountId -> danh hiệu đã mở (bảng title_owned, mục 5.25)
+  titleEq = new Map<number, string | null>(); // accountId -> mã đang đeo (bảng title_equipped)
   achv = new Map<number, AchvRow>(); // accountId -> Thành Tựu (bảng achv_state, mục 5.23)
   mails = new Map<number, MailStored[]>(); // accountId -> Thư (bảng mail, mục 5.24)
   mailSeq = 1;
@@ -966,6 +979,28 @@ export class MemoryStore implements Store {
     m.set(species, (m.get(species) ?? 0) + 1);
     this.dex.set(accountId, m);
   }
+  async titleGet(accountId: number) {
+    const now = Date.now(), m = this.titles.get(accountId) ?? new Map<string, { at: number; exp: number | null }>();
+    const owned = [...m].filter(([, v]) => v.exp === null || v.exp > now).map(([id, v]): TitleOwned => ({ id, at: v.at, exp: v.exp }));
+    const eq = this.titleEq.get(accountId) ?? null;
+    return { owned, equipped: eq !== null && owned.some((o) => o.id === eq) ? eq : null };
+  }
+  async titleGrant(accountId: number, id: string, expiresAt: number | null) {
+    titleIdOk(id);
+    const now = Date.now(), m = this.titles.get(accountId) ?? new Map<string, { at: number; exp: number | null }>(), cur = m.get(id);
+    if (cur && (cur.exp === null || cur.exp > now)) return "dup" as const;
+    m.set(id, { at: now, exp: expiresAt }); this.titles.set(accountId, m);
+    return "new" as const;
+  }
+  async titleEquip(accountId: number, id: string | null) {
+    if (id !== null) {
+      titleIdOk(id);
+      const cur = this.titles.get(accountId)?.get(id);
+      if (!cur || (cur.exp !== null && cur.exp <= Date.now())) return false;
+    }
+    this.titleEq.set(accountId, id);
+    return true;
+  }
   async achvGet(accountId: number) { const r = this.achv.get(accountId); return { claimed: [...(r?.claimed ?? [])], counters: { ...(r?.counters ?? {}) } }; }
   async achvBump(accountId: number, key: string, n: number) {
     achvBumpOk(key, n);
@@ -1100,7 +1135,7 @@ export class MemoryStore implements Store {
     const rel = (m: Map<number, Set<number>>) => (m.get(id)?.size ?? 0) + [...m].filter(([a, set]) => a !== id && set.has(id)).length;
     Object.assign(n, { items: this.bags.get(id)?.items.length ?? 0, teams: this.teams.get(id)?.filter(Boolean).length ?? 0, vohons: owned.length,
       quests: this.quests.get(id)?.length ?? 0, waypoints: this.wps.get(id)?.size ?? 0, map_fog: this.fogs.get(id)?.size ?? 0, boss_claims: cl.length, auto_hunt: this.autos.has(id) ? 1 : 0,
-      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0, achv_state: this.achv.has(id) ? 1 : 0, bestiary: this.dex.get(id)?.size ?? 0, mail: this.mails.get(id)?.length ?? 0,
+      auto_offline: this.offline.has(id) ? 1 : 0, tong_points: tp.length, arena_ratings: this.arena.has(id) ? 1 : 0, arena_pairs: pairs.length, arena_elo_day: eloDays.length, rank_scores: rankKeys.length, checkin_state: this.checkin.has(id) ? 1 : 0, achv_state: this.achv.has(id) ? 1 : 0, title_owned: this.titles.get(id)?.size ?? 0, title_equipped: this.titleEq.has(id) ? 1 : 0, bestiary: this.dex.get(id)?.size ?? 0, mail: this.mails.get(id)?.length ?? 0,
       friends: rel(this.friends), blocks: rel(this.blocks), sessions: tokens.length, accounts: 1 });
     for (const c of owned) this.rows.delete(c.rowId);
     for (const k of tp) this.tongPts.delete(k);
@@ -1108,7 +1143,7 @@ export class MemoryStore implements Store {
     for (const k of pairs) this.pairs.delete(k);
     for (const k of eloDays) this.eloDay.delete(k);
     for (const k of rankKeys) this.rankRows.delete(k);
-    this.checkin.delete(id); this.achv.delete(id); this.dex.delete(id); this.mails.delete(id);
+    this.checkin.delete(id); this.achv.delete(id); this.titles.delete(id); this.titleEq.delete(id); this.dex.delete(id); this.mails.delete(id);
     for (const t of tokens) this.sessions.delete(t);
     for (const [k, a] of this.identities) if (a === id) this.identities.delete(k);
     for (const m of [this.active, this.teams, this.bags, this.quests, this.wps, this.autos, this.offline, this.tongs, this.arena, this.locs, this.looks, this.looksChanges, this.friends, this.blocks, this.names, this.fogs])
@@ -1945,6 +1980,35 @@ export class PgStore implements Store {
   async dexKill(accountId: number, species: string) {
     dexSpeciesOk(species);
     await this.pool.query("INSERT INTO bestiary(account_id, species, kills) VALUES ($1, $2, 1) ON CONFLICT (account_id, species) DO UPDATE SET kills = bestiary.kills + 1", [accountId, species]);
+  }
+  async titleGet(accountId: number) {
+    const [o, e] = await Promise.all([
+      this.pool.query("SELECT title_id, (extract(epoch FROM unlocked_at) * 1000)::bigint AS at, (extract(epoch FROM expires_at) * 1000)::bigint AS exp FROM title_owned WHERE account_id=$1 AND (expires_at IS NULL OR expires_at > now())", [accountId]),
+      this.pool.query("SELECT title_id FROM title_equipped WHERE account_id=$1", [accountId])]);
+    const owned = o.rows.filter((r) => titleDef(r.title_id)).map((r): TitleOwned => ({ id: r.title_id as string, at: Number(r.at), exp: r.exp === null ? null : Number(r.exp) }));
+    const eq = (e.rows[0]?.title_id ?? null) as string | null;
+    return { owned, equipped: eq !== null && owned.some((x) => x.id === eq) ? eq : null };
+  }
+  async titleGrant(accountId: number, id: string, expiresAt: number | null) {
+    titleIdOk(id);
+    // Một câu: chưa có dòng thì chèn; có dòng thì chỉ ghi đè khi dòng đó ĐÃ hết hạn (còn hạn / vĩnh viễn = không đổi gì, không kéo dài hạn).
+    const r = await this.pool.query(
+      `INSERT INTO title_owned(account_id, title_id, expires_at) VALUES ($1, $2, CASE WHEN $3::double precision IS NULL THEN NULL ELSE to_timestamp($3::double precision / 1000) END)
+       ON CONFLICT (account_id, title_id) DO UPDATE SET unlocked_at = now(), expires_at = EXCLUDED.expires_at
+       WHERE title_owned.expires_at IS NOT NULL AND title_owned.expires_at <= now() RETURNING 1`, [accountId, id, expiresAt]);
+    return r.rowCount ? "new" as const : "dup" as const;
+  }
+  async titleEquip(accountId: number, id: string | null) {
+    if (id === null) {
+      await this.pool.query("INSERT INTO title_equipped(account_id, title_id) VALUES ($1, NULL) ON CONFLICT (account_id) DO UPDATE SET title_id = NULL, updated_at = now()", [accountId]);
+      return true;
+    }
+    titleIdOk(id);
+    // Quyền sở hữu + hạn kiểm NGAY TRONG câu ghi (không có khoảng hở giữa kiểm và ghi).
+    const r = await this.pool.query(
+      `INSERT INTO title_equipped(account_id, title_id) SELECT $1, $2 WHERE EXISTS (SELECT 1 FROM title_owned WHERE account_id=$1 AND title_id=$2 AND (expires_at IS NULL OR expires_at > now()))
+       ON CONFLICT (account_id) DO UPDATE SET title_id = EXCLUDED.title_id, updated_at = now() RETURNING 1`, [accountId, id]);
+    return !!r.rowCount;
   }
   async achvGet(accountId: number) {
     const r = await this.pool.query("SELECT claimed, counters FROM achv_state WHERE account_id=$1", [accountId]);
