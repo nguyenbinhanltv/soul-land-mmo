@@ -1,0 +1,250 @@
+{
+  "issue": 1777,
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-03",
+  "license": "Điều khoản đầu ra OpenAI; không CC0",
+  "modelId": null,
+  "seed": null,
+  "input": "Tự sinh, không ảnh tham chiếu ngoài",
+  "processing": "Cắt hộp alpha >=128; nearest tại tâm về vùng tối đa 28x28 giữa canvas 32x32; alpha nhị phân; k-means 24 màu, 12 vòng, tâm khởi tạo đều theo tổng RGB đã sắp xếp; không nội suy.",
+  "entries": [
+    {
+      "file": "danh_hieu_nhom_cap.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "1a3eaac13f2ea54cb3b5d2f1b4eaf74e6695c31091e8d497ef964cd8fc15449b",
+      "visiblePixels": 269,
+      "visibleColors": 24,
+      "raw": {
+        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-cf105fa1-d350-4902-8419-021078efb9e0.png",
+        "size": [
+          1254,
+          1254
+        ],
+        "sha256": "3a164290991120e6ea5aaccdd2b40497deadc84a446191530a2710f3a6acd2dc"
+      },
+      "crop": [
+        201,
+        75,
+        852,
+        1125
+      ],
+      "destination": [
+        5,
+        2,
+        21,
+        28
+      ],
+      "prompt": {
+        "file": "danh_hieu_nhom_cap.prompt.txt",
+        "sha256": "0636ccb33f31f183e8c3c52845c62ac0441e38f7a238e81d3e95239bbc410782"
+      }
+    },
+    {
+      "file": "danh_hieu_nhom_thanh_tuu.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "7c0b8f4e186cfe3ce58be1a5fc5d6272f08f08618d233baab6c790bd4cfe7d6a",
+      "visiblePixels": 379,
+      "visibleColors": 24,
+      "raw": {
+        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-67a68894-26e3-457a-b15b-13f3e1e44107.png",
+        "size": [
+          1254,
+          1254
+        ],
+        "sha256": "c4da74151d5ffff590c1a562dce3400652d0ad2fe778e70b6e04c8f1b5666d50"
+      },
+      "crop": [
+        92,
+        43,
+        1065,
+        1172
+      ],
+      "destination": [
+        3,
+        2,
+        25,
+        28
+      ],
+      "prompt": {
+        "file": "danh_hieu_nhom_thanh_tuu.prompt.txt",
+        "sha256": "356d7502072592b48b1b1a1b1f82935785ef1e50fe5f825e4204c80c0767b3fa"
+      }
+    },
+    {
+      "file": "danh_hieu_nhom_xep_hang.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "ddabcf8334da0961b963329691241b113c1fd2fea3e7abb83247a1854a982869",
+      "visiblePixels": 390,
+      "visibleColors": 24,
+      "raw": {
+        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-a86fd7e2-85d0-4341-991c-9b9f125c9353.png",
+        "size": [
+          1263,
+          1245
+        ],
+        "sha256": "e6f5017ba1c2f491871af69eb0bf1297841312d8b6a44c1412dbc5c0bd63fe96"
+      },
+      "crop": [
+        97,
+        121,
+        1068,
+        972
+      ],
+      "destination": [
+        2,
+        3,
+        28,
+        25
+      ],
+      "prompt": {
+        "file": "danh_hieu_nhom_xep_hang.prompt.txt",
+        "sha256": "ad548ce3ea70d6bd8f846123872650d37e98dd3d772e7c2d9f8c339d196bbad5"
+      }
+    },
+    {
+      "file": "danh_hieu_nhom_su_kien.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "3e2f1e901f915c7ae61fba1f83f5160abeb493eae4b8cbf91158e7d5d9c32e40",
+      "visiblePixels": 318,
+      "visibleColors": 24,
+      "raw": {
+        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-1441b4c6-2796-4601-9ae9-eb1df8066a66.png",
+        "size": [
+          1264,
+          1244
+        ],
+        "sha256": "614ee0c3830fcda332023047e95dfedd8f5610bccb335435709a2fc456e9807b"
+      },
+      "crop": [
+        110,
+        25,
+        1014,
+        1207
+      ],
+      "destination": [
+        4,
+        2,
+        24,
+        28
+      ],
+      "prompt": {
+        "file": "danh_hieu_nhom_su_kien.prompt.txt",
+        "sha256": "44ab50ec638a7d64f0109c974b75d8824f645ab81de57bec89afa895b4495690"
+      }
+    },
+    {
+      "file": "danh_hieu_nhom_tong_mon.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "ec4e760c98975f5d7b48a4ccbf8579a241f5c50a1bf1ed268f14a97a4be5601d",
+      "visiblePixels": 445,
+      "visibleColors": 24,
+      "raw": {
+        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-fb2d3019-46be-4acf-a4ef-33767c3c08f9.png",
+        "size": [
+          1254,
+          1254
+        ],
+        "sha256": "163825e4765090c41d2636d8a150de8a5807340cdf650df6ef83a74e93c9c2e3"
+      },
+      "crop": [
+        49,
+        29,
+        1156,
+        1203
+      ],
+      "destination": [
+        2,
+        2,
+        27,
+        28
+      ],
+      "prompt": {
+        "file": "danh_hieu_nhom_tong_mon.prompt.txt",
+        "sha256": "4a5c734f6d26ac06314b848159bdad9ddabd2d38385c42860d7dc92cf6cda12b"
+      }
+    },
+    {
+      "file": "danh_hieu_nhom_san_boss.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "6b11de25644dfe4ff89f4e483ee6ce446bd9ad6c283b010d834dca74893a44ee",
+      "visiblePixels": 427,
+      "visibleColors": 24,
+      "raw": {
+        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-affea440-58f9-4c45-8f2c-a3c38b1000b4.png",
+        "size": [
+          1285,
+          1224
+        ],
+        "sha256": "56bc4767df567cb8920996e54a76128dd0be708e9b73fcf1bb22a77e5338262f"
+      },
+      "crop": [
+        66,
+        15,
+        1152,
+        1185
+      ],
+      "destination": [
+        2,
+        2,
+        27,
+        28
+      ],
+      "prompt": {
+        "file": "danh_hieu_nhom_san_boss.prompt.txt",
+        "sha256": "3bb25d4bb55c8b51c1e92ba07e87a31a26e01b736c0a9c7c12c209af6a53ff08"
+      }
+    },
+    {
+      "file": "danh_hieu_nhom_bi_an.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "9bf551c4dbaaca19d046bbddbca045b880e4af2e28a5dde6e799d2c40bbefe3a",
+      "visiblePixels": 307,
+      "visibleColors": 24,
+      "raw": {
+        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-e17233e2-622d-4fc9-b2bd-4b3b21374db6.png",
+        "size": [
+          1266,
+          1242
+        ],
+        "sha256": "ed184c5bf05304e89c92fccf5a13a567082f1ada2fcc6264801e074ea5f72b72"
+      },
+      "crop": [
+        89,
+        118,
+        1112,
+        1057
+      ],
+      "destination": [
+        2,
+        2,
+        28,
+        27
+      ],
+      "prompt": {
+        "file": "danh_hieu_nhom_bi_an.prompt.txt",
+        "sha256": "f419e4c9280fda572aa3cfa3e2c39e33138ca23e664e015978bb1c34f8321b34"
+      }
+    }
+  ]
+}

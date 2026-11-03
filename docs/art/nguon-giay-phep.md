@@ -87,3 +87,7 @@ BOARD v3 Hồn Quang Tiên Môn (#1260, Part of #877): Codex / OpenAI `image_gen
 #477 (hoạt ảnh hồn sư), #482 / #541 (pháp tướng, sheet hiệu ứng), #564 (hồn sư = LPC), #627 (kho asset riêng).
 
 Vải `cot_co_do_vang` (#1523): chủ repo yêu cầu dùng cùng kỹ thuật Codex image tool đã duyệt ở #1501 / #1508 / #1513, chỉ sinh lớp vải; không mở rộng sang vật khác. RAW nguyên byte 1536×1024, prompt thực tế, ngày nguồn và SHA256 tại `art/src/prop-clip/cot_co_do_vang/NGUON.md` và `nguon.json`. Đầu ra OpenAI, không gán CC0; cột/chân Gemini cũ giữ nguồn hiện có. Clip giữ nguyên bảng màu ảnh gốc và bất biến cột, chân, dải nối; ghi công ở nhóm ChatGPT/Codex.
+
+## Danh Hiệu P4b — biểu tượng nhóm (#1777)
+
+Bảy PNG `danh_hieu_nhom_*` ở `art/src/danh-hieu-1777/bieu-tuong/`: Codex builtin OpenAI `image_gen.imagegen`, 03/11/2026, tự sinh không ảnh tham chiếu ngoài, điều khoản đầu ra OpenAI, không CC0. Mỗi ảnh 32×32, tối đa 24 màu, alpha nhị phân, thu nearest và lượng tử màu. Prompt nguyên văn, SHA256 RAW/đầu ra, vùng cắt và quy cách ở hồ sơ cùng thư mục. RAW để ngoài repo. Chưa nhập game; trang đối chiếu 1×/3× sáng/tối ở artifacts phiên AO `soul_land_game-1042`.
