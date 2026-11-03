@@ -30,7 +30,7 @@ import { playerCard, rankGroups, podiumOf, lineupText, meLine, pageLabel, tongNa
 const ids = HUB_ITEMS.map((i) => i.id);
 assert.equal(new Set(ids).size, ids.length, "id mục hub không trùng");
 const sizes = (l) => ({ big: l.big.length, mid: l.mid.length, grid: l.grid.length, rail: l.rail.length });
-assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 14, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
+assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 15, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
 const L = hubLayout(["char", "bag", "rank", "settings"], ["rank"]);
 const cell = (l, id) => [...l.big, ...l.mid, ...l.grid, ...l.rail].find((c) => c.item.id === id);
 assert.equal(cell(L, "char").enabled, true);
@@ -340,4 +340,29 @@ console.log("✓ Bộ nối Xếp Hạng: điểm, trang, quyền riêng tư");
   const html = toHtml(dexRowNode(rows[2]));
   assert.ok(html.includes("???") && html.includes("Chưa hạ") && !html.includes(BEASTS[2].name), "dòng chưa hạ không lộ tên");
   assert.match(toHtml(dexRowNode(rows[1])), /Đã hạ 5 lần/); assert.match(toHtml(dexRowNode(rows[0])), /Chưa hạ/);
+}
+
+// ---- Danh Hiệu (titleScreen.ts, #1788): hàm thuần ----
+{
+  const { TITLE_DEFS } = await import("../../shared/data.ts");
+  const { titleGroups, titleCondition, expiryText, freshBanner, titleRowNode, previewNode, TITLE_GROUP_ORDER } = await import("../src/titleScreen.ts");
+  const now = 1_000_000, g0 = titleGroups({ owned: [], equipped: null }, now, "cap_1");
+  assert.deepEqual(g0.map((g) => g.code), [...TITLE_GROUP_ORDER], "đủ 7 nhóm đúng thứ tự");
+  assert.equal(g0.reduce((a, g) => a + g.rows.length, 0), TITLE_DEFS.length, "mọi danh hiệu thuộc một nhóm");
+  assert.ok(g0.flatMap((g) => g.rows).every((r) => r.state === "locked"), "chưa mở gì thì khoá hết");
+  const cap = (m) => titleGroups(m, now, "cap_1")[0].rows;
+  assert.equal(cap({ owned: [{ id: "cap_1", exp: null }, { id: "cap_2", exp: null }], equipped: null })[0].state, "equipped", "không đeo gì: cấp mặc định tính là đang đeo");
+  assert.equal(cap({ owned: [{ id: "cap_1", exp: null }, { id: "cap_2", exp: null }], equipped: "cap_2" })[1].state, "equipped");
+  assert.equal(cap({ owned: [{ id: "cap_1", exp: null }, { id: "cap_2", exp: null }], equipped: "cap_2" })[0].state, "owned");
+  assert.equal(cap({ owned: [{ id: "cap_2", exp: now - 1 }], equipped: null })[1].state, "locked", "quá hạn thì coi như khoá");
+  assert.match(titleCondition(TITLE_DEFS[1]), /cấp/); assert.ok(TITLE_DEFS.every((t) => titleCondition(t).length > 0));
+  assert.equal(expiryText(null, now), ""); assert.equal(expiryText(now - 1, now), "Đã hết hạn"); assert.match(expiryText(now + 2 * 864e5 + 3 * 36e5, now), /^Còn 2 ngày 3 giờ$/);
+  assert.equal(freshBanner(undefined), null); assert.equal(freshBanner(["khong_co"]), null, "mã lạ không ra banner");
+  assert.match(freshBanner(["cap_2"]).title, /Danh hiệu mới/); assert.match(freshBanner(["cap_1", "cap_2"]).title, /^2 danh hiệu mới/);
+  const lockedHtml = JSON.stringify(titleRowNode(g0[0].rows[1], now)), ownedHtml = JSON.stringify(titleRowNode({ ...g0[0].rows[1], state: "owned" }, now));
+  assert.match(lockedHtml, /Đạt cấp/); assert.ok(!lockedHtml.includes("data-eq"), "khoá thì không có nút Đeo");
+  assert.ok(ownedHtml.includes("data-eq") && !ownedHtml.includes("Đạt cấp"), "đã mở có nút Đeo, không hiện điều kiện");
+  assert.ok(JSON.stringify(titleRowNode({ ...g0[0].rows[0], state: "equipped" }, now)).includes("Đang đeo"));
+  const secret = g0.find((g) => g.code === "bi_an").rows[0]; if (secret) assert.ok(JSON.stringify(titleRowNode(secret, now)).includes("？？？"), "bí ẩn khoá giấu tên");
+  assert.match(JSON.stringify(previewNode(TITLE_DEFS[0], "Tiểu Vũ", "x")), /Tiểu Vũ/);
 }

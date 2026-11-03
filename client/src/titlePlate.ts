@@ -3,7 +3,7 @@
 // thu gọn); hạt và vệt quét là hàm thuần của thời gian nên không tạo / huỷ đối tượng nào. Quá `TITLE_FX.crowd` bảng thì
 // người khác chỉ còn khung tĩnh (chính mình luôn đủ hiệu ứng).
 // Độ sâu 99983.8: dưới mọi lớp chữ (tên NPC / biển / nhãn boss 99984, chữ hồn sư 99985), trên tele 99983.5.
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { TITLE_FX, TITLE_TIER_MAX } from "../../shared/data.ts";
 
 /** Bảng màu tạm theo bậc (hướng tiên hiệp rực lửa): nền, viền, ánh, màu chữ, màu hạt. */
