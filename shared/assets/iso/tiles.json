@@ -388,8 +388,8 @@
  "props": {
   "linh_canh_giap_giao": { "key": "prop_linh_canh_giap_giao", "foot": [16,44], "flip": false },
   "linh_canh_giap_khien": { "key": "prop_linh_canh_giap_khien", "foot": [16,44], "flip": false },
-  "cong_thanh_vom_y": { "key": "prop_cong_thanh_vom_y", "foot": [176, 127], "flip": false },
-  "cong_thanh_vom_x": { "key": "prop_cong_thanh_vom_x", "foot": [48, 119], "flip": false },
+  "cong_thanh_vom_y": { "key": "prop_cong_thanh_vom_y", "foot": [184, 171], "flip": false },
+  "cong_thanh_vom_x": { "key": "prop_cong_thanh_vom_x", "foot": [56, 179], "flip": false },
   "nha_khung_go_2tang": { "key": "prop_nha_khung_go_2tang", "foot": [48, 108], "flip": false },
   "nha_mai_xam_xanh": { "key": "prop_nha_mai_xam_xanh", "foot": [48, 108], "flip": false },
   "nha_khung_go_3tang": { "key": "prop_nha_khung_go_3tang", "foot": [48, 124], "flip": false },

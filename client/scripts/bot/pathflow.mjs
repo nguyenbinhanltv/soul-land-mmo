@@ -4,14 +4,14 @@
 // (đoạn đứng yên liên tiếp tính một lần), số lần tính lại đường, và kẹt thật (không tiến thêm AUTOWALK.stuckSecs giây).
 // In bảng từng tuyến + tổng mỗi bản đồ + một dòng `PATHFLOW_JSON {...}` để dán / so baseline trước và sau khi sửa bản đồ (L2, L3, L5).
 // Cố định: cùng bản đồ, cùng trại, cùng thứ tự mốc, hồn thú dọn sạch trước mỗi tuyến (không giao chiến) nên hai lượt cho số gần giống nhau.
-// Biến: PF_MAPS (mã bản đồ cách nhau dấu phẩy; mặc định Ngoại vi, Nội địa, Lạc Nhật), PF_MIN_TILES (bỏ mốc gần trại hơn số ô này, mặc định 10).
+// Biến: PF_MAPS (mã bản đồ cách nhau dấu phẩy; mặc định 6 bản đồ săn; muốn nhanh thì PF_MAPS=tinh_dau_ngoai_vi,…), PF_MIN_TILES (bỏ mốc gần trại hơn số ô này, mặc định 10).
 import { readFileSync } from "node:fs";
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../../shared/move.ts";
 import { findLongPath, buildNav, pathLength } from "../../../shared/path.ts";
 import { sleep, waitFor, ok, mapUrl, bot, enter, test, needHookSkip } from "./lib.mjs";
 import { MAPS, TILE, AUTO_MOVE, AUTOWALK, TICK_RATE } from "../../../shared/data.ts";
 
-const DEFAULT_MAPS = ["tinh_dau_ngoai_vi", "tinh_dau_noi_dia", "lac_nhat_sam_lam"];
+const DEFAULT_MAPS = ["tinh_dau_ngoai_vi", "tinh_dau_noi_dia", "lac_nhat_sam_lam", "cuc_bac_chi_dia", "hai_than_dao", "thanh_hon_thon"]; // mọi bản đồ săn (#1742)
 const KIND_NAME = { waypoint: "truyền tống", portal: "cổng", elite: "tinh anh", boss: "hang" };
 const MOVE_PX = 3;       // dịch ít hơn số này kể từ mốc chuyển động gần nhất thì tính là đứng yên
 const IDLE_MS = 1000;    // đứng yên quá ngưỡng này là một lần "đứng yên > 1 giây"

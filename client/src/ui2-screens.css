@@ -159,6 +159,12 @@ body:is(.ui-h560,.ui-w640):has(:is(#char,#bag,#roster,#reso,#friends,#audio,#aut
 .wf-note.wf-bad{border-left-color:var(--son-l)}
 .cal-past{flex-direction:row;flex-wrap:wrap;gap:var(--sp-2) var(--sp-3);padding:var(--sp-2) var(--sp-3)}
 .cal-short{font:var(--fs-s)/1.2 var(--f10)}
+.cal-boss{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;color:var(--muted)}
+.cal-d-r{display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-3)}
+.cal-d-r .cal-go-s{margin-left:0}
+/* ngày đã qua: cả cột mờ, nền phẳng, ngày gạch ngang (chữ "Đã qua" cho trình đọc màn hình ở nhãn thẻ, không chỉ màu) */
+.cal-col.cal-pastday{opacity:.55;background:transparent;border-style:dashed}
+.cal-pastday .cal-dn,.cal-pastday .cal-dd{text-decoration:line-through}
 
 /* ---- Thành Tựu (tấm Giấy; danh sách bậc + thanh tiến độ; trạng thái bằng chữ + hình, không chỉ màu) ---- */
 .av-wrap{display:flex;flex-direction:column;gap:var(--sp-4);min-height:0}

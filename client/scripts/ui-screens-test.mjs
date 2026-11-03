@@ -18,7 +18,7 @@ assert.match(giftHtml, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; ×4/);
 assert.doesNotMatch(giftHtml, /<(?:button|a|img)\b/);
 assert.equal(giftItemUrl("ma_la"), null);
 assert.deepEqual(giftNode({}).kids, []);
-import { bindCalendar, watchCalendar, fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL, calendarIconKey } from "../src/calendarScreen.ts";
+import { groupSlots, dayPast, bindCalendar, watchCalendar, fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL, calendarIconKey } from "../src/calendarScreen.ts";
 for (const [id, key] of [["king:tinh_dau", "king"], ["world:boss", "world"], ["always:arena", "arena"], ["always:auto", "auto"], ["reset:daily", "daily"], ["reset:tong", "weekly"]]) assert.equal(calendarIconKey(id), `gi_calendar_${key}`);
 for (const id of ["king", "world", "always:arena:la", "reset:weekly", "ma_la", "toString", "__proto__", ""]) assert.equal(calendarIconKey(id), null, "mã lạ không đoán icon");
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
@@ -78,6 +78,13 @@ assert.equal(todayIndex(WS, WS), 0); assert.equal(todayIndex(WS + 6 * D + 23 * H
 const cal = [{ id: "b", d: 2, s: 5, e: 6 }, { id: "a", d: 2, s: 5, e: 6 }, { id: "c", d: 2, s: 1, e: 2 }, { id: "x", d: 9, s: 0, e: 1 }];
 const cols = byDay(cal);
 assert.equal(cols.length, 7); assert.deepEqual(cols[2].map((x) => x.id), ["c", "a", "b"], "xếp theo giờ bắt đầu rồi mã"); assert.equal(cols.flat().length, 3, "cột ngoài 0..6 bị bỏ");
+// #1635: thẻ cùng tên + cùng giờ gom một nhóm có đếm; khác giờ / khác tên thì tách; ngày đã qua
+const gi = (id, name, s, e) => ({ id, name, kind: "slot", s, e, d: 0, map: id, mapName: id, boss: `B${id}` });
+const gs = groupSlots([gi("k:a", "Tà", 1, 2), gi("k:b", "Tà", 1, 2), gi("w:a", "Boss", 3, 4), gi("k:c", "Tà", 5, 6)]);
+assert.deepEqual(gs.map((g) => [g.items.length, g.first.id]), [[2, "k:a"], [1, "w:a"], [1, "k:c"]], "gom theo tên + giờ, giữ thứ tự");
+assert.equal(gs[1].key, "w:a@3", "nhóm một thẻ giữ khoá khung giờ"); assert.notEqual(gs[0].key, gs[2].key);
+assert.deepEqual(groupSlots([]), []);
+assert.equal(dayPast(WS, 0, WS + D), true); assert.equal(dayPast(WS, 0, WS + D - 1), false, "hôm nay chưa qua"); assert.equal(dayPast(WS, 6, WS + 6.5 * D), false); assert.equal(dayPast(WS, 6, WS + 7 * D), true, "tuần trước: đủ bảy ngày đã qua");
 assert.equal(dayDate(WS, 0), "26.10"); assert.equal(dayDate(WS, 6), "01.11");
 // chấm đỏ Lịch: khung đang mở / sắp mở chưa xem
 const NS = [it(WS + 20 * H, WS + 21 * H), it(WS + 22 * H, WS + 23 * H), it(WS + 10 * H, WS + 11 * H)].map((x, i) => ({ id: `e${i}`, ...x }));

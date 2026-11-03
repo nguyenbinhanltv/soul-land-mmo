@@ -61,6 +61,8 @@ try {
     await page.evaluate(async (f) => { const { setA11yPrefs } = await import("/src/a11y.ts"); setA11yPrefs({ font: f }); }, fs);
     await sleep(200);
   };
+  // Thẻ chỉ đổi dạng ở nhịp tick 250 ms của onboard (máy tải thì trễ): chờ theo trạng thái `data-cover`, hết hạn thì để assertion bên dưới báo trạng thái thật.
+  const waitCover = (on) => page.waitForFunction((v) => (document.querySelector("#onboard")?.dataset.cover === "1") === v, on, { timeout: 5000 }).catch(() => {});
   const openPanel = async (hub, sel) => {
     if (hub.startsWith("Key")) await page.keyboard.press(hub);
     else {
@@ -68,7 +70,7 @@ try {
       await page.locator(`[data-hub="${hub}"]`).click();
     }
     await page.locator(`${sel}:not([hidden])`).waitFor();
-    await sleep(350); // đủ một nhịp tick 250 ms của onboard
+    await waitCover(true);
   };
   const closePanel = async (sel) => {
     for (let i = 0; i < 3 && await page.locator(`${sel}:visible`).count(); i++) { await page.keyboard.press("Escape"); await sleep(120); }
@@ -88,7 +90,7 @@ try {
   assert.equal(await page.locator("#onboard").getAttribute("data-cover"), "1");
   assert.match(await page.locator("#onboard .ob-head b").textContent(), /bước 1\/6/);
   await closePanel("#mail");
-  await sleep(350);
+  await waitCover(false);
   assert.equal(await page.locator("#onboard").getAttribute("data-cover"), null);
   assert.ok(await page.locator("#onboard p").isVisible(), "đóng bảng thì đoạn hướng dẫn hiện lại");
   await openPanel("vohon", "#roster");
@@ -101,7 +103,8 @@ try {
   assert.equal(await page.locator("#onboard").getAttribute("data-cover"), "1");
   await page.locator("#onboard .ob-skip").click();
   assert.equal(await page.locator("#onboard:visible").count(), 0, "Bỏ qua trên dải gọn thì thẻ tắt");
-  await closePanel("#mail"); await sleep(350);
+  // Kiểm tra "không có gì xảy ra": hide() đã xoá data-cover từ lúc Bỏ qua nên waitCover(false) xong ngay, trước mọi nhịp tick. Phải quan sát cố định ≥ 2 nhịp (250 ms) để bắt lỗi tick sau khi đóng bảng làm thẻ hiện lại (#1611).
+  await closePanel("#mail"); await sleep(600);
   assert.equal(await page.locator("#onboard:visible").count(), 0, "đóng bảng không làm thẻ hiện lại");
   await page.evaluate(async () => { const ob = await import("/src/onboard.ts"); ob.onboardReview(); });
   for (const [w, h] of [[640, 360], [844, 390], [960, 540], [1280, 720]]) for (const fs of [0, 1, 2]) {
@@ -121,7 +124,7 @@ try {
       if (fs === 1 || (w === 1280 && fs === 0)) await page.screenshot({ path: resolve(out, `${prefix}-${w}x${h}-chu-${fs}-${hub}.png`) });
       await closePanel(sel);
       await page.locator("#onboard:not([hidden])").waitFor();
-      await sleep(350);
+      await waitCover(false);
       assert.equal(await page.evaluate(() => document.querySelector("#onboard").dataset.cover ?? ""), "", `${tag}: đóng bảng thì thẻ hiện lại đủ`);
     }
   }
