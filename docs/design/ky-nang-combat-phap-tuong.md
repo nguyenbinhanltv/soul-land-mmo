@@ -129,7 +129,7 @@ Mã `client/src/spiritMotion.ts`. Không ảnh mới.
 - Trang `?thu=phuthe` (trước / sau, đổi võ hồn, hướng, trạng thái, mức; `?thu=phuthe&n=40` để đo).
 - Kiểm:
   - `npm run test:skillvisual --prefix client` (khóa là chiêu có thật, sheet + lớp sáng có trong manifest, bảng đủ chiêu);
-  - `npm run test:combatfeel --prefix client` (bộ điều tốc), `npm run test:audio` (T3 đủ 25 võ hồn, giãn nhịp), `npm run test:spiritmotion --prefix client`;
+  - `npm run test:combatfeel --prefix client` (bộ điều tốc), `npm run test:audio --prefix client` (T3 đủ 25 võ hồn, giãn nhịp), `npm run test:spiritmotion --prefix client`;
   - `node client/scripts/fx-measure.mjs all` (không lỗi console, không tăng texture / pool).
 
 ## 5.18 Võ Hồn Chân Thân: pháp tướng
