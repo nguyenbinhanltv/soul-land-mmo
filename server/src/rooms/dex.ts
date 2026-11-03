@@ -12,7 +12,8 @@ const send = (room: MapRoom, id: string, set: Record<string, number>, full = fal
 export async function dexLoad(room: MapRoom, id: string, d: PData) {
   try {
     const row = await store.dexGet(d.accountId);
-    for (const [k, n] of Object.entries(row)) d.dex.set(k, Math.max(d.dex.get(k) ?? 0, n));
+    // #1762: dòng kills 0 là dữ liệu cũ của cơ chế "lại gần" (đã bỏ): bỏ qua, nếu không tên vẫn lộ.
+    for (const [k, n] of Object.entries(row)) if (n > 0) d.dex.set(k, Math.max(d.dex.get(k) ?? 0, n));
     d.dexLoaded = true;
     send(room, id, Object.fromEntries(d.dex), true);
   } catch (e) { console.error(`Không đọc được sổ tay hồn thú tài khoản #${d.accountId}`, e); }
