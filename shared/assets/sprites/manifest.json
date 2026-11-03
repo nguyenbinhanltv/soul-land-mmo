@@ -46101,6 +46101,14 @@
       "iso": true
     },
     {
+      "key": "prop_xe_hang_khong_ngua",
+      "iso": true
+    },
+    {
+      "key": "prop_xe_ngua_hang",
+      "iso": true
+    },
+    {
       "key": "prop_nha_mai_xam_xanh",
       "iso": true,
       "map": "nac_dinh_thanh"
