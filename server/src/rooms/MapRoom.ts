@@ -5,9 +5,9 @@ import { Room, Client, ServerError, OnMessageException, type RoomException } fro
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TICK_RATE,
   TEAM_COMBAT_SECS,
-  MAPS, parseNewLooks, encodeLpc,
+  MAPS,
   TILE,
-  formatHonTe, type ItemDef,
+  type ItemDef,
   type CoreData,
   type CoreStat, type EquipData,
   loadoutOf, type BondKey, type SkillDef, type StatusApply, type BuffId,
@@ -15,7 +15,7 @@ import { TICK_RATE,
   ELITE_RAGE, beastName, beastBuffBit, BEAST_BUFFS,
   KING, kingNext, vnDay, type BossDef, type FormDef,
   WORLD, worldNext, worldBossOn, type He,
-  npcDef, looksChangeCost, type NpcRole,
+  type NpcRole,
   QUEST_STARTER, type QuestReward, type QuestProgress, type QuestEvent, type QuestGoal,
   PARTY_BUFF_R,
   type AutoSummary,
@@ -25,7 +25,7 @@ import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../.
 import { clampDir, MOVE_DEAD } from "../../../shared/move.ts";
 import { loadMap, mapFile, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, bossOffset, bossNow, type BossEvent } from "../schedule.ts";
-import { store, Character, type Item, type Bag } from "../db.ts";
+import { Character, type Item, type Bag } from "../db.ts";
 import { takeToken } from "../ratelimit.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
@@ -79,6 +79,7 @@ import * as ava from "./ava.ts";
 import * as tienco from "./tienco.ts";
 import * as stats from "./stats.ts";
 import * as bossEvent from "./bossEvent.ts";
+import * as looks from "./looks.ts";
 import * as support from "./support.ts";
 import * as motion from "./motion.ts";
 import * as contrib from "./contrib.ts";
@@ -704,49 +705,9 @@ export class MapRoom extends Room<MapState> {
   talkNpc(id: string, raw: unknown) { quest.talkNpc(this, id, raw); }
 
   // ---------- Đổi ngoại hình ở thợ may (L4 #511, mục 5.11) ----------
-  /** Tin riêng `looksinfo`: số lần đã đổi (giá lần kế tiếp client tính bằng looksChangeCost, số ở shared/data.ts); `err` = lý do từ chối lần đổi vừa gửi. */
-  sendLooksInfo(id: string, err?: string) {
-    const d = this.pdata.get(id); if (!d) return;
-    this.clients.getById(id)?.send("looksinfo", err ? { n: d.looksN, err } : { n: d.looksN });
-  }
-
-  /**
-   * `looks {looks, npc}` (L4 #511): đổi ngoại hình, kể cả qua lại giữa Mẫu dựng sẵn và Tự tạo. Phải đứng trong NPC_RANGE của thợ may
-   * (role "looks"; `npc` là mã thợ may đang mở hộp thoại, thiếu thì thợ may gần nhất), không gục, không đang đi cổng, `looks` qua
-   * parseLooks và khác ngoại hình hiện tại. Lần đổi thứ `LOOKS_CHANGE.free` đầu miễn phí, sau đó tốn LOOKS_CHANGE.cost Hồn Tệ
-   * (looksChangeCost). Tới lượt trong chuỗi lưu mới kiểm lại số lần đổi / Hồn Tệ, trừ tiền, rồi ghi ngoại hình + tăng số lần đổi + ghi túi
-   * trong một transaction (store.changeLooks, điều kiện looks_changes khớp nên bấm dồn hay hai tab chỉ một lần được tính); DB lỗi thì trả lại tiền.
-   * Chỉ sau khi DB xác nhận mới đổi PlayerState (người xung quanh thấy ngay).
-   */
-  changeLooks(id: string, raw: unknown, rawNpc?: unknown) {
-    const p = this.state.players.get(id), d = this.pdata.get(id); if (!p || !d) return;
-    const warn = (text: string) => { this.log(id, text, "#ffb35c"); this.sendLooksInfo(id, text); };
-    if (p.dead || d.travelling) return warn("Lúc này không đổi ngoại hình được.");
-    const npc = typeof rawNpc === "string" ? this.npcNear(id, { id: rawNpc }) : this.npcNear(id, { role: "looks" });
-    if (!npc || npcDef(npc.id)?.role !== "looks") return warn("Hãy lại gần thợ may hơn để đổi ngoại hình.");
-    const looks = parseNewLooks(raw);
-    if (!looks) return warn("Ngoại hình không hợp lệ.");
-    const key = (l: { sex: number; hair: number; hairCol: number; outfitCol: number; skin: number; lpc?: string }) => l.lpc ? `L${l.lpc}` : `${l.sex}|${l.hair}|${l.hairCol}|${l.outfitCol}|${l.skin}`;
-    if (key({ ...looks, lpc: looks.lpc ? encodeLpc(looks.lpc) : "" }) === key(p)) return warn("Ngoại hình này giống hiện tại, không cần đổi.");
-    if (d.looksBusy) return warn("Đang đổi ngoại hình, đợi một chút.");
-    const need = looksChangeCost(d.looksN);
-    if (d.honTe < need) return warn(`Không đủ Hồn Tệ: đổi ngoại hình tốn ${formatHonTe(need)}, đang có ${formatHonTe(d.honTe)}.`);
-    d.looksBusy = true;
-    const done = d.looksN;
-    this.chain(d, async () => {
-      if (d.looksN !== done) return warn("Số lần đổi ngoại hình đã thay đổi, hãy mở lại hộp thoại.");
-      const cost = looksChangeCost(done);
-      if (d.honTe < cost) return warn(`Không đủ Hồn Tệ: đổi ngoại hình tốn ${formatHonTe(cost)}, đang có ${formatHonTe(d.honTe)}.`);
-      d.honTe -= cost; d.bagDirty = true;
-      let n: number | null;
-      try { n = await store.changeLooks(d.accountId, looks, done, this.bagSnapshot(d)); }
-      catch (e) { d.honTe += cost; d.bagDirty = true; warn("Không lưu được ngoại hình mới, thử lại sau (không mất Hồn Tệ)."); throw e; }
-      if (n === null) { d.honTe += cost; d.bagDirty = true; return warn("Không đổi được ngoại hình (đã đổi ở nơi khác?), hãy mở lại hộp thoại."); }
-      d.looksN = n;
-      p.sex = looks.sex; p.hair = looks.hair; p.hairCol = looks.hairCol; p.outfitCol = looks.outfitCol; p.skin = looks.skin; p.lpc = looks.lpc ? encodeLpc(looks.lpc) : "";
-      this.log(id, cost ? `Đổi ngoại hình xong: −${formatHonTe(cost)} (còn ${formatHonTe(d.honTe)}).` : "Đổi ngoại hình xong (lần đầu miễn phí).", "#e08cc8");
-    }).then(() => { d.looksBusy = false; if (this.pdata.get(id) === d) { this.sendBag(id); this.sendLooksInfo(id); } });
-  }
+  /** Tin riêng `looksinfo` và đổi ngoại hình ở thợ may: logic ở `looks.ts` (#702, E8b), các hàm dưới chỉ chuyển tiếp để `onMessage` / `quest.ts` gọi như cũ. */
+  sendLooksInfo(id: string, err?: string) { looks.sendLooksInfo(this, id, err); }
+  changeLooks(id: string, raw: unknown, rawNpc?: unknown) { looks.changeLooks(this, id, raw, rawNpc); }
 
   // ---------- Tông môn (#196, mục 5.14) ----------
   /** Tin riêng `tong`, giờ tuần tông, bộ tông vụ: logic ở `tong.ts` (#702), các hàm dưới chỉ chuyển tiếp để mọi nơi gọi như cũ. */

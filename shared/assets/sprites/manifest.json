@@ -46119,6 +46119,26 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "prop_bien_hieu_ren",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_bien_hieu_quan_tro",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_bien_hieu_duoc_thao",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_bien_hieu_lo_banh",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
       "key": "prop_den_long_treo_x",
       "iso": true,
       "map": "nac_dinh_thanh"

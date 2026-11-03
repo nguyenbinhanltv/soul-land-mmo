@@ -98,6 +98,8 @@ export class AutoHunter {
   aoeCasts = 0;
   /** Đang đi dạo tới vùng hồi sinh đã nhớ (để hiện trạng thái). */
   spawning = false;
+  /** Giây còn lại tới lần thử tìm điểm hồi sinh kế tiếp khi đang dạo thường (#1725). */
+  spawnRetry = 0;
   /** Hết đan: đang đứng nghỉ hồi sinh lực tới AUTO_REST.resume (B3, #610). */
   resting = false;
 
@@ -268,9 +270,15 @@ export class AutoHunter {
     const far = !this.wide && Math.hypot(p.x - this.anchor.x, p.y - this.anchor.y) > this.R;
     if (far) { this.patrol = null; this.go(this.anchor); return; }
     // Vùng neo trống / cả bản đồ không còn hồn thú hợp lệ (săn khắp bản đồ): đi dạo chờ hồn thú hồi sinh, ưu tiên trong vùng sinh đã nhớ (B2).
+    const pick = () => { this.patrolT = rand(AUTO_MOVE.patrol[0], AUTO_MOVE.patrol[1]); };
     if (!this.patrol || (this.patrolT -= dt) <= 0 || Math.hypot(this.patrol.x - p.x, this.patrol.y - p.y) < 6) {
       const sp = this.spawnSpot(p);
-      this.spawning = !!sp; this.patrol = sp ?? this.patrolPoint(this.center()); this.patrolT = rand(AUTO_MOVE.patrol[0], AUTO_MOVE.patrol[1]);
+      this.spawning = !!sp; this.patrol = sp ?? this.patrolPoint(this.center()); pick();
+      this.spawnRetry = sp ? 0 : AUTO_SPAWN.retry;
+    } else if (!this.spawning && this.spawns.size && (this.spawnRetry -= dt) <= 0) {
+      // Đã nhớ vùng mà lần chọn trước chưa ra điểm (#1725): thử lại sớm nhưng giữ điểm dạo cũ, chỉ đổi khi ra điểm hồi sinh.
+      const sp = this.spawnSpot(p);
+      if (sp) { this.spawning = true; this.patrol = sp; pick(); } else this.spawnRetry = AUTO_SPAWN.retry;
     }
     this.go(this.patrol);
   }
@@ -299,7 +307,7 @@ export class AutoHunter {
       if (this.clock - t > AUTO_SPAWN.keep) { this.spawns.delete(zi); continue; }
       const z = map.zones[zi];
       if (z.years && (z.years[1] < this.cfg.years[0] || z.years[0] > this.cfg.years[1])) continue;
-      for (let k = 0; k < 12; k++) {
+      for (let k = 0; k < AUTO_SPAWN.tries; k++) { // 12 lần từng trượt ngẫu nhiên (#1725): vùng nhỏ / nhiều ô chặn thì ít điểm hợp lệ
         const x = z.x0 + 8 + Math.random() * Math.max(0, z.x1 - z.x0 - 16), y = z.y0 + 24 + Math.random() * Math.max(0, z.y1 - z.y0 - 48);
         if (!map.standable(x, y) || map.inSafe(x, y)) continue;
         if (!this.wide && Math.hypot(x - this.anchor.x, y - this.anchor.y) > this.R + 2 * TILE) continue;
