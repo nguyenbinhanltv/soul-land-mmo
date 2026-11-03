@@ -62,7 +62,9 @@ for (const name of ["den_long_treo_x", "den_long_treo_y"]) {
   const cx = (Math.min(...xy.map((p) => p[0])) + Math.max(...xy.map((p) => p[0]))) / 2;
   const cy = (Math.min(...xy.map((p) => p[1])) + Math.max(...xy.map((p) => p[1]))) / 2;
   const fx = 128 - 8 * (xmin + xmax), fy = 128 - 8 * (ymin + ymax);
-  const sourceFoot = [fx, fy];
+  const groundAnchor = name.endsWith('_x') ? [7, 0, 0] : [0, 8, 0];
+  const sourceFoot = [fx + 16 * (groundAnchor[0] - groundAnchor[1]),
+    fy + 8 * (groundAnchor[0] + groundAnchor[1])];
   const scaled = new Img(256, 256);
   for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
     const nx = ((x - fx) / 16 - xmin) / (xmax - xmin);
@@ -80,9 +82,9 @@ for (const name of ["den_long_treo_x", "den_long_treo_y"]) {
   const spriteFoot = [Math.round(sourceFoot[0] + dst.w / 2 - 128),
     Math.round(sourceFoot[1] + dst.h - 4 - (bottom - 3))];
   fs.writeFileSync(path.join(outDir, `${name}-meta.json`), JSON.stringify({
-    name, secondFootDelta: name.endsWith('_x') ? [112,56] : [-128,64], units: 16, bounds: [xmin, ymin, xmax, ymax], groundAnchor: [0, 0, 0],
+    name, secondFootDelta: name.endsWith('_x') ? [-112,-56] : [128,-64], units: 16, bounds: [xmin, ymin, xmax, ymax], groundAnchor,
     sourceFoot, sourceBox: bbox(scaled), cleanBox: b, spriteFoot,
     spriteSize: [dst.w, dst.h], importBoxMaxY: bottom,
-  }, null, 2));
+  }, null, 2) + "\n");
   console.log(`${name}: neo [${spriteFoot}], khung ${dst.w}×${dst.h}`);
 }

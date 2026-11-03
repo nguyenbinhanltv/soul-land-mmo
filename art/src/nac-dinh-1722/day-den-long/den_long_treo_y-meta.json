@@ -1,8 +1,8 @@
 {
   "name": "den_long_treo_y",
   "secondFootDelta": [
-    -128,
-    64
+    128,
+    -64
   ],
   "units": 16,
   "bounds": [
@@ -13,12 +13,12 @@
   ],
   "groundAnchor": [
     0,
-    0,
+    8,
     0
   ],
   "sourceFoot": [
-    192,
-    137.2
+    64,
+    201.2
   ],
   "sourceBox": {
     "x0": 57,
@@ -37,8 +37,8 @@
     "h": 1078
   },
   "spriteFoot": [
-    136,
-    93
+    8,
+    157
   ],
   "spriteSize": [
     144,

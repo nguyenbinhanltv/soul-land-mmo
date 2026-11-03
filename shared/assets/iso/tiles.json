@@ -386,8 +386,8 @@
   }
  },
  "props": {
-  "den_long_treo_x": { "key": "prop_den_long_treo_x", "foot": [8,85], "flip": false },
-  "den_long_treo_y": { "key": "prop_den_long_treo_y", "foot": [136,93], "flip": false },
+  "den_long_treo_x": { "key": "prop_den_long_treo_x", "foot": [120,141], "flip": false },
+  "den_long_treo_y": { "key": "prop_den_long_treo_y", "foot": [8,157], "flip": false },
   "xe_hang_khong_ngua": { "key": "prop_xe_hang_khong_ngua", "foot": [40,64], "flip": false },
   "xe_ngua_hang": { "key": "prop_xe_ngua_hang", "foot": [59,82], "flip": false },
   "linh_canh_giap_giao": { "key": "prop_linh_canh_giap_giao", "foot": [16,44], "flip": false },
