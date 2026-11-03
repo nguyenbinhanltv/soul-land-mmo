@@ -37,11 +37,21 @@ export async function dexTest(){
       if(!dead&&bs(far)){ await test(F,"goto",{x:bs(far).x-24,y:bs(far).y}); F.room.send("target",{id:far}); await test(F,"bhp",{pct:1,bid:far}); }
     }
     ok(dead,"quái chết"); ok(await waitFor(()=>book()[sp]===1,3000),`hạ ${sp}: kills 1 (${book()[sp]})`);
-    // 4) Client không khai tay được: tin lạ không đổi sổ.
-    const before=JSON.stringify(book());
-    for(const bad of [{op:"set",set:{[BEASTS[BEASTS.length-1].id]:9}},{op:"see",id:BEASTS[BEASTS.length-1].id},{set:{x:1}},null,7,"x"]){ F.room.send("dex",bad); }
-    await sleep(700); F.room.send("dex",{op:"get"}); await sleep(500);
-    ok(JSON.stringify(book())===before,`tin dex giả không đổi sổ (${JSON.stringify(book())})`);
+    // 4) Client không khai tay được. Quái sinh lại vẫn có thể được server ghi "đã gặp" (0): không so JSON toàn sổ (#1757).
+    const before={...book()}, forged=BEASTS[BEASTS.length-1].id;
+    // Ép một loài chưa gặp xuất hiện giữa hai lần đọc: phép so JSON cũ phải trượt, dù server từ chối mọi tin giả.
+    const newcomer=BEASTS.find(b=>b.id!==forged&&!(b.id in before)).id;
+    await test(F,"spawn",{species:newcomer,tier:0,dx:30,hpx:6});
+    ok(await waitFor(()=>book()[newcomer]===0,3000),`server ghi loài vừa xuất hiện: ${newcomer}=0`);
+    await test(F,"clear");
+    for(const bad of [{op:"set",set:{[forged]:9}},{op:"see",id:forged},{set:{x:1}},null,7,"x"]){ F.room.send("dex",bad); }
+    await sleep(700); const replyN=F.dexN; F.room.send("dex",{op:"get"});
+    ok(await waitFor(()=>F.dexN>replyN,2000),"xin lại sổ sau tin dex giả: nhận phản hồi");
+    const after=book();
+    ok(Object.entries(before).every(([id,n])=>after[id]===n)&&
+      Object.entries(after).every(([id,n])=>id in before||n===0)&&
+      after[forged]===before[forged]&&after.x===before.x,
+      `tin dex giả không đổi số lần hạ / không khai được loài (${JSON.stringify(after)})`);
     // 5) Vào lại phòng: sổ nạp lại từ nơi lưu (PostgreSQL khi --pg).
     await sleep(500); await F.room.leave(); await sleep(300); await enter(F); F.dex={};
     F.room.send("dex",{op:"get"});
