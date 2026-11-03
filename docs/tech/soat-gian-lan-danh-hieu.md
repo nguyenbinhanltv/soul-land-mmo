@@ -14,6 +14,7 @@ Soát theo skill `anti-cheat-audit`. Phạm vi: tin `title {op: "get" | "equip",
 | 6 | Đang đeo danh hiệu hết hạn mà vẫn hiện | **Đúng**: `titleGet` trả `equipped = null` khi dòng đã hết hạn; `refresh` đặt `titleId = ""` và hẹn giờ theo hạn; test kéo hạn về quá khứ rồi `get` | — |
 | 7 | Rò thông tin ngoài tầm nhìn / danh sách đã mở | **Không rò**: `titleId` là chuỗi mã công khai (vốn để khoe), nằm trong `PlayerState` nên theo đúng `interest.ts`; danh sách đã mở + hạn chỉ qua tin riêng `title` cho chính chủ | — |
 | 8 | Spam `get` / `equip` làm tốn DB | **Giới hạn đúng**: `get` nhóm `read` + `room.ask` (nhịp `ASK_CD`); `equip` thêm nhịp nhóm `trade`, ghi qua chuỗi lưu `room.chain`; mỗi lần đọc là hai câu SELECT theo khoá chính | Thấp (cùng mức Thành Tựu) |
+| 6b | Danh hiệu có hạn hết hạn rồi được cấp lại tự đeo lại, lệch `titleId` | **Đã sửa** (review #1772): `titleGrant` "new" đưa `title_equipped` mã đó về NULL (mặc định thật); test đeo → hết hạn → cấp lại | Vừa → đã sửa |
 | 9 | Hai tab / hai tiến trình cùng cấp một danh hiệu | **Đúng**: khoá chính `(account_id, title_id)` + `ON CONFLICT`; một nơi thắng, nơi kia "dup" | — |
 | 10 | Đổi danh hiệu trong sân đấu / Bí Cảnh | **Chặn**: `title` trong `BLOCKED` của `ArenaRoom`, `BiCanhRoom` kế thừa | — |
 | 11 | Danh hiệu thành nguồn kinh tế (mua / bán / chuyển) | **Không có**: không Hồn Tệ, không vật phẩm, không tin chuyển; chỉ trưng bày, không cộng chỉ số | — |

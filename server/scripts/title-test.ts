@@ -65,6 +65,17 @@ await test("MemoryStore.titleEquip: chỉ đeo khi sở hữu + còn hạn; null
   assert.equal(await s.titleEquip(1, null), true); assert.equal((await s.titleGet(1)).equipped, null);
   await s.titleGrant(1, "cap_5", now + 60_000); assert.equal((await s.titleGet(1)).equipped, null, "mở lại không tự đeo (đang ở mặc định)");
 });
+await test("Đeo danh hiệu có hạn → hết hạn → cấp lại: không tự đeo lại, titleId công khai rỗng", async () => {
+  const acc = 18000 + Math.floor(Math.random() * 1000), f = fakeRoom(acc, 1), exp = Date.now() + 60_000;
+  await store.titleGrant(acc, "cap_8", exp); assert.equal(await store.titleEquip(acc, "cap_8"), true);
+  titleAction(f.room, "s1", { op: "get" }); await f.idle(); assert.equal(f.p.titleId, "cap_8");
+  const mem = (store as unknown as { titles: Map<number, Map<string, { exp: number | null }>> }).titles;
+  mem.get(acc)!.get("cap_8")!.exp = Date.now() - 1;
+  grantTitle(f.room, "s1", "cap_8"); await f.idle();
+  assert.equal((await store.titleGet(acc)).equipped, null, "DB về mặc định thật");
+  titleAction(f.room, "s1", { op: "get" }); await f.idle(); assert.equal(f.p.titleId, ""); assert.equal(f.sent.at(-1)!.body.equipped, null);
+  titleLeave(f.d);
+});
 await test("MemoryStore.removeTestAccount dọn bảng danh hiệu", async () => {
   const s = new MemoryStore(); s.accounts.set("t", { id: 7, pass: "x" }); s.names.set(7, "T"); s.tests.add(7);
   await s.titleGrant(7, "cap_1", null); await s.titleGrant(7, "cap_2", null); await s.titleEquip(7, "cap_1");

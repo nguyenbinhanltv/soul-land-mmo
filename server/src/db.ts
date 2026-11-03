@@ -990,6 +990,7 @@ export class MemoryStore implements Store {
     const now = Date.now(), m = this.titles.get(accountId) ?? new Map<string, { at: number; exp: number | null }>(), cur = m.get(id);
     if (cur && (cur.exp === null || cur.exp > now)) return "dup" as const;
     m.set(id, { at: now, exp: expiresAt }); this.titles.set(accountId, m);
+    if (this.titleEq.get(accountId) === id) this.titleEq.set(accountId, null); // mở lại sau khi hết hạn: không tự đeo lại, về mặc định thật
     return "new" as const;
   }
   async titleEquip(accountId: number, id: string | null) {
@@ -1996,7 +1997,10 @@ export class PgStore implements Store {
       `INSERT INTO title_owned(account_id, title_id, expires_at) VALUES ($1, $2, CASE WHEN $3::double precision IS NULL THEN NULL ELSE to_timestamp($3::double precision / 1000) END)
        ON CONFLICT (account_id, title_id) DO UPDATE SET unlocked_at = now(), expires_at = EXCLUDED.expires_at
        WHERE title_owned.expires_at IS NOT NULL AND title_owned.expires_at <= now() RETURNING 1`, [accountId, id, expiresAt]);
-    return r.rowCount ? "new" as const : "dup" as const;
+    if (!r.rowCount) return "dup" as const;
+    // Mở lại sau khi hết hạn: dòng đang đeo cũ (mã này) về mặc định thật, không tự đeo lại.
+    await this.pool.query("UPDATE title_equipped SET title_id = NULL, updated_at = now() WHERE account_id=$1 AND title_id=$2", [accountId, id]);
+    return "new" as const;
   }
   async titleEquip(accountId: number, id: string | null) {
     if (id === null) {
