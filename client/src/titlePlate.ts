@@ -37,7 +37,9 @@ export class TitlePlates {
   private clips: Phaser.GameObjects.Sprite[] = [];
   private dots: Phaser.GameObjects.Sprite[] = [];
   private used = { slice: 0, head: 0, clip: 0, dot: 0 };
-  constructor(private scene: Phaser.Scene, private depth = 99983.8) {
+  private scene: Phaser.Scene; private depth: number;
+  constructor(scene: Phaser.Scene, depth = 99983.8) {
+    this.scene = scene; this.depth = depth;
     this.g = scene.add.graphics().setDepth(depth);
     this.gt = scene.add.graphics().setDepth(depth + 0.02);
   }
@@ -84,15 +86,17 @@ export class TitlePlates {
         }
       }
       const w = r - l, h = bot - top;
-      if (t >= 4) { g.fillStyle(pal.glow, (0.1 + 0.03 * t) * a * flick); g.fillRoundedRect(l - 2 * K, top - 2 * K, w + 4 * K, h + 4 * K, 3 * K); }
+      if (t >= 4 && !art) { g.fillStyle(pal.glow, (0.1 + 0.03 * t) * a * flick); g.fillRoundedRect(l - 2 * K, top - 2 * K, w + 4 * K, h + 4 * K, 3 * K); }
       if (!full) continue;
       // vệt quét sáng chạy ngang (cắt trong khung), nghỉ giữa hai lượt
       const sw = TITLE_FX.sweep[t - 1];
       if (sw > 0) {
         const per = 3200 - t * 250, uu = ((time + ph * 400) % per) / (per * 0.45);
         if (uu < 1) {
-          const bw = Math.max(5 * K, w * 0.16), x0 = l + (w + bw) * uu - bw, cl = Math.max(l, x0), cr = Math.min(r, x0 + bw);
-          if (cr > cl) { gt.fillStyle(0xffffff, sw * a * Math.sin(Math.PI * uu)); gt.fillRect(cl, top + K * 0.5, cr - cl, h - K); }
+          // ảnh thật: chỉ quét phần thân đặc của khung (giữa hai đầu, hàng kéo dọc), không tràn ra vùng trong suốt
+          const sl = art ? l + NP.l * K : l, sr = art ? r - NP.r * K : r, sy = art ? top + NP.t * K : top + K * 0.5, sh = art ? h - (NP.t + NP.b) * K : h - K;
+          const bw = Math.max(5 * K, (sr - sl) * 0.16), x0 = sl + (sr - sl + bw) * uu - bw, cl = Math.max(sl, x0), cr = Math.min(sr, x0 + bw);
+          if (cr > cl) { gt.fillStyle(0xffffff, sw * a * Math.sin(Math.PI * uu)); gt.fillRect(cl, sy, cr - cl, sh); }
         }
       }
       // clip lửa hai bậc cao: hai ngọn trên đỉnh hai đầu, neo đáy giữa, 4 pha lặp
