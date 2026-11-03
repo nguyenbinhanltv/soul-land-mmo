@@ -386,6 +386,8 @@
   }
  },
  "props": {
+  "thao_truong_coc_tap": { "key": "prop_thao_truong_coc_tap", "foot": [32,48], "flip": false },
+  "thao_truong_gia_vu_khi": { "key": "prop_thao_truong_gia_vu_khi", "foot": [32,48], "flip": false },
   "that_xa_phong_so_7": { "key": "prop_that_xa_phong_so_7", "foot": [54,68], "flip": false },
   "giang_duong_lau_dai": { "key": "prop_giang_duong_lau_dai", "foot": [64,96], "flip": false },
   "hoc_vien_cong_da_trang": { "key": "prop_hoc_vien_cong_da_trang", "foot": [56,86], "flip": false },
@@ -1211,7 +1213,8 @@
     "38": "cot_den_do",
     "39": "bon_hoa",
     "40": "khuc_go_rong",
-    "41": "cot_vo",
+    "41": "thao_truong_coc_tap",
+    "59": "thao_truong_gia_vu_khi",
     "42": "hoc_vien_cong_da_trang",
     "43": "tuong_thanh",
     "44": "cot_den_do",
