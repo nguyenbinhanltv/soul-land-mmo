@@ -31,7 +31,7 @@
 #hud .stats .stat-chip .chip-ico{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex:none;font:var(--fs-s)/1 var(--f10)}
 #hud .stats .stat-chip .chip-he{width:16px;height:16px;image-rendering:pixelated}
 /* Avatar là nút mở menu (kèm chấm tổng hợp ở ui2-hub.css). */
-#hud .stats button.portrait{padding:0;cursor:pointer;font:24px var(--f12)}
+#hud .stats button.portrait{padding:0;cursor:pointer;font:var(--fs-l) var(--f12)}
 #hud .stats button.portrait:focus-visible{outline:var(--bd) solid var(--accent);outline-offset:var(--bd)}
 #hud .stats button.portrait:hover{border-color:var(--accent)}
 

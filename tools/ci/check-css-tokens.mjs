@@ -49,11 +49,18 @@ export function fontViolations(css) {
     if (/^(var\(--fs-[sml]\)|0|inherit|initial|unset|[\d.]+(em|%)|calc\(.*var\(--fs-[sml]\).*\))$/.test(v)) continue;
     out.push({ at: m.index, what: `font-size:${v}`, line: lineOf(text, m.index) });
   }
+  // Viết tắt `font:`: phần cỡ chữ (sau kiểu / độ đậm tùy chọn, trước `/` hoặc tên phông) cũng phải là token.
+  for (const m of text.matchAll(/(?<![\w-])font\s*:\s*([^;}\n]+)/g)) {
+    const v = m[1].trim().replace(/\s*!important$/, "");
+    if (/^(inherit|initial|unset|caption|icon|menu|message-box|small-caption|status-bar)$/.test(v)) continue;
+    if (/^(?:(?:italic|oblique|normal|bold|bolder|lighter|small-caps|\d{3})\s+)*(?:var\(--fs-[sml]\)|0|[\d.]+(?:em|%))(?=[\s/]|$)/.test(v)) continue;
+    out.push({ at: m.index, what: `font:${v}`, line: lineOf(text, m.index) });
+  }
   return out;
 }
 {
   const k = (css, n) => { const c = fontViolations(css).length; if (c !== n) { console.error(`css-tokens: ca thử cỡ chữ sai (${c} ≠ ${n}) với: ${css}`); process.exit(1); } };
-  k(".x{font-size:var(--fs-m)}", 0); k(".x{font-size:0}", 0); k(".x{font-size:13px}", 1); k(".x{font:var(--fs-l)/1 x;font-size:18px}", 1);
+  k(".x{font-size:var(--fs-m)}", 0); k(".x{font-size:0}", 0); k(".x{font-size:13px}", 1); k(".x{font:var(--fs-l)/1 x;font-size:18px}", 1); k(".x{font:24px/1 x}", 1); k(".x{font:var(--fs-l)/1 x}", 0); k(".x{font:bold var(--fs-m)/1 x}", 0); k(".x{font:inherit}", 0);
 }
 
 const files = readdirSync(dir).filter((f) => /^ui2.*\.css$/.test(f)).sort(), all = [];

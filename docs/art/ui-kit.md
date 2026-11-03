@@ -40,7 +40,7 @@ Chuyển từng màn theo thứ tự ở #877 (HUD + hotbar → Nhân vật + T�
 
 ## Token màu theo vai trò
 
-Một danh sách duy nhất, khai ở `:root` của `client/src/style.css`. Màu ngoài danh sách (mã `#hex` / `rgba()` viết thẳng trong luật CSS) là nợ: P0 chỉ **đếm** (`npm run ui:inventory`). Từ đợt 5c, `tools/ci/check-css-tokens.mjs` (trong `npm run check`) kiểm riêng `client/src/ui2*.css`. **P8 (#886): chặn hẳn** (`BASELINE = 0`): màu thô ngoài `:root` / khai báo `--x:` và `font-size` ngoài `var(--fs-s|m|l)` (cho phép `0`, `inherit`, `em`/`%`) là lỗi `npm run check`. Cần màu mới thì thêm token vào `:root` của `style.css` (vd `--ink-hatch`, `--gold-hi`), không viết thẳng. `style.css` cũ vẫn chỉ đếm (đợt 5b).
+Một danh sách duy nhất, khai ở `:root` của `client/src/style.css`. Màu ngoài danh sách (mã `#hex` / `rgba()` viết thẳng trong luật CSS) là nợ: P0 chỉ **đếm** (`npm run ui:inventory`). Từ đợt 5c, `tools/ci/check-css-tokens.mjs` (trong `npm run check`) kiểm riêng `client/src/ui2*.css`. **P8 (#886): chặn hẳn** (`BASELINE = 0`): màu thô ngoài `:root` / khai báo `--x:` và `font-size` và cỡ trong viết tắt `font:` ngoài `var(--fs-s|m|l)` (cho phép `0`, `inherit`, `em`/`%`) là lỗi `npm run check`. Cần màu mới thì thêm token vào `:root` của `style.css` (vd `--ink-hatch`, `--gold-hi`), không viết thẳng. `style.css` cũ vẫn chỉ đếm (đợt 5b).
 
 | Vai trò | Token hiện có | Ghi chú |
 |---|---|---|
