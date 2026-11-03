@@ -32,6 +32,19 @@ export function byDay(items: CalItem[]): CalItem[][] {
   for (const c of cols) c.sort((a, b) => a.s - b.s || a.id.localeCompare(b.id));
   return cols;
 }
+/** Các thẻ cùng tên + cùng giờ (vd 5 "Tà hóa thú vương" lúc 20:00 ở 5 bản đồ) gom thành một nhóm có đếm; khoá nhóm = khoá khung giờ nếu chỉ có một thẻ. Giữ thứ tự đầu vào. Hàm thuần. */
+export interface CalGroup { key: string; first: CalItem; items: CalItem[] }
+export function groupSlots(col: CalItem[]): CalGroup[] {
+  const out: CalGroup[] = [], by = new Map<string, CalGroup>();
+  for (const it of col) {
+    const k = `${it.name}@${it.s}@${it.e}`, g = by.get(k);
+    if (g) g.items.push(it); else { const n = { key: k, first: it, items: [it] }; by.set(k, n); out.push(n); }
+  }
+  for (const g of out) if (g.items.length === 1) g.key = `${g.first.id}@${g.first.s}`;
+  return out;
+}
+/** Ngày thứ `d` đã qua hẳn (hết 24 giờ trước `now`); tuần trước thì cả bảy ngày. Hàm thuần. */
+export const dayPast = (weekStart: number, d: number, now: number) => weekStart + (d + 1) * DAY_MS <= now;
 /** "dd.mm" của ngày thứ `d` trong tuần bắt đầu ở `weekStart` (giờ Việt Nam). */
 export const dayDate = (weekStart: number, d: number) => {
   const p = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit" }).formatToParts(weekStart + d * DAY_MS + 3_600_000);
@@ -103,7 +116,6 @@ export function onCalendar(m: CalendarMsg) {
 
 const h = (tag: string, cls: string, o: { text?: string; attrs?: Record<string, string>; kids?: (PNode | null)[] } = {}): PNode =>
   ({ tag, cls, ...(o.attrs ? { attrs: o.attrs } : {}), ...(o.text !== undefined ? { text: o.text } : {}), ...(o.kids ? { kids: o.kids.filter((k): k is PNode => !!k) } : {}) });
-const slotKey = (it: CalItem) => `${it.id}@${it.s}`;
 
 function eventIcon(id: string): PNode | null {
   const key = calendarIconKey(id); if (!key) return null;
@@ -112,17 +124,23 @@ function eventIcon(id: string): PNode | null {
 }
 const eventName = (id: string, name: string, short = false) => h("span", "cal-heading", { kids: [eventIcon(id), h("span", `cal-name${short ? " cal-short" : ""}`, { text: name })] });
 
-function slotNode(it: CalItem, st: SlotState): PNode {
+/** Tên boss gọn của nhóm: tối đa hai tên, còn lại "+N"; đủ tên ở `title` và bảng chi tiết. */
+const bossBrief = (g: CalGroup) => { const n = g.items.map((i) => i.boss).filter(Boolean); return n.length > 2 ? `${n.slice(0, 2).join(", ")} +${n.length - 2}` : n.join(", "); };
+
+function slotNode(g: CalGroup, st: SlotState): PNode {
+  const it = g.first, many = g.items.length > 1;
   const mark = st === "live" ? "▶ " : st === "soon" ? "◔ " : st === "past" ? "■ " : ""; // dấu hình + chữ: không chỉ màu
-  const label = `${it.name}, ${slotRange(it)}${STATE_LABEL[st] ? `, ${STATE_LABEL[st]}` : ""}`;
+  const where = g.items.map((i) => `${i.mapName}${i.boss ? `: ${i.boss}` : ""}`).join("; ");
+  const label = `${it.name}${many ? ` ×${g.items.length}` : ""}, ${slotRange(it)}${STATE_LABEL[st] ? `, ${STATE_LABEL[st]}` : ""}. ${where}`;
+  const nm = many ? `${it.name} ×${g.items.length}` : it.name;
   // đã qua: thu gọn một dòng (giờ + dấu tick) để bảng ngày không dài vô tận; còn lại đủ tên + boss
-  return h("button", `cal-slot cal-${st}${sel === slotKey(it) ? " sel" : ""}`, { attrs: { type: "button", "data-k": slotKey(it), "aria-label": label, title: label }, kids: st === "past" ? [
-    h("span", "cal-time", { text: `■ ${hhmmVn(it.s)}` }), eventName(it.id, it.name, true),
+  return h("button", `cal-slot cal-${st}${sel === g.key ? " sel" : ""}`, { attrs: { type: "button", "data-k": g.key, "aria-label": label, title: label }, kids: st === "past" ? [
+    h("span", "cal-time", { text: `■ ${hhmmVn(it.s)}` }), eventName(it.id, nm, true),
   ] : [
     h("span", "cal-time", { text: slotRange(it) }),
     st !== "later" ? h("span", "cal-tag", { text: mark + STATE_LABEL[st] }) : null,
-    eventName(it.id, it.name),
-    it.boss ? h("span", "cal-boss", { text: `Boss: ${it.boss}` }) : null,
+    eventName(it.id, nm),
+    bossBrief(g) ? h("span", "cal-boss", { text: many ? bossBrief(g) : `Boss: ${it.boss}` }) : null,
   ] });
 }
 
@@ -149,18 +167,21 @@ function render() {
       h("span", "cal-resets", { kids: resets.map((r) => h("span", "cal-reset", { kids: [eventIcon(r.id), h("span", "", { text: `${r.name}: ${r.at ?? "00:00"}${r.weekly ? " thứ Hai" : ""}` })] })) }),
     ] }));
     if (!d.items.length) body.push(h("div", "cal-msg", { text: "Tuần này chưa có khung giờ." }));
-    else body.push(h("div", "cal-grid", { attrs: { "data-week": String(d.weekStart) }, kids: cols.map((c, i) => h("div", `cal-col${today === i ? " cal-today" : ""}`, { kids: [
+    else body.push(h("div", "cal-grid", { attrs: { "data-week": String(d.weekStart) }, kids: cols.map((c, i) => h("div", `cal-col${today === i ? " cal-today" : ""}${dayPast(d.weekStart, i, now) ? " cal-pastday" : ""}`, { kids: [
       h("div", "cal-dh", { kids: [h("span", "cal-dn", { text: DAY_LABELS[i] }), h("span", "cal-dd", { text: dayDate(d.weekStart, i) }), today === i ? h("span", "cal-now", { text: "Hôm nay" }) : null] }),
-      ...(c.length ? c.map((it) => slotNode(it, slotState(it, now))) : [h("span", "cal-empty", { text: "—" })]),
+      ...(c.length ? groupSlots(c).map((g) => slotNode(g, slotState(g.first, now))) : [h("span", "cal-empty", { text: "—" })]),
     ] })) }));
-    const pick = d.items.find((it) => slotKey(it) === sel);
-    if (pick) {
-      const st = slotState(pick, now);
+    const pickG = cols.flatMap((c) => groupSlots(c)).find((g) => g.key === sel);
+    if (pickG) {
+      const first = pickG.first, st = slotState(first, now), many = pickG.items.length > 1;
       body.push(h("div", "cal-detail", { kids: [
-        h("span", "cal-d-t", { text: pick.name }), h("span", "cal-d-s", { text: `${pick.mapName} · ${slotRange(pick)}${pick.boss ? ` · Boss: ${pick.boss}` : ""}` }),
-        pick.note ? h("span", "cal-d-s", { text: pick.note }) : null,
-        h("button", "cal-go", { text: "Đến", attrs: { type: "button", "data-map": pick.map, "data-mn": pick.mapName, "aria-label": `Đến ${pick.mapName}`, title: `Đi tới ${pick.mapName} (tự đi bằng cờ, không dịch chuyển)` } }),
-        st === "live" || st === "soon" ? h("span", "cal-cd", { attrs: { "data-s": String(pick.s), "data-e": String(pick.e), "data-live": st === "live" ? "1" : "" } }) : null,
+        h("span", "cal-d-t", { text: many ? `${first.name} ×${pickG.items.length}` : first.name }), h("span", "cal-d-s", { text: `${many ? "" : `${first.mapName} · `}${slotRange(first)}${!many && first.boss ? ` · Boss: ${first.boss}` : ""}` }),
+        first.note ? h("span", "cal-d-s", { text: first.note }) : null,
+        ...(many ? pickG.items.map((it) => h("span", "cal-d-r", { kids: [
+          h("span", "cal-d-s", { text: `${it.mapName}${it.boss ? ` · Boss: ${it.boss}` : ""}` }),
+          h("button", "cal-go cal-go-s", { text: "Đến", attrs: { type: "button", "data-map": it.map, "data-mn": it.mapName, "aria-label": `Đến ${it.mapName}`, title: `Đi tới ${it.mapName} (tự đi bằng cờ, không dịch chuyển)` } }),
+        ] })) : [h("button", "cal-go", { text: "Đến", attrs: { type: "button", "data-map": first.map, "data-mn": first.mapName, "aria-label": `Đến ${first.mapName}`, title: `Đi tới ${first.mapName} (tự đi bằng cờ, không dịch chuyển)` } })]),
+        st === "live" || st === "soon" ? h("span", "cal-cd", { attrs: { "data-s": String(first.s), "data-e": String(first.e), "data-live": st === "live" ? "1" : "" } }) : null,
       ] }));
     }
   }
