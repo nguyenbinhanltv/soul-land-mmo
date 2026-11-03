@@ -332,11 +332,12 @@ console.log("✓ Bộ nối Xếp Hạng: điểm, trang, quyền riêng tư");
 {
   const rows = dexRows(new Map([[BEASTS[0].id, 0], [BEASTS[1].id, 5]]));
   assert.equal(rows.length, BEASTS.length, "đủ mọi loài theo BEASTS");
-  assert.equal(rows[0].name, BEASTS[0].name); assert.equal(rows[0].seen, true); assert.equal(rows[0].kills, 0);
+  assert.equal(rows[0].name, "???"); assert.equal(rows[0].seen, false, "dòng kills 0 (dữ liệu cũ của cơ chế lại gần) vẫn giấu tên (#1762)");
+  assert.equal(rows[1].name, BEASTS[1].name);
   assert.equal(rows[1].kills, 5);
-  assert.ok(rows.slice(2).every((r) => r.name === "???" && !r.seen), "loài chưa gặp giấu tên");
-  assert.equal(dexSummary(rows), `Đã gặp 2 / ${BEASTS.length} loài · đã hạ 1 loài`);
+  assert.ok(rows.slice(2).every((r) => r.name === "???" && !r.seen), "loài chưa hạ giấu tên");
+  assert.equal(dexSummary(rows), `Đã hạ 1 / ${BEASTS.length} loài`);
   const html = toHtml(dexRowNode(rows[2]));
-  assert.ok(html.includes("???") && html.includes("Chưa gặp") && !html.includes(BEASTS[2].name), "dòng chưa gặp không lộ tên");
-  assert.match(toHtml(dexRowNode(rows[1])), /Đã hạ 5 lần/); assert.match(toHtml(dexRowNode(rows[0])), /Đã gặp, chưa hạ/);
+  assert.ok(html.includes("???") && html.includes("Chưa hạ") && !html.includes(BEASTS[2].name), "dòng chưa hạ không lộ tên");
+  assert.match(toHtml(dexRowNode(rows[1])), /Đã hạ 5 lần/); assert.match(toHtml(dexRowNode(rows[0])), /Chưa hạ/);
 }

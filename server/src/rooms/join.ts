@@ -132,7 +132,7 @@ export function onJoin(room: MapRoom, client: Client, _o: unknown, auth: AuthDat
     vit: null, vitAt: 0, coreFx: {}, crit: 0, critMult: 1, combo: 0, comboT: 99, haste: 0, shockMpCd: 0, partyKey: "",
     quest: bag.quests?.find((q) => q.chain === QUEST_STARTER) ?? questStart(QUEST_STARTER),
     chains: QUESTS.filter((c) => c.id !== QUEST_STARTER).map((c) => bag.quests?.find((q) => q.chain === c.id) ?? questStart(c.id)), ...room.dailyOf(bag.quests), ...room.tongTasksOf(bag.quests), tongBoardAt: 0, tongPend: [],
-    res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, rankTopAt: 0, rankSig: "", rankAt: 0, welfareDay: room.today(), dex: new Map(), dexLoaded: false, dexT: 0, achvReady: -1, bicanhDay: bicanhDay(bicanhNow(room)), arenaGone: false,
+    res: { prog: [], lv: [], bonus: resonanceBonus([]) }, resKey: "", ava: null, avaCd: new Map(), fus: null, skCd: new Map(), arenaBusy: false, arenaTopAt: 0, arenaLiveAt: 0, arenaWatchAt: 0, resonanceTopAt: 0, rankTopAt: 0, rankSig: "", rankAt: 0, welfareDay: room.today(), dex: new Map(), dexLoaded: false, achvReady: -1, bicanhDay: bicanhDay(bicanhNow(room)), arenaGone: false,
     auto: null, autoCfg: parseAuto(auth.auto.settings), autoDay: room.today(), autoUsed: auth.auto.day === room.today() ? auth.auto.used : 0,
     autoBonus: auth.auto.bonus, autoDirty: false, autoTok: AUTO_MSG_RATE.burst, autoTokAt: Date.now(), autoSetPend: null, autoRealRate: false, autoPace: [0, 0], autoHintC: null, offMsg: null, offAsk: false,
     tong: tongDef(auth.tong.tong)?.id ?? null, tongAt: auth.tong.at };

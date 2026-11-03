@@ -1,8 +1,8 @@
 // Nhóm bot "dex" (#1720, BOT_ONLY=dex): Sổ tay hồn thú ghi ở server (rooms/dex.ts). Bot không có Phaser nên chỉ gửi ý định như client:
-// quái gần thì được ghi "đã gặp", hạ thì cộng số lần, nạp lại sau khi vào phòng lần nữa (bảng `bestiary` khi --pg), client không khai tay được.
+// lại gần KHÔNG ghi gì (#1762), chỉ hạ mới vào sổ, nạp lại sau khi vào phòng lần nữa (bảng `bestiary` khi --pg), client không khai tay được.
 import { readFileSync } from "node:fs";
 import { sleep, waitFor, ok, mapUrl, bot, enter, npcSpot, test, needHookSkip } from "./lib.mjs";
-import { BEASTS, BEAST_REVEAL } from "../../../shared/data.ts";
+import { BEASTS } from "../../../shared/data.ts";
 
 export async function dexTest(){
   console.log("[#1720] Sổ tay hồn thú: gặp / hạ do server ghi, nạp lại khi vào lại, client không khai được");
@@ -21,11 +21,11 @@ export async function dexTest(){
     // 1) Xin sổ tay: tài khoản mới chưa gặp loài nào.
     const n0=F.dexN; F.room.send("dex",{op:"get"}); ok(await waitFor(()=>F.dexN>n0,2000),"xin sổ tay: server trả tin dex"); const book=()=>F.dex;
     ok(Object.values(book()).every(n=>n===0),`tài khoản mới: chưa hạ con nào (${JSON.stringify(book())})`);
-    // 2) Quái xa (ngoài BEAST_REVEAL.r) rồi lại gần thì ghi "đã gặp" (kills 0). Không khẳng định "xa thì chưa ghi": quái thật cùng loài có thể đang ở gần.
-    const far=(await test(F,"spawn",{tier:0,dx:BEAST_REVEAL.r+60,hpx:6}))?.bid; await waitFor(()=>bs(far),1000);
+    // 2) Lại gần quái (#1762): không còn ghi "đã gặp". Quái thật cùng loài có thể đã bị hạ nên chỉ khẳng định số lần hạ vẫn 0 / loài chưa vào sổ.
+    const far=(await test(F,"spawn",{tier:0,dx:80,hpx:6}))?.bid; await waitFor(()=>bs(far),1000);
     const sp=BEASTS[bs(far)?.species]?.id;
-    await test(F,"goto",{x:bs(far).x-30,y:bs(far).y});
-    ok(await waitFor(()=>book()[sp]===0,3000),`lại gần: ${sp} ghi "đã gặp" (kills 0)`);
+    await test(F,"goto",{x:bs(far).x-30,y:bs(far).y}); await sleep(1500);
+    ok(!(sp in book()),`lại gần ${sp}: sổ vẫn chưa có loài này (${JSON.stringify(book())})`);
     // 3) Hạ quái: cộng số lần hạ.
     F.room.send("target",{id:far}); await sleep(200);
     await test(F,"bhp",{pct:1,bid:far});
@@ -37,19 +37,14 @@ export async function dexTest(){
       if(!dead&&bs(far)){ await test(F,"goto",{x:bs(far).x-24,y:bs(far).y}); F.room.send("target",{id:far}); await test(F,"bhp",{pct:1,bid:far}); }
     }
     ok(dead,"quái chết"); ok(await waitFor(()=>book()[sp]===1,3000),`hạ ${sp}: kills 1 (${book()[sp]})`);
-    // 4) Client không khai tay được. Quái sinh lại vẫn có thể được server ghi "đã gặp" (0): không so JSON toàn sổ (#1757).
+    // 4) Client không khai tay được.
     const before={...book()}, forged=BEASTS[BEASTS.length-1].id;
-    // Ép một loài chưa gặp xuất hiện giữa hai lần đọc: phép so JSON cũ phải trượt, dù server từ chối mọi tin giả.
-    const newcomer=BEASTS.find(b=>b.id!==forged&&!(b.id in before)).id;
-    await test(F,"spawn",{species:newcomer,tier:0,dx:30,hpx:6});
-    ok(await waitFor(()=>book()[newcomer]===0,3000),`server ghi loài vừa xuất hiện: ${newcomer}=0`);
-    await test(F,"clear");
     for(const bad of [{op:"set",set:{[forged]:9}},{op:"see",id:forged},{set:{x:1}},null,7,"x"]){ F.room.send("dex",bad); }
     await sleep(700); const replyN=F.dexN; F.room.send("dex",{op:"get"});
     ok(await waitFor(()=>F.dexN>replyN,2000),"xin lại sổ sau tin dex giả: nhận phản hồi");
     const after=book();
     ok(Object.entries(before).every(([id,n])=>after[id]===n)&&
-      Object.entries(after).every(([id,n])=>id in before||n===0)&&
+      Object.keys(after).every(id=>id in before)&&
       after[forged]===before[forged]&&after.x===before.x,
       `tin dex giả không đổi số lần hạ / không khai được loài (${JSON.stringify(after)})`);
     // 5) Vào lại phòng: sổ nạp lại từ nơi lưu (PostgreSQL khi --pg).
