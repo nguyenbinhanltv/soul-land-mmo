@@ -2,6 +2,7 @@
 // MỘT Graphics dùng chung cho mọi bảng: xoá và vẽ lại mỗi khung, chỉ cho người đang hiện chữ danh hiệu (trong tầm nhìn, chưa bị
 // thu gọn); hạt và vệt quét là hàm thuần của thời gian nên không tạo / huỷ đối tượng nào. Quá `TITLE_FX.crowd` bảng thì
 // người khác chỉ còn khung tĩnh (chính mình luôn đủ hiệu ứng).
+// Độ sâu 99983.8: dưới mọi lớp chữ (tên NPC / biển / nhãn boss 99984, chữ hồn sư 99985), trên tele 99983.5.
 import Phaser from "phaser";
 import { TITLE_FX, TITLE_TIER_MAX } from "../../shared/data.ts";
 
@@ -23,7 +24,7 @@ export interface PlateIn { id: string; tier: number; x: number; y: number; w: nu
 
 export class TitlePlates {
   private g: Phaser.GameObjects.Graphics;
-  constructor(scene: Phaser.Scene, depth = 99984) { this.g = scene.add.graphics().setDepth(depth); }
+  constructor(scene: Phaser.Scene, depth = 99983.8) { this.g = scene.add.graphics().setDepth(depth); }
   /** `plates`: chữ danh hiệu đang hiện (x, y = giữa-đáy chữ; w, h đã nhân tỉ lệ chữ K). */
   draw(plates: readonly PlateIn[], time: number, K: number) {
     const g = this.g; g.clear();
