@@ -1,13 +1,13 @@
 // Luật token màu cho CSS MỚI (UI gốc, đợt 5c; docs/art/ui-kit.md "Lớp token"): trong `client/src/ui2*.css`, màu chỉ qua `var(--…)`;
 // `#hex` và `rgb()/rgba()/hsl()/hsla()` ngoài khối `:root` là vi phạm. Còn tồn đọng nên ở mức CẢNH BÁO có chốt trần: số vi phạm KHÔNG
 // được tăng (vượt BASELINE thì lỗi), giảm thì cập nhật BASELINE xuống đúng số mới; về 0 thì chặn hẳn (đặt BASELINE = 0).
-// Chạy trong `npm run check`. Đếm toàn bộ (cả `style.css` cũ) bằng `npm run ui:inventory`.
+// P8 (#886): cũng chặn `font-size` ngoài token (chỉ `var(--fs-s|m|l)`, `0`, `inherit`, `em/%`) trong ui2*.css. Chạy trong `npm run check`. Đếm toàn bộ (cả `style.css` cũ) bằng `npm run ui:inventory`.
 //   node tools/ci/check-css-tokens.mjs [--list]   (--list: in từng vi phạm kèm dòng)
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { ROOT } from "../assets/lib.mjs";
 
-const BASELINE = 6; // số vi phạm hiện còn ở ui2*.css (ghi bằng số đếm của `--list` khi đổi)
+const BASELINE = 0; // P8 (#886): đã chặn hẳn, mọi vi phạm ở ui2*.css là lỗi
 const dir = path.join(ROOT, "client", "src");
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " ")); // giữ số dòng
 const lineOf = (t, i) => t.slice(0, i).split("\n").length;
@@ -41,10 +41,25 @@ export function violations(css) {
   t("body.cb{--a:#fff;--b:rgba(1,2,3,.5)}", 0); t("#quest{color:var(--a)} #abc,#def{top:0}", 0); t("/* #fff */ .x{top:0}", 0);
 }
 
+/** Cỡ chữ ngoài token trong một đoạn CSS: [{ at, what, line }]. */
+export function fontViolations(css) {
+  const text = strip(css), out = [];
+  for (const m of text.matchAll(/(?<![\w-])font-size\s*:\s*([^;}\n]+)/g)) {
+    const v = m[1].trim().replace(/\s*!important$/, "");
+    if (/^(var\(--fs-[sml]\)|0|inherit|initial|unset|[\d.]+(em|%)|calc\(.*var\(--fs-[sml]\).*\))$/.test(v)) continue;
+    out.push({ at: m.index, what: `font-size:${v}`, line: lineOf(text, m.index) });
+  }
+  return out;
+}
+{
+  const k = (css, n) => { const c = fontViolations(css).length; if (c !== n) { console.error(`css-tokens: ca thử cỡ chữ sai (${c} ≠ ${n}) với: ${css}`); process.exit(1); } };
+  k(".x{font-size:var(--fs-m)}", 0); k(".x{font-size:0}", 0); k(".x{font-size:13px}", 1); k(".x{font:var(--fs-l)/1 x;font-size:18px}", 1);
+}
+
 const files = readdirSync(dir).filter((f) => /^ui2.*\.css$/.test(f)).sort(), all = [];
-for (const f of files) for (const v of violations(readFileSync(path.join(dir, f), "utf8"))) all.push(`${f}:${v.line} ${v.what}`);
+for (const f of files) { const css = readFileSync(path.join(dir, f), "utf8"); for (const v of [...violations(css), ...fontViolations(css)]) all.push(`${f}:${v.line} ${v.what}`); }
 if (process.argv.includes("--list")) console.log(all.join("\n"));
 const n = all.length;
-if (n > BASELINE) { console.error(`css-tokens: ${n} màu thô (#hex / rgba) ngoài :root trong ui2*.css, trần ${BASELINE}. Dùng var(--token) (docs/art/ui-kit.md); xem từng chỗ: node tools/ci/check-css-tokens.mjs --list`); process.exit(1); }
+if (n > BASELINE) { console.error(`css-tokens: ${n} màu thô (#hex / rgba) hoặc cỡ chữ ngoài token trong ui2*.css, trần ${BASELINE}. Dùng var(--token) (docs/art/ui-kit.md); xem từng chỗ: node tools/ci/check-css-tokens.mjs --list`); process.exit(1); }
 if (n < BASELINE) console.log(`css-tokens: còn ${n} (< trần ${BASELINE}): hạ BASELINE xuống ${n} trong tools/ci/check-css-tokens.mjs`);
 else console.log(n ? `css-tokens: cảnh báo, còn ${n} màu thô trong ui2*.css (trần ${BASELINE}, không được tăng)` : "css-tokens: ok (0 màu thô trong ui2*.css: luật chặn)");

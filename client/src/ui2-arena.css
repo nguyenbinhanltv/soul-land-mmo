@@ -62,7 +62,7 @@
 
 /* Màn thấp (điện thoại ngang, `ui-h460`): bảng kết quả gọn lại để nút "Về bản đồ cũ" không tụt khỏi màn; chỉ giữ 4 dòng đầu bảng xếp hạng. */
 .ui-h460 #hud #arenaEnd{padding:var(--sp-2) var(--sp-4)}
-.ui-h460 #hud #arenaEnd h2{font-size:18px;margin-bottom:var(--sp-2)}
+.ui-h460 #hud #arenaEnd h2{font-size:var(--fs-m);margin-bottom:var(--sp-2)}
 .ui-h460 #hud #arenaEnd .aline{margin:var(--sp-1,2px) 0}
 .ui-h460 #hud #arenaEnd .arank small,.ui-h460 #hud #arenaEnd .atable .ar:nth-child(n+5){display:none}
 .ui-h460 #hud #arenaEnd .brow{margin-top:var(--sp-2)}

@@ -6,7 +6,7 @@
 /* (1) Khung Giấy thắng luật `#npc` / `.thuymac #npc` cũ . */
 .ui2-k-khung-giay-lon #npc.f2-giay-lon{
   box-sizing:border-box;border-style:solid;border-color:transparent;border-width:var(--frame-bw);border-image:var(--frame-img) var(--frame-nine) fill / var(--frame-bw) stretch;
-  background:none;box-shadow:0 0 0 100vmax rgba(26,16,32,.35);backdrop-filter:none;image-rendering:pixelated;
+  background:none;box-shadow:0 0 0 100vmax var(--ink-dim);backdrop-filter:none;image-rendering:pixelated;
   width:min(460px,94vw);max-height:90%;padding:var(--sp-4);gap:var(--sp-4);color:var(--text)}
 #npc.n2::before,#npc.n2::after{display:none}
 #npc.n2{font:var(--fs-m)/1.3 var(--f12);scrollbar-width:thin;scrollbar-color:var(--paper3) transparent}
