@@ -1,0 +1,17 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "raw": "ky_tuc_xa_quy_toc-raw.png",
+  "rawSha256": "5950dd61921ed23d760d22520fbc457da7eca3ff15ab38b121aad4de34320461",
+  "spriteSha256": "98cb575e96520256be62b35709d70a9a778d3f62581da986a1a63b94b390766b",
+  "foot": [
+    64,
+    80
+  ],
+  "size": [
+    128,
+    112
+  ]
+}
