@@ -12,4 +12,4 @@ node tools/assets/iso-atlas.mjs
 node tools/assets/credits.mjs
 ```
 
-`gemini-import.mjs` là tên công cụ nhập; nguồn là Codex. Gid 45 chỉ trong bộ Nặc Đinh đổi từ biển chỉ đường giữ chỗ sang bốn biến thể. Renderer chọn ổn định theo tọa độ; mười vị trí hiện có chứa đủ cả bốn biểu tượng. Không đổi `tools/maps/layouts/nac_dinh_thanh.json`, vị trí, lưới chặn hoặc tính đi xuyên của biển. Không sửa client/server hay công cụ.
+`gemini-import.mjs` là tên công cụ nhập; nguồn là Codex. Gid 45 chỉ trong bộ Nặc Đinh đổi từ biển chỉ đường giữ chỗ sang bốn biến thể. Renderer chọn ổn định theo tọa độ; mười một vị trí hiện có chứa đủ cả bốn biểu tượng. Không đổi `tools/maps/layouts/nac_dinh_thanh.json`, vị trí, lưới chặn hoặc tính đi xuyên của biển. Không sửa client/server hay công cụ.
