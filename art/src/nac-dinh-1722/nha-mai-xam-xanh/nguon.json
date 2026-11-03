@@ -1,0 +1,14 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "raw": "nha_mai_xam_xanh-raw.png",
+  "rawSha256": "4bee32ae10c93de7c791d6c876de685600a462cc10241a19cd2261b0e52dd7ea",
+  "referenceSha256": "653f637e07f919494a3059633f555113ac634943638a2affd823d30e8d2d1f68",
+  "spriteSha256": "d64074cbdbfd62eeec0109e0dc60fe2f776a6bc4088c6ab00b66b79ffaea923b",
+  "foot": [
+    48,
+    108
+  ]
+}
