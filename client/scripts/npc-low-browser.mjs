@@ -72,7 +72,24 @@ try {
         hud.openNpc(id, { slots: 30, honTe: 0, items: [], bones: [], cores: [], gears: [], buyback: [], sold: [] }, act);
         document.getElementById("npc").scrollTop = 0;
       }, { id, fs });
-      await sleep(250);
+      // #1785: đợi bố cục ổn định (phông + ảnh tải xong, lớp ui-h* / ui-w* theo đúng cỡ cửa sổ sau resize, hộp đứng yên ≥ 4 khung liền) rồi mới đo.
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        const box = document.getElementById("npc");
+        const u = Number(getComputedStyle(document.documentElement).getPropertyValue("--u")) || 1;
+        const cl = document.body.classList;
+        const classesOk = () => [1000, 640, 560, 520, 420].every((n) => cl.contains(`ui-w${n}`) === (innerWidth / u <= n)) && [560, 500, 460].every((n) => cl.contains(`ui-h${n}`) === (innerHeight / u <= n));
+        const imgsOk = () => [...box.querySelectorAll("img")].every((i) => i.complete);
+        const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+        let last = "", same = 0;
+        for (let i = 0; i < 100 && same < 4; i++) {
+          await frame();
+          const b = box.getBoundingClientRect(), a = box.querySelector(".brow .buse")?.getBoundingClientRect();
+          const sig = JSON.stringify([b.top, b.height, box.scrollHeight, a?.top, a?.height, classesOk(), imgsOk()]);
+          same = sig === last && classesOk() && imgsOk() ? same + 1 : 0; last = sig;
+          if (same === 0) await new Promise((r) => setTimeout(r, 50));
+        }
+      });
       const m = await page.evaluate((label) => {
         const box = document.getElementById("npc"), r = box.getBoundingClientRect();
         const vis = (e) => { const b = e.getBoundingClientRect(); return b.height > 0 && b.top >= r.top - 1 && b.bottom <= Math.min(r.bottom, innerHeight) + 1 && b.left >= 0 && b.right <= innerWidth + 1; };
