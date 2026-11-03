@@ -46113,6 +46113,26 @@
       "iso": true,
       "map": "nac_dinh_thanh"
     },
+    {
+      "key": "prop_bien_hieu_ren",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_bien_hieu_quan_tro",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_bien_hieu_duoc_thao",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
+      "key": "prop_bien_hieu_lo_banh",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

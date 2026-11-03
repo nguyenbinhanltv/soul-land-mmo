@@ -1,0 +1,65 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "reference": "Original Codex signpost, no external images",
+  "items": [
+    {
+      "name": "bien_hieu_ren",
+      "raw": "bien_hieu_ren-raw.png",
+      "rawSha256": "71741f9ba7e81b345d2c219cb087e45c2d2bc17d03cd2083b449f9208a3efcfb",
+      "spriteSha256": "49b04bf8f8f9590610e67ae86d24501a12edc602c86ba791aadb76017a1f19d3",
+      "size": [
+        32,
+        48
+      ],
+      "foot": [
+        25,
+        44
+      ]
+    },
+    {
+      "name": "bien_hieu_quan_tro",
+      "raw": "bien_hieu_quan_tro-raw.png",
+      "rawSha256": "24a8fb33f7d3a5d9e129f3638776e37a7553885d5dcda7e0584b5bcac274a644",
+      "spriteSha256": "e9736c20366b2de89b040ed8497e49bd166844c7c0b50017634f276c24463de7",
+      "size": [
+        32,
+        48
+      ],
+      "foot": [
+        25,
+        44
+      ]
+    },
+    {
+      "name": "bien_hieu_duoc_thao",
+      "raw": "bien_hieu_duoc_thao-raw.png",
+      "rawSha256": "f8468680055f564687f062dd395863da398f9aeff0b33ea9d5bbb110552ba6eb",
+      "spriteSha256": "1d56641a08ba5455ba0124ba480b87fcc96d0955db569080a303e8ddf8f41028",
+      "size": [
+        32,
+        48
+      ],
+      "foot": [
+        25,
+        44
+      ]
+    },
+    {
+      "name": "bien_hieu_lo_banh",
+      "raw": "bien_hieu_lo_banh-raw.png",
+      "rawSha256": "042bf57fff349afac3c8aa93a8a2650b873373c043a4f92b5c3ebcf03847ab4d",
+      "spriteSha256": "f327fdc68ca145dfd34f128248214117f808b7a16af3d573f1c087a8b8ab9c16",
+      "size": [
+        32,
+        48
+      ],
+      "foot": [
+        25,
+        44
+      ]
+    }
+  ]
+}
