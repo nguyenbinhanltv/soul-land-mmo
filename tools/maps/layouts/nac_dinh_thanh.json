@@ -26,6 +26,10 @@
   "zones": [],
   "points": {},
   "features": [
+    { "type": "area", "name": "Cỏ khuôn viên học viện", "ground": "grass", "gid": 60, "rect": [3, 3, 42, 39], "clear": false, "lock": false },
+    { "type": "area", "name": "Lối sỏi sân học viện", "ground": "path", "gid": 61, "rect": [15, 24, 27, 2], "clear": false, "lock": false },
+    { "type": "area", "name": "Lối sỏi ký túc", "ground": "path", "gid": 61, "rect": [17, 8, 3, 18], "clear": false, "lock": false },
+
     { "type": "area", "name": "Đại lộ đông tây", "ground": "pave", "rect": [1, 53, 168, 7], "lock": true, "clear": true },
     { "type": "area", "name": "Đại lộ bắc nam", "ground": "pave", "rect": [82, 1, 6, 111], "lock": true, "clear": true },
     { "type": "area", "name": "Quảng trường", "ground": "crack", "rect": [66, 40, 38, 32], "lock": true, "clear": true },
