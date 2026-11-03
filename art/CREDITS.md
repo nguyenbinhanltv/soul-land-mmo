@@ -1837,6 +1837,7 @@ Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), r�
 | `shared/assets/sprites/iso/props/leu_cho_troi_do.png` | `prop_leu_cho_troi_do` | ChatGPT / Codex (OpenAI image_gen.imagegen), khung 3D 2:1 | Lều chợ bạt đỏ/xanh/vàng, quầy gỗ và hàng hóa; cùng khung isometric, xem prompt/SHA tại art/src/nac-dinh-1722/leu-cho/NGUON.md. | 2026-11-03 | Nặc Đinh #1722 mục8; OpenAI không CC0; PR nháp chờ duyệt. |
 | `shared/assets/sprites/iso/props/leu_cho_troi_xanh.png` | `prop_leu_cho_troi_xanh` | ChatGPT / Codex (OpenAI image_gen.imagegen), khung 3D 2:1 | Lều chợ bạt đỏ/xanh/vàng, quầy gỗ và hàng hóa; cùng khung isometric, xem prompt/SHA tại art/src/nac-dinh-1722/leu-cho/NGUON.md. | 2026-11-03 | Nặc Đinh #1722 mục8; OpenAI không CC0; PR nháp chờ duyệt. |
 | `shared/assets/sprites/iso/props/leu_cho_troi_vang.png` | `prop_leu_cho_troi_vang` | ChatGPT / Codex (OpenAI image_gen.imagegen), khung 3D 2:1 | Lều chợ bạt đỏ/xanh/vàng, quầy gỗ và hàng hóa; cùng khung isometric, xem prompt/SHA tại art/src/nac-dinh-1722/leu-cho/NGUON.md. | 2026-11-03 | Nặc Đinh #1722 mục8; OpenAI không CC0; PR nháp chờ duyệt. |
+| `shared/assets/sprites/iso/props/giang_duong_lau_dai.png` | `prop_giang_duong_lau_dai` | ChatGPT / Codex (OpenAI image_gen.imagegen) | art/src/nac-dinh-1722/giang-duong/prompts.json; khung 3D 2:1 | 2026-11-03 | Nặc Đinh #1722 mục 10; OpenAI output terms, không CC0 |
 
 ## Asset tạo bằng AI (Microsoft Copilot)
 
