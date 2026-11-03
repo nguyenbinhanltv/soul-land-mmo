@@ -1842,6 +1842,8 @@ Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), r�
 | `shared/assets/sprites/iso/props/thao_truong_coc_tap.png` | `prop_thao_truong_coc_tap` | ChatGPT / Codex (OpenAI image_gen.imagegen) | art/src/nac-dinh-1722/thao-truong/prompts.json; khung 3D 2:1 | 2026-11-03 | Nặc Đinh #1722 mục 13; OpenAI output terms, không CC0 |
 | `shared/assets/sprites/iso/props/thao_truong_gia_vu_khi.png` | `prop_thao_truong_gia_vu_khi` | ChatGPT / Codex (OpenAI image_gen.imagegen) | art/src/nac-dinh-1722/thao-truong/prompts.json; khung 3D 2:1 | 2026-11-03 | Nặc Đinh #1722 mục 13; OpenAI output terms, không CC0 |
 | `shared/assets/sprites/iso/props/ky_tuc_xa_quy_toc.png` | `prop_ky_tuc_xa_quy_toc` | ChatGPT / Codex (OpenAI image_gen.imagegen) | art/src/nac-dinh-1722/ky-tuc-quy-toc/prompts.json; khung 3D 2:1 | 2026-11-03 | Nặc Đinh #1722 mục 12; OpenAI output terms, không CC0 |
+| `shared/assets/sprites/iso/props/tuong_thanh_reu_x.png` | `prop_tuong_thanh_reu_x` | ChatGPT / Codex (OpenAI image_gen.imagegen) | art/src/nac-dinh-1722/tuong-reu/prompts.json; khung 3D 2:1 | 2026-11-03 | Nặc Đinh #1722 mục15; OpenAI output terms, không CC0 |
+| `shared/assets/sprites/iso/props/tuong_thanh_reu_y.png` | `prop_tuong_thanh_reu_y` | ChatGPT / Codex (OpenAI image_gen.imagegen) | art/src/nac-dinh-1722/tuong-reu/prompts.json; khung 3D 2:1 | 2026-11-03 | Nặc Đinh #1722 mục15; OpenAI output terms, không CC0 |
 
 ## Asset tạo bằng AI (Microsoft Copilot)
 

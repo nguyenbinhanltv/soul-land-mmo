@@ -13,7 +13,7 @@
     "objects": {
       "rock": 36, "ruin": 37, "stele": 38, "arch": 39, "log": 40, "ancient": 30, "tent": 11, "fire": 12, "plant": 28, "sign": 29,
       "roof": 14, "wall": 15,
-      "practice_pillar": 41, "practice_rack": 59, "academy_gate": 42, "citywall": 43,
+      "practice_pillar": 41, "practice_rack": 59, "moss_wall_x": 62, "moss_wall_y": 63, "academy_gate": 42, "citywall": 43,
       "lamp": 44, "shopsign": 45, "well": 46, "oak": 47, "rail": 48, "barrel": 49, "hay": 50, "sakura": 51, "citygate": 52, "citygateNorth": 53, "guardSpear": 54, "guardShield": 55, "lanternX": 56, "lanternY": 57, "marketStall": 58
     },
     "walk": ["lamp", "shopsign", "barrel", "hay", "lanternX", "lanternY"],
@@ -93,6 +93,13 @@
     { "type": "objects", "kind": "oak", "at": [[41, 14], [42, 14], [41, 15], [42, 15], [41, 20], [42, 20], [41, 21], [42, 21], [3, 22], [4, 22], [3, 23], [4, 23], [18, 24], [19, 24], [18, 25], [19, 25]] },
     { "type": "objects", "kind": "sakura", "at": [[6, 25], [7, 25], [6, 26], [7, 26], [12, 25], [13, 25], [12, 26], [13, 26]] },
     { "type": "fence", "rect": [0, 0, 170, 113], "gates": [[0.5, 56.5], [169.5, 56.5], [85, 0.5]], "gate": 7 },
+    {"type":"row","kind":"moss_wall_x","from":[0,0],"to":[79,0],"step":1},
+    {"type":"row","kind":"moss_wall_x","from":[89,0],"to":[169,0],"step":1},
+    {"type":"row","kind":"moss_wall_x","from":[0,112],"to":[169,112],"step":1},
+    {"type":"row","kind":"moss_wall_y","from":[0,1],"to":[0,51],"step":1},
+    {"type":"row","kind":"moss_wall_y","from":[0,60],"to":[0,111],"step":1},
+    {"type":"row","kind":"moss_wall_y","from":[169,1],"to":[169,51],"step":1},
+    {"type":"row","kind":"moss_wall_y","from":[169,60],"to":[169,111],"step":1},
     { "type": "objects", "kind": "academy_gate", "at": [[42, 34]] },
     { "type": "objects", "kind": "practice_pillar", "at": [[20, 31], [38, 37]] },
     { "type": "objects", "kind": "practice_rack", "at": [[38, 31], [20, 37]] },
