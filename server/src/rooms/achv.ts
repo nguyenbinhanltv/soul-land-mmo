@@ -7,6 +7,7 @@ import { takeToken } from "../ratelimit.ts";
 import { bagFits } from "./welfare.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
+import { titleAchvClaimed } from "./title.ts";
 import { CLAIM_BUSY, claimHeld, strIn } from "./common.ts";
 
 /** Chỉ số của người chơi lúc này: phần suy từ RAM đã nạp cộng trận thắng đấu trường (đọc DB) và bộ đếm `counters`. */
@@ -99,6 +100,7 @@ export function achvAction(room: MapRoom, id: string, m: { op?: unknown; id?: un
     const names = [honTe ? formatHonTe(honTe) : "", ...gives.map((g) => `${g.qty} ${itemDef(g.code)?.name ?? g.code}`)].filter(Boolean).join(", ");
     room.log(id, `Thành tựu "${def.name}": ${names}.`, "#f2c84b");
     void sendState(room, id, { claimedNow: { id: def.id, honTe, items: gives } });
+    titleAchvClaimed(room, id, def.id); // Danh Hiệu: bậc cuối chuỗi mở danh hiệu (idempotent)
   }).then(() => {
     d.claimBusy--;
     if (room.pdata.get(id) === d) room.sendBag(id);

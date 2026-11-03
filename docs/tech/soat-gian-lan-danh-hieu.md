@@ -1,6 +1,6 @@
 # Soát chống gian lận: Danh Hiệu (#1766, bước P1)
 
-Soát theo skill `anti-cheat-audit`. Phạm vi: tin `title {op: "get" | "equip", id?}` (`server/src/rooms/title.ts`, `MapRoom` chuyển tiếp), `grantTitle` (chỉ server gọi), `titleGet` / `titleGrant` / `titleEquip` của `PgStore` và `MemoryStore`, `server/sql/042_danh_hieu.sql`, trường công khai `PlayerState.titleId`, bài `server/scripts/title-test.ts`. Chưa có nguồn mở khoá ngoài danh hiệu cấp (thành tựu, xếp hạng tuần, boss lần đầu là P5, sẽ soát lại ở đó).
+Soát theo skill `anti-cheat-audit`. Phạm vi: tin `title {op: "get" | "equip", id?}` (`server/src/rooms/title.ts`, `MapRoom` chuyển tiếp), `grantTitle` (chỉ server gọi), `titleGet` / `titleGrant` / `titleEquip` của `PgStore` và `MemoryStore`, `server/sql/042_danh_hieu.sql`, trường công khai `PlayerState.titleId`, bài `server/scripts/title-test.ts`. Bước P1 chỉ có danh hiệu cấp; **P5 (#1778) soát thêm ba nguồn mở khoá** (thành tựu, chốt tuần xếp hạng, boss lần đầu) ở mục "Soát P5" cuối tài liệu: `server/src/titleWeek.ts`, `titleCloseWeek` / `bossFirst` của hai kho, `server/sql/043_danh_hieu_nguon.sql`.
 
 ## Tóm tắt
 
@@ -33,3 +33,22 @@ Không có lỗi Nghiêm trọng / Cao / Vừa còn tồn.
 | `PlayerState.titleId` | Chuỗi mã công khai, theo `interest.ts`; "" = mặc định theo cấp |
 | `grantTitle` | Chỉ server gọi; idempotent; mã lạ ném (lỗi lập trình); thiếu mốc hạn sự kiện ném |
 | SQL `042_danh_hieu.sql` | `CREATE TABLE IF NOT EXISTS`, bật RLS không policy; `removeTestAccount` xoá cả hai bảng; bot `--pg` bật server hai lần |
+
+## Soát P5: nguồn mở khoá (#1778)
+
+Phạm vi: `titleAchvClaimed` (achv.ts), `titleBossKilled` (boss.ts `killKing`), `closeTitleWeek` / `startTitleWeek` (`server/src/titleWeek.ts`, gọi từ `schedule.ts`), `titleCloseWeek` + `bossFirst` của `PgStore` và `MemoryStore`, SQL `043_danh_hieu_nguon.sql` (`title_week_close`, `title_first_kill`). Không thêm tin client nào: mọi nguồn chạy từ sự kiện server.
+
+| # | Giả thuyết | Kết quả | Mức |
+|---|---|---|---|
+| 14 | Client tự đòi danh hiệu thành tựu / boss / xếp hạng | **Không có đường**: không tin mới; `title` vẫn chỉ `get` / `equip`; `grantTitle` / `titleBossKilled` / `closeTitleWeek` chỉ server gọi | — |
+| 15 | Mở danh hiệu thành tựu khi chưa nhận | **Chặn**: chỉ gọi sau khi `store.achvClaim` trả "ok" (điều kiện kiểm lại trong transaction); mở bù lúc vào phòng chỉ đọc `achv_state.claimed` đã ghi ở server | — |
+| 16 | Chốt tuần chạy hai lần (khởi động lại, hai pod, hai lần hẹn giờ) cấp trùng | **Chặn**: dấu `title_week_close (week_day, board)` ghi cùng transaction với các dòng `title_owned`; lần hai `ON CONFLICT DO NOTHING` không trả dòng → ROLLBACK, trả null. Mã lạ trong `tiers` ném trước khi ghi dấu. Không dựa vào lease lịch để chống trùng (lease chỉ để đỡ tốn) | — |
+| 17 | Danh hiệu tuần cộng dồn / kéo dài qua nhiều tuần | **Chặn**: mỗi bảng một mức (mức nhỏ nhất mà hạng thỏa, không cộng dồn); hạn cố định `weekStartVn(now, 1)` = hết tuần kế; `titleGrant` chỉ ghi đè dòng ĐÃ hết hạn; chỉ chốt tuần VỪA kết thúc (server tắt cả tuần thì bỏ tuần đó, không cấp muộn) | — |
+| 18 | Tài khoản test / nhiều tài khoản phụ chiếm bảng để nhận danh hiệu | **Test: loại** (`NOT a.is_test` ở Pg, `rankSorted` ở Memory). Tài khoản phụ thật: danh hiệu chỉ trưng bày, không giá trị kinh tế; điểm bảng vẫn do server suy ra (soát X5) | Thấp |
+| 19 | Chạy đua server-first giữa kênh / pod | **Chặn**: khoá chính `title_first_kill.boss_id`; `kill_key` = `roomId|khung|bid` duy nhất mỗi lần hạ; chỉ lần ghi dòng thắng, mọi người đóng góp CÙNG lần hạ cùng thắng, lần hạ khác thua. Test chạy đua 4 khoá song song: đúng một thắng | — |
+| 20 | Người không đóng góp (đứng xem) nhận danh hiệu boss | **Chặn**: gọi trong nhánh đã đủ ngưỡng đóng góp `K.share` và chưa nhận thưởng khung giờ đó ở kênh khác (cùng nhánh cấp rương) | — |
+| 21 | Danh hiệu thành nguồn kinh tế | **Không**: vẫn chỉ trưng bày, không Hồn Tệ / vật phẩm | — |
+
+Ghi chú vận hành: server-first tính từ lúc `043` chạy (lần hạ đầu tiên SAU khi triển khai thắng; không truy hồi lịch sử). Lần chốt tuần đầu sau triển khai cấp theo bảng điểm lúc đó. Người đang online không thấy danh hiệu tuần mới tới khi gửi `title {op:"get"}` / vào lại phòng (không đẩy riêng).
+
+Không có lỗi Nghiêm trọng / Cao / Vừa còn tồn.
