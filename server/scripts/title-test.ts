@@ -178,7 +178,7 @@ await test("Qua tuần: danh hiệu hết hạn → về mặc định; tuần k
   assert.deepEqual((await s.titleGet(101)).owned.map((o) => o.id), ["rank_cap_top3"], "xuống hạng 2-3: mức thấp hơn");
 });
 await test("closeTitleWeek (store dùng chung): chốt tuần vừa kết thúc đúng một lần, hạn = hết tuần kế", async () => {
-  const acc = 30000 + Math.floor(Math.random() * 1000), now = Date.UTC(2026, 10, 4, 5);
+  const acc = 30000 + Math.floor(Math.random() * 1000), now = Date.now();
   (store as unknown as { names: Map<number, string> }).names.set(acc, "TopCap"); await store.rankPut(acc, [{ board: "cap", period: 0, score: 1_000_000, tie: 0, extra: null }]);
   const n1 = await closeTitleWeek(now); assert.ok(n1 >= 1);
   const row = (await store.titleGet(acc)).owned.find((o) => o.id === "rank_cap_top1"); assert.ok(row, "đứng đầu bảng cấp"); assert.equal(row!.exp, weekStartVn(now, 1));
