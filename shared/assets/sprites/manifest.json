@@ -46101,6 +46101,11 @@
       "iso": true
     },
     {
+      "key": "prop_tan_linh_thu",
+      "iso": true,
+      "map": "tinh_dau_ngoai_vi"
+    },
+    {
       "key": "prop_xe_hang_khong_ngua",
       "iso": true
     },

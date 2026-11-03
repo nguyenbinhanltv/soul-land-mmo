@@ -42,6 +42,10 @@ Thí điểm lửa trại và đài phun nước: lớp lửa/tia nước tạo 
 - Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (Gemini: điều khoản Gemini Apps của Google; ComfyUI: CreativeML Open RAIL++-M của SDXL, CreativeML OpenRAIL-M của pixel-art-xl, MIT của VAE). Mỗi key một dòng trong `art/CREDITS.md` (file, key, công cụ, prompt, ngày). Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ tham khảo ý tưởng, không làm ảnh tham chiếu.
 
+## Tán Linh Thụ Ngoại vi (lô 1 #1664)
+
+`prop_tan_linh_thu`: Codex builtin OpenAI `image_gen.imagegen`, 03/11/2026; ảnh tự sinh, không dùng gói ngoài hoặc ảnh thương mại. Điều khoản đầu ra OpenAI, không CC0. Prompt nguyên văn, quy cách nhập và hồ sơ hash tại `art/src/tan-linh-thu/NGUON.md`; normal map sinh bằng công cụ repo. Tán rêu ba sắc đúng bảng Ngoại vi, viền `#1a1020`, điểm linh khí cùng màu đom đóm vùng. Chỉ dùng gid 48 đi xuyên trong `gids.walk` của Ngoại vi để thay hình cây đã được L2 làm mềm. **PR nháp loại B, chờ chủ repo duyệt ảnh trước/sau; chưa duyệt để gộp.**
+
 ## Asset bên ngoài (font, tileset, âm thanh, lớp / gói LPC)
 - Chỉ dùng asset **miễn phí** (không đề xuất hay mua gói trả phí). Được dùng **mọi loại giấy phép** miễn phí (CC0, CC-BY, CC-BY-SA, OGA-BY, CC-BY-NC, GPL, OFL…) vì đây là fan game phi thương mại cho bạn bè. **Không** dùng asset không có giấy phép rõ ràng hoặc ghi "all rights reserved"; ND (cấm sửa) chỉ dùng được nguyên bản.
 - Asset từ gói ngoài phải **đặt lại tên theo quy ước game** (`fx_*`, `gi_*`, `vat_*`…); tên gốc chỉ nằm ở `art/CREDITS.md` và `licenses`.
