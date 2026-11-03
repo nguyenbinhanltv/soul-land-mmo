@@ -41,8 +41,8 @@
 - Không khóa được tài liệu thì ghi lại tối đa 3 lần liên tiếp rồi bỏ lượt (lần đổi sau ghi bản mới nhất). Không có `REDIS_URL` thì không phát, không ghi (`FriendHub` không có presence).
 
 ## Lịch thú vương và boss thế giới (`server/src/schedule.ts`, `startSchedule`)
-- Chỉ đếm giờ Việt Nam và `publish("boss", {mapId, king, phase: "warn" | "spawn", slot, in, life})`. Sinh boss, máu, chiêu, thưởng nằm trong `MapRoom` (`onBossEvent`, `spawnKing`).
-- Phòng mở ra trong khung boss cũng sinh (`kingActive`, `worldActive`); phòng mở ra trong lúc báo trước vẫn có đếm ngược (`kingWarns`).
+- Chỉ đếm giờ Việt Nam và `publish("boss", {mapId, king, phase: "warn" | "spawn", slot, in, life})`. Sinh boss, máu, chiêu, thưởng nằm trong phòng: `bossEvent.ts` (`onBossEvent`, `MapRoom` chuyển tiếp) và `MapRoom` (`spawnKing`).
+- Phòng mở ra trong khung boss cũng sinh (`kingActive`, `worldActive`); phòng mở ra trong lúc báo trước vẫn có đếm ngược (`kingWarns` ở `procState.ts`).
 
 **Trạng thái thú vương giữ theo bản đồ, dùng chung mọi tiến trình** (`kingSeats`)
 - Key `king:<mapId>` chứa JSON các khung; suất có `id/owner/state/leaveAt`, `claimed[]`; lock Lua + TTL dọn suất của tiến trình chết.

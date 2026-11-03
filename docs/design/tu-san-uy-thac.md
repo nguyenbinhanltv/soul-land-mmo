@@ -109,7 +109,7 @@ Mọi lúc tự săn, mỗi nhịp server:
 
 #### Mục tiêu chung và điều kiện nhận thưởng
 - Đây là **mục tiêu chung**: không áp luật không cướp quái, nhiều người treo cùng nhắm một con. Máu theo số người, đóng góp theo tài khoản, chia thưởng như người chơi tự đánh (mục 5.4).
-- Chỉ nhắm con **còn nhận được thưởng** (`MapRoom.autoBossOk`):
+- Chỉ nhắm con **còn nhận được thưởng** (`bossEvent.autoBossOk`, `MapRoom` chuyển tiếp):
   - tinh anh chưa bị khóa `ELITE.lock`;
   - thú vương / boss thế giới còn lượt `KING.daily` / `WORLD.daily` hôm nay và chưa nhận rương của khung giờ đó ở kênh nào. Hết lượt thì thôi nhắm: vào đánh chỉ làm boss nhiều máu hơn cho người khác.
 
