@@ -21,7 +21,7 @@ Mỗi gạch đầu dòng là một lần giao việc; dòng chưa làm trỏ t�
 - [ ] Hoạt ảnh hồn thú v2, phần còn mở: công cụ + quy trình (#861, theo dõi), thử turnaround + mỗi hướng một tờ trên 3 loài (P4, #867). Sổ tự sinh: `npm run beast:status` (không commit).
 - [ ] Phụ thể võ hồn v2: vẽ mới + hoạt ảnh 5 hướng (#1020, epic; bảng ở `docs/art/phu-the-hoat-anh.md`). P0 đặc tả #1021 xong; P1 công cụ `phuthe-sheet-*` #1022 xong (PR #1067); P2 client phát clip #1023 xong (PR #1066). **Đổi hướng 2026-10-29 (chủ repo):** phụ thể v2 = **vũ khí** cầm tay của võ hồn đang ra trận (`vkanim_<id>`), phụ thể cũ = **pháp tướng** chỉ hiện khi Chân Thân; bảng 25 dạng vũ khí + kế hoạch ở `docs/art/phu-the-vu-khi.md` (#1307). Xong: công cụ `--kind vukhi` #1313, client #1314, nhập + trang thử `?thu=vukhi` #1312 (PR #1323), công cụ `phuthe-to-phaptuong` #1306 (PR #1309), thí điểm mềm Lam Ngân Thảo (#1322, chủ repo chấp nhận). Còn: thí điểm cứng Hạo Thiên Chùy #1319 (PR #1320 nháp, chưa đạt cán nện), vũ khí mềm Hỏa Long #1338 (PR #1339), vẽ lại pháp tướng độc lập bằng Codex (#1326 / #1331 / #1337, #1332–#1334), thí điểm găng-vuốt, rồi cuộn 22 võ hồn còn lại (thay P3 / P4 cũ #1024 / #1025 theo hướng vũ khí) và dọn `spiritMotion` (P5).
 - [ ] Nghiên cứu UI/UX giao diện thích ứng (#732, U0–U5; U2 #755 tách chat khỏi log loot / XP, gộp toast xong ở đợt 1c; U6 điện thoại không làm, giữ Q40).
-- [ ] Cân bằng chờ chủ repo (mức C): #907, #908, #909 (xem `docs/quyet-dinh.md`, "Việc đang chờ").
+- [ ] Cân bằng chờ chủ repo (mức C): #907, #908 (#909 xong: Q54; xem `docs/quyet-dinh.md`, "Việc đang chờ").
 
 Áo hồn sư kiểu khác (đồng phục Sử Lai Khắc, áo Vũ Hồn Điện) đã xong: lớp trang phục phương Đông C3 (#554, PR #576); lịch sử ở `docs/lich-su.md`.
 

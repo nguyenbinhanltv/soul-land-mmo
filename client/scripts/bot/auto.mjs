@@ -149,12 +149,18 @@ export async function autoTest(){
       // #1421: chọn mục tiêu theo chi phí (đường đi + giây hạ ước lượng, chia hệ số cụm), nên cụm hồn thú tự nhiên ở xa hơn 160 pixel (ngoài vùng dọn
       // của `clear`) có thể thắng con thử và A đi tới đó trước: ways = ["path"] dù đường thẳng tới con thử thông. Dọn cả bản đồ, chỉ giữ con thử.
       await test(A,"clear",{all:true,keep:true,but:bid});
-      const ways=new Set(), tgs=[]; let st=null;
+      // Đồ rơi còn sót từ bài trước (hồn hoàn của con vừa hạ) nằm trong vùng nhặt: tự săn nhặt đồ TRƯỚC khi chọn mục tiêu (đúng luật, autoHunt.decide),
+      // nên đi tới đồ bằng đường A* (ways = ["path"], loot ≠ null) dù đường thẳng tới con thử thông: trượt khoảng 1/3 lượt tùy đồ còn hay đã hết hạn.
+      // Cho đồ cũ hết hạn trước khi bật, như các bài nhặt đồ (ab1.mjs).
+      await test(A,"drops",{s:3600}); await waitFor(()=>!A.room.state.drops.size,2000);
+      const ways=new Set(), tgs=[]; let st=null; const dg=[];
+      // Nợ nhịp (AUTO_PACE) của bài trước (hạ con) còn tới ~30 giây khiến bộ tự săn đứng nghỉ, không nhắm con thử trong 12 giây chờ (ways = [], lines = 0): xóa nợ trước khi bật như bài AH4.
+      await test(A,"auto",{paceNext:0});
       if(!bid||!(await autoOp(A,"on"))?.on) return null;
       const t00=Date.now(); let hit=false, ms=0; // waitFor chỉ nhận hàm đồng bộ: hỏi hook `auto` mỗi nhịp để ghi cách đi của từng lúc
-      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); if(st?.target&&st.target!==tgs.at(-1)) tgs.push(st.target); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
+      for(const t0=Date.now();Date.now()-t0<12000&&!hit;await sleep(100)){ st=await test(A,"auto"); if(st?.way) ways.add(st.way); if(dg.length<4&&bb()) dg.push([st?.way,Math.round(me(A).x),Math.round(me(A).y),Math.round(bb().x),Math.round(bb().y),clearLine(g,me(A),bb()),st?.target===bid?"B":st?.target?"other":"-",st?.loot?"loot":"-",st?.pace!=null?+st.pace.toFixed(1):null]); if(st?.target&&st.target!==tgs.at(-1)) tgs.push(st.target); hit=!!bb()&&bb().hp<bb().maxHp; if(hit) ms=Date.now()-t00; }
       st=await test(A,"auto"); await autoOp(A,"off"); await test(A,"clear");
-      return {hit,ms,ways:[...ways],target:st?.target===bid,plans:st?.plans,lines:st?.lines,start:P,beast:Q,bid,tgs};
+      return {hit,ms,ways:[...ways],target:st?.target===bid,plans:st?.plans,lines:st?.lines,start:P,beast:Q,bid,tgs,dg};
     };
     const L=pick(false), W=pick(true);
     await autoOp(A,"set",{cfg:{...NEAR,skills:[],tienCo:false}});
@@ -205,11 +211,23 @@ export async function autoTest(){
     // Y sinh xa cả B lẫn X (hơn tầm aggro BEAST_AGGRO_R), vẫn trong vùng neo: tự săn dắt A đi dạo khắp quanh đó nên A có thể đang đứng sát B,
     // Y sinh trong tầm B thì nhắm B (người gần nhất), tự săn không cướp quái người khác nên A không đánh Y (#305: CI trượt, Y cạnh B, nhắm B,
     // 15 giây không ai đánh). Đánh A–Y xa X để đòn của A không trúng lan sang X.
-    const yCand=[...Array(24).keys()].flatMap(k=>[100,80].map(r=>{ const a=k*Math.PI/12, dx=Math.round(Math.cos(a)*r), dy=Math.round(Math.sin(a)*r), x=me(A).x+dx, y=me(A).y+dy;
-      return {dx,dy,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
-    const yAt=yCand.filter(c=>!c.solid&&!c.far).sort((u,v)=>v.away-u.away)[0];
+    // Chỗ ứng viên lấy quanh ĐIỂM NEO (home), không quanh A: A đang tự săn nên đứng chỗ nào cũng được (#1517: A sát B, 48 chỗ quanh A xa nhất 104 < 110 pixel).
+    // Spawn nhận dx, dy tính từ A, nên đổi về độ lệch so với A; chọn chỗ gần A nhất trong số chỗ đủ xa B và X.
+    const need=BEAST_AGGRO_R+40;
+    // Y nhắm A rồi lao tới A, đòn của A (tầm đánh, vùng lan) trúng X nếu A đứng sát X (#1746: A cách X 43 pixel, X mất 194 sinh lực dù Y sinh xa X 112 pixel).
+    // Đưa A ra xa cả B lẫn X (hơn tầm aggro + 60 pixel) trong vùng neo trước khi sinh Y; X vẫn trong vùng nên bài vẫn thử đúng luật không cướp quái.
+    const aFar=BEAST_AGGRO_R+100, aOk=[0,40,80,120,160,200].flatMap(r=>[...Array(24).keys()].map(k=>{ const a=k*Math.PI/12, x=Math.round(home.x+Math.cos(a)*r), y=Math.round(home.y+Math.sin(a)*r);
+      return {x,y,away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),dA:Math.hypot(x-me(A).x,y-me(A).y),bad:hits(gNV,x,y,PLAYER_HW+8,PLAYER_HH+8)||inCamp(x,y)||Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-40}; }))
+      .filter(c=>!c.bad&&c.away>=aFar).sort((u,v)=>u.dA-v.dA);
+    if(aOk[0]) await test(A,"goto",{x:aOk[0].x,y:aOk[0].y});
+    ok(!!aOk[0]&&Math.hypot(me(A).x-xb().x,me(A).y-xb().y)>=aFar-8,`A đứng xa X và B hơn tầm aggro trước khi sinh Y (${aOk.length} chỗ; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
+    const aP=me(A);
+    const yCand=[40,80,120,160,200].flatMap(r=>[...Array(24).keys()].map(k=>{ const a=k*Math.PI/12, x=Math.round(home.x+Math.cos(a)*r), y=Math.round(home.y+Math.sin(a)*r);
+      return {dx:x-Math.round(aP.x),dy:y-Math.round(aP.y),away:Math.min(Math.hypot(x-me(B).x,y-me(B).y),Math.hypot(x-xb().x,y-xb().y)),dA:Math.hypot(x-aP.x,y-aP.y),solid:hits(gNV,x,y,PLAYER_HW,PLAYER_HH),far:Math.hypot(x-home.x,y-home.y)>AUTO_RADIUS-8}; }));
+    const yOk=yCand.filter(c=>!c.solid&&!c.far);
+    const yAt=yOk.filter(c=>c.away>need).sort((u,v)=>u.dA-v.dA)[0]??yOk.sort((u,v)=>v.away-u.away)[0];
     // Không có chỗ nào xa hơn tầm aggro: báo ✗ rõ (không lùi về chỗ sinh cũ vốn gây lỗi), vẫn sinh Y để các kiểm tra sau chạy tiếp.
-    ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (xa nhất ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
+    ok(yAt&&yAt.away>BEAST_AGGRO_R+40,`chỗ sinh Y xa B và X hơn tầm aggro ${BEAST_AGGRO_R} (chỗ chọn cách ${yAt?.away.toFixed(0)} pixel; ${yCand.length} chỗ: ${yCand.filter(c=>c.solid).length} ô chặn, ${yCand.filter(c=>c.far).length} ngoài vùng neo; A ${me(A).x.toFixed(0)},${me(A).y.toFixed(0)}, B ${me(B).x.toFixed(0)},${me(B).y.toFixed(0)}, X ${xb()?.x.toFixed(0)},${xb()?.y.toFixed(0)})`);
     const ySite=`chỗ sinh Y ${yAt?`dx,dy ${yAt.dx},${yAt.dy}, cách B / X ${yAt.away.toFixed(0)} pixel`:"đường lùi dx,dy -50,0 (không có chỗ hợp lệ)"}`;
     // Nợ nhịp (AUTO_PACE): A vừa hạ một hồn thú hoang đánh trả trong lúc chờ X thì còn nợ vài giây tới hơn chục giây, tự săn đứng nghỉ, không
     // nhắm Y, không dạo (#305 lần 3: CI A đứng yên 15 giây, mục tiêu / đích rỗng, Y đầy máu cách 115 pixel). Bài này thử luật không cướp quái,
@@ -618,13 +636,19 @@ export async function autoTest(){
     }
   }
   // ---- AH4 (#611): gợi ý niên hạn hợp sức, chống kẹt đi vòng lặp, tổ đội cùng treo ----
+  // Gốc chập chờn (#1678): bài trước (đánh trả, gục, tiên cơ) có thể để võ hồn khác ra trận (Lam Ngân Thảo cấp 5) → mọi vùng quá sức, best=null. Đặt lại đúng fixture đầu bài (võ hồn chính, cấp 21, 2 hồn hoàn) trước khi khẳng định gợi ý.
+  await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true}); await test(A,"ready"); await test(A,"rest",{s:10});
+  { // swCd không đồng bộ qua state (tin riêng `vit`): gửi lại `switch` mỗi 500 ms tới khi võ hồn chính ra trận (hết hồi chiêu đổi thì server nhận).
+    const slot=Math.max(0,A.owned.team.indexOf(act)); const t0=Date.now();
+    while(A.owned.active!==act&&Date.now()-t0<SWITCH_CD*1000+4000){ A.room.send("switch",{slot}); await waitFor(()=>A.owned.active===act,500); } }
+  await test(A,"set",{rowId:act,level:21,rings:[423,812]}); await test(A,"goto",home);
   { const strong={atk:3000,crit:0.2,critMult:2,maxHp:60000,def:1}, weak={atk:20,crit:0.1,critMult:1.8,maxHp:300,def:1}, zs=[{name:"Vùng thấp",years:[10,300],species:["phong_lang"]},{name:"Vùng cao",years:[2000,20000],species:["phong_lang"]}];
     const hs=autoHint(strong,zs), hw=autoHint(weak,zs);
     ok(hs.best?.zone==="Vùng cao"&&hs.best.years[0]===2000&&hs.best.years[1]>2000&&offlineFight(strong,hs.best.years[1],"phong_lang").secs<=AUTO_HINT.maxSecs&&offlineFight(strong,hs.best.years[1]+1,"phong_lang").secs>AUTO_HINT.maxSecs||hs.best?.full,
       `AH4 gợi ý: võ hồn mạnh được vùng cao, tới mức hạ một con ≤ ${AUTO_HINT.maxSecs} giây (${JSON.stringify(hs.best)})`);
     ok(hw.best?.zone==="Vùng thấp"&&hw.rows.find(r=>r.zone==="Vùng cao").years===null,`AH4 gợi ý: võ hồn yếu chỉ hợp vùng thấp, vùng cao "quá sức" (${JSON.stringify(hw.rows)})`);
     const g=await autoOp(A,"get"), h=g?.hint;
-    ok(h&&h.rows.length>0&&h.best?.years&&h.best.years[0]<=h.best.years[1],`AH4: tin "auto" ở bản đồ săn kèm gợi ý hợp sức (${JSON.stringify(h?.best)})`);
+    ok(h&&h.rows.length>0&&h.best?.years&&h.best.years[0]<=h.best.years[1],`AH4: tin "auto" ở bản đồ săn kèm gợi ý hợp sức (${JSON.stringify(h?.best)}) [ra trận ${A.owned.active===act?"chính":"khác"}, hàng ${JSON.stringify(A.owned.list.find(v=>v.rowId===A.owned.active))}, rows ${JSON.stringify(h?.rows)}]`);
     // Soát AH3/AH4: tin `auto` vượt nhịp vẫn được trả lời; gợi ý lấy từ bộ nhớ đệm theo chỉ số võ hồn (không tính lại mỗi tin), kết quả phải y nguyên.
     await test(A,"auto",{rate:true}); A.autoMsg=null; let n=0; A.room.onMessage("auto",()=>{n++;});
     for(let i=0;i<60;i++) A.room.send("auto",{op:"get"});
@@ -634,12 +658,16 @@ export async function autoTest(){
   }
   { const LP={...AUTO_DEFAULTS,scope:"map",years:[0,MAX_YEARS],bone:false,core:false,ring:-1,slots:[],skills:[],tienCo:false,elite:false,king:false,world:false};
     await test(A,"goto",home); await test(A,"clear",{all:true,keep:true}); await autoOp(A,"set",{cfg:LP});
-    const lt=(await test(A,"spawn",{tier:0,dx:300,dy:0,years:15,hpx:50}))?.bid;
+    // dx tối đa 200 (hook spawn kẹp, số không nguyên về mặc định 20): con thử cách ~200 px, vài giây đi tới.
+    const lt=(await test(A,"spawn",{tier:0,dx:200,dy:0,years:15,hpx:50}))?.bid;
     await test(A,"auto",{pace:0}); m=await autoOp(A,"on"); A.autost.length=0;
-    let tg=false; for(let t=0;t<3000&&!tg;t+=100){ tg=(await infoA()).target===lt; if(!tg) await sleep(100); }
-    await test(A,"auto",{loop:true});
-    let st=null; for(let t=0;t<4000&&st?.why!=="loop";t+=100){ st=await infoA(); await sleep(100); }
-    ok(m?.on&&tg&&st?.why==="loop"&&st.target!==lt,`AH4 chống kẹt: đang đi tới con ${lt} mà ${AUTO_STUCK.window} giây không nhích → lý do "${st?.why}", bỏ mục tiêu đó (nhắm ${st?.target})`);
+    const seq=[], note=async x=>{ const k=x.target===lt?"lt":x.target?"khác "+x.target:"-"; if(seq.at(-1)===k) return; seq.push(k);
+      if(k.startsWith("khác")){ const o=A.room.state.beasts.get(x.target), q=await test(A,"auto",{bid:x.target}); seq.push({sp:o?.species,rank:o?.rank,tier:o?.tier,d:o&&Math.round(Math.hypot(o.x-me(A).x,o.y-me(A).y)),dlt:Math.round(Math.hypot(A.room.state.beasts.get(lt)?.x-me(A).x,0)),tgt:q?.beast?.target,hitBy:q?.beast?.hitBy,pace:x.pace,loot:x.loot,hit:x.hit}); } };
+    let tg=false; for(let t=0;t<3000&&!tg;t+=100){ const x=await infoA(); await note(x); tg=x.target===lt; if(!tg) await sleep(100); }
+    // Hook loop chỉ có tác dụng lúc bộ tự săn ĐANG đi tới mục tiêu (checkLoop xóa vết khi đã trong tầm đánh). Máy tải thì bài đo chậm vài trăm ms, người đã tới sát con thử (hạ nó, rồi đổi sang con tự nhiên) trước khi vết kịp đầy:
+    // tung hook mỗi nhịp đo tới khi lý do "loop" hiện, không tung một lần rồi chờ.
+    let st=null; for(let t=0;t<4000&&st?.why!=="loop";t+=100){ st=await infoA({loop:true}); await note(st); await sleep(100); }
+    ok(m?.on&&tg&&st?.why==="loop"&&st.target!==lt,`AH4 chống kẹt: đang đi tới con ${lt} mà ${AUTO_STUCK.window} giây không nhích → lý do "${st?.why}", bỏ mục tiêu đó (nhắm ${st?.target}) [chuỗi mục tiêu ${JSON.stringify(seq)}, tới ${JSON.stringify(me(A))}]`);
     ok(await waitFor(()=>A.autost.some(x=>x.w==="loop"),2500),`AH4 chống kẹt: dòng trạng thái ghi lý do đi vòng lặp (${JSON.stringify(A.autost.at(-1))})`);
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
   }
@@ -802,12 +830,12 @@ export async function autoTest(){
     // B2: hạ một con rồi hết quái: nhớ vùng hồi sinh, đi dạo trong vùng đó ("Đi tới chỗ hồi sinh"). Dọn liên tục để hồn thú hồi sinh không xen vào.
     await test(A,"goto",home); await autoOp(A,"set",{cfg:P3});
     const k1=(await test(A,"spawn",{tier:0,dx:30,dy:0,years:10}))?.bid;
-    await test(A,"auto",{pace:0}); await autoOp(A,"on"); let remembered=0, sawSpawn=false;
+    await test(A,"auto",{pace:0}); await autoOp(A,"on"); let remembered=0, sawSpawn=false, tKill=null, tSaw=null, last=null; const tB2=Date.now();
     for(let t=0;t<9000&&!(remembered&&sawSpawn);t+=250){
-      if(!A.room.state.beasts.has(k1)){ await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); }
-      const st=await infoA(); remembered=Math.max(remembered,st.spawns); if(st.spawning&&st.patrol) sawSpawn=true; await sleep(250);
+      if(!A.room.state.beasts.has(k1)){ tKill??=Date.now()-tB2; await test(A,"clear",{all:true,keep:true}); await test(A,"auto",{pace:0}); }
+      const st=await infoA(); last=st; remembered=Math.max(remembered,st.spawns); if(st.spawning&&st.patrol){ sawSpawn=true; tSaw=Date.now()-tB2; } await sleep(250);
     }
-    ok(remembered>=1&&sawSpawn,`AH3 B2: hạ con ở vùng sinh → nhớ ${remembered} vùng, hết quái thì đi tới chỗ hồi sinh (thấy ${sawSpawn})`);
+    ok(remembered>=1&&sawSpawn,`AH3 B2: hạ con ở vùng sinh → nhớ ${remembered} vùng, hết quái thì đi tới chỗ hồi sinh (thấy ${sawSpawn}) [hạ con lúc ${tKill}ms, thấy chỗ hồi sinh lúc ${tSaw}ms; cuối: mục tiêu ${last?.target}, đồ ${last?.loot}, nợ nhịp ${last?.pace}, đích ${JSON.stringify(last?.goal)}, dạo ${JSON.stringify(last?.patrol)}, spawning ${last?.spawning}, tới ${JSON.stringify([Math.round(me(A).x),Math.round(me(A).y)])}]`);
     await autoOp(A,"off"); await test(A,"clear",{all:true,keep:true});
     // B3: hết đan → nghỉ hồi tới AUTO_REST.resume rồi săn tiếp (không nhắm con mới khi đang nghỉ); stopNoPot thì dừng như cũ.
     for(const it of looseOf(A)) if(ITEMS.find(x=>x.id===it.code)?.hp) A.room.send("discard",{id:it.id});

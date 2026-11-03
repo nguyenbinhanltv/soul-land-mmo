@@ -17,7 +17,7 @@
         <div class="who"><button class="portrait" id="vhPortrait" type="button" aria-label="Mở menu" aria-controls="hub"><span id="vhGlyph">魂</span></button><div class="who-main"><span id="vhName">–</span><span id="lvl"></span></div></div>
         <div class="bar hp"><i id="hpFill"></i><span id="hpTxt"></span></div>
         <div class="bar mp"><i id="mpFill"></i><span id="mpTxt"></span></div>
-        <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span></div>
+        <div class="bar xp"><i id="xpFill"></i><span id="xpTxt"></span><b id="xpPct" aria-hidden="true"></b></div>
         <div class="bar lei" id="leiBar" hidden><i id="leiFill"></i><span id="leiTxt"></span></div>
         <div class="chips" id="statChips">
           <button id="vhChip" class="stat-chip" type="button" aria-label="Võ hồn đang ra trận: mở bảng Võ Hồn" hidden><span class="chip-ico" aria-hidden="true"></span><span class="chip-txt"></span></button>
@@ -59,8 +59,10 @@
       <div id="calendar" class="ui2-screen" hidden role="dialog" aria-label="Lịch Hoạt Động"></div>
       <div id="welfare" class="ui2-screen" hidden role="dialog" aria-label="Phúc Lợi"></div>
       <div id="achv" class="ui2-screen" hidden role="dialog" aria-label="Thành Tựu"></div>
+      <div id="dex" class="ui2-screen" hidden role="dialog" aria-label="Sổ Tay Hồn Thú"></div>
       <div id="mail" class="ui2-screen" hidden role="dialog" aria-label="Thư"></div>
       <div id="bicanh" class="ui2-screen" hidden role="dialog" aria-label="Bí Cảnh"></div>
+      <div id="quests" class="ui2-screen" hidden role="dialog" aria-label="Nhiệm Vụ"></div>
       <div id="notice" class="ui2-screen" hidden role="dialog" aria-label="Thông báo"></div>
       <div id="mapview" hidden role="dialog" aria-label="Bản đồ">
         <canvas id="mapviewCv"></canvas>
@@ -75,6 +77,7 @@
             <button id="mapviewFit" class="mvbtn mvfit" title="Đặt lại zoom: vừa khung cả bản đồ">⟲ Vừa khung</button>
             <button id="mapviewIn" class="mvbtn mvz" title="Phóng to (lăn chuột lên, chụm hai ngón)">+</button>
             <button id="mapviewOut" class="mvbtn mvz" title="Thu nhỏ">−</button>
+            <button id="mapviewHelpBtn" class="mvbtn mvz" aria-pressed="false" aria-controls="mapviewHelp" title="Cách dùng bản đồ: hiện / ẩn chú giải">?</button>
             <button id="mapviewClose" class="mvbtn mvx" title="Đóng (M, N hoặc Esc)" aria-label="Đóng bản đồ">×</button>
           </div>
         </div>

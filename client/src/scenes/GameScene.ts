@@ -4,7 +4,7 @@ import type { Room } from "colyseus.js";
 import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
-  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, BEAST_BUFFS, beastBuffBit,
+  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, beastNameSeen, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_TIERS, equipName, coreStatText, type CoreSubUp, type CoreStat, KING,
   AUTOWALK, AUTO_MOVE, WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
@@ -37,9 +37,11 @@ import { initPanelStack, closeTopPanel, panelOf, trapTab } from "../panelStack.t
 import { initHub, toggleHub, setHubOpen } from "../hubMenu.ts";
 import { setBadge, badgeOf, resetBadges, starReadyCount, ringReady, questActionable } from "../badges.ts";
 import { openNotice, closeNotice } from "../noticeScreen.ts";
+import { openQuests as openQuestPanel, closeQuests as closeQuestPanel } from "../questScreen.ts";
 import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, endJingle, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScreen.ts";
+import { bindDex, openDex, closeDex, onDex, dexKnown, type DexMsg } from "../dexScreen.ts";
 import { bindMail, openMail, closeMail, onMail, type MailMsg } from "../mailScreen.ts";
 import { bindNpcGo } from "../hudNpc.ts";
 import { bindCalendar, watchCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
@@ -846,7 +848,7 @@ export class GameScene extends Phaser.Scene {
       if (f?.closest("#sideBox") && (e.code === "Tab" || ((e.code === "Space" || e.key === "Enter") && f.matches(":focus-visible")))) return;
       // Tiêu điểm đang ở nút / ô trong một bảng (U1 #754): Tab xoay vòng trong bảng, Space / Enter bấm đúng nút đó; không thành đổi mục tiêu / đánh / mở chat.
       // Nút vừa bấm chuột không tính (không `:focus-visible`), nên chơi bằng chuột rồi bấm Space đánh vẫn đánh được.
-      if (e.code === "Tab" && panelOf(f) && trapTab(e)) return;
+      if (e.code === "Tab" && trapTab(e)) return; // cả khi tiêu điểm đã rơi mất khỏi bảng vừa mở bằng phím (#1675)
       if ((e.code === "Space" || e.key === "Enter") && panelOf(f) && (f as HTMLElement).matches(":focus-visible")) return;
       if (e.key === "Enter") { chat.focus(); e.preventDefault(); return; }
       if (e.code === "KeyH" && !e.repeat) { this.clearForPanel(); toggleChar(); return; } // bảng nhân vật (UI-2), độc lập với Túi (NV1 #455); C là kỹ năng hồn cốt tay phải nên không dùng để mở bảng (NV5 #459)
@@ -965,6 +967,7 @@ export class GameScene extends Phaser.Scene {
     bindRank((type, payload) => this.room.send(type, payload)); bindCalendar((type, payload) => this.room.send(type, payload), (g) => this.calendarGo(g), (n) => setBadge("calendar", n ? "new" : null, n)); watchCalendar(this.ac.signal, this.isArena); bindNpcGo((g) => this.calendarGo(g)); // nút "Đến" của hộp thoại / trang nhiệm vụ (ui2): cùng đường đi bộ / cờ "Đi tới" với Lịch Hoạt Động
     bindBiCanh((type, payload) => this.room.send(type, payload), (has) => setBadge("bicanh", has ? "new" : null)); // chấm đỏ "còn lượt" (kho badges)
     bindBiCanhRoom(() => this.onBack(), () => this.onBack());
+    bindDex((type, payload) => this.room.send(type, payload)); // Sổ Tay Hồn Thú (#1720)
     bindAchv((type, payload) => this.room.send(type, payload), (n) => setBadge("achv", n ? "new" : null, n)); // chấm đỏ "có thành tựu nhận được" (kho badges)
     bindMail((type, payload) => this.room.send(type, payload), (n) => setBadge("mail", n ? "new" : null, n)); // chấm đỏ "có thư chưa đọc / chưa nhận" (kho badges)
     bindWelfare((type, payload) => this.room.send(type, payload), (n) => setBadge("welfare", n ? "new" : null, n)); // chấm đỏ "chưa điểm danh" + mốc ký bù được (kho badges)
@@ -974,7 +977,8 @@ export class GameScene extends Phaser.Scene {
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
-      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "dex", close: closeDex }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice }, { id: "quests", close: closeQuestPanel },
+      { id: "mapview", close: () => mapview().close(), popup: true, focus: true }, // bản đồ lớn (M / N): vào danh sách để Tab xoay trong bản đồ (#1675)
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
       this.keys = {}; jid = null; this.joy = { x: 0, y: 0 }; knob.style.transform = "";
@@ -985,22 +989,23 @@ export class GameScene extends Phaser.Scene {
   /** Menu hub ngăn kéo (UI v2): mỗi mục gọi đúng hàm mở của bảng đã có, mục chưa có chức năng hiện mờ. */
   setupHub() {
     resetBadges(); // kho chấm tính lại từ tin server gửi lúc vào phòng
-    const openQuests = () => {
+    const openQuests = () => { setHubOpen(false); this.clearForPanel(); openQuestPanel(); }; // thẻ Hub: bảng Nhiệm Vụ (questScreen.ts, #1605), thay toast cũ
+    const showTracker = () => { // nút "Xem nhiệm vụ" của thẻ Làm quen: mở khung theo dõi, tiêu điểm về tab Nhiệm vụ (bài onboard-browser)
       setHubOpen(false);
       const n = hud.revealQuestTracker();
       toast("quest", n ? `Đang theo dõi ${n} nhiệm vụ` : "Chưa có nhiệm vụ đang làm", "Khung theo dõi ở góc trái, dưới thông tin nhân vật; gặp NPC có dấu trên đầu để nhận / trả");
       document.querySelector<HTMLElement>('#sideBox .sb-tab[data-tab="quest"]')?.focus();
     };
-    onboardQuestLink(openQuests, this.ac.signal);
+    onboardQuestLink(showTracker, this.ac.signal);
     initHub({
       vohon: () => { this.clearForPanel(); hud.toggleRoster(true); }, char: () => { this.clearForPanel(); toggleChar(true); },
       reso: () => { this.clearForPanel(); hud.toggleReso(true); }, bag: () => { this.clearForPanel(); hud.toggleBag(true); },
       friends: () => { this.clearForPanel(); hud.toggleFriends(true); }, world: () => { this.clearForPanel(); this.openWorld(true); },
       auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: () => { this.clearForPanel(); mapview().close(); toggleSettings(); }, guide: () => guideReview(),
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
-      welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, mail: () => { this.clearForPanel(); openMail(); },
+      welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, dex: () => { this.clearForPanel(); openDex(); }, mail: () => { this.clearForPanel(); openMail(); },
       bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },
-      quest: openQuests, // chỉ mở khung theo dõi; nhận / trả vẫn ở NPC
+      quest: openQuests, // mở bảng Nhiệm Vụ; nhận / trả vẫn ở NPC
       notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
     }, this.ac.signal);
   }
@@ -1124,10 +1129,13 @@ export class GameScene extends Phaser.Scene {
     if (by) { const t = stoppedText(c, by); if (c !== "hunt") hud.log(t, "#ffb35c"); flashWhy(t); }
   }
 
+  /** Khoảng cách (pixel) từ mình tới một hồn thú trong state; chưa có mình thì coi như rất xa. */
+  meDist(b: { x: number; y: number }) { const m = this.room.state.players.get(this.me); return m ? Math.hypot(b.x - m.x, b.y - m.y) : Infinity; }
+
   /** Chữ và lệnh của chip trạng thái (lệnh ưu tiên cao nhất đang chạy), vẽ mỗi khung hình ở updateStats. */
   drawCmdChip() {
     const c = topCmd(this.activeCmds()), lk = this.lockId ? this.room.state.beasts.get(this.lockId) : null;
-    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastName(lk.rank, lk.species) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
+    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastNameSeen(lk.rank, lk.species, this.meDist(lk), dexKnown(BEASTS[lk.species]?.id)) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
   }
 
   act(a: string) {
@@ -1682,6 +1690,7 @@ export class GameScene extends Phaser.Scene {
       else onBiCanh(m);
     });
     this.room.onMessage("mail", (m: MailMsg) => { if (onMail(m)) this.audio.playUi("reward"); }); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
+    this.room.onMessage("dex", (m: DexMsg) => onDex(m)); // Sổ Tay Hồn Thú (#1720): loài đã gặp / đã hạ, do server ghi
     this.room.onMessage("achv", (m: AchvMsg) => { if (onAchv(m)) this.audio.playUi("reward"); }); // Thành Tựu (#1317): server gửi lúc vào phòng, sau get / claim và khi bộ đếm làm số "nhận được" đổi
     this.room.onMessage("welfare", (m: WelfareMsg) => { if (onWelfare(m)) this.audio.playUi("reward"); }); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
@@ -3153,7 +3162,7 @@ export class GameScene extends Phaser.Scene {
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
-        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastName(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastNameSeen(b.rank, b.species, this.meDist(b), dexKnown(BEASTS[b.species]?.id)) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
         const top = beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2);
         lb.setPosition(s.x, top).setDepth(99984).setScale(this.txtK);
@@ -3867,7 +3876,7 @@ export class GameScene extends Phaser.Scene {
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
     // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
     hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
-      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastName(tb.rank, tb.species), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
+      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastNameSeen(tb.rank, tb.species, Math.hypot(tb.x - me.x, tb.y - me.y), dexKnown(BEASTS[tb.species]?.id)), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
         beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.

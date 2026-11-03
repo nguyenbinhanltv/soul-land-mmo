@@ -2895,7 +2895,13 @@ export const MAX_LEVEL = 100;
 export const RING_LIMIT = [423, 764, 1760, 5000, 12000, 20000, 50000, 100000, 100000, 100000];
 /** Số năm tối đa (trong giới hạn) của vòng thứ `slot` (1..MAX_RINGS). */
 export const ringLimit = (slot: number) => RING_LIMIT[Math.max(1, Math.min(MAX_RINGS, Math.floor(slot) || 1)) - 1];
-export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2);
+/**
+ * Hệ số nhịp lên cấp (#909, chủ repo chọn phương án C 2026-11-02): kinh nghiệm cần cho một cấp = (10 + 1,2 × cấp²) với phần cấp² nhân hệ số này.
+ * Mục tiêu: một võ hồn ra trận từ cấp 1 → 100 khoảng 150 giờ săn tích cực (Ủy Thác tính cùng công thức, đội 4 võ hồn khoảng 240 giờ;
+ * số tính ở docs/design/vo-hon-doi-hinh.md mục "Nhịp lên cấp"). Chỉ đổi lượng kinh nghiệm cần, không đổi kinh nghiệm một hồn thú.
+ */
+export const XP_NEED_MULT = 75;
+export const xpNeed = (level: number) => Math.floor(10 + level * level * 1.2 * XP_NEED_MULT);
 export const atBottleneck = (level: number, rings: number) => level >= 10 * (rings + 1);
 /** Kinh nghiệm dừng lại: ở bình cảnh (cần hồn hoàn kế tiếp) hoặc đã đạt cấp tối đa. */
 export const xpBlocked = (level: number, rings: number) => level >= MAX_LEVEL || atBottleneck(level, rings);
@@ -4299,6 +4305,17 @@ export function honTeParts(dong: number) {
 export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.toLocaleString("vi-VN")} ${p.unit}`).join(" ");
 
 export const TILE = 16;
+/**
+ * Ẩn tên hồn thú thường trên bản đồ (#1714, đề xuất, chờ chủ repo chốt): từ xa chỉ thấy "???" (kích thước, màu bậc và hình vẫn lộ như
+ * mục 5.2), lại gần trong `BEAST_REVEAL.r` pixel mới hiện tên loài. Tinh anh / thú vương / boss thế giới có tên riêng nên luôn hiện.
+ * Chỉ là cách hiển thị ở client: loài vẫn nằm trong state đồng bộ (BeastState.species) vì client cần nó để chọn hình.
+ */
+export const BEAST_REVEAL = { r: 6 * TILE, unknown: "???" };
+/** Sổ tay hồn thú (#1720): loài đã gặp / đã hạ thì tên hiện từ xa. Server xét hồn thú quanh người chơi cứ `scanSecs` giây một lần. */
+export const DEX = { scanSecs: 0.5 };
+/** Tên hồn thú cho người đứng cách nó `dist` pixel: xa hơn BEAST_REVEAL.r thì ẩn tên loài của hồn thú thường (rank 0), trừ loài đã có trong sổ tay (`known`, tin riêng `dex` của server). */
+export const beastNameSeen = (rank: number, species: number, dist: number, known = false) =>
+  rank === 0 && dist > BEAST_REVEAL.r && !known ? BEAST_REVEAL.unknown : beastName(rank, species);
 /** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
 export const MOVE_NUDGE = 4;
 /** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */
@@ -5607,7 +5624,7 @@ function jobText(s: Pick<AutoStatus, "k" | "n" | "d">): string {
     case "go": return `Đi tới${n}${s.d ? ` (${s.d} ô)` : ""}`;
     case "dodge": return "Đang né";
     case "back": return "Đang lùi hồi sức";
-    case "rest": return "Đang nghỉ";
+    case "rest": return "Chờ nhịp săn, tìm con tiếp"; // nợ nhịp AUTO_PACE hoặc hồi sức: không phải treo (#1713)
     case "spawn": return "Đi tới chỗ hồi sinh";
     default: return "Đang đi dạo";
   }

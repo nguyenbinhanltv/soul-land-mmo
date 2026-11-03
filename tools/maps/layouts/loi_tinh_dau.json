@@ -48,6 +48,8 @@
       "20": 24
     }
   },
+  "softSingles": { "_": "#1740: cụm chặn ≤ 3 ô cách biên ≥ 3 ô: cây thành vật mềm (plant); ô khóa (rễ cổ thụ, trại) giữ nguyên; gỡ kẹt chéo / ngõ cụt", "maxCluster": 3, "edge": 3, "diag": true, "alsoKinds": ["rock", "log"], "kinds": { "plant": 1 } },
+  "sealPockets": true,
   "tiers": [
     {
       "name": "Hồ trung tâm",
@@ -954,7 +956,8 @@
       ]
     },
     { "type": "scatter", "kind": "lotus", "rect": [0, 0, 64, 44], "p": 0.05, "on": ["ford"] },
-    { "type": "objects", "kind": "star_stele", "at": [[10, 16], [10, 28], [44, 22]] }
+    { "type": "objects", "kind": "star_stele", "at": [[10, 16], [10, 28], [44, 22]] },
+    { "type": "objects", "kind": "plant", "_": "#1740: gỡ ngõ cụt ở rìa (cây lớn → bụi mềm, mỗi ngõ cụt một ô)", "at": [[5,2],[11,2],[14,1],[21,2],[36,2],[61,2],[18,3],[1,5],[1,32],[27,33],[15,35],[18,36],[36,36],[35,40],[10,42],[15,42],[37,42],[45,42],[53,42],[55,42]] }
   ],
   "spawn": {
     "name": "Trại cổng Lõi Tinh Đấu",

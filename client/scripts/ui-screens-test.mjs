@@ -6,6 +6,8 @@ import { logNotice, notices, clearNotices, LOG_MAX } from "../src/noticeLog.ts";
 import { noticeNode, noticeTime } from "../src/noticeScreen.ts";
 import { toHtml } from "../src/uiParts.ts";
 import { giftNode, giftItemUrl } from "../src/giftView.ts";
+import { dexRows, dexSummary, dexRowNode } from "../src/dexScreen.ts";
+import { BEASTS } from "../../shared/data.ts";
 
 // Quà dùng chữ làm nghĩa chính; chưa tải manifest vẫn đọc đủ và mã lạ không tạo ảnh.
 const giftHtml = toHtml(giftNode({ honTe: 120, shards: 2, items: [{ code: "hoi_huyet_dan", qty: 3 }, { code: '<img src=x onerror="alert(1)">', qty: 4 }] }));
@@ -16,7 +18,7 @@ assert.match(giftHtml, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; ×4/);
 assert.doesNotMatch(giftHtml, /<(?:button|a|img)\b/);
 assert.equal(giftItemUrl("ma_la"), null);
 assert.deepEqual(giftNode({}).kids, []);
-import { bindCalendar, watchCalendar, fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL, calendarIconKey } from "../src/calendarScreen.ts";
+import { groupSlots, dayPast, bindCalendar, watchCalendar, fixedGoal, unseenSoon, slotState, todayIndex, byDay, dayDate, slotRange, STATE_LABEL, calendarIconKey } from "../src/calendarScreen.ts";
 for (const [id, key] of [["king:tinh_dau", "king"], ["world:boss", "world"], ["always:arena", "arena"], ["always:auto", "auto"], ["reset:daily", "daily"], ["reset:tong", "weekly"]]) assert.equal(calendarIconKey(id), `gi_calendar_${key}`);
 for (const id of ["king", "world", "always:arena:la", "reset:weekly", "ma_la", "toString", "__proto__", ""]) assert.equal(calendarIconKey(id), null, "mã lạ không đoán icon");
 import { COUNTDOWN_SOON_MS } from "../src/uiParts.ts";
@@ -28,7 +30,7 @@ import { playerCard, rankGroups, podiumOf, lineupText, meLine, pageLabel, tongNa
 const ids = HUB_ITEMS.map((i) => i.id);
 assert.equal(new Set(ids).size, ids.length, "id mục hub không trùng");
 const sizes = (l) => ({ big: l.big.length, mid: l.mid.length, grid: l.grid.length, rail: l.rail.length });
-assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 13, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
+assert.deepEqual(sizes(hubLayout([])), { big: 2, mid: 2, grid: 14, rail: 4 }, "không có hành động: thẻ lớn / vừa / lưới đủ, rail đủ 4 mục (mờ)");
 const L = hubLayout(["char", "bag", "rank", "settings"], ["rank"]);
 const cell = (l, id) => [...l.big, ...l.mid, ...l.grid, ...l.rail].find((c) => c.item.id === id);
 assert.equal(cell(L, "char").enabled, true);
@@ -76,6 +78,13 @@ assert.equal(todayIndex(WS, WS), 0); assert.equal(todayIndex(WS + 6 * D + 23 * H
 const cal = [{ id: "b", d: 2, s: 5, e: 6 }, { id: "a", d: 2, s: 5, e: 6 }, { id: "c", d: 2, s: 1, e: 2 }, { id: "x", d: 9, s: 0, e: 1 }];
 const cols = byDay(cal);
 assert.equal(cols.length, 7); assert.deepEqual(cols[2].map((x) => x.id), ["c", "a", "b"], "xếp theo giờ bắt đầu rồi mã"); assert.equal(cols.flat().length, 3, "cột ngoài 0..6 bị bỏ");
+// #1635: thẻ cùng tên + cùng giờ gom một nhóm có đếm; khác giờ / khác tên thì tách; ngày đã qua
+const gi = (id, name, s, e) => ({ id, name, kind: "slot", s, e, d: 0, map: id, mapName: id, boss: `B${id}` });
+const gs = groupSlots([gi("k:a", "Tà", 1, 2), gi("k:b", "Tà", 1, 2), gi("w:a", "Boss", 3, 4), gi("k:c", "Tà", 5, 6)]);
+assert.deepEqual(gs.map((g) => [g.items.length, g.first.id]), [[2, "k:a"], [1, "w:a"], [1, "k:c"]], "gom theo tên + giờ, giữ thứ tự");
+assert.equal(gs[1].key, "w:a@3", "nhóm một thẻ giữ khoá khung giờ"); assert.notEqual(gs[0].key, gs[2].key);
+assert.deepEqual(groupSlots([]), []);
+assert.equal(dayPast(WS, 0, WS + D), true); assert.equal(dayPast(WS, 0, WS + D - 1), false, "hôm nay chưa qua"); assert.equal(dayPast(WS, 6, WS + 6.5 * D), false); assert.equal(dayPast(WS, 6, WS + 7 * D), true, "tuần trước: đủ bảy ngày đã qua");
 assert.equal(dayDate(WS, 0), "26.10"); assert.equal(dayDate(WS, 6), "01.11");
 // chấm đỏ Lịch: khung đang mở / sắp mở chưa xem
 const NS = [it(WS + 20 * H, WS + 21 * H), it(WS + 22 * H, WS + 23 * H), it(WS + 10 * H, WS + 11 * H)].map((x, i) => ({ id: `e${i}`, ...x }));
@@ -286,6 +295,7 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.match(rowNew, /Mới/); assert.match(rowGift, /Có quà/); assert.match(rowGift, /"aria-pressed":"true"/); assert.match(rowSoon, /Sắp hết hạn/, "nhãn hạn bằng chữ"); assert.doesNotMatch(rowNew, /Sắp hết hạn/);
   const dGift = JSON.stringify(mailDetailNode(b, false, now)), dDone = JSON.stringify(mailDetailNode(c, false, now)), dBusy = JSON.stringify(mailDetailNode(b, true, now));
   assert.match(dGift, /ml-claim f2-nut-phu/); assert.doesNotMatch(dGift, /ml-del/, "thư còn quà chưa nhận: không có nút Xóa, có gợi ý"); assert.match(dGift, /Nhận quà rồi mới xóa/);
+  { const { mailFromIconKey, rankGroupIcon } = await import("../src/sourceIcons.ts"); assert.deepEqual(["Phúc Lợi", "Bí Cảnh", "Quản trị", "Hệ thống", "Lạ"].map(mailFromIconKey), ["gi_menu_welfare", "gi_menu_bicanh", "gi_menu_mail", "gi_menu_mail", "gi_menu_mail"], "icon nguồn thư"); assert.equal(rankGroupIcon("Người chơi"), undefined, "Node không có window: không icon, không ném lỗi"); }
   assert.doesNotMatch(dDone, /ml-claim/); assert.match(dDone, /ml-del/); assert.match(dBusy, /disabled/); assert.match(JSON.stringify(mailDetailNode(null, false, now)), /Chọn một thư/);
 }
 
@@ -316,4 +326,17 @@ console.log("✓ Bộ nối Xếp Hạng: điểm, trang, quyền riêng tư");
   assert.equal(run(true), 0, "phòng sân đấu / Bí Cảnh: không tự gửi calendar");
   assert.equal(run(false), 1, "bản đồ thường: vẫn xin lịch lúc vào");
   delete globalThis.window; delete globalThis.document;
+}
+
+// ---- Sổ Tay Hồn Thú (dexScreen.ts, #1720): hàm thuần ----
+{
+  const rows = dexRows(new Map([[BEASTS[0].id, 0], [BEASTS[1].id, 5]]));
+  assert.equal(rows.length, BEASTS.length, "đủ mọi loài theo BEASTS");
+  assert.equal(rows[0].name, BEASTS[0].name); assert.equal(rows[0].seen, true); assert.equal(rows[0].kills, 0);
+  assert.equal(rows[1].kills, 5);
+  assert.ok(rows.slice(2).every((r) => r.name === "???" && !r.seen), "loài chưa gặp giấu tên");
+  assert.equal(dexSummary(rows), `Đã gặp 2 / ${BEASTS.length} loài · đã hạ 1 loài`);
+  const html = toHtml(dexRowNode(rows[2]));
+  assert.ok(html.includes("???") && html.includes("Chưa gặp") && !html.includes(BEASTS[2].name), "dòng chưa gặp không lộ tên");
+  assert.match(toHtml(dexRowNode(rows[1])), /Đã hạ 5 lần/); assert.match(toHtml(dexRowNode(rows[0])), /Đã gặp, chưa hạ/);
 }

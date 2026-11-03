@@ -58,3 +58,19 @@
 /* (7) Nút "Đến" (tự đi tới bằng cờ "Đi tới"): nhỏ hơn nút chính, cạnh nút nhận / trả. */
 #npc.n2 .n2-den{min-width:64px}
 #npc.n2 .qbox .n2-den{align-self:flex-start}
+
+/* (8) Đầu hộp ghim trên cùng: nội dung dài cuộn thì nút × vẫn bấm được (#1648). Nền giấy che dòng cuộn qua; lề âm bù đệm hộp. */
+#npc.n2 .nhead{position:sticky;top:calc(var(--sp-4) * -1);z-index:1;margin:calc(var(--sp-4) * -1) calc(var(--sp-4) * -1) 0;padding:var(--sp-4) var(--sp-4) var(--sp-3);background:var(--paper)}
+
+/* (9) Màn ngang thấp (ui-h460 của uiArt.ts, #1648): đầu hộp, lời thoại và nút gọn lại để nút hành động chính hiện ngay khi mở; huy hiệu 魂 nhường tên NPC. */
+body.ui-h460 #npc.n2{padding:var(--sp-3);gap:var(--sp-2);overscroll-behavior:contain}
+body.ui-h460 #npc.n2 .nhead{top:calc(var(--sp-3) * -1);gap:var(--sp-3);margin:calc(var(--sp-3) * -1) calc(var(--sp-3) * -1) 0;padding:var(--sp-2) var(--sp-3)}
+body.ui-h460 #npc.n2 .nface.nface{width:48px;height:48px}
+body.ui-h460 #npc.n2 .nhead .nname{padding-top:0}
+body.ui-h460 #npc.n2 .nname b{font:var(--fs-m)/1.2 var(--f12)}
+body.ui-h460 #npc.n2 .nname small{margin-top:0;font:var(--fs-s)/1.2 var(--f10)}
+body.ui-h460 #npc.n2 .nline{padding:var(--sp-2) var(--sp-4);font:var(--fs-s)/1.3 var(--f10)}
+body.ui-h460 #npc.n2 .brow,body.ui-h460 #npc.n2 .brow.n2-choices{gap:var(--sp-2)}
+body.ui-h460 #npc.n2 .buse.f2-nut-chinh,body.ui-h460 #npc.n2 .buse.f2-nut-phu{min-height:32px;font:var(--fs-s)/1.2 var(--f12);border-width:calc(var(--frame-bw) * .5);border-image-width:calc(var(--frame-bw) * .5)}
+body.ui-h460 #npc.n2 .brow.n2-choices .buse.drop{margin-top:0}
+body.ui-h460:has(#npc:not([hidden])) #hubBtn{visibility:hidden}

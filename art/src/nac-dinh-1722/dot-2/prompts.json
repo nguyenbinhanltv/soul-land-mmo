@@ -1,0 +1,13 @@
+{
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "prompt": "Texture-paint image1 EXACTLY IN PLACE. Square1024 canvas, preserve image1 outer silhouette and every interior polygon boundary. Image2 material reference only. Grey granite ashlar, rich brown-red roof tile rows, restrained moss, thick arch voussoirs, brass city shield in its exact guide position, iron straps/rivets on brown door polygons. Doors open40 degrees inward on real hinges; naturally one door is occluded by nearer tower: do not invent a second visible floating door. No finials, no added plinths, no geometry changes. Preserve all roof corners/apex and tower bases precisely. Orthographic2:1 pixel game art, straight verticals, upper-left light. Image1 is the absolute geometry authority. Transparent background alpha0, NO glow, NO ground or shadow plane, NO text. Paint detail on existing shapes only.",
+  "transparent_background": true,
+  "referenceRoles": {
+    "image1": "Khung 3D theo từng trục, khóa hình học",
+    "image2": "Ảnh Codex sửa đợt 2, chỉ tham chiếu vật liệu"
+  },
+  "nativeImages": {
+    "x": "exec-a3984542-349f-407f-be46-43766fb81f6f.png",
+    "y": "exec-5be117e7-67c2-4688-b7a2-751ee9a6dc7f.png"
+  }
+}

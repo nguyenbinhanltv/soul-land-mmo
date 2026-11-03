@@ -408,13 +408,13 @@ Hồn Tệ trung bình mỗi bậc: 10y=2, 100y=7, 1000y=27,5, 10000y=105, 10000
 
 | Bản đồ | Niên hạn | % con ≥ 10.000y | % con ≥ 100.000y | % tiền từ ≥ 10.000y | HT/con (hiện tại) | HT/con (làm mượt) | Mượt/Hiện tại | KN/con (đã nhân hệ cấp) | Con để lên cấp (đầu / giữa / cuối dải) | HT mỗi cấp (đầu / giữa / cuối) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Thánh Hồn Thôn | 10–450 | 0 | 0 | 0 | 3,9 | 4,1 | 1,05 | 39 | 0,7 / 3,4 / 8,3 | 3 / 13 / 32 |
-| Tinh Đấu Ngoại vi | 300–2.000 | 0 | 0 | 0 | 14,2 | 14,9 | 1,05 | 126 | 2,4 / 9,6 / 26 | 34 / 136 / 370 |
-| Tinh Đấu Nội địa | 1.500–25.000 | 31,2 | 0 | 63,3 | 51,6 | 51,7 | 1 | 433 | 6,1 / 13,9 / 39,5 | 317 / 719 / 2.040 |
-| Lạc Nhật Sâm Lâm | 5.000–30.000 | 60,3 | 0 | 85,3 | 74,2 | 72,7 | 0,98 | 619 | 7,7 / 14,6 / 44,7 | 573 / 1.080 / 3.316 |
-| Cực Bắc Chi Địa | 20.000–80.000 | 100 | 0 | 100 | 105 | 219,8 | 2,09 | 1.362 | 7,9 / 11,7 / 21,9 | 828 / 1.225 / 2.294 |
-| Hải Thần Đảo | 50.000–100.000 | 100 | 0 | 100 | 105 | 414,6 | 3,95 | 1.976 | 9,7 / 12,3 / 15,1 | 1.018 / 1.288 / 1.589 |
-| Lõi Tinh Đấu | 100.000–100.000 | 100 | 100 | 100 | 550 | 550 | 1 | 2.500 | 9,7 / 10,8 / 12 | 5.352 / 5.962 / 6.606 |
+| Thánh Hồn Thôn | 10–450 | 0 | 0 | 0 | 3,9 | 4,1 | 1,05 | 39 | 6,4 / 207,1 / 574,2 | 25 / 809 / 2.243 |
+| Tinh Đấu Ngoại vi | 300–2.000 | 0 | 0 | 0 | 14,2 | 14,9 | 1,05 | 126 | 166,7 / 704,3 / 1.933,1 | 2.372 / 10.019 / 27.500 |
+| Tinh Đấu Nội địa | 1.500–25.000 | 31,2 | 0 | 63,3 | 51,6 | 51,7 | 1 | 433 | 456,7 / 1.039,4 / 2.956,5 | 23.586 / 53.677 / 152.676 |
+| Lạc Nhật Sâm Lâm | 5.000–30.000 | 60,3 | 0 | 85,3 | 74,2 | 72,7 | 0,98 | 619 | 576 / 1.089 / 3.346,4 | 42.737 / 80.796 / 248.284 |
+| Cực Bắc Chi Địa | 20.000–80.000 | 100 | 0 | 100 | 105 | 219,8 | 2,09 | 1.362 | 590,1 / 873,4 / 1.637,1 | 61.955 / 91.710 / 171.892 |
+| Hải Thần Đảo | 50.000–100.000 | 100 | 0 | 100 | 105 | 414,6 | 3,95 | 1.976 | 725,9 / 918,7 / 1.134,2 | 76.220 / 96.466 / 119.093 |
+| Lõi Tinh Đấu | 100.000–100.000 | 100 | 100 | 100 | 550 | 550 | 1 | 2.500 | 729 / 812,3 / 900 | 400.956 / 446.743 / 495.006 |
 
 "Con để lên cấp" = xpNeed(cấp) ÷ (XP_SHARE_ACTIVE × kinh nghiệm TB một con của bản đồ): CHỈ tính kinh nghiệm võ hồn ra trận (võ hồn dự bị nhận XP_SHARE_BENCH thêm, bình cảnh chặn lên cấp không tính).
 
@@ -425,9 +425,9 @@ Hồn Tệ trung bình mỗi bậc: 10y=2, 100y=7, 1000y=27,5, 10000y=105, 10000
 3. **`BEAST_COIN` không phải nguồn vào duy nhất.** Ở bản đồ sâu bán đồ rơi bằng ~½ thu nhập (Hải Thần tay: 62 nghìn bán đồ so với 55 nghìn rơi tiền mỗi giờ): hồn cốt từ 10.000 năm (4%) và hồn hạch (40%+) chủ yếu. Chỉ đổi `BEAST_COIN` sẽ không đủ nếu muốn hạ thu nhập cấp cao; giá bán (`CORE_SELL`, `BONE_SELL`, `RING_SELL`) cũng là núm.
 4. **Ủy Thác Lệnh gần như miễn phí:** `AUTO_TOKEN_PRICE` 500 cho `AUTO_TOKEN_SECS` 2 giờ = 250/giờ, bằng 0,23% thu nhập một giờ treo ở Hải Thần (~107 nghìn/giờ), 0,6% ở Nội địa, 8,6% ở Thánh Hồn Thôn. Thêm 12 giờ treo (6 lệnh = 3.000 Hồn Tệ) đem lại ~1,3 triệu: lời hơn 400 lần. Giá không còn là quyết định; chỉ trần `AUTO_BONUS_MAX` còn giới hạn.
 5. **Vách đá `BEAST_COIN` (E5):** `rollYears` tung đều theo log nên Nội địa (1.500–25.000 năm) có 31% con ≥ 10.000 năm mà chiếm 63% Hồn Tệ rơi; Lạc Nhật 60% con, 85% Hồn Tệ; Cực Bắc trở đi **mọi con** ở bậc 3 (hằng 105 từ 10.000 tới 99.999 năm). Vách thứ hai (100.000 năm) chỉ ở Lõi Tinh Đấu. Làm mượt nội suy log với mốc ở trung điểm mỗi bậc **giữ nguyên** Nội địa / Lạc Nhật (±2%) nhưng **×2,1 Cực Bắc, ×3,95 Hải Thần** (vì bậc 3 phẳng tới 100.000 năm): làm mượt không trung tính nếu không kèm hạ mốc bậc cuối.
-6. **XP không phải nút thắt:** giữa dải cấp của bản đồ chỉ cần 3 con (Thánh Hồn Thôn) tới 15 con mỗi cấp (Nội địa / Lạc Nhật; chỉ tính 40% của võ hồn ra trận), mỗi cấp lên mang theo 13 → ~1.300 Hồn Tệ rơi (cột cuối E5).  Chưa có mục tiêu thời gian lên cấp: Chưa đánh giá.
+6. **Nhịp lên cấp (sau #909, `XP_NEED_MULT`):** giữa dải cấp của bản đồ cần ~200–1.100 con mỗi cấp (cột giữa dải "Con để lên cấp" của E5, chỉ tính 40% của võ hồn ra trận), mỗi cấp mang theo ~800 (Thánh Hồn Thôn) → ~450.000 Hồn Tệ rơi (Lõi Tinh Đấu; cột giữa dải "HT mỗi cấp"). Mục tiêu thời gian đã có (Q54, `docs/design/vo-hon-doi-hinh.md` mục "Nhịp lên cấp"): ~150 giờ một võ hồn 1 → 100. Số cũ trước #909 (3–15 con mỗi cấp, 13 → ~1.300 Hồn Tệ) đã thay.
 
-### Phương án chỉnh số (CHỈ đề xuất; chủ repo quyết ở #907 / #908 / #909)
+### Phương án chỉnh số (CHỈ đề xuất; chủ repo quyết ở #907 / #908; #909 đã chốt, Q54)
 
 Tác động lấy từ E4 (hồ sơ 3 giờ tay + 12 giờ treo, 4 võ hồn); số "3 giờ tay" lấy từ bảng E4b của script (không chép vào đây):
 

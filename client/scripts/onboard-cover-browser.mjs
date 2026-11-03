@@ -27,12 +27,12 @@ function stop() {
     if (process.platform === "win32") spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"]); else c.kill("SIGTERM");
   }
 }
-const watchdog = setTimeout(() => { stop(); process.exit(1); }, 270000);
+const watchdog = setTimeout(() => { stop(); process.exit(1); }, 420000);
 async function ready(url) {
   for (let i = 0; i < 150; i++) { if (await fetch(url).then((r) => r.ok).catch(() => false)) return; await sleep(200); }
   throw Error(`Không mở được ${url}`);
 }
-const PANELS = [["char", "#char"], ["bag", "#bag"], ["mail", "#mail"], ["achv", "#achv"], ["vohon", "#roster"], ["calendar", "#calendar"], ["welfare", "#welfare"], ["bicanh", "#bicanh"], ["notice", "#notice"]];
+const PANELS = [["char", "#char"], ["bag", "#bag"], ["mail", "#mail"], ["achv", "#achv"], ["vohon", "#roster"], ["calendar", "#calendar"], ["welfare", "#welfare"], ["bicanh", "#bicanh"], ["notice", "#notice"], ["KeyM", "#mapview"], ["KeyN", "#mapview"]]; // "KeyX": mở bằng phím (bản đồ lớn M / N, #1676), còn lại qua thẻ Menu
 const problems = [];
 try {
   await mkdir(out, { recursive: true });
@@ -61,11 +61,16 @@ try {
     await page.evaluate(async (f) => { const { setA11yPrefs } = await import("/src/a11y.ts"); setA11yPrefs({ font: f }); }, fs);
     await sleep(200);
   };
+  // Thẻ chỉ đổi dạng ở nhịp tick 250 ms của onboard (máy tải thì trễ): chờ theo trạng thái `data-cover`, hết hạn thì để assertion bên dưới báo trạng thái thật.
+  const waitCover = (on) => page.waitForFunction((v) => (document.querySelector("#onboard")?.dataset.cover === "1") === v, on, { timeout: 5000 }).catch(() => {});
   const openPanel = async (hub, sel) => {
-    await page.locator("#hubBtn").click();
-    await page.locator(`[data-hub="${hub}"]`).click();
+    if (hub.startsWith("Key")) await page.keyboard.press(hub);
+    else {
+      await page.locator("#hubBtn").click();
+      await page.locator(`[data-hub="${hub}"]`).click();
+    }
     await page.locator(`${sel}:not([hidden])`).waitFor();
-    await sleep(350); // đủ một nhịp tick 250 ms của onboard
+    await waitCover(true);
   };
   const closePanel = async (sel) => {
     for (let i = 0; i < 3 && await page.locator(`${sel}:visible`).count(); i++) { await page.keyboard.press("Escape"); await sleep(120); }
@@ -85,7 +90,7 @@ try {
   assert.equal(await page.locator("#onboard").getAttribute("data-cover"), "1");
   assert.match(await page.locator("#onboard .ob-head b").textContent(), /bước 1\/6/);
   await closePanel("#mail");
-  await sleep(350);
+  await waitCover(false);
   assert.equal(await page.locator("#onboard").getAttribute("data-cover"), null);
   assert.ok(await page.locator("#onboard p").isVisible(), "đóng bảng thì đoạn hướng dẫn hiện lại");
   await openPanel("vohon", "#roster");
@@ -98,10 +103,11 @@ try {
   assert.equal(await page.locator("#onboard").getAttribute("data-cover"), "1");
   await page.locator("#onboard .ob-skip").click();
   assert.equal(await page.locator("#onboard:visible").count(), 0, "Bỏ qua trên dải gọn thì thẻ tắt");
-  await closePanel("#mail"); await sleep(350);
+  // Kiểm tra "không có gì xảy ra": hide() đã xoá data-cover từ lúc Bỏ qua nên waitCover(false) xong ngay, trước mọi nhịp tick. Phải quan sát cố định ≥ 2 nhịp (250 ms) để bắt lỗi tick sau khi đóng bảng làm thẻ hiện lại (#1611).
+  await closePanel("#mail"); await sleep(600);
   assert.equal(await page.locator("#onboard:visible").count(), 0, "đóng bảng không làm thẻ hiện lại");
   await page.evaluate(async () => { const ob = await import("/src/onboard.ts"); ob.onboardReview(); });
-  for (const [w, h] of [[640, 360], [960, 540], [1280, 720], [1920, 1080]]) for (const fs of [0, 1, 2]) {
+  for (const [w, h] of [[640, 360], [844, 390], [960, 540], [1280, 720]]) for (const fs of [0, 1, 2]) {
     await setSize(w, h, fs);
     for (const [hub, sel] of PANELS) {
       // Bước 1 chờ Đội hình: mở Đội hình thì bước tự qua → đặt lại về bước 1 để mọi bảng đều đo với bước 1 (như ảnh trinh sát).
@@ -118,12 +124,12 @@ try {
       if (fs === 1 || (w === 1280 && fs === 0)) await page.screenshot({ path: resolve(out, `${prefix}-${w}x${h}-chu-${fs}-${hub}.png`) });
       await closePanel(sel);
       await page.locator("#onboard:not([hidden])").waitFor();
-      await sleep(350);
+      await waitCover(false);
       assert.equal(await page.evaluate(() => document.querySelector("#onboard").dataset.cover ?? ""), "", `${tag}: đóng bảng thì thẻ hiện lại đủ`);
     }
   }
   if (problems.length) console.log(problems.join("\n"));
   if (!soft) assert.deepEqual(problems, [], "thẻ Làm quen che bảng đang mở");
   assert.deepEqual(errors, []);
-  console.log(`✓ Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình / Lịch / Phúc Lợi / Bí Cảnh / Thông Báo, 4 cỡ màn × 3 cỡ chữ: ${out}`);
+  console.log(`✓ Thẻ Làm quen không che Hồn sư / Túi / Thư / Thành Tựu / Đội hình / Lịch / Phúc Lợi / Bí Cảnh / Thông Báo / Bản đồ lớn (M, N), 4 cỡ màn × 3 cỡ chữ: ${out}`);
 } finally { clearTimeout(watchdog); await browser?.close(); stop(); }

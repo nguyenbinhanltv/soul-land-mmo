@@ -145,6 +145,7 @@ Mỗi lần tự săn dừng (tự tắt hay bị dừng), tin `auto` kèm `sum`
 `AUTO_STATUS`; mã `server/src/rooms/autoStatus.ts` (`AutoFeed`). Chỉ hiển thị: không đổi luật chọn mục tiêu, trần `AUTO_PACE` hay quyền cướp quái.
 - Server gửi riêng cho chính chủ tin `autost` (`AutoStatus`): mã việc `loot` / `fight` / `go` / `dodge` / `back` / `rest` / `patrol`, tên mục tiêu, khoảng cách làm tròn, vài điểm đầu của đường đang đi, thống kê.
 - Chỉ gửi khi việc đổi (cách nhau tối thiểu `every` giây) hoặc mỗi `rateEvery` giây để làm mới thống kê, không mỗi khung; dừng tự săn thì dừng gửi.
+- Việc `rest` (đang chờ hết nợ nhịp `AUTO_PACE` hoặc hồi sức) hiện chữ "Chờ nhịp săn, tìm con tiếp", không phải "Đang nghỉ" để người chơi không tưởng Tự săn bị treo (#1713).
 - Client dựng chữ bằng `autoStatusText`: dòng đậm trong bảng Tự động; thay chữ "Tự động" trên đầu **nhân vật của mình** (người khác vẫn chỉ thấy "Tự động"); đường đi vẽ mờ (`RADAR.autoCol`) trên radar, nhường đường tới cờ nếu người chơi đang tự đi tới cờ.
 - **Thống kê theo giờ** (kinh nghiệm, Hồn Tệ, số món đồ nhặt được): cửa sổ trượt `window` giây (cả lượt nếu ngắn hơn), chỉ hiện khi đã treo đủ `minSecs`. Tổng kết lượt có thêm dòng "Mỗi giờ" (`AutoSummary.rate`, tính cả lượt).
 

@@ -66,8 +66,12 @@ try {
     await page.evaluate((to) => window.__jbScene.room.send("test", { op: "warp", mapId: to }), to);
     await page.waitForFunction(({ old, to }) => window.__jbScene?.room.roomId !== old && window.__jbScene.mapId === to && window.__jbScene.players.size > 0, { old, to }, { timeout: 60000 });
     await sleep(300);
-    assert.equal(await page.evaluate(() => document.getElementById("wpbox").hidden), true, `#wpbox còn hiện sau khi đổi sang ${to}`);
-    assert.equal(await page.evaluate(() => window.__jbScene.wpHere), null, `wpHere còn sót sau khi đổi sang ${to}`);
+    // Điểm sinh là ngẫu nhiên trong trại cổng; trại Ngoại vi chứa trận trai_cong nên có lúc người chơi vào đứng đúng trên trận và server báo
+    // `wp here` hợp lệ (hộp hiện là đúng). Khẳng định cốt lõi: không còn sót hộp / nhãn "Trận thử" của phòng cũ, và hộp luôn khớp wpHere.
+    const st = await page.evaluate(() => ({ hidden: document.getElementById("wpbox").hidden, text: document.getElementById("wpbox").textContent, here: window.__jbScene.wpHere }));
+    assert.notEqual(st.here, "Trận thử", `wpHere còn sót sau khi đổi sang ${to}`);
+    assert.ok(!st.text.includes("Trận thử"), `#wpbox còn chữ của phòng cũ sau khi đổi sang ${to}: ${st.text}`);
+    assert.equal(st.hidden, st.here === null, `#wpbox không khớp wpHere (${st.here}) sau khi đổi sang ${to}`);
   }
   // Tin riêng lúc vào phòng phải tới được cảnh: khung tổ đội đã có dữ liệu.
   await page.waitForFunction(() => window.__jbScene.party, null, { timeout: 10000 });

@@ -61,6 +61,24 @@ Mỗi lần hạ hồn thú, mỗi loại đồ tung tỉ lệ riêng theo niên
 - Hồn hoàn luôn rơi; mảnh võ hồn `SHARD_DROP`; hồn cốt `BONE_DROP`; hồn hạch `CORE_DROP` (kèm khoảng sao).
 - Hồn thú càng già tỉ lệ càng cao; tinh anh và boss có hệ số riêng (mục 5.4).
 
+### Ẩn tên hồn thú và độ khó farm (đề xuất #1714, chờ chủ repo chốt)
+**Vấn đề (chủ repo):** farm hồn thú quá dễ. **Nguyên nhân đo được** (số trong `shared/data.ts`, không chép lại):
+- Hồi sinh gần như tức thì: mỗi vùng (`zones`) bù thiếu 1 con mỗi 1,2 giây (`tick.ts`, `spawnBeast`), không có thời gian chờ theo con bị hạ; chỉ tinh anh có `ELITE.respawn`.
+- Mọi con hạ đều rơi hồn hoàn (luật "hồn hoàn luôn rơi", trên) và Hồn Tệ (`BEAST_COIN`); mật độ `BEAST_DENSITY` đủ dày để vùng luôn có quái hợp cấp (`AUTO_PACE` chỉ chặn nhanh hơn tự đánh, không chặn dễ).
+- Người chơi thấy trước tên + màu + cỡ, nên nhặt đúng con yếu / hợp cấp (`fitBeast`, `xpLevelScale`, cửa sổ `XP_LEVEL_STEPS` còn nhận đủ kinh nghiệm tới 9 cấp chênh) mà không rủi ro: cùng một loài, niên hạn tung theo `rollYears` nhưng nhìn bậc màu là biết hết.
+- Hồn thú thường chỉ đuổi trong `BEAST_AGGRO_R`, không phản công theo bầy, không có chi phí thất bại ngoài `REVIVE_SECS`.
+
+**Phần làm trước (nhỏ nhất, ít rủi ro): ẩn tên trên bản đồ.** Hồn thú thường (rank 0) từ xa hiện "???" thay tên loài; lại gần trong `BEAST_REVEAL.r` mới hiện tên (`beastNameSeen`). Cỡ, màu bậc (mục 5.2) và hình vẫn lộ, nên đây chủ yếu là bỏ "đọc tên rồi chọn", chưa phải ẩn hẳn loài. Áp cho nhãn trên đầu, khung mục tiêu và chip "Đang đánh". Tinh anh / thú vương / boss có tên riêng, luôn hiện. Chỉ đổi hiển thị ở client; loài vẫn nằm trong state đồng bộ vì client cần để chọn hình, nên không có gì rò thêm.
+
+**Các bước sau (chưa làm, cần chủ repo chọn):** (1) sổ tay hồn thú: xem mục "Sổ tay hồn thú" ngay dưới (#1720, chủ repo chọn phương án B); (2) bóng đen / biểu tượng thay hình cho loài chưa gặp (cần ảnh); (3) hồi sinh chậm có tham số theo bậc; (4) kinh nghiệm giảm khi đánh lặp một loài; (5) niên hạn ngẫu nhiên rủi ro hơn trong cùng loài; (6) hạn chế tự săn vùng khó. Từng bước phải qua `balance-review` và sửa bot / bài test liên quan; tương tác với tự săn xem `docs/design/tu-san-uy-thac.md`, nhịp lên cấp xem `docs/design/vo-hon-doi-hinh.md` (#909).
+
+### Sổ tay hồn thú (#1720, phương án B của #1714)
+- **Luật:** loài hồn thú thường đã có trong sổ tay (đã **gặp** hoặc đã **hạ**) thì tên hiện từ xa; loài chưa có vẫn "???" cho tới khi lại gần trong `BEAST_REVEAL.r`, lúc đó được ghi "đã gặp". Tinh anh / thú vương / boss có tên riêng, không vào sổ.
+- **Ai ghi:** chỉ server (`rooms/dex.ts`): cứ `DEX.scanSecs` giây xét hồn thú thường (không trứng, không lặn, còn sống) trong `BEAST_REVEAL.r` quanh người chơi còn sống; hạ một con thường thì cộng `kills` cho người hạ và đồng đội cùng chia kinh nghiệm. Client không có tin nào khai "đã gặp"; tin `dex {op:"get"}` chỉ xin đọc.
+- **Lưu và gửi:** bảng `bestiary` (`041_so_tay_hon_thu.sql`, xem `docs/tech/du-lieu-db.md`), sổ theo tài khoản nên đi qua mọi bản đồ / kênh. Gửi riêng bằng tin `dex {set, full?}` (`docs/tech/giao-thuc-server.md`), không vào state chung: người khác không biết sổ của mình.
+- **Giao diện:** mục "Sổ Tay Thú" trong Hub (`client/src/dexScreen.ts`, khung Giấy): danh sách loài theo `BEASTS`, loài chưa gặp giấu tên, kèm số lần hạ. Client dùng sổ để gọi `beastNameSeen(..., known)` cho nhãn, khung mục tiêu, chip "Đang đánh".
+- **Không làm:** thưởng khi lấp đầy sổ, hiện thông tin chi tiết loài (hồn kỹ rơi…), hạ tinh anh vào sổ. Việc sau nếu chủ repo muốn.
+
 ## 5.4 Bậc hồn thú: thường, tinh anh, thú vương, boss thế giới
 Mỗi hồn thú thuộc 1 trong 4 bậc (`BeastState.rank` 0–3). Hệ số nhân vào chỉ số của hồn thú thường cùng loài, cùng niên hạn.
 

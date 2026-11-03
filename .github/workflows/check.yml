@@ -159,6 +159,11 @@ jobs:
         run: npm run test:actionbar-browser --prefix client
         env:
           C8_OUTPUT: ${{ runner.temp }}/c8-preview
+      - name: Thanh kỹ năng không tràn khỏi màn (cửa sổ 640–1280 px)
+        if: ${{ !cancelled() }}
+        run: npm run test:actbar-fit-browser --prefix client
+        env:
+          ACTBAR_FIT_OUT: ${{ runner.temp }}/actbar-fit
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
@@ -270,11 +275,26 @@ jobs:
         timeout-minutes: 4
         env:
           PANEL_OUTPUT: ${{ runner.temp }}/flow-browser/panel
+      - run: npm run test:panel-tab-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 6
+        env:
+          TAB_OUTPUT: ${{ runner.temp }}/flow-browser/panel-tab
       - run: npm run test:hub-ten-browser --prefix client
         if: ${{ !cancelled() }}
         timeout-minutes: 4
         env:
           HUB_OUTPUT: ${{ runner.temp }}/flow-browser/hub-ten
+      - run: npm run test:xp-bar-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        env:
+          XP_OUTPUT: ${{ runner.temp }}/flow-browser/xp-bar
+      - run: npm run test:quest-panel-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          QUEST_OUTPUT: ${{ runner.temp }}/flow-browser/quest-panel
       - run: npm run test:join-browser --prefix client
         if: ${{ !cancelled() }}
         timeout-minutes: 5
@@ -300,6 +320,12 @@ jobs:
         timeout-minutes: 5
         env:
           COVER_OUTPUT: ${{ runner.temp }}/flow-browser/onboard-cover
+      # Nút đầu bảng (Sắp xếp của Túi...) không bị huy hiệu 魂 / HUD chặn khi bảng toàn màn mở (#1638): hit-test tâm nút, 4 cỡ màn × 3 cỡ chữ; cùng job.
+      - run: npm run test:hub-badge-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        env:
+          BADGE_OUTPUT: ${{ runner.temp }}/flow-browser/hub-badge
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ failure() }}
         with:
@@ -353,6 +379,36 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      # Hộp thoại NPC ở màn thấp: nút chính thấy ngay, nút × luôn bấm được (#1648).
+      - run: npm run test:npc-low-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          NPC_LOW_OUTPUT: ${{ runner.temp }}/browser-regress/npc-low
+      # Xếp hàng đấu trường: hộp NPC đóng, ô Đang tìm đối thủ + Hủy thấy đủ (#1689).
+      - run: npm run test:arena-queue-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          ARENA_QUEUE_OUTPUT: ${{ runner.temp }}/browser-regress/arena-queue
+      # Hộp kết quả đấu trường ở màn thấp: hai nút thấy ngay, 魂 không đè tiêu đề (#1686).
+      - run: npm run test:arena-end-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          ARENA_END_OUTPUT: ${{ runner.temp }}/browser-regress/arena-end
+      # Thẻ Hướng dẫn / Gợi ý nằm trọn trong màn thấp (#1688).
+      - run: npm run test:guide-fit-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          GUIDE_FIT_OUTPUT: ${{ runner.temp }}/browser-regress/guide-fit
+      # Thanh trận đấu trường: 魂 không che đồng hồ / Rời sân (#1687).
+      - run: npm run test:arena-clock-browser --prefix client
+        if: ${{ !cancelled() }}
+        timeout-minutes: 4
+        env:
+          ARENA_CLOCK_OUTPUT: ${{ runner.temp }}/browser-regress/arena-clock
       # Mã mua thật sự gửi khi lọc cửa hàng, Túi cập nhật từ server, đổi NPC (#1520).
       - run: npm run test:shop-search-browser --prefix client
         if: ${{ !cancelled() }}

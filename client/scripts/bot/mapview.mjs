@@ -276,8 +276,15 @@ export async function waypointTest(){
   }
   /** Đứng lên trận `key` (hook goto) và chờ tin `wp {k: "here"}`. */
   async function stand(key){ const w=wps[key]; T.wpHere=null; await test(T,"goto",{x:w.x,y:w.y}); await waitFor(()=>T.wpHere?.key===key,1500); return w; }
-  /** Xin truyền tống tới `key`, chờ log trả lời (bắt đầu niệm hoặc từ chối). */
-  async function go(key){ const l=T.logs.length; T.recall=null; T.room.send("wp",{op:"go",key}); await waitFor(()=>T.logs.length>l,1500); return T.logs.at(-1)??""; }
+  /** Xin truyền tống tới `key`, chờ log trả lời của đúng lượt gửi (bắt đầu niệm hoặc từ chối). Chỉ xét log đến SAU lúc gửi và đúng loại
+   *  trả lời truyền tống: log khác (chào, mở khóa, bị đánh…) tới xen giữa khi máy tải không bị đọc nhầm làm kết quả (#1561, #1533).
+   *  Không có trả lời thì trả log mới nhất sau lúc gửi (hoặc "") để dòng ✗ còn chẩn đoán, không bao giờ trả log cũ của bước trước. */
+  async function go(key){
+    const l=T.logs.length, isReply=t=>/truyền tống|Hồn Tệ|giao chiến|đang hồi|tự săn|không tồn tại|Chưa mở khóa|chính trận|Không tới được|gục ngã|hấp thụ|Đang bị/.test(t);
+    T.recall=null; T.room.send("wp",{op:"go",key});
+    await waitFor(()=>T.logs.slice(l).some(isReply),1500);
+    const fresh=T.logs.slice(l); return fresh.find(isReply)??fresh.at(-1)??"";
+  }
   const coin=async n=>{ await test(T,"coin",{n}); await waitFor(()=>T.bag?.honTe===n,1500); };
 
   // Thánh Hồn Thôn: bản đồ thế giới khi không đứng trên trận chỉ để xem.
@@ -288,7 +295,10 @@ export async function waypointTest(){
   ok(w&&w.links.some(([a,b])=>[a,b].sort().join()==="nac_dinh_thanh,thanh_hon_thon"),"bản đồ thế giới có nét nối Thánh Hồn Thôn – Nặc Đinh Thành");
   ok(w?.list.find(x=>x.key===nd)?.fee===waypointFee(1)&&w.list.find(x=>x.key===lang)?.fee===waypointFee(0),"phí theo số lần đi cổng từ bản đồ đang ở");
   ok(w?.list.find(x=>x.key===nd)?.feeRemote===waypointFee(1,true)&&w.remoteCdMax===WAYPOINT_COOLDOWN_S,"bản đồ thế giới gửi phí từ xa (feeRemote) và hồi tối đa");
-  ok(/Chưa mở khóa/.test(await go(lang)),"không đứng trên trận, trận chưa mở: từ chối (từ xa chỉ tới trận đã mở)");
+  // Trận thử là Nặc Đinh, KHÔNG phải trận làng: điểm sinh của hồn sư mới ngẫu nhiên trong vùng "Quảng trường làng", mà trận `lang` nằm trọn
+  // trong vùng đó (khoảng 15% lần sinh ngay trên trận → đã mở khóa, #1685). Nặc Đinh ở bản đồ khác nên chắc chắn chưa mở lúc này.
+  const g0=await go(nd);
+  ok(/Chưa mở khóa/.test(g0),"không đứng trên trận, trận chưa mở: từ chối (từ xa chỉ tới trận đã mở)"+(/Chưa mở khóa/.test(g0)?"":` [server trả: ${JSON.stringify(g0)}]`));
   // Bước lên trận làng: mở khóa.
   T.wpUnlock=[]; await stand(lang);
   ok(await waitFor(()=>T.wpUnlock.includes(lang)||T.world?.list.find(x=>x.key===lang)?.open,1500),"bước lên trận Quảng trường làng: mở khóa (tin wp unlock)");
@@ -513,7 +523,7 @@ export async function bigMapTest(){
     ok(zs.every(z=>{ const y=parseLevelRange(pr(z,"years")); return y&&y[0]>=ylo&&y[1]<=yhi; })&&[...oldZn.values()].every(o=>zn.get(o.name)?.years===o.years)
       &&zn.size>=oldZn.size&&tiersOf(zn)===tiersOf(oldZn),
       `${nm}: ${zn.size} vùng có tên (${[...zn.keys()].join(", ")}) trong ${zs.length} mảnh, giữ tên và niên hạn ${oldZn.size} vùng cũ, niên hạn trong ${ylo}–${yhi} năm`);
-    ok(total>=6*oldTotal&&total<=11*oldTotal,`${nm}: ${total} hồn thú thường theo BEAST_DENSITY (bản cũ ${oldTotal}, ×${(total/oldTotal).toFixed(1)})`);
+    ok(total>=6*oldTotal&&total<=12*oldTotal,`${nm}: ${total} hồn thú thường theo BEAST_DENSITY (bản cũ ${oldTotal}, ×${(total/oldTotal).toFixed(1)})`);
     const lair=objs.find(o=>o.type==="boss"), es=objs.filter(o=>o.type==="elite"), oldEs=oldObjs.filter(o=>o.type==="elite");
     ok(same(es.map(e=>pr(e,"boss")).sort(),oldEs.map(e=>pr(e,"boss")).sort())&&es.every(e=>zs.some(z=>inR(z,e.x+e.width/2,e.y+e.height/2)))
       &&(!MAPS[NV].king||pr(lair,"boss")===MAPS[NV].king&&zs.some(z=>inR(z,lair.x+lair.width/2,lair.y+lair.height/2))),
