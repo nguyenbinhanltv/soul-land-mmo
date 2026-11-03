@@ -11,10 +11,10 @@ import { strIn } from "./common.ts";
 /** setTimeout chỉ nhận tới ~24,8 ngày; hạn xa hơn thì hẹn lại khi tới. */
 const TIMER_MAX = 2 ** 31 - 1;
 
-/** Mở danh hiệu cấp cho mọi mốc cấp đã đạt (cấp cao nhất các võ hồn của tài khoản); idempotent. Trả các mã MỚI mở. */
+/** Mở danh hiệu cấp cho mọi mốc cấp đã đạt (cấp cao nhất các võ hồn của tài khoản); idempotent. Đọc danh sách MỘT lần và chỉ cấp mã còn thiếu (người đã đủ thì chỉ tốn một lần đọc). Trả các mã MỚI mở. */
 async function syncLevelTitles(d: PData): Promise<string[]> {
-  const best = d.owned.reduce((a, v) => Math.max(a, v.level), 0), fresh: string[] = [];
-  for (const t of TITLE_DEFS) if (t.source.kind === "level" && best >= t.source.level && await store.titleGrant(d.accountId, t.id, null) === "new") fresh.push(t.id);
+  const best = d.owned.reduce((a, v) => Math.max(a, v.level), 0), fresh: string[] = [], have = new Set((await store.titleGet(d.accountId)).owned.map((o) => o.id));
+  for (const t of TITLE_DEFS) if (t.source.kind === "level" && best >= t.source.level && !have.has(t.id) && await store.titleGrant(d.accountId, t.id, null) === "new") fresh.push(t.id);
   return fresh;
 }
 
