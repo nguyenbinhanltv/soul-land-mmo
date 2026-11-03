@@ -5539,7 +5539,8 @@ export const AUTO_TARGET = { detour: 1.4, tough: 30, value: [2, 4, 8] as const, 
  */
 export const AUTO_CLUSTER = { r: 3 * TILE, bonus: 0.1, max: 4 };
 export const AUTO_AOE_MIN = 3;
-export const AUTO_SPAWN = { wait: 1.5, keep: 90, max: 8 };
+/** Vùng sinh nhớ (B2): wait = giây chờ hồi sinh, keep = giây nhớ, max = số vùng; tries = số lần thử điểm ngẫu nhiên trong một vùng (#1725), retry = giây thử lại khi đã nhớ vùng mà chưa ra điểm. */
+export const AUTO_SPAWN = { wait: 1.5, keep: 90, max: 8, tries: 40, retry: 0.5 };
 export const AUTO_REST = { resume: 0.8 };
 /** Cách tự săn xét tinh anh / thú vương / boss thế giới: "near" (mặc định) chỉ khi gần, "always" tới đánh trước mọi việc (như trước AH1), "off" không đánh. */
 export type AutoBossMode = "near" | "always" | "off";
