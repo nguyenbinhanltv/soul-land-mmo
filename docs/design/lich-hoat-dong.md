@@ -59,6 +59,8 @@ Không có. Lịch không cấp, không đổi, không nhân phần thưởng n�
 ### Giao diện
 Chất liệu **Giấy** (hộp thoại giữa màn, nội dung đọc; `docs/art/ui-kit.md`); không đầy khung; token có sẵn (`--paper*`, `--ink`, `--xp-t` cho cột hôm nay, `--son` chỉ cho nút chính nếu có); chữ 10 / 12 / 24; vùng bấm 32 px cho ô, 44 px cho nút "Đến". Điểm vào: nút menu (khi hub có) và icon dưới radar.
 
+**Gom thẻ (#1635):** thẻ cùng tên + cùng giờ trong một cột (vd năm "Tà hóa thú vương" lúc 20:00 ở năm bản đồ) gom thành một thẻ "… ×N" (`groupSlots`), hiện tối đa hai tên boss rồi "+N", đủ bản đồ + boss ở `title` và ở bảng chi tiết khi bấm (mỗi bản đồ một nút "Đến"). Ngày đã qua (`dayPast`) mờ cả cột, nền phẳng, ngày gạch ngang. Chỉ đổi hiển thị, không đổi tin `calendar`.
+
 ```
 ┌ Lịch Hoạt Động · 2026 ──────────────────────────── [X] ┐
 │ Luôn mở: [Đại Đấu Hồn Trường] [Tự săn]                  │

@@ -152,6 +152,19 @@ Chủ repo đã duyệt (Q55). Mục tiêu là **hết khựng, kẹt, dồn c�
 | Thiên Đấu Thành | chưa đạt | chặn 35,3% (chỉ tiêu ≤ 35%), 11 cổ chai trên 16 tuyến |
 | Đại Đấu Hồn Trường, Luyện Hồn Cảnh, Lõi Tinh Đấu | chưa đo lại | Đại Đấu Hồn Trường ngõ cụt 23,8 (chỉ tiêu sân 0); Lõi Tinh Đấu kẹt chéo 9,9, ngõ cụt 20,9; chưa ghi đạt |
 
+**Số đo đường đi thật (bot `pathflow`, #1659 / #1742, 2026-11-03, một lượt `npm run bot:local -- --only pathflow`, 6 bản đồ săn, chưa sửa bố cục):** bot đi từ trại hồi sinh tới từng truyền tống / cổng / tinh anh / hang bằng `findLongPath` + `input`. Chạy lại cùng lệnh sau mỗi lần dựng lại bản đồ để so trước / sau (bài ĐO, không chặn CI).
+
+| Bản đồ | Số tuyến | Giây TB / tuyến (tổng) | Đứng yên > 1 giây | Kẹt thật |
+|---|---|---|---|---|
+| Tinh Đấu Ngoại vi | 8 | 20,5 (164,2) | 0 | 0 |
+| Tinh Đấu Nội địa | 8 | 19,7 (157,7) | 0 | 0 |
+| Lạc Nhật Sâm Lâm | 7 | 19,7 (138,0) | 0 | 0 |
+| Cực Bắc Chi Địa | 7 | 17,3 (121,2) | 0 | 0 |
+| Hải Thần Đảo | 8 | 14,1 (112,9) | 0 | 0 |
+| Thánh Hồn Thôn | 6 | 7,5 (44,8) | 0 | 0 |
+
+Bot không thấy kẹt thật ở tuyến nào; mọi tuyến tới nơi, 0 lần tính lại đường. Bot lái đường tự đi có lách góc nên số khựng của tự săn (không lách góc) có thể cao hơn; bảng này là mốc nền, không thay chỉ tiêu hình học ở trên.
+
 Tinh Đấu Ngoại vi đang được dựng lại trước bằng bộ dựng `tools/maps` (cây lẻ thành vật mềm, hành lang chính); các bản đồ khác nhân rộng sau khi thí điểm được duyệt.
 
 ## Lịch sử / issue liên quan
