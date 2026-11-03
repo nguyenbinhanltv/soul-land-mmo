@@ -1,7 +1,5 @@
 # Nguồn ảnh và giấy phép
 
-Concept Danh Hiệu P4a (#1770, phần #1766): Codex builtin OpenAI `image_gen.imagegen`, 03/11/2026, tự sinh không ảnh tham chiếu ngoài. Điều khoản đầu ra OpenAI, không CC0; RAW nguyên byte, prompt và SHA256 ở `art/src/danh-hieu-1770/`. Tờ sáu bậc 192×224 có alpha thật, 24 màu hữu hình/bậc; trang đối chiếu 1x/3x ở artifacts phiên AO `soul_land_game-1039`. **Chỉ concept, chưa nhập game; bộ đầy đủ thuộc PR sau.**
-
 Nguồn theo họ asset ở bảng dưới; thao tác từng công cụ ở skill `asset-gen` (mục 2) và `tools/assets/README.md`. Quy tắc chung ở mục 5.11.
 
 **Nguồn và giấy phép**
@@ -43,6 +41,10 @@ Thí điểm lửa trại và đài phun nước: lớp lửa/tia nước tạo 
 - **Thú LPC** (hình tạm cũ cho hồn thú thường) đã thay hết; công cụ `lpc-beast.mjs` ngừng.
 - Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (Gemini: điều khoản Gemini Apps của Google; ComfyUI: CreativeML Open RAIL++-M của SDXL, CreativeML OpenRAIL-M của pixel-art-xl, MIT của VAE). Mỗi key một dòng trong `art/CREDITS.md` (file, key, công cụ, prompt, ngày). Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ tham khảo ý tưởng, không làm ảnh tham chiếu.
+
+## Concept Danh Hiệu P4a (#1770)
+
+Concept Danh Hiệu P4a (#1770, phần #1766): Codex builtin OpenAI `image_gen.imagegen`, 03/11/2026, tự sinh không ảnh tham chiếu ngoài. Điều khoản đầu ra OpenAI, không CC0; RAW nguyên byte, prompt và SHA256 ở `art/src/danh-hieu-1770/`. Tờ sáu bậc 192×224 có alpha thật, 24 màu hữu hình/bậc; trang đối chiếu 1x/3x ở artifacts phiên AO `soul_land_game-1039`. **Chỉ concept, chưa nhập game; bộ đầy đủ thuộc PR sau.**
 
 ## Tán Linh Thụ Ngoại vi (lô 1 #1664)
 

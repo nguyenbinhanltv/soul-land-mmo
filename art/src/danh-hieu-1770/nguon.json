@@ -71,7 +71,9 @@
           32
         ],
         "transparent": 2416,
-        "colors": 25
+        "colors": 25,
+        "visibleColors": 24,
+        "colorsIncludeTransparent": true
       },
       {
         "tier": 2,
@@ -80,7 +82,9 @@
           32
         ],
         "transparent": 2346,
-        "colors": 25
+        "colors": 25,
+        "visibleColors": 24,
+        "colorsIncludeTransparent": true
       },
       {
         "tier": 3,
@@ -89,7 +93,9 @@
           32
         ],
         "transparent": 2324,
-        "colors": 25
+        "colors": 25,
+        "visibleColors": 24,
+        "colorsIncludeTransparent": true
       },
       {
         "tier": 4,
@@ -98,7 +104,9 @@
           32
         ],
         "transparent": 2266,
-        "colors": 25
+        "colors": 25,
+        "visibleColors": 24,
+        "colorsIncludeTransparent": true
       },
       {
         "tier": 5,
@@ -107,7 +115,9 @@
           32
         ],
         "transparent": 2288,
-        "colors": 25
+        "colors": 25,
+        "visibleColors": 24,
+        "colorsIncludeTransparent": true
       },
       {
         "tier": 6,
@@ -116,8 +126,90 @@
           32
         ],
         "transparent": 2192,
-        "colors": 25
+        "colors": 25,
+        "visibleColors": 24,
+        "colorsIncludeTransparent": true
       }
-    ]
+    ],
+    "samplesRow": {
+      "sourceBounds": [
+        120,
+        820,
+        1430,
+        100
+      ],
+      "outputSize": [
+        192,
+        24
+      ],
+      "placement": [
+        0,
+        200
+      ],
+      "sampling": "nearest tại tâm: floor((x+0.5)*1430/192), floor((y+0.5)*100/24); alpha <128 thành 0, còn lại 255; kênh RGB làm tròn bội 17; giữ nguyên thứ tự trái→phải của RAW, không tách/lật từng mẫu",
+      "groups": [
+        {
+          "name": "hạt lửa",
+          "rawBounds": [
+            120,
+            820,
+            240,
+            100
+          ]
+        },
+        {
+          "name": "tia sáng",
+          "rawBounds": [
+            400,
+            820,
+            310,
+            100
+          ]
+        },
+        {
+          "name": "bốn pha clip cam",
+          "rawBounds": [
+            790,
+            820,
+            310,
+            100
+          ]
+        },
+        {
+          "name": "bốn pha clip đỏ vàng",
+          "rawBounds": [
+            1200,
+            820,
+            350,
+            100
+          ]
+        }
+      ],
+      "checks": {
+        "size": [
+          192,
+          24
+        ],
+        "destinationBounds": [
+          0,
+          200,
+          192,
+          24
+        ],
+        "transparentGapRows": [
+          192,
+          200
+        ],
+        "alphaValues": [
+          0,
+          255
+        ],
+        "clipPhasesPerGroup": 4,
+        "reconstructedPixelsMatch": true,
+        "transparentPixels": 3838,
+        "opaquePixels": 770,
+        "visibleColors": 120
+      }
+    }
   }
 }

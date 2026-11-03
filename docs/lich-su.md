@@ -1,10 +1,10 @@
 # Lịch sử lộ trình (đã xong)
 
-- 03/11/2026 — Danh Hiệu P4a (#1770, phần #1766): concept sáu bậc tiên hiệp rực lửa, hậu kỳ lưới 192×32, alpha nhị phân và đầu phải lật từ trái; trang đối chiếu tên thật 1x/3x trên nền sáng/tối ở artifacts phiên AO `soul_land_game-1039`. Chỉ concept, chưa nhập game.
-
 <!-- D3 (#619): rút gọn từ bản đầy đủ; giữ mốc chính, số issue / PR gom ở cuối file. Chi tiết từng bước xem `git log` và issue. Luật hiện hành nằm ở GAME_DESIGN.md và docs/design/; việc còn mở ở ROADMAP.md; quyết định của chủ repo ở docs/quyet-dinh.md. -->
 
 **Giai đoạn 10: Đồ họa isometric** (quy cách mục 5.11).
+
+- 03/11/2026 — Danh Hiệu P4a (#1770, phần #1766): concept sáu bậc tiên hiệp rực lửa, hậu kỳ lưới 192×32, alpha nhị phân và đầu phải lật từ trái; trang đối chiếu tên thật 1x/3x trên nền sáng/tối ở artifacts phiên AO `soul_land_game-1039`. Chỉ concept, chưa nhập game.
 
 **Đã có:** quy cách isometric, bảng 10 vùng, bảng màu (10.0); client isometric: chiếu / chiếu ngược, camera 640×360, sắp lớp theo độ sâu, khoét lỗ vật che, bóng, `?view=topdown` (10.1); bộ ô và vật đứng của cả 10 bản đồ, nhà và tường thành dựng bằng code (10.2); dây chuyền `tools/assets` (10.3); giao diện thủy mặc, font pixel, thẻ võ hồn, biểu tượng, chân dung NPC (10.8); ánh sáng Light2D, `ambient` ngày / đêm, thời tiết, normal map tự sinh, tự tắt khi không có GPU (10.7); NPC phụ, dân thường, lính gác bằng LPC.
 
