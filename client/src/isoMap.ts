@@ -154,10 +154,13 @@ export function preloadIso(scene: Phaser.Scene, mapId: string) {
     }
     // Vật kho riêng (#622): chỉ xin file có thật theo present.json (không có kho thì không có file, bản đồ dùng vật công khai thay).
     if (priv.size) {
-      scene.cache.json.remove(PRIV_KEY);
-      scene.load.json(PRIV_KEY, "private/present.json");
-      scene.load.once(`filecomplete-json-${PRIV_KEY}`, (_k: string, _t: string, pr: { files?: string[] }) => {
-        const present = new Set(pr?.files ?? []);
+      // Tải dạng văn bản rồi tự parse: dev server / SPA trả HTML (200) cho đường dẫn không có kho riêng, `load.json` sẽ ném "Unexpected token <" thành nhiễu pageerror (#1617).
+      scene.cache.text.remove(PRIV_KEY);
+      scene.load.text(PRIV_KEY, "private/present.json");
+      scene.load.once(`filecomplete-text-${PRIV_KEY}`, (_k: string, _t: string, raw: string) => {
+        let files: string[] = [];
+        try { files = (JSON.parse(raw) as { files?: string[] })?.files ?? []; } catch { /* không có kho riêng */ }
+        const present = new Set(files);
         for (const [key, file] of priv) if (present.has(file)) scene.load.image(key, `private/${file}`);
       });
     }
