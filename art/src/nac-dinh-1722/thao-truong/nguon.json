@@ -1,0 +1,36 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "assets": [
+    {
+      "name": "thao_truong_coc_tap",
+      "raw": "thao_truong_coc_tap-raw.png",
+      "rawSha256": "07d867b005c8ab23c39466085356e54166067927e8e960d783cb43a63ff8e937",
+      "spriteSha256": "1f3fb03d9ef673843a9da448027afd19ad732d45d6daa3cd094240064ba81556",
+      "size": [
+        64,
+        64
+      ],
+      "foot": [
+        32,
+        48
+      ]
+    },
+    {
+      "name": "thao_truong_gia_vu_khi",
+      "raw": "thao_truong_gia_vu_khi-raw.png",
+      "rawSha256": "f8a358712f8ecac42149631f5ba4421ab8f507b0f46cabedb63464f0cd022b57",
+      "spriteSha256": "723527f9865326cc6a3bb2b33af6644fe9a28ad9d404aff578422c5e3c6186a2",
+      "size": [
+        64,
+        64
+      ],
+      "foot": [
+        32,
+        48
+      ]
+    }
+  ]
+}
