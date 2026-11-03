@@ -4,7 +4,7 @@
 import { Room, Client, ServerError, OnMessageException, type RoomException } from "colyseus";
 import { MapState, PlayerState, BeastState, DropState } from "./schema.ts";
 import { TICK_RATE,
-  AWAKEN_GIFT, AWAKEN_CHOICES, AWAKEN_LEVEL, TEAM_COMBAT_SECS,
+  TEAM_COMBAT_SECS,
   MAPS, parseNewLooks, encodeLpc,
   TILE,
   formatHonTe, type ItemDef,
@@ -25,7 +25,7 @@ import { ASK_CD, MSG_GROUP, MSG_HARD, MSG_FLOOD_CODE, type MsgGroup } from "../.
 import { clampDir, MOVE_DEAD } from "../../../shared/move.ts";
 import { loadMap, mapFile, type GameMap, type Portal, type EliteSpot, type NpcSpot, type Zone } from "../map.ts";
 import { BOSS_TOPIC, ANNOUNCE_TOPIC, bossOffset, bossNow, type BossEvent } from "../schedule.ts";
-import { store, Character, type AccountLooks, type Item, type Bag } from "../db.ts";
+import { store, Character, type Item, type Bag } from "../db.ts";
 import { takeToken } from "../ratelimit.ts";
 import { SpiderEggs } from "./eggs.ts";
 import * as party from "../party.ts";
@@ -1220,28 +1220,4 @@ export class MapRoom extends Room<MapState> {
 
   /** Hồn thú di chuyển nhưng không bước vào vùng an toàn. */
   moveBeast(b: BeastState, dx: number, dy: number, hw: number) { return tick.moveBeast(this, b, dx, dy, hw); }
-}
-
-// ---------- Lễ thức tỉnh (gọi từ /api/awaken, trước khi vào phòng) ----------
-/** Tài khoản chưa có võ hồn: tặng Lam Ngân Thảo + 1 võ hồn SSR tự chọn. Hồn lực bẩm sinh do server roll. */
-export async function awakenAccount(accountId: number, name: string, choice: unknown):
-  Promise<{ character: Character } | { status: number; error: string }> {
-  const pick = AWAKEN_CHOICES.find((v) => v.id === choice);
-  if (!pick) return { status: 400, error: "Hãy chọn một võ hồn SSR trong danh sách." };
-  // Tạo nhân vật diễn ra ngay trước bước chọn SSR của lễ thức tỉnh.
-  if (!(await store.getLooks(accountId)).chosen) return { status: 409, error: "Hãy tạo nhân vật trước lễ thức tỉnh." };
-  // Hồn lực bẩm sinh (1 đến AWAKEN_LEVEL.max) thuộc về hồn sư: làm cấp khởi đầu của cả hai võ hồn.
-  const level = Math.random() < AWAKEN_LEVEL.maxChance ? AWAKEN_LEVEL.max : 1 + Math.floor(Math.pow(Math.random(), AWAKEN_LEVEL.curve) * (AWAKEN_LEVEL.max - 1));
-  const character = await store.awaken(accountId, name, [AWAKEN_GIFT, pick.id], pick.id, level);
-  if (!character) return { status: 409, error: "Tài khoản đã thức tỉnh võ hồn rồi." };
-  return { character };
-}
-
-/** Tạo nhân vật (một lần): client gửi ngoại hình LPC (Mẫu dựng sẵn / Tự tạo); preset kiểu cũ (client cũ) được đổi sang LPC gần nhất (HL2 #571, parseNewLooks). */
-export async function chooseLooks(accountId: number, body: unknown):
-  Promise<{ looks: AccountLooks } | { status: number; error: string }> {
-  const looks = parseNewLooks(body);
-  if (!looks) return { status: 400, error: "Ngoại hình không hợp lệ." };
-  if (!(await store.chooseLooks(accountId, looks))) return { status: 409, error: "Bạn đã chọn ngoại hình rồi, không đổi được nữa." };
-  return { looks: { ...looks, chosen: true, changes: 0 } };
 }
