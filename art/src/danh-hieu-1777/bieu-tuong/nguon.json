@@ -18,7 +18,7 @@
       "visiblePixels": 269,
       "visibleColors": 24,
       "raw": {
-        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-cf105fa1-d350-4902-8419-021078efb9e0.png",
+        "path": "danh_hieu_nhom_cap_raw.png",
         "size": [
           1254,
           1254
@@ -52,7 +52,7 @@
       "visiblePixels": 379,
       "visibleColors": 24,
       "raw": {
-        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-67a68894-26e3-457a-b15b-13f3e1e44107.png",
+        "path": "danh_hieu_nhom_thanh_tuu_raw.png",
         "size": [
           1254,
           1254
@@ -86,7 +86,7 @@
       "visiblePixels": 390,
       "visibleColors": 24,
       "raw": {
-        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-a86fd7e2-85d0-4341-991c-9b9f125c9353.png",
+        "path": "danh_hieu_nhom_xep_hang_raw.png",
         "size": [
           1263,
           1245
@@ -120,7 +120,7 @@
       "visiblePixels": 318,
       "visibleColors": 24,
       "raw": {
-        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-1441b4c6-2796-4601-9ae9-eb1df8066a66.png",
+        "path": "danh_hieu_nhom_su_kien_raw.png",
         "size": [
           1264,
           1244
@@ -154,7 +154,7 @@
       "visiblePixels": 445,
       "visibleColors": 24,
       "raw": {
-        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-fb2d3019-46be-4acf-a4ef-33767c3c08f9.png",
+        "path": "danh_hieu_nhom_tong_mon_raw.png",
         "size": [
           1254,
           1254
@@ -188,7 +188,7 @@
       "visiblePixels": 427,
       "visibleColors": 24,
       "raw": {
-        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-affea440-58f9-4c45-8f2c-a3c38b1000b4.png",
+        "path": "danh_hieu_nhom_san_boss_raw.png",
         "size": [
           1285,
           1224
@@ -222,7 +222,7 @@
       "visiblePixels": 307,
       "visibleColors": 24,
       "raw": {
-        "path": "C:\\Users\\PC\\.codex\\generated_images\\01a1a106-b741-7cd1-871b-c1195e10fab2\\exec-e17233e2-622d-4fc9-b2bd-4b3b21374db6.png",
+        "path": "danh_hieu_nhom_bi_an_raw.png",
         "size": [
           1266,
           1242
@@ -246,5 +246,12 @@
         "sha256": "f419e4c9280fda572aa3cfa3e2c39e33138ca23e664e015978bb1c34f8321b34"
       }
     }
-  ]
+  ],
+  "rawRoot": "C:/Users/PC/.ao/data/artifacts/soul_land_game-1042/danh-hieu-raw",
+  "rawPolicy": "Q17 và quyết định điều phối #1777: RAW ngoài repo, giữ tại artifacts phiên; không thêm RAW vào git (#1061).",
+  "reproduce": {
+    "script": "C:/Users/PC/.ao/data/artifacts/soul_land_game-1042/danh-hieu-raw/reconstruct.mjs",
+    "command": "node \"C:/Users/PC/.ao/data/artifacts/soul_land_game-1042/danh-hieu-raw/reconstruct.mjs\" \"<thu-muc-repo>\" \"<thu-muc-ket-qua-tam>\"",
+    "formula": "Với crop [cx,cy,sw,sh] và destination [ox,oy,w,h]: sourceX=cx+min(sw-1,floor((x+0.5)*sw/w)), sourceY=cy+min(sh-1,floor((y+0.5)*sh/h)); alpha >=128 thành 255, còn lại 0. Chỉ pixel hữu hình vào k-means. Sắp RGB theo tổng R+G+B, giữ thứ tự quét khi bằng nhau; 24 tâm khởi tạo tại floor((i+0.5)*N/24). 12 vòng gán khoảng cách RGB bình phương, hòa chọn tâm đầu, tâm mới làm tròn trung bình; tâm rỗng giữ nguyên."
+  }
 }
