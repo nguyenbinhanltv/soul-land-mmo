@@ -388,6 +388,8 @@
   }
  },
  "props": {
+  "tuong_thanh_reu_x": { "key": "prop_tuong_thanh_reu_x", "foot": [16,58], "flip": false },
+  "tuong_thanh_reu_y": { "key": "prop_tuong_thanh_reu_y", "foot": [16,58], "flip": false },
   "thao_truong_coc_tap": { "key": "prop_thao_truong_coc_tap", "foot": [32,48], "flip": false },
   "thao_truong_gia_vu_khi": { "key": "prop_thao_truong_gia_vu_khi", "foot": [32,48], "flip": false },
   "ky_tuc_xa_quy_toc": { "key": "prop_ky_tuc_xa_quy_toc", "foot": [64,80], "flip": false },
@@ -1208,6 +1210,8 @@
     }
    },
    "props": {
+    "62": "tuong_thanh_reu_x",
+    "63": "tuong_thanh_reu_y",
     "11": ["sap_cho", "sap_cho", "leu_tho_san"],
     "12": "lo_lua_dong",
     "28": ["bon_hoa", "bui_hoa_nhiet_doi~#d8d0c0", "bon_hoa"],

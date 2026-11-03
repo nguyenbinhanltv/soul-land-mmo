@@ -1,0 +1,40 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "assets": [
+    {
+      "name": "tuong_thanh_reu_x",
+      "rawSha256": "ddc667e764ce9a4c424eb05780fb7907529c60480d1032d88fcd23d3acc7f4c3",
+      "spriteSha256": "55db8bd0edb8520590c3b74c2705059c2a6db315a183ef41dfeee23858ea15b6",
+      "size": [
+        32,
+        64
+      ],
+      "foot": [
+        16,
+        58
+      ],
+      "importScale": 0.046,
+      "referenceRawSha256": "21e2cc8b1d65fb061c24cf147b4d443c2dd5615cca3c6ffbf9bc50b6a1e1cb40",
+      "normalSha256": "3e25cea03e91e9709b9f9cdd07cd0f9c65563f06d4fb9db8dde6943e40c2fdcf"
+    },
+    {
+      "name": "tuong_thanh_reu_y",
+      "rawSha256": "6170d85e9ddfb656bae8ccc39eafcaf31d7c87536a90fb890dcc0e59ea130225",
+      "spriteSha256": "6138aedeae0fb7bd912fb598deb9b04982f8905b99c80d3e1525bb03c16b416d",
+      "size": [
+        32,
+        64
+      ],
+      "foot": [
+        16,
+        58
+      ],
+      "importScale": 0.046,
+      "referenceRawSha256": "cc4c8fd81ac4f4335c06cc1d40f506801569fffa1e34dfb4f4748a1dd4af80ec",
+      "normalSha256": "43946871f3e9c7a719ecfa226d2d892c48063e913393eb8c8ef977f6be14cf69"
+    }
+  ]
+}
