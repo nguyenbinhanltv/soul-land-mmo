@@ -141,8 +141,8 @@ Duyệt theo **khối hướng** (`s`, `se`, `e`, `ne`, `n`), như hồn thú. K
 
 ## `spiritMotion` mức lắc nhẹ
 - Clip vẽ thật đã chứa thở, vỗ cánh, vẫy đuôi, nảy; `spiritMotion` (đang cho cả 7 họ: `wing`, `tail`, `weapon`, `float`, `ghost`, `plant`, `limb`) **vẫn phủ lên** nhưng chỉ **lắc nhẹ** để tránh nhân đôi chuyển động: dao động liên tục (idle / walk) nhân hệ số giảm riêng, cú đánh / thi triển (`attack` / `cast`) giữ để giật theo cú vung, `hurt` giữ nguyên (lùi + nháy trắng, vì clip `hurt` chỉ 1–2 khung).
-- Hệ số giảm là **một hằng riêng** ở `spiritMotion.ts` (P2 thêm, P5 chỉnh sau khi xem GIF; đề xuất khởi điểm khoảng một phần ba biên độ hiện tại), không chép số vào tài liệu. **Vật cứng (A) giữ mức cao hơn** vì ít pose (phần nội suy giữa các pose do code). Người khác vẫn thấy nhẹ hơn chính mình (`SPIRIT_OTHER_K`); Giảm chuyển động (`reduce`) vẫn tắt phần lắc của code nhưng **vẫn phát clip vẽ thật** (clip là hình, không phải hiệu ứng).
-- P5 (#1026): cả 25 võ hồn đã có sheet vũ khí `vkanim_{id}` nên `spiritMotion` luôn chạy mức lắc nhẹ (`weaponOscK`); mức đầy đủ (hệ số 1) chỉ còn cho nhánh dự phòng khi sheet không tải được. Không gỡ mã nào. Tên họ `SPIRIT_FAMILY` giữ; thêm võ hồn thì thêm dòng (bot kiểm đủ).
+- Hệ số giảm là **một hằng riêng** ở `spiritMotion.ts` (P2 thêm, P5 chỉnh sau khi xem GIF; đề xuất khởi điểm khoảng một phần ba biên độ hiện tại), không chép số vào tài liệu. **Vật cứng (A) giữ mức cao hơn** vì ít pose (phần nội suy giữa các pose do code). Giảm chuyển động (`reduce`) vẫn tắt phần lắc của code nhưng **vẫn phát clip vẽ thật**.
+- P5 (#1026): 25 / 25 có `vkanim_{id}`, `spiritMotion` chạy mức lắc nhẹ; mức đầy đủ chỉ còn ở nhánh dự phòng. Không gỡ mã. Tên họ `SPIRIT_FAMILY` giữ; thêm võ hồn thì thêm dòng (bot kiểm đủ).
 
 ## Audit 25 võ hồn
 **Đếm theo `VOHON` (`shared/data.ts`): 25 võ hồn** (21 SSR, 2 SR, 2 UR; hệ: cường công 7, mẫn công 6, khống chế 7, phụ trợ 5). Kiểm bằng cách đối chiếu `VOHON` với khoá `SPIRIT_FAMILY` ở `client/src/spiritMotion.ts`: **cùng 25 mã, không thiếu không thừa**. Con số **24** ở tiêu đề mục "Dạng phụ thể" của `tools/assets/README.md` là **sai** (bảng ngay dưới có 25 dòng); đã sửa thành 25 ở PR này. Các tài liệu khác (`phap-tuong.md`, `ky-nang/README.md`…) đã ghi 25.
@@ -245,9 +245,9 @@ Thử nghiệm của chủ repo: bỏ hình nộm, vẽ phụ thể thẳng từ
 |---|---|---|
 | Đặc tả + audit + bảng mô tả (file này) | P0 #1021 | xong |
 | Công cụ `phuthe-sheet-*` | P1 #1022 | xong |
-| Client phát clip + neo theo khung thân, fallback, `spiritMotion` hệ số giảm | P2 #1023 | xong (mục "Client phát clip (P2)") |
-| Thử 3 võ hồn (Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo) | P3 #1024 | đóng: đổi hướng sang vũ khí cầm tay |
-| Rollout 22 võ hồn còn lại theo đợt | P4 #1025 | đóng: 25 / 25 vũ khí `vkanim_{id}` đã vào main (`phu-the-vu-khi.md`) |
-| Dọn `spiritMotion`, gỡ nhánh cũ | P5 #1026 | xong: giữ `spiritMotion` (lắc nhẹ phủ lên clip vũ khí) + chuỗi dự phòng `vkanim` → `vhanim` → phụ thể tĩnh, vì còn là lưới an toàn khi tải sheet hỏng; phụ thể cũ thành pháp tướng ở việc riêng |
+| Client phát clip + neo theo khung thân, fallback, `spiritMotion` hệ số giảm | P2 #1023 | xong |
+| Thử 3 võ hồn (Tà Hỏa Phượng Hoàng, Hạo Thiên Chùy, Lam Ngân Thảo) | P3 #1024 | đóng (đổi sang vũ khí) |
+| Rollout 22 võ hồn còn lại theo đợt | P4 #1025 | đóng: 25 / 25 vũ khí đã vào main |
+| Dọn `spiritMotion`, gỡ nhánh cũ | P5 #1026 | xong: giữ `spiritMotion` + chuỗi dự phòng `vkanim` → `vhanim` → tĩnh |
 
-Trạng thái từng võ hồn (tờ, mức theo khối hướng, đã nhập game chưa) sau này nằm ở sổ tự sinh giống hồn thú; **không chép bảng trạng thái vào đây**.
+Trạng thái từng võ hồn nằm ở sổ tự sinh giống hồn thú; **không chép vào đây**.
