@@ -386,6 +386,8 @@
   }
  },
  "props": {
+  "den_long_treo_x": { "key": "prop_den_long_treo_x", "foot": [8,85], "flip": false },
+  "den_long_treo_y": { "key": "prop_den_long_treo_y", "foot": [136,93], "flip": false },
   "xe_hang_khong_ngua": { "key": "prop_xe_hang_khong_ngua", "foot": [40,64], "flip": false },
   "xe_ngua_hang": { "key": "prop_xe_ngua_hang", "foot": [59,82], "flip": false },
   "linh_canh_giap_giao": { "key": "prop_linh_canh_giap_giao", "foot": [16,44], "flip": false },
@@ -1209,7 +1211,9 @@
     "52": "cong_thanh_vom_y",
     "54": "linh_canh_giap_giao",
     "55": "linh_canh_giap_khien",
-    "53": "cong_thanh_vom_x"
+    "53": "cong_thanh_vom_x",
+    "56": "den_long_treo_x",
+    "57": "den_long_treo_y"
    }
   },
   "thien_dau_thanh": {
