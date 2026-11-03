@@ -41,6 +41,7 @@ import { openQuests as openQuestPanel, closeQuests as closeQuestPanel } from "..
 import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanhRoom, endJingle, resetBiCanhRoom, tickBiCanhHud, inBiCanhRoom, type BiCanhMsg, type BiCanhRoomMsg } from "../bicanhScreen.ts";
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScreen.ts";
+import { bindTitles, openTitles, closeTitles, onTitle, type TitleMsg } from "../titleScreen.ts";
 import { bindDex, openDex, closeDex, onDex, dexKnown, type DexMsg } from "../dexScreen.ts";
 import { bindMail, openMail, closeMail, onMail, type MailMsg } from "../mailScreen.ts";
 import { bindNpcGo } from "../hudNpc.ts";
@@ -972,6 +973,7 @@ export class GameScene extends Phaser.Scene {
     bindBiCanhRoom(() => this.onBack(), () => this.onBack());
     bindDex((type, payload) => this.room.send(type, payload)); // Sổ Tay Hồn Thú (#1720)
     bindAchv((type, payload) => this.room.send(type, payload), (n) => setBadge("achv", n ? "new" : null, n)); // chấm đỏ "có thành tựu nhận được" (kho badges)
+    bindTitles((type, payload) => this.room.send(type, payload), (n) => setBadge("titles", n ? "new" : null, n), () => { const me = this.room.state.players.get(this.me); return { name: me?.name ?? "Hồn sư", defaultId: titleIdOf(me?.level ?? 1) }; }); // Danh Hiệu (#1788): chấm đỏ = số danh hiệu mới mở chưa xem
     bindMail((type, payload) => this.room.send(type, payload), (n) => setBadge("mail", n ? "new" : null, n)); // chấm đỏ "có thư chưa đọc / chưa nhận" (kho badges)
     bindWelfare((type, payload) => this.room.send(type, payload), (n) => setBadge("welfare", n ? "new" : null, n)); // chấm đỏ "chưa điểm danh" + mốc ký bù được (kho badges)
     initPanelStack([
@@ -980,7 +982,7 @@ export class GameScene extends Phaser.Scene {
       { id: "npc", close: () => hud.closeNpc() }, { id: "autoPanel", close: closeAutoPanel }, { id: "audio", close: closeAudioPanel },
       { id: "pmenu", close: () => hud.showPlayerMenu(null), popup: true }, { id: "chans", close: () => hud.toggleChannels(false), popup: true },
       { id: "autoSum", close: closeAutoSum, popup: true }, { id: "hub", close: () => setHubOpen(false), popup: true },
-      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "dex", close: closeDex }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice }, { id: "quests", close: closeQuestPanel },
+      { id: "rank", close: closeRank }, { id: "calendar", close: closeCalendar }, { id: "welfare", close: closeWelfare }, { id: "achv", close: closeAchv }, { id: "titles", close: closeTitles }, { id: "dex", close: closeDex }, { id: "mail", close: closeMail }, { id: "bicanh", close: closeBiCanh }, { id: "notice", close: closeNotice }, { id: "quests", close: closeQuestPanel },
       { id: "mapview", close: () => mapview().close(), popup: true, focus: true }, // bản đồ lớn (M / N): vào danh sách để Tab xoay trong bản đồ (#1675)
     ], () => {
       for (const k of Object.keys(this.keys)) if (this.keys[k]) muted.add(k);
@@ -1006,7 +1008,7 @@ export class GameScene extends Phaser.Scene {
       friends: () => { this.clearForPanel(); hud.toggleFriends(true); }, world: () => { this.clearForPanel(); this.openWorld(true); },
       auto: () => { closeAudioPanel(); mapview().close(); toggleAutoPanel(true); }, settings: () => { this.clearForPanel(); mapview().close(); toggleSettings(); }, guide: () => guideReview(),
       rank: () => { this.clearForPanel(); openRank(); }, calendar: () => { this.clearForPanel(); openCalendar(); },
-      welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, dex: () => { this.clearForPanel(); openDex(); }, mail: () => { this.clearForPanel(); openMail(); },
+      welfare: () => { this.clearForPanel(); openWelfare(); }, achv: () => { this.clearForPanel(); openAchv(); }, titles: () => { this.clearForPanel(); openTitles(); }, dex: () => { this.clearForPanel(); openDex(); }, mail: () => { this.clearForPanel(); openMail(); },
       bicanh: () => { if (this.isArena) return toast("info", "Đang ở phòng đấu", "Về bản đồ rồi mới mở Bí Cảnh được"); this.clearForPanel(); openBiCanh(); },
       quest: openQuests, // mở bảng Nhiệm Vụ; nhận / trả vẫn ở NPC
       notice: () => { this.clearForPanel(); openNotice(); }, shot: () => this.takeShot(),
@@ -1692,7 +1694,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("mail", (m: MailMsg) => { if (onMail(m)) this.audio.playUi("reward"); }); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
     this.room.onMessage("dex", (m: DexMsg) => onDex(m)); // Sổ Tay Hồn Thú (#1720): loài đã gặp / đã hạ, do server ghi
     this.room.onMessage("achv", (m: AchvMsg) => { if (onAchv(m)) this.audio.playUi("reward"); }); // Thành Tựu (#1317): server gửi lúc vào phòng, sau get / claim và khi bộ đếm làm số "nhận được" đổi
-    this.room.onMessage("title", () => {}); // Danh Hiệu (#1769, P1): tin riêng danh sách đã mở / mã mới mở; màn Danh Hiệu + banner ở P3, tạm bỏ qua để không báo "chưa đăng ký"
+    this.room.onMessage("title", (m: TitleMsg) => { const b = onTitle(m); if (b) { toast("info", b.title, b.sub); } }); // Danh Hiệu (#1769, #1788): tin riêng danh sách đã mở / mã mới mở → màn Danh Hiệu + banner mừng + chấm đỏ Hub
     this.room.onMessage("welfare", (m: WelfareMsg) => { if (onWelfare(m)) this.audio.playUi("reward"); }); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("rally", (m: unknown) => { addRally(m); }); // dấu "Tập trung ở đây" của đồng đội (R6)
