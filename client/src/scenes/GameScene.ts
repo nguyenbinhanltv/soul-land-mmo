@@ -1130,12 +1130,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Khoảng cách (pixel) từ mình tới một hồn thú trong state; chưa có mình thì coi như rất xa. */
-  meDist(b: { x: number; y: number }) { const m = this.room.state.players.get(this.me); return m ? Math.hypot(b.x - m.x, b.y - m.y) : Infinity; }
 
   /** Chữ và lệnh của chip trạng thái (lệnh ưu tiên cao nhất đang chạy), vẽ mỗi khung hình ở updateStats. */
   drawCmdChip() {
     const c = topCmd(this.activeCmds()), lk = this.lockId ? this.room.state.beasts.get(this.lockId) : null;
-    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastNameSeen(lk.rank, lk.species, this.meDist(lk), dexKnown(BEASTS[lk.species]?.id)) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
+    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastNameSeen(lk.rank, lk.species, dexKnown(BEASTS[lk.species]?.id)) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
   }
 
   act(a: string) {
@@ -3162,7 +3161,7 @@ export class GameScene extends Phaser.Scene {
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
-        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastNameSeen(b.rank, b.species, this.meDist(b), dexKnown(BEASTS[b.species]?.id)) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastNameSeen(b.rank, b.species, dexKnown(BEASTS[b.species]?.id)) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
         const top = beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2);
         lb.setPosition(s.x, top).setDepth(99984).setScale(this.txtK);
@@ -3876,7 +3875,7 @@ export class GameScene extends Phaser.Scene {
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
     // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
     hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
-      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastNameSeen(tb.rank, tb.species, Math.hypot(tb.x - me.x, tb.y - me.y), dexKnown(BEASTS[tb.species]?.id)), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
+      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastNameSeen(tb.rank, tb.species, dexKnown(BEASTS[tb.species]?.id)), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
         beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.

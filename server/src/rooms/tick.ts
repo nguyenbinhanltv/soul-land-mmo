@@ -15,7 +15,6 @@ import { sendVitals } from "./vitals.ts";
 import { savePeriodic } from "./persist.ts";
 import { welfareDayPush } from "./welfare.ts";
 import { bicanhDayPush } from "./bicanh.ts";
-import { dexScan } from "./dex.ts";
 import { SAVE_EVERY_SECS } from "../../../shared/data.ts";
 import type { BeastState, PlayerState } from "./schema.ts";
 
@@ -129,7 +128,6 @@ export function tick(room: MapRoom, dt: number) {
     }
     if (d.travelling) { p.moving = false; return; } // đang chuyển bản đồ: đứng yên chờ client rời phòng
     room.tickPStatus(id, p, d, dt);
-    dexScan(room, id, p, d, dt); // Sổ tay hồn thú (#1720)
     // Tự bán từ xa (#216): túi vừa đổi (sendBag đặt cờ) thì xét một lần, không quét túi mỗi nhịp.
     if (d.sellCheck) { d.sellCheck = false; room.autoSell(id); room.autoSalvage(id); }
     if (p.dead) {

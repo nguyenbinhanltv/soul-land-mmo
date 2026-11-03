@@ -134,7 +134,7 @@ export interface PData {
   // Bảng Xếp Hạng (rank.ts): lúc xin bảng gần nhất (ms), dấu vết điểm đã ghi `rank_scores` và lúc ghi (ms).
   rankTopAt: number; rankSig: string; rankAt: number;
   bicanhDay: string; // Bí Cảnh (bicanh.ts): khóa ngày Bí Cảnh (05:00) đã gửi trạng thái cho người này; đổi ngày thì gửi lại
-  dex: Map<string, number>; dexLoaded: boolean; dexT: number; // Sổ tay hồn thú (dex.ts): mã loài -> số lần hạ (có khóa = đã gặp), đã nạp từ DB chưa, giây tới lần quét kế
+  dex: Map<string, number>; dexLoaded: boolean; // Sổ tay hồn thú (dex.ts): mã loài -> số lần hạ (có khóa = đã hạ), đã nạp từ DB chưa
   achvReady: number; // Thành Tựu (achv.ts): số thành tựu đã đạt chưa nhận ở lần báo gần nhất (-1 = chưa báo); chỉ báo lại khi đổi
   welfareDay: string; // Phúc Lợi (welfare.ts): ngày (room.today()) đã gửi trạng thái Sổ Điểm Danh cho người này; đổi ngày thì gửi lại
   arenaGone: boolean;   // đã được ghép trận và rời phòng sang sân đấu (7.2): rời phòng lúc đó không phải rời game (giữ danh sách mua lại, 9.8)

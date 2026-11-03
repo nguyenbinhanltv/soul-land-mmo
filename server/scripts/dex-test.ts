@@ -1,5 +1,5 @@
-// Sổ tay hồn thú (#1720): `MemoryStore.dexGet / dexSee / dexKill` (cùng luật với PgStore) và tên hiện từ xa của `beastNameSeen`.
-// Phần chạy trong phòng (quét gần, ghi khi hạ, tin `dex`) do bot thử. Chạy: npm run test:dex --prefix server
+// Sổ tay hồn thú (#1720): `MemoryStore.dexGet / dexSee / dexKill` (cùng luật với PgStore) và tên hiện theo sổ của `beastNameSeen`.
+// Phần chạy trong phòng (ghi khi hạ, tin `dex`) do bot thử. Chạy: npm run test:dex --prefix server
 import assert from "node:assert/strict";
 import { MemoryStore } from "../src/db.ts";
 import { BEASTS, BEAST_REVEAL, beastName, beastNameSeen } from "../../shared/data.ts";
@@ -27,10 +27,8 @@ await test("dexGet trả bản sao: sửa kết quả không đổi dữ liệu 
   const s = new MemoryStore(); await s.dexKill(1, a);
   (await s.dexGet(1))[a] = 99; assert.deepEqual(await s.dexGet(1), { [a]: 1 });
 });
-await test("beastNameSeen: xa thì ???, gần / đã biết / có tên riêng thì hiện tên", () => {
-  const far = BEAST_REVEAL.r + 1;
-  assert.equal(beastNameSeen(0, 0, far), BEAST_REVEAL.unknown);
-  assert.equal(beastNameSeen(0, 0, BEAST_REVEAL.r), beastName(0, 0));
-  assert.equal(beastNameSeen(0, 0, far, true), beastName(0, 0));
-  assert.equal(beastNameSeen(1, 0, far), beastName(1, 0));
+await test("beastNameSeen: thường luôn ???, chỉ loài trong sổ / có tên riêng thì hiện tên", () => {
+  assert.equal(beastNameSeen(0, 0), BEAST_REVEAL.unknown);
+  assert.equal(beastNameSeen(0, 0, true), beastName(0, 0));
+  assert.equal(beastNameSeen(1, 0), beastName(1, 0));
 });

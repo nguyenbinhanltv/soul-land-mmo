@@ -4306,16 +4306,14 @@ export const formatHonTe = (dong: number) => honTeParts(dong).map((p) => `${p.n.
 
 export const TILE = 16;
 /**
- * Ẩn tên hồn thú thường trên bản đồ (#1714, đề xuất, chờ chủ repo chốt): từ xa chỉ thấy "???" (kích thước, màu bậc và hình vẫn lộ như
- * mục 5.2), lại gần trong `BEAST_REVEAL.r` pixel mới hiện tên loài. Tinh anh / thú vương / boss thế giới có tên riêng nên luôn hiện.
- * Chỉ là cách hiển thị ở client: loài vẫn nằm trong state đồng bộ (BeastState.species) vì client cần nó để chọn hình.
+ * Ẩn tên hồn thú thường trên bản đồ (#1714, #1762): hồn thú thường (rank 0) luôn là "???" (kích thước, màu bậc và hình vẫn lộ như
+ * mục 5.2), trừ loài đã có trong Sổ Tay Thú của người chơi (đã hạ). Lại gần không còn làm lộ tên. Tinh anh / thú vương / boss thế giới
+ * có tên riêng nên luôn hiện. Chỉ là cách hiển thị ở client: loài vẫn nằm trong state đồng bộ (BeastState.species) vì client cần nó để chọn hình.
  */
-export const BEAST_REVEAL = { r: 6 * TILE, unknown: "???" };
-/** Sổ tay hồn thú (#1720): loài đã gặp / đã hạ thì tên hiện từ xa. Server xét hồn thú quanh người chơi cứ `scanSecs` giây một lần. */
-export const DEX = { scanSecs: 0.5 };
-/** Tên hồn thú cho người đứng cách nó `dist` pixel: xa hơn BEAST_REVEAL.r thì ẩn tên loài của hồn thú thường (rank 0), trừ loài đã có trong sổ tay (`known`, tin riêng `dex` của server). */
-export const beastNameSeen = (rank: number, species: number, dist: number, known = false) =>
-  rank === 0 && dist > BEAST_REVEAL.r && !known ? BEAST_REVEAL.unknown : beastName(rank, species);
+export const BEAST_REVEAL = { unknown: "???" };
+/** Tên hồn thú: hồn thú thường (rank 0) ẩn tên loài trừ khi đã có trong sổ tay (`known`, tin riêng `dex` của server). */
+export const beastNameSeen = (rank: number, species: number, known = false) =>
+  rank === 0 && !known ? BEAST_REVEAL.unknown : beastName(rank, species);
 /** Lách góc (corner nudge, shared/move.ts): trục đi vướng góc ô mà lệch sang bên ≤ chừng này pixel thì tự đẩy nhẹ qua (server + dự đoán client). */
 export const MOVE_NUDGE = 4;
 /** Lách góc chỉ cho người chơi tự bấm phím / cần: tự săn (rooms/autoHunt.ts) tự dò đường A* và kẹt-kiểm theo va chạm thuần, bị đẩy lệch đường thì không tới / không hạ được thú vương (#785). */
