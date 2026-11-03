@@ -1,6 +1,8 @@
 {
  "_": "Ánh xạ gid Tiled → ảnh isometric (GAME_DESIGN.md mục 5.11, bước 10.2). ground: tên → ảnh ô (đường dẫn trong shared/assets/iso: img 32×32 thoi 32×16, big 64×64 ô lớn phủ 2×2), c / cBig: tâm mặt trên trong ảnh, edge: thứ bậc lớp phủ mép (cao lấn sang thấp). props: tên → key manifest prop_{vật} (ảnh shared/assets/sprites/iso/props/{vật}.png), foot: điểm chân trong ảnh. maps: bộ \"*\" mặc định rồi bộ riêng từng mapId đè lên; gid → \"tên\" hoặc \"tên~#rrggbb\" (nhân màu) hoặc \"tên~x1.3\" (sáng lên), vật có thể là danh sách (chọn theo băm vị trí); build: kiểu nhà / tường thành (client/src/isoBuild.ts). Nguồn ảnh: art/CREDITS.md. Kiểm tra: node tools/assets/iso-build.mjs check (npm run check).",
  "ground": {
+  "bai_co_tia_gon": {"img":["ground/bai_co_tia_gon_0.png","ground/bai_co_tia_gon_1.png"],"big":["ground/bai_co_tia_gon_0_lon.png","ground/bai_co_tia_gon_1_lon.png"],"c":[16,19],"cBig":[32,37],"edge":5,"flip":false},
+  "loi_soi_trang": {"img":["ground/loi_soi_trang_0.png","ground/loi_soi_trang_1.png"],"big":["ground/loi_soi_trang_0_lon.png","ground/loi_soi_trang_1_lon.png"],"c":[16,19],"cBig":[32,37],"edge":7,"flip":false},
   "nuoc_sau": {
    "img": ["ground/nuoc_sau_0.png", "ground/nuoc_sau_1.png"],
    "big": ["ground/nuoc_sau_0_lon.png", "ground/nuoc_sau_1_lon.png"],
@@ -1116,6 +1118,8 @@
   },
   "nac_dinh_thanh": {
    "ground": {
+    "60": "bai_co_tia_gon",
+    "61": "loi_soi_trang",
     "1": "co_pho",
     "2": "co_pho~#d8dcc8",
     "3": "co_pho~#c4ccb4",
@@ -1170,7 +1174,7 @@
       "main": ["giang_duong_lau_dai"],
       "gate": "hoc_vien_cong_da_trang",
       "deco": ["cot_vo", "bon_hoa", "cot_vo", "bon_hoa"],
-      "floor": "pho_da"
+      "floor": "loi_soi_trang"
      },
      "110,66": {
       "main": ["dau_hon_truong_nac_dinh"],
@@ -1188,7 +1192,7 @@
       "main": ["ky_tuc_xa_quy_toc"],
       "gate": "cong_sat",
       "deco": [],
-      "floor": "pho_da"
+      "floor": "loi_soi_trang"
      },
      "4,31": {
       "main": ["that_xa_phong_so_7"],
