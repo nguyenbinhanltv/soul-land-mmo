@@ -1,0 +1,19 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "raw": "hoc_vien_cong_da_trang-raw.png",
+  "rawSha256": "d1c009f6f9d4484680d2934bcf601a04e85f414ad6696efc6f6005f935c62cdf",
+  "spriteSha256": "63d3e58856887bd75a048208e04ecf95e67c1129baafbc0dfcab1d88fb60683a",
+  "foot": [
+    56,
+    86
+  ],
+  "size": [
+    112,
+    112
+  ],
+  "referenceRawSha256": "4de25f1d1ed4a3befa241810be9c6fcc42f6a128ae57af41a3d954bc32345fd8",
+  "doorOpeningRadians": 1.05
+}

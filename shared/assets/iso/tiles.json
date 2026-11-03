@@ -386,6 +386,7 @@
   }
  },
  "props": {
+  "hoc_vien_cong_da_trang": { "key": "prop_hoc_vien_cong_da_trang", "foot": [56,86], "flip": false },
   "den_long_treo_x": { "key": "prop_den_long_treo_x", "foot": [120,141], "flip": false },
   "den_long_treo_y": { "key": "prop_den_long_treo_y", "foot": [8,157], "flip": false },
   "bien_hieu_ren": { "key": "prop_bien_hieu_ren", "foot": [25,44], "flip": false },
@@ -1159,7 +1160,7 @@
      },
      "22,10": {
       "main": ["hoc_vien_nac_dinh"],
-      "gate": "cong_hoc_vien",
+      "gate": "hoc_vien_cong_da_trang",
       "deco": ["cot_vo", "bon_hoa", "cot_vo", "bon_hoa"],
       "floor": "pho_da"
      },
@@ -1206,7 +1207,7 @@
     "39": "bon_hoa",
     "40": "khuc_go_rong",
     "41": "cot_vo",
-    "42": "cong_hoc_vien",
+    "42": "hoc_vien_cong_da_trang",
     "43": "tuong_thanh",
     "44": "cot_den_do",
     "45": ["bien_hieu_ren","bien_hieu_quan_tro","bien_hieu_duoc_thao","bien_hieu_lo_banh"],

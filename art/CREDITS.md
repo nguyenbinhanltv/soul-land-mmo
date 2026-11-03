@@ -1833,6 +1833,7 @@ Người dùng tạo ảnh bằng ChatGPT (tạo ảnh, nền trong suốt), r�
 | `shared/assets/sprites/iso/props/bien_hieu_quan_tro.png` | `prop_bien_hieu_quan_tro` | ChatGPT / Codex (OpenAI image_gen.imagegen) | Biển hiệu treo gỗ và giá sắt: biểu tượng búa/giường/lá thuốc/ổ bánh; prompt và SHA tại art/src/nac-dinh-1722/bien-hieu/NGUON.md. | 2026-11-03 | Nặc Đinh #1722; đầu ra OpenAI, không CC0; PR nháp chờ duyệt. |
 | `shared/assets/sprites/iso/props/bien_hieu_duoc_thao.png` | `prop_bien_hieu_duoc_thao` | ChatGPT / Codex (OpenAI image_gen.imagegen) | Biển hiệu treo gỗ và giá sắt: biểu tượng búa/giường/lá thuốc/ổ bánh; prompt và SHA tại art/src/nac-dinh-1722/bien-hieu/NGUON.md. | 2026-11-03 | Nặc Đinh #1722; đầu ra OpenAI, không CC0; PR nháp chờ duyệt. |
 | `shared/assets/sprites/iso/props/bien_hieu_lo_banh.png` | `prop_bien_hieu_lo_banh` | ChatGPT / Codex (OpenAI image_gen.imagegen) | Biển hiệu treo gỗ và giá sắt: biểu tượng búa/giường/lá thuốc/ổ bánh; prompt và SHA tại art/src/nac-dinh-1722/bien-hieu/NGUON.md. | 2026-11-03 | Nặc Đinh #1722; đầu ra OpenAI, không CC0; PR nháp chờ duyệt. |
+| `shared/assets/sprites/iso/props/hoc_vien_cong_da_trang.png` | `prop_hoc_vien_cong_da_trang` | ChatGPT / Codex (OpenAI image_gen.imagegen), khung 3D 2:1 | Cổng Học viện vòm đá trắng ngà, cánh sắt rèn mở vào trong, biểu tượng hồn lực tự thiết kế; prompt/SHA tại art/src/nac-dinh-1722/cong-hoc-vien/NGUON.md. | 2026-11-03 | Nặc Đinh #1722 mục9; OpenAI không CC0; PR nháp chờ duyệt. |
 
 ## Asset tạo bằng AI (Microsoft Copilot)
 

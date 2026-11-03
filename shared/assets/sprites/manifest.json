@@ -46148,6 +46148,11 @@
       "iso": true,
       "map": "nac_dinh_thanh"
     },
+    {
+      "key": "prop_hoc_vien_cong_da_trang",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
