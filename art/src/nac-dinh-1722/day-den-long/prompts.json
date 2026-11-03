@@ -1,0 +1,6 @@
+{
+  "tool": "OpenAI image_gen.imagegen",
+  "transparent_background": true,
+  "prompt": "Texture-paint the attached precise orthographic isometric 2:1 guide into a production pixel-art game sprite. The guide is the IMMUTABLE geometry: preserve exact two slim straight timber posts, both ground feet, distance between feet, four hanging cylindrical lanterns, sagging rope, camera, and every attachment point. Tall brown wooden posts with small dull brass caps, dark braided rope, four traditional red paper lanterns with subtle vertical ribs, muted brass top/bottom rings and tiny red tassels. Upper-left light, crisp square pixel clusters, dark #1a1020 outlines, restrained warm palette matching old half-timber town props. Rich but readable at about 128x128 pixel game size. No lettering, symbol, extra lanterns, finials, ground, scenery, people, glow, light aura or cast shadows. Actual transparent background immediately outside object, alpha0, no halo. Entire object centered in exact same square framing, no geometry or perspective changes, no bending the vertical posts.",
+  "references": "Own 3D guides den_long_treo_x-guide.png and den_long_treo_y-guide.png"
+}

@@ -1,0 +1,44 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "items": [
+    {
+      "name": "den_long_treo_x",
+      "raw": "den_long_treo_x-raw.png",
+      "rawSha256": "559949cad2715d2dff971f558415d14daeaa0c941f6b567b6ad65ec26318ed88",
+      "spriteSha256": "a6b16d2a94f4d85bc1ec85b1461b98d12028d40510f9c233680fbf7993580a32",
+      "foot": [
+        120,
+        141
+      ],
+      "secondFoot": [
+        8,
+        85
+      ],
+      "size": [
+        128,
+        144
+      ]
+    },
+    {
+      "name": "den_long_treo_y",
+      "raw": "den_long_treo_y-raw.png",
+      "rawSha256": "9fd3b3d373dfe92d58849f616a8f788355f7973df94c41ada51a112f31fae7a0",
+      "spriteSha256": "4b54cc6ca99c6ce39b78a509f26d2c9264dc9c0be667173ad1b05f8e4700a8ef",
+      "foot": [
+        8,
+        157
+      ],
+      "secondFoot": [
+        136,
+        93
+      ],
+      "size": [
+        144,
+        160
+      ]
+    }
+  ]
+}
