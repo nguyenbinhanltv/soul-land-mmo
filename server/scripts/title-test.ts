@@ -2,11 +2,12 @@
 // và `titleAction` / `grantTitle` với phòng giả (giả mạo `equip`, danh hiệu hết hạn tự về mặc định, `titleId` công khai chỉ là mã).
 // Chạy: npm run test:title --prefix server
 import assert from "node:assert/strict";
-import { TITLES, TITLE_DEFS, TITLE_GROUPS, TITLE_TIER_MAX, titleDef, titleExpiry, titleIdOf, titleOf, titleText, weekStartVn, type TitleDef } from "../../shared/data.ts";
+import { ACHV, BOSSES, RANK_BOARDS, TITLE_RANK_TIERS, TITLES, TITLE_DEFS, TITLE_GROUPS, TITLE_TIER_MAX, titleDef, titleExpiry, titleIdOf, titleOf, titleText, weekStartVn, type TitleDef } from "../../shared/data.ts";
 // Test dùng kho trong bộ nhớ dù shell có DATABASE_URL (DB thật kiểm bằng bot --pg): bỏ biến TRƯỚC khi nạp db.ts.
 delete process.env.DATABASE_URL;
 const { MemoryStore, store } = await import("../src/db.ts");
-const { grantTitle, titleAction, titleLeave } = await import("../src/rooms/title.ts");
+const { grantTitle, titleAction, titleLeave, titleAchvClaimed, titleBossKilled } = await import("../src/rooms/title.ts");
+const { closeTitleWeek } = await import("../src/titleWeek.ts");
 
 function test(title: string, fn: () => void | Promise<void>) { return Promise.resolve(fn()).then(() => console.log(`✓ ${title}`)); }
 
@@ -132,4 +133,79 @@ await test("grantTitle: server cấp, idempotent, tin riêng `fresh` chỉ lần
   const mem = (store as unknown as { titles?: Map<number, Map<string, { exp: number | null }>> }).titles;
   if (mem) { mem.get(acc)!.get("cap_7")!.exp = Date.now() - 1; titleAction(f.room, "s1", { op: "get" }); await f.idle(); assert.equal(f.p.titleId, "", "hết hạn → mặc định"); }
   titleLeave(f.d);
+});
+
+// ---------- P5: nguồn mở khoá ----------
+await test("TITLE_DEFS P5: mọi nguồn trỏ tới thứ có thật; nhóm / hạn khớp nguồn; mã ổn định", () => {
+  for (const t of TITLE_DEFS) {
+    const src = t.source;
+    if (src.kind === "achv") { assert.ok(ACHV.some((a) => a.id === src.id), `${t.id}: thành tựu`); assert.equal(t.group, "thanh_tuu"); assert.equal(t.ttl, "forever"); assert.equal(t.id, `achv_${src.id}`); }
+    if (src.kind === "rank") { assert.ok(RANK_BOARDS.some((b) => b.code === src.board), `${t.id}: bảng`); assert.ok(TITLE_RANK_TIERS.some((x) => x.top === src.top)); assert.equal(t.group, "xep_hang"); assert.equal(t.ttl, "week"); assert.equal(t.id, `rank_${src.board}_top${src.top}`); }
+    if (src.kind === "boss") { assert.ok(BOSSES.some((b) => b.id === src.id), `${t.id}: boss`); assert.equal(t.group, "boss"); assert.equal(t.ttl, "forever"); assert.equal(t.id, `boss_${src.id}`); }
+  }
+  assert.equal(TITLE_DEFS.filter((t) => t.source.kind === "rank").length, RANK_BOARDS.length * TITLE_RANK_TIERS.length, "đủ mọi bảng x mọi mức");
+  assert.ok(TITLE_DEFS.some((t) => t.source.kind === "boss") && TITLE_DEFS.some((t) => t.source.kind === "achv"));
+  for (const id of ["achv_level_t10", "achv_owned_all", "rank_cap_top1", "rank_suu_tam_top3", "rank_suc_manh_top10", "boss_thai_than_cu_vien", "boss_huyet_nguyet_lang_vuong"]) assert.ok(titleDef(id), `mã đã phát hành ${id} không được mất`);
+});
+const seedBoard = async (s: InstanceType<typeof MemoryStore>, n: number, base = 100) => {
+  for (let i = 1; i <= n; i++) { s.names.set(base + i, `P${base + i}`); await s.rankPut(base + i, [{ board: "cap", period: 0, score: 100 - i, tie: 0, extra: null }]); }
+};
+const DAY = "2026-10-26", tiersOf = (b: string) => TITLE_RANK_TIERS.map((t) => ({ top: t.top, id: `rank_${b}_top${t.top}` }));
+await test("titleCloseWeek (MemoryStore): top 1 / 3 / 10 đúng mức, không cộng dồn, bỏ tài khoản test, idempotent", async () => {
+  const s = new MemoryStore(), now = Date.now(), exp = now + 7 * 86400_000;
+  await seedBoard(s, 12); s.tests.add(101); // #101 là tài khoản test: bỏ khỏi bảng, #102 lên hạng 1
+  const r = (await s.titleCloseWeek("cap", 0, DAY, tiersOf("cap"), exp))!;
+  const of = (acc: number) => r.find((x) => x.accountId === acc)?.id;
+  assert.equal(of(101), undefined); assert.equal(of(102), "rank_cap_top1"); assert.equal(of(103), "rank_cap_top3"); assert.equal(of(104), "rank_cap_top3");
+  assert.equal(of(105), "rank_cap_top10"); assert.equal(of(111), "rank_cap_top10"); assert.equal(of(112), undefined, "hạng 11 ngoài mức");
+  for (const acc of [102, 103, 111]) assert.equal((await s.titleGet(acc)).owned.length, 1, "mỗi bảng chỉ một danh hiệu (không cộng dồn)");
+  assert.equal((await s.titleGet(102)).owned[0].exp, exp);
+  assert.equal(await s.titleCloseWeek("cap", 0, DAY, tiersOf("cap"), exp), null, "chốt lần hai = bỏ");
+  assert.equal(await s.titleCloseWeek("suu_tam", 0, DAY, tiersOf("suu_tam"), exp) !== null, true, "bảng khác chốt riêng");
+  assert.equal((await s.titleGet(102)).owned.length, 1);
+  await assert.rejects(() => s.titleCloseWeek("cap", 0, "2026-11-02", [{ top: 1, id: "khong_co" }], exp));
+  assert.equal(s.titleWeeks.has("2026-11-02|cap"), false, "mã lạ: không ghi dấu chốt");
+});
+await test("Qua tuần: danh hiệu hết hạn → về mặc định; tuần kế đổi hạng thì cấp mới, không tự đeo lại", async () => {
+  const s = new MemoryStore(), now = Date.now(); await seedBoard(s, 3);
+  await s.titleCloseWeek("cap", 0, DAY, tiersOf("cap"), now + 60_000); assert.equal(await s.titleEquip(101, "rank_cap_top1"), true);
+  s.titles.get(101)!.get("rank_cap_top1")!.exp = now - 1; // hết tuần kế
+  for (const acc of [102, 103]) for (const v of s.titles.get(acc)!.values()) v.exp = now - 1; // cả tuần cũ hết hạn đúng ranh giới tuần (chốt tuần sau chạy sau mốc đó)
+  assert.equal((await s.titleGet(101)).equipped, null, "hết hạn tự về mặc định"); assert.equal((await s.titleGet(101)).owned.length, 0);
+  await s.rankPut(102, [{ board: "cap", period: 0, score: 999, tie: 0, extra: null }]);
+  await s.titleCloseWeek("cap", 0, "2026-11-02", tiersOf("cap"), now + 7 * 86400_000);
+  assert.deepEqual((await s.titleGet(102)).owned.map((o) => o.id), ["rank_cap_top1"]); assert.equal((await s.titleGet(102)).equipped, null);
+  assert.deepEqual((await s.titleGet(101)).owned.map((o) => o.id), ["rank_cap_top3"], "xuống hạng 2-3: mức thấp hơn");
+});
+await test("closeTitleWeek (store dùng chung): chốt tuần vừa kết thúc đúng một lần, hạn = hết tuần kế", async () => {
+  const acc = 30000 + Math.floor(Math.random() * 1000), now = Date.now();
+  (store as unknown as { names: Map<number, string> }).names.set(acc, "TopCap"); await store.rankPut(acc, [{ board: "cap", period: 0, score: 1_000_000, tie: 0, extra: null }]);
+  const n1 = await closeTitleWeek(now); assert.ok(n1 >= 1);
+  const row = (await store.titleGet(acc)).owned.find((o) => o.id === "rank_cap_top1"); assert.ok(row, "đứng đầu bảng cấp"); assert.equal(row!.exp, weekStartVn(now, 1));
+  assert.equal(await closeTitleWeek(now), 0, "khởi động lại / chạy lại không cấp thêm");
+});
+await test("bossFirst: lần hạ đầu thắng, cùng killKey (đồng đội) cũng thắng, lần hạ khác (kênh / pod khác) thua", async () => {
+  const s = new MemoryStore();
+  assert.equal(await s.bossFirst("b1", "roomA|1|x"), true); assert.equal(await s.bossFirst("b1", "roomA|1|x"), true, "đồng đội cùng lần hạ");
+  assert.equal(await s.bossFirst("b1", "roomB|1|y"), false, "kênh khác hạ sau"); assert.equal(await s.bossFirst("b2", "roomB|1|y"), true, "boss khác độc lập");
+  const rs = await Promise.all(["a", "b", "c", "d"].map((k) => s.bossFirst("b3", k))); assert.equal(rs.filter(Boolean).length, 1, "chạy đua: đúng một lần hạ thắng");
+});
+await test("titleBossKilled: chỉ lần hạ đầu mở danh hiệu (mọi người đóng góp cùng lần), tin riêng fresh; boss không có danh hiệu thì bỏ", async () => {
+  const a = 31000 + Math.floor(Math.random() * 500), fa = fakeRoom(a), fb = fakeRoom(a + 1), fc = fakeRoom(a + 2), boss = "thien_doc_chu_hoang";
+  titleBossKilled(fa.room, "s1", boss, "r1|1|b"); titleBossKilled(fb.room, "s1", boss, "r1|1|b"); titleBossKilled(fc.room, "s1", boss, "r2|1|b");
+  await Promise.all([fa.idle(), fb.idle(), fc.idle()]);
+  assert.deepEqual(fa.sent.at(-1)!.body.fresh, [`boss_${boss}`]); assert.deepEqual(fb.sent.at(-1)!.body.fresh, [`boss_${boss}`]);
+  assert.equal(fc.sent.length, 0, "kênh khác hạ sau: không có"); assert.equal((await store.titleGet(a + 2)).owned.length, 0);
+  assert.equal((await store.titleGet(a)).owned[0].exp, null, "vĩnh viễn");
+  titleBossKilled(fc.room, "s1", "boss_khong_co_danh_hieu", "r3"); await fc.idle(); assert.equal(fc.sent.length, 0);
+});
+await test("Thành tựu: nhận bậc cuối mở danh hiệu (idempotent); thành tựu thường không; vào phòng mở bù thành tựu đã nhận từ trước", async () => {
+  const a = 32000 + Math.floor(Math.random() * 500), f = fakeRoom(a);
+  titleAchvClaimed(f.room, "s1", "level_t1"); await f.idle(); assert.equal(f.sent.length, 0, "thành tựu thường không gắn danh hiệu");
+  titleAchvClaimed(f.room, "s1", "king_t3"); await f.idle(); assert.deepEqual(f.sent.at(-1)!.body.fresh, ["achv_king_t3"]);
+  titleAchvClaimed(f.room, "s1", "king_t3"); await f.idle(); assert.equal(f.sent.length, 1, "lần hai không báo");
+  const g = fakeRoom(a + 1); (store as unknown as { achv: Map<number, unknown> }).achv.set(a + 1, { claimed: new Set(["world_t3", "elite_t1"]), counters: {} });
+  titleAction(g.room, "s1", { op: "get" }); await g.idle();
+  assert.ok(g.sent.at(-1)!.body.owned.some((o: { id: string }) => o.id === "achv_world_t3"), "mở bù"); assert.ok(g.sent.at(-1)!.body.owned.every((o: { id: string }) => o.id !== "achv_elite_t1"));
+  titleLeave(f.d); titleLeave(g.d);
 });

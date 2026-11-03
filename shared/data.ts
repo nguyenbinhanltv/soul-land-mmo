@@ -2965,8 +2965,8 @@ export type TitleSource = { kind: "level"; level: number } | { kind: "achv"; id:
 /** Hạn dùng: vĩnh viễn, hết khi qua tuần (giờ Việt Nam, weekStartVn) hoặc hết ở mốc do nơi cấp truyền vào (sự kiện). */
 export type TitleTtl = "forever" | "week" | "event";
 export interface TitleDef { id: string; name: string; group: TitleGroup; tier: number; source: TitleSource; ttl: TitleTtl }
-/** Danh mục danh hiệu. `id` ổn định (đã lưu ở `title_owned` / `title_equipped`): CHỈ thêm, không đổi tên / xoá. 10 danh hiệu cấp tạo từ `TITLES` (không chép chuỗi hai nơi). */
-export const TITLE_DEFS: readonly TitleDef[] = TITLES.map((name, i): TitleDef => ({
+/** 10 danh hiệu cấp tạo từ `TITLES` (không chép chuỗi hai nơi). Danh mục đầy đủ `TITLE_DEFS` khai sau `ACHV` / `RANK_BOARDS` (cần hai danh mục đó). */
+const TITLE_DEFS_CAP: TitleDef[] = TITLES.map((name, i): TitleDef => ({
   id: `cap_${i + 1}`, name, group: "cap", tier: Math.min(TITLE_TIER_MAX, Math.ceil(((i + 1) * TITLE_TIER_MAX) / TITLES.length)), source: { kind: "level", level: i * 10 + 1 }, ttl: "forever",
 }));
 export const titleDef = (id: unknown) => typeof id === "string" ? TITLE_DEFS.find((t) => t.id === id) : undefined;
@@ -5456,6 +5456,30 @@ export const achvDef = (id: unknown) => ACHV.find((a) => a.id === id);
 export const achvReached = (def: Pick<AchvDef, "stat" | "need">, stats: Partial<AchvStats>) => (stats[def.stat] ?? 0) >= def.need;
 /** Số thành tựu đã đạt mà chưa nhận (chấm đỏ ở hub). */
 export const achvReady = (stats: Partial<AchvStats>, claimed: readonly string[]) => ACHV.filter((a) => achvReached(a, stats) && !claimed.includes(a.id)).length;
+
+// ---------- Danh Hiệu (mục 5.25, P5): danh mục đầy đủ + nguồn mở khoá ----------
+/** Bậc cuối mỗi chuỗi `ACHV` mở một danh hiệu khi NHẬN thành tựu: [mã ACHV, tên, bậc hiếm]. Mã danh hiệu `achv_<mã ACHV>` ổn định, khai tường minh (không suy từ ngưỡng). */
+const TITLE_ACHV: readonly (readonly [string, string, number])[] = [
+  ["level_t10", "Đăng Phong Tạo Cực", 5], ["owned_all", "Vạn Hồn Chi Chủ", 6], ["stars_max", "Lục Tinh Chí Tôn", 5], ["elite_t3", "Tinh Anh Sát Thủ", 3],
+  ["king_t3", "Thú Vương Khắc Tinh", 4], ["world_t3", "Thủ Hộ Tinh Đấu", 5], ["quests_t3", "Thiện Chung Hành Giả", 3], ["arenaWins_t3", "Đấu Hồn Bá Chủ", 4], ["bicanh_t3", "Luyện Hồn Cảnh Chủ", 4],
+];
+/** Mức xếp hạng tuần: top N nhận danh hiệu `tier` (mỗi bảng giữ MỘT danh hiệu: hạng cao nhất; xếp từ cao xuống thấp). Hết hạn khi qua tuần kế (TitleDef.ttl "week"). */
+export const TITLE_RANK_TIERS = [{ top: 1, tier: 6, label: "Đệ Nhất" }, { top: 3, tier: 5, label: "Tam Kiệt" }, { top: 10, tier: 4, label: "Thập Hùng" }] as const;
+/** Boss lần đầu (server-first): thú vương của mỗi bản đồ (bậc 4) và boss thế giới (bậc 6); mã `boss_<mã boss>`. */
+const TITLE_BOSS_IDS: readonly (readonly [string, number])[] = [
+  ...Object.values(MAPS).flatMap((m) => (m.king ? [[m.king, 4] as const] : [])), ...Object.values(MAPS).flatMap((m) => (m.world ?? []).map((b) => [b, 6] as const)),
+].filter(([id], i, a) => a.findIndex(([x]) => x === id) === i);
+/** Danh mục danh hiệu. `id` ổn định (đã lưu ở `title_owned` / `title_equipped`): CHỈ thêm, không đổi tên / xoá. Nguồn sự kiện / tông môn / bí ẩn: chỗ nối khai ở `TitleSource`, danh hiệu thêm ở đợt sau. */
+export const TITLE_DEFS: readonly TitleDef[] = [
+  ...TITLE_DEFS_CAP,
+  ...TITLE_ACHV.map(([id, name, tier]): TitleDef => ({ id: `achv_${id}`, name, group: "thanh_tuu", tier, source: { kind: "achv", id }, ttl: "forever" })),
+  ...RANK_BOARDS.flatMap((b) => TITLE_RANK_TIERS.map((t): TitleDef => ({ id: `rank_${b.code}_top${t.top}`, name: `${t.label} ${b.name}`, group: "xep_hang", tier: t.tier, source: { kind: "rank", board: b.code, top: t.top }, ttl: "week" }))),
+  ...TITLE_BOSS_IDS.map(([id, tier]): TitleDef => ({ id: `boss_${id}`, name: `Đệ Nhất Sát ${BOSSES.find((x) => x.id === id)?.name ?? id}`, group: "boss", tier, source: { kind: "boss", id }, ttl: "forever" })),
+];
+/** Danh hiệu mở bởi thành tựu `achvId` (undefined = thành tựu đó không gắn danh hiệu). */
+export const titleOfAchv = (achvId: string) => TITLE_DEFS.find((t) => t.source.kind === "achv" && t.source.id === achvId);
+/** Danh hiệu mở khi lần đầu hạ boss / thú vương `bossId`. */
+export const titleOfBoss = (bossId: string) => TITLE_DEFS.find((t) => t.source.kind === "boss" && t.source.id === bossId);
 
 /**
  * Thư hệ thống (GAME_DESIGN.md mục 5.24, docs/design/thu.md; bảng `mail`). Một chiều: server gửi, người chơi đọc và nhận một lần.

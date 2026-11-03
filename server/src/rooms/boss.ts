@@ -10,6 +10,7 @@ import { ANNOUNCE_TOPIC } from "../schedule.ts";
 import { store, type Item } from "../db.ts";
 import { surfaceSpot } from "./worldBoss.ts";
 import { achvCount } from "./achv.ts";
+import { titleBossKilled } from "./title.ts";
 import { newItem, bagUsed } from "./items.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData, BData, EliteData, KingData, WorldData } from "./types.ts";
@@ -209,7 +210,7 @@ export function killKing(room: MapRoom, bid: string, b: BeastState, e: EliteData
   const claimed = room.king?.bid === bid ? room.king.claimed : undefined;
   if (room.king?.bid === bid) { room.king.bid = null; room.king.seat.state = "down"; void persistKingSeat(room.state.mapId, room.king.slot, room.king.seat, room.king.claimed); }
   const p = room.state.players.get(by)!; p.kills++;
-  const total = rank.total || 1;
+  const total = rank.total || 1, killKey = `${room.roomId}|${e.king!.slot}|${bid}`; // lần hạ duy nhất toàn máy chủ (danh hiệu "lần đầu", titleBossKilled)
   // 9.2: ưu tiên hồn hoàn thú vương theo đóng góp tổng; hồn hoàn đỏ boss thế giới vẫn cho người gây sát thương nhiều nhất.
   const owner = room.topContrib(e, by, world);
   const coin = room.rewardCoin(by, b.tier);
@@ -229,7 +230,7 @@ export function killKing(room: MapRoom, bid: string, b: BeastState, e: EliteData
     const ry = !world ? undefined : pid === owner || Math.random() < WORLD_RING.red ? WORLD_RING.top : rollYears(WORLD_RING.black[0], WORLD_RING.black[1], Math.random());
     if (pct >= K.share && claimed?.has(d.accountId))
       room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}: đã nhận ${world ? "thưởng" : "rương"} của khung giờ này ở kênh khác, không nhận thêm.${coinTxt}${ring}`, "#ffb35c");
-    else if (pct >= K.share) { achvCount(room, pid, world ? "world" : "king"); room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}.${coinTxt}${ring}`, k.def.aura); grantChest(room, pid, k.def, claimed, ry); }
+    else if (pct >= K.share) { achvCount(room, pid, world ? "world" : "king"); titleBossKilled(room, pid, k.def.id, killKey); room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}.${coinTxt}${ring}`, k.def.aura); grantChest(room, pid, k.def, claimed, ry); }
     else room.log(pid, `Hạ ${name}! Đóng góp ${pctTxt}: cần từ ${K.share * 100}% mới nhận ${world ? "thưởng" : "rương"}.${coinTxt}${ring}`, "#ffb35c");
   }
   if (!e.dmgBy.has(by) && !e.supBy.has(by)) room.log(by, `Hạ ${name}, nhận ${formatHonTe(coin)} Hồn Tệ.`, k.def.aura);

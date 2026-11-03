@@ -4,6 +4,7 @@
 
 **Giai đoạn 10: Đồ họa isometric** (quy cách mục 5.11).
 
+- 03/11/2026 — Danh Hiệu P5 (#1778, phần #1766): nguồn mở khoá nối vào `grantTitle` — nhận bậc cuối chuỗi Thành Tựu (`TITLE_ACHV`, mở bù lúc vào phòng), chốt tuần xếp hạng top 1 / 3 / 10 mỗi bảng `RANK_BOARDS` (`TITLE_RANK_TIERS`, `titleCloseWeek`, dấu chốt cùng transaction, hết hạn khi qua tuần kế) và boss / thú vương lần đầu server-first (`bossFirst`, khoá chính theo mã boss); SQL `043_danh_hieu_nguon.sql`, `PgStore` + `MemoryStore`, test `title-test`, soát gian lận cập nhật.
 - 03/11/2026 — Danh Hiệu P4a (#1770, phần #1766): concept sáu bậc tiên hiệp rực lửa, hậu kỳ lưới 192×32, alpha nhị phân và đầu phải lật từ trái; trang đối chiếu tên thật 1x/3x trên nền sáng/tối ở artifacts phiên AO `soul_land_game-1039`. Chỉ concept, chưa nhập game.
 
 **Đã có:** quy cách isometric, bảng 10 vùng, bảng màu (10.0); client isometric: chiếu / chiếu ngược, camera 640×360, sắp lớp theo độ sâu, khoét lỗ vật che, bóng, `?view=topdown` (10.1); bộ ô và vật đứng của cả 10 bản đồ, nhà và tường thành dựng bằng code (10.2); dây chuyền `tools/assets` (10.3); giao diện thủy mặc, font pixel, thẻ võ hồn, biểu tượng, chân dung NPC (10.8); ánh sáng Light2D, `ambient` ngày / đêm, thời tiết, normal map tự sinh, tự tắt khi không có GPU (10.7); NPC phụ, dân thường, lính gác bằng LPC.

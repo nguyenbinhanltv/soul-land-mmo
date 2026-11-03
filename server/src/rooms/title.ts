@@ -1,7 +1,7 @@
 // Danh Hiệu (GAME_DESIGN.md mục 5.25, docs/design/danh-hieu.md, bước P1): `grantTitle` (CHỈ server gọi), tin `title {op: "get" | "equip", id?}`, trường công khai `PlayerState.titleId`.
 // Chỉ trưng bày, một ô đeo. Mọi quyết định ở đây: client chỉ gửi `op` và `id`; `equip` kiểm sở hữu + hạn ngay trong câu ghi DB (`store.titleEquip`), hạn theo đồng hồ server.
 // `titleId` rỗng = đang dùng danh hiệu cấp mặc định (client suy ra từ cấp, `titleText`). Danh hiệu đang đeo hết hạn thì tự về rỗng (bộ hẹn giờ + kiểm lại mỗi lần đọc).
-import { MSG_GROUP, TITLE_DEFS, titleDef, titleExpiry, type TitleDef } from "../../../shared/data.ts";
+import { MSG_GROUP, TITLE_DEFS, titleDef, titleExpiry, titleOfAchv, titleOfBoss, type TitleDef } from "../../../shared/data.ts";
 import { store } from "../db.ts";
 import { takeToken } from "../ratelimit.ts";
 import { type MapRoom } from "./MapRoom.ts";
@@ -15,6 +15,13 @@ const TIMER_MAX = 2 ** 31 - 1;
 async function syncLevelTitles(d: PData): Promise<string[]> {
   const best = d.owned.reduce((a, v) => Math.max(a, v.level), 0), fresh: string[] = [], have = new Set((await store.titleGet(d.accountId)).owned.map((o) => o.id));
   for (const t of TITLE_DEFS) if (t.source.kind === "level" && best >= t.source.level && !have.has(t.id) && await store.titleGrant(d.accountId, t.id, null) === "new") fresh.push(t.id);
+  return fresh;
+}
+
+/** Mở bù danh hiệu của các thành tựu ĐÃ NHẬN (từ `achv_state.claimed`; nhận trước khi có P5 cũng được); idempotent. Trả các mã MỚI mở. */
+async function syncAchvTitles(d: PData): Promise<string[]> {
+  const fresh: string[] = [];
+  for (const id of (await store.achvGet(d.accountId)).claimed) { const t = titleOfAchv(id); if (t && await store.titleGrant(d.accountId, t.id, null) === "new") fresh.push(t.id); }
   return fresh;
 }
 
@@ -42,7 +49,7 @@ async function sendState(room: MapRoom, id: string, d: PData, extra: Record<stri
 export function titleJoin(room: MapRoom, id: string) {
   const d = room.pdata.get(id); if (!d) return;
   room.chain(d, async () => {
-    try { const fresh = await syncLevelTitles(d); await refresh(room, id, d); await sendState(room, id, d, fresh.length ? { fresh } : {}); }
+    try { const fresh = [...await syncLevelTitles(d), ...await syncAchvTitles(d)]; await refresh(room, id, d); await sendState(room, id, d, fresh.length ? { fresh } : {}); }
     catch (e) { console.error(`Không đọc được danh hiệu tài khoản #${d.accountId}`, e); }
   });
 }
@@ -62,6 +69,27 @@ export function grantTitle(room: MapRoom, id: string, titleId: string, eventEnd?
     try {
       const r = await store.titleGrant(d.accountId, def.id, exp);
       if (r === "new") await sendState(room, id, d, { fresh: [def.id] });
+    } catch (e) { console.error(`Không mở được danh hiệu ${def.id} tài khoản #${d.accountId}`, e); }
+  });
+}
+
+/**
+ * Thành Tựu `achvId` vừa được NHẬN (server đã ghi `achv_state.claimed`): mở danh hiệu gắn với nó nếu có. Gọi từ achv.ts sau khi nhận thành công; thành tựu không gắn danh hiệu thì không làm gì.
+ */
+export function titleAchvClaimed(room: MapRoom, id: string, achvId: string) {
+  const t = titleOfAchv(achvId); if (t) grantTitle(room, id, t.id);
+}
+
+/**
+ * Server-first: người đóng góp `id` vừa hạ boss / thú vương `bossId` trong lần hạ `killKey` (duy nhất toàn máy chủ: phòng + khung + mã boss). Chỉ lần hạ ĐẦU TIÊN (ràng buộc duy nhất ở DB,
+ * `store.bossFirst`, chống chạy đua giữa kênh / pod) mở danh hiệu, cho MỌI người đóng góp của chính lần hạ đó. Lần sau, hoặc boss không có danh hiệu, không làm gì. Lỗi DB chỉ ghi log.
+ */
+export function titleBossKilled(room: MapRoom, id: string, bossId: string, killKey: string) {
+  const def = titleOfBoss(bossId), d = room.pdata.get(id); if (!def || !d) return;
+  room.chain(d, async () => {
+    try {
+      if (!await store.bossFirst(bossId, killKey)) return;
+      if (await store.titleGrant(d.accountId, def.id, null) === "new") { room.log(id, `Danh hiệu mới: ${def.name}!`, "#f2c84b"); await sendState(room, id, d, { fresh: [def.id] }); }
     } catch (e) { console.error(`Không mở được danh hiệu ${def.id} tài khoản #${d.accountId}`, e); }
   });
 }

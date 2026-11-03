@@ -4,6 +4,7 @@
 // trình chạy lịch này (chưa làm: hiện chạy một tiến trình).
 import type { Presence } from "colyseus";
 import type { PresenceBackend } from "./presence.ts";
+import { startTitleWeek } from "./titleWeek.ts";
 import { MAPS, KING, kingNext, vnHHMM, vnAt, WORLD, worldNext, worldBossOn, worldMaps } from "../../shared/data.ts";
 
 /**
@@ -99,5 +100,6 @@ export function startSchedule(presence: Presence, backend?: PresenceBackend) {
   };
   const timer = setInterval(() => { void run(); }, 1000);
   void run();
-  return () => clearInterval(timer);
+  const stopTitleWeek = startTitleWeek(() => leader); // Danh Hiệu: chốt tuần xếp hạng (idempotent ở DB, leader chỉ để đỡ tốn)
+  return () => { clearInterval(timer); stopTitleWeek(); };
 }

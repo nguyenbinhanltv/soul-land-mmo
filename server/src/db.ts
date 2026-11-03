@@ -369,6 +369,13 @@ export interface Store {
   titleGrant(accountId: number, id: string, expiresAt: number | null): Promise<"new" | "dup">;
   /** Đeo danh hiệu `id` (null = về mặc định theo cấp). Chỉ ghi khi đang sở hữu và còn hạn (kiểm trong cùng câu ghi); trả false = từ chối, không đổi gì. Mã lạ thì ném. */
   titleEquip(accountId: number, id: string | null): Promise<boolean>;
+  /**
+   * Chốt tuần danh hiệu xếp hạng cho bảng `board` (P5): nếu (tuần `weekDay` = ngày thứ Hai "YYYY-MM-DD" của tuần đã kết thúc, `board`) CHƯA chốt thì trong MỘT transaction ghi dấu chốt +
+   * mở danh hiệu `ids[i]` (hạng cao nhất mà người đó đạt trong `tiers`, kiểu {top, id}) cho top tài khoản (bỏ tài khoản test), hết hạn `expiresAt` ms. Trả danh sách đã cấp, hoặc null nếu tuần đó đã chốt rồi.
+   */
+  titleCloseWeek(board: string, period: number, weekDay: string, tiers: { top: number; id: string }[], expiresAt: number): Promise<{ accountId: number; id: string }[] | null>;
+  /** Server-first (P5): `true` nếu `killKey` là lần hạ ĐẦU TIÊN của boss `bossId` (ghi dấu lần đầu, hoặc chính lần hạ đã ghi); `false` nếu lần hạ khác đã đi trước. Ràng buộc khoá chính chống chạy đua giữa kênh / pod. */
+  bossFirst(bossId: string, killKey: string): Promise<boolean>;
   /** Sổ tay hồn thú của `accountId` (bảng `bestiary`, #1720): mã loài (BEASTS[].id) -> số lần đã hạ; có khóa = đã gặp. Chưa có dòng = {}. */
   dexGet(accountId: number): Promise<Record<string, number>>;
   /** Ghi "đã gặp" loài `species` (mã BEASTS): chỉ tạo dòng nếu chưa có (kills giữ nguyên). Mã lạ thì ném. */
@@ -481,6 +488,8 @@ export interface TitleOwned { id: string; at: number; exp: number | null }
 /** Danh Hiệu của một tài khoản (`titleGet`). */
 export interface TitleRow { owned: TitleOwned[]; equipped: string | null }
 function titleIdOk(id: string) { if (!titleDef(id)) throw new Error("Danh hiệu: mã không có."); }
+/** Danh hiệu theo hạng: hạng 1-based `rank` nhận mã của mức NHỎ NHẤT trong `tiers` mà `rank <= top` (không cộng dồn); null nếu ngoài mọi mức. */
+const titleTierOf = (rank: number, tiers: readonly { top: number; id: string }[]) => [...tiers].sort((a, b) => a.top - b.top).find((t) => rank <= t.top)?.id ?? null;
 /** Bộ đếm sự kiện của Thành Tựu (khóa trong ACHV_COUNTERS; khóa thiếu = 0). */
 export type AchvCounters = Partial<Record<AchvCounter, number>>;
 /** Một dòng `achv_state` (Thành Tựu, mục 5.23). */
@@ -992,6 +1001,23 @@ export class MemoryStore implements Store {
     m.set(id, { at: now, exp: expiresAt }); this.titles.set(accountId, m);
     if (this.titleEq.get(accountId) === id) this.titleEq.set(accountId, null); // mở lại sau khi hết hạn: không tự đeo lại, về mặc định thật
     return "new" as const;
+  }
+  titleWeeks = new Set<string>(); // "weekDay|board" đã chốt (bảng title_week_close)
+  firstKills = new Map<string, string>(); // bossId -> killKey (bảng title_first_kill)
+  async titleCloseWeek(board: string, period: number, weekDay: string, tiers: { top: number; id: string }[], expiresAt: number) {
+    for (const t of tiers) titleIdOk(t.id);
+    const k = `${weekDay}|${board}`; if (this.titleWeeks.has(k)) return null;
+    this.titleWeeks.add(k);
+    const out: { accountId: number; id: string }[] = [], top = Math.max(0, ...tiers.map((t) => t.top));
+    for (const [i, x] of this.rankSorted(board, period).slice(0, top).entries()) {
+      const id = titleTierOf(i + 1, tiers); if (id === null) continue;
+      await this.titleGrant(x.accountId, id, expiresAt); out.push({ accountId: x.accountId, id });
+    }
+    return out;
+  }
+  async bossFirst(bossId: string, killKey: string) {
+    if (!this.firstKills.has(bossId)) this.firstKills.set(bossId, killKey);
+    return this.firstKills.get(bossId) === killKey;
   }
   async titleEquip(accountId: number, id: string | null) {
     if (id !== null) {
@@ -2001,6 +2027,41 @@ export class PgStore implements Store {
     // Mở lại sau khi hết hạn: dòng đang đeo cũ (mã này) về mặc định thật, không tự đeo lại.
     await this.pool.query("UPDATE title_equipped SET title_id = NULL, updated_at = now() WHERE account_id=$1 AND title_id=$2", [accountId, id]);
     return "new" as const;
+  }
+  async titleCloseWeek(board: string, period: number, weekDay: string, tiers: { top: number; id: string }[], expiresAt: number) {
+    for (const t of tiers) titleIdOk(t.id);
+    const db = await this.pool.connect();
+    try {
+      await db.query("BEGIN");
+      // Dấu chốt trước: dòng đã có thì ON CONFLICT chờ transaction kia xong rồi không trả dòng nào → bỏ (không cấp hai lần).
+      const mark = await db.query("INSERT INTO title_week_close(week_day, board) VALUES ($1::date, $2) ON CONFLICT DO NOTHING RETURNING 1", [weekDay, board]);
+      if (!mark.rowCount) { await db.query("ROLLBACK"); return null; }
+      const top = Math.max(0, ...tiers.map((t) => t.top));
+      const rows = await db.query(
+        `SELECT r.account_id FROM rank_scores r JOIN accounts a ON a.id=r.account_id WHERE r.board=$1 AND r.period=$2 AND NOT a.is_test
+         ORDER BY r.score DESC, r.tie DESC, r.updated_at, r.account_id LIMIT $3`, [board, period, top]);
+      const out: { accountId: number; id: string }[] = [];
+      for (const [i, x] of rows.rows.entries()) {
+        const id = titleTierOf(i + 1, tiers); if (id === null) continue;
+        const accountId = Number(x.account_id);
+        const r = await db.query(
+          `INSERT INTO title_owned(account_id, title_id, expires_at) VALUES ($1, $2, to_timestamp($3::double precision / 1000))
+           ON CONFLICT (account_id, title_id) DO UPDATE SET unlocked_at = now(), expires_at = EXCLUDED.expires_at
+           WHERE title_owned.expires_at IS NOT NULL AND title_owned.expires_at <= now() RETURNING 1`, [accountId, id, expiresAt]);
+        if (r.rowCount) await db.query("UPDATE title_equipped SET title_id = NULL, updated_at = now() WHERE account_id=$1 AND title_id=$2", [accountId, id]);
+        out.push({ accountId, id });
+      }
+      await db.query("COMMIT");
+      return out;
+    } catch (e) {
+      await db.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally { db.release(); }
+  }
+  async bossFirst(bossId: string, killKey: string) {
+    await this.pool.query("INSERT INTO title_first_kill(boss_id, kill_key) VALUES ($1, $2) ON CONFLICT (boss_id) DO NOTHING", [bossId, killKey]);
+    const r = await this.pool.query("SELECT kill_key FROM title_first_kill WHERE boss_id=$1", [bossId]);
+    return r.rows[0]?.kill_key === killKey;
   }
   async titleEquip(accountId: number, id: string | null) {
     if (id === null) {
