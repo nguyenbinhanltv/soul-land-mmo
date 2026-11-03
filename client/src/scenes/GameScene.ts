@@ -1129,8 +1129,6 @@ export class GameScene extends Phaser.Scene {
     if (by) { const t = stoppedText(c, by); if (c !== "hunt") hud.log(t, "#ffb35c"); flashWhy(t); }
   }
 
-  /** Khoảng cách (pixel) từ mình tới một hồn thú trong state; chưa có mình thì coi như rất xa. */
-
   /** Chữ và lệnh của chip trạng thái (lệnh ưu tiên cao nhất đang chạy), vẽ mỗi khung hình ở updateStats. */
   drawCmdChip() {
     const c = topCmd(this.activeCmds()), lk = this.lockId ? this.room.state.beasts.get(this.lockId) : null;
