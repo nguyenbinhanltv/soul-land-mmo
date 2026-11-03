@@ -386,6 +386,7 @@
   }
  },
  "props": {
+  "that_xa_phong_so_7": { "key": "prop_that_xa_phong_so_7", "foot": [54,68], "flip": false },
   "hoc_vien_cong_da_trang": { "key": "prop_hoc_vien_cong_da_trang", "foot": [56,86], "flip": false },
   "leu_cho_troi_do": { "key": "prop_leu_cho_troi_do", "foot": [56,92], "flip": false },
   "leu_cho_troi_xanh": { "key": "prop_leu_cho_troi_xanh", "foot": [56,92], "flip": false },
@@ -1186,8 +1187,8 @@
       "floor": "pho_da"
      },
      "4,31": {
-      "main": ["nha_ngu_dan"],
-      "deco": ["thung_go_chong", "dong_rom"],
+      "main": ["that_xa_phong_so_7"],
+      "deco": [],
       "walls": false
      },
      "130,36": {
