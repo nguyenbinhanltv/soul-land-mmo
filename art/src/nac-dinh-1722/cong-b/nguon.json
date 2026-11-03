@@ -1,0 +1,46 @@
+{
+  "issue": 1722,
+  "date": "2026-11-03",
+  "option": "B: double-tier roof, selected by repository owner",
+  "tool": "OpenAI image_gen.imagegen (Codex builtin)",
+  "license": "OpenAI output terms; not CC0",
+  "reference": "Own 3D guides and previous Codex image for materials; no external image",
+  "items": [
+    {
+      "name": "cong_thanh_vom_x",
+      "raw": "b-x-raw.png",
+      "rawSha256": "b15df070bf2fc8bd8c5528abb7adcc14ff43fcae115cc6d0279588e37122b495",
+      "spriteSha256": "a566e1859e5af887c20e371b25cd58eb9355c418f8beb256b7e842b87a0d0a8a",
+      "foot": [
+        56,
+        179
+      ],
+      "secondFoot": [
+        200,
+        251
+      ],
+      "size": [
+        256,
+        272
+      ]
+    },
+    {
+      "name": "cong_thanh_vom_y",
+      "raw": "b-y-raw.png",
+      "rawSha256": "3463340fe5ac56c956bd7bf486aa31ba2325753e89e03e16a47fef771c845c0a",
+      "spriteSha256": "fefb8e0957bd0899397e89544f191bde012249667271a7cc0e417f4b5b6174fd",
+      "foot": [
+        184,
+        171
+      ],
+      "secondFoot": [
+        56,
+        235
+      ],
+      "size": [
+        240,
+        256
+      ]
+    }
+  ]
+}
