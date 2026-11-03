@@ -46179,6 +46179,11 @@
       "map": "nac_dinh_thanh"
     },
     {
+      "key": "prop_ky_tuc_xa_quy_toc",
+      "iso": true,
+      "map": "nac_dinh_thanh"
+    },
+    {
       "key": "prop_thao_truong_coc_tap",
       "iso": true,
       "map": "nac_dinh_thanh"
