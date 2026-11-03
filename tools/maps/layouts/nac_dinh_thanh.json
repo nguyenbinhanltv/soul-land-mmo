@@ -101,7 +101,9 @@
     { "type": "area", "name": "Khoảng nhìn lính cổng bắc", "ground": "pave", "rect": [80, 9, 1, 1], "clear": true, "lock": true },
     { "type": "objects", "kind": "guardSpear", "at": [[10, 48], [167, 65], [76, 7]] },
     { "type": "objects", "kind": "guardShield", "at": [[2, 65], [159, 48], [94, 7]] },
-    { "type": "house", "rect": [130, 36, 16, 10], "margin": 1, "ground": "pave" }
+    { "type": "house", "rect": [130, 36, 16, 10], "margin": 1, "ground": "pave" },
+    { "type": "house", "rect": [9, 74, 7, 3], "margin": 0 },
+    { "type": "house", "rect": [164, 65, 3, 3], "margin": 0 }
   ],
   "spawn": { "name": "Quảng trường Nặc Đinh", "rect": [76, 50, 18, 14] },
   "portals": [
