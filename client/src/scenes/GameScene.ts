@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { ContextCursor, pickupHintAllowed, resolveCursor } from "../contextCursor.ts";
 import type { Room } from "colyseus.js";
-import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
+import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleText, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
   itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, beastNameSeen, BEAST_BUFFS, beastBuffBit,
@@ -1689,6 +1689,7 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("mail", (m: MailMsg) => { if (onMail(m)) this.audio.playUi("reward"); }); // Thư (#1336): server gửi lúc vào phòng, sau mỗi thao tác và khi có thư mới
     this.room.onMessage("dex", (m: DexMsg) => onDex(m)); // Sổ Tay Hồn Thú (#1720): loài đã gặp / đã hạ, do server ghi
     this.room.onMessage("achv", (m: AchvMsg) => { if (onAchv(m)) this.audio.playUi("reward"); }); // Thành Tựu (#1317): server gửi lúc vào phòng, sau get / claim và khi bộ đếm làm số "nhận được" đổi
+    this.room.onMessage("title", () => {}); // Danh Hiệu (#1769, P1): tin riêng danh sách đã mở / mã mới mở; màn Danh Hiệu + banner ở P3, tạm bỏ qua để không báo "chưa đăng ký"
     this.room.onMessage("welfare", (m: WelfareMsg) => { if (onWelfare(m)) this.audio.playUi("reward"); }); // Phúc Lợi / Sổ Điểm Danh (#1207): server gửi lúc vào phòng và lúc qua 00:00
     // Tổ đội người chơi (7.1): khung tổ đội và lời mời, chỉ gửi riêng cho mình.
     this.room.onMessage("rally", (m: unknown) => { addRally(m); }); // dấu "Tập trung ở đây" của đồng đội (R6)
@@ -3070,7 +3071,8 @@ export class GameScene extends Phaser.Scene {
       const col = id === this.me ? "#ffe9a0" : nameplateAppearance(kind).color;
       if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
-      title.setText(p.auto ? `${titleOf(p.level)} · ${id === this.me && autoJobText() || "Tự động"}` : titleOf(p.level));
+      const tt = titleText(p.titleId, p.level);
+      title.setText(p.auto ? `${tt} · ${id === this.me && autoJobText() || "Tự động"}` : tt);
       const tcol = p.auto ? "#86e0b0" : "#f2c84b"; if (title.style.color !== tcol) title.setColor(tcol);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);

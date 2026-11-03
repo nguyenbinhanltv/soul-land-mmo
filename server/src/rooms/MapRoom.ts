@@ -58,6 +58,7 @@ import * as tong from "./tong.ts";
 import { calendarAction } from "./calendar.ts";
 import { welfareAction } from "./welfare.ts";
 import { achvAction } from "./achv.ts";
+import { titleAction } from "./title.ts";
 import { dexAction } from "./dex.ts";
 import { mailAction } from "./mail.ts";
 import { bicanhAction } from "./bicanh.ts";
@@ -453,6 +454,7 @@ export class MapRoom extends Room<MapState> {
     this.onLimitedMsg("read", "rank", (c, m: { op?: unknown; board?: unknown; page?: unknown; pageSize?: unknown }) => rank.rankAction(this, c.sessionId, m)); // Bảng Xếp Hạng (5.19): boards / top
     this.onLimitedMsg("read", "mail", (c, m: { op?: unknown; id?: unknown }) => mailAction(this, c.sessionId, m)); // Thư (5.24): get / read (read) / claim, claimAll, del (thêm nhịp trade trong mail.ts)
     this.onLimitedMsg("read", "dex", (c, m: { op?: unknown }) => dexAction(this, c.sessionId, m)); // Sổ tay hồn thú (#1720): chỉ get; server tự ghi
+    this.onLimitedMsg("read", "title", (c, m: { op?: unknown; id?: unknown }) => titleAction(this, c.sessionId, m)); // Danh Hiệu (5.25): get (read) / equip (thêm nhịp trade trong title.ts)
     this.onLimitedMsg("read", "achv", (c, m: { op?: unknown; id?: unknown }) => achvAction(this, c.sessionId, m)); // Thành Tựu (5.23): get (read) / claim (thêm nhịp trade trong achv.ts)
     this.onLimitedMsg("read", "welfare", (c, m: { op?: unknown; day?: unknown; pay?: unknown }) => welfareAction(this, c.sessionId, m)); // Phúc Lợi (5.21): get (read) / sign, makeup (thêm nhịp trade ở welfare.ts); giờ do server quyết
     this.onLimitedMsg("read", "bicanh", (c, m: { op?: unknown; id?: unknown; pay?: unknown }) => bicanhAction(this, c.sessionId, m)); // Bí Cảnh (5.22): get (read) / enter, buy (thêm nhịp trade ở bicanh.ts); giờ do server quyết

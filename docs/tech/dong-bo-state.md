@@ -39,6 +39,7 @@ Thêm / đổi trường ở `schema.ts` thì sửa bảng này (kiểm (h) củ
 | `kills` | uint32 | số lần hạ (bảng kết quả sân đấu) | `arenaShow.ts` |
 | `auto` | boolean | đang tự săn (chữ "Tự động" trên đầu) | |
 | `tong` | uint8 | tông môn + 1 (0 = không) | |
+| `titleId` | string | Danh Hiệu đang đeo (mã `TITLE_DEFS`, mục 5.25); "" = danh hiệu cấp mặc định, client suy từ `level` | |
 
 **`BeastState`**
 

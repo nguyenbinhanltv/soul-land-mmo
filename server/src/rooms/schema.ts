@@ -56,7 +56,8 @@ export class PlayerState extends Schema {
   @type("boolean") dead: boolean = false;
   @type("uint32") kills: number = 0;
   @type("boolean") auto: boolean = false; // Auto 1 (mục 5.13): đang tự săn; ai cũng thấy chữ "Tự động" trên đầu
-  @type("uint8") tong: number = 0;        // #196 (mục 5.14): tông môn, chỉ số trong TONG_MON + 1 (0 = không); tên tông màu riêng dưới tên
+  @type("string") titleId: string = "";   // Danh Hiệu (mục 5.25): mã TITLE_DEFS đang đeo, "" = danh hiệu cấp mặc định (client suy từ `level`); công khai, danh sách đã mở chỉ gửi chính chủ (tin `title`)
+  @type("uint8") tong: number = 0;       // #196 (mục 5.14): tông môn, chỉ số trong TONG_MON + 1 (0 = không); tên tông màu riêng dưới tên
 }
 
 export class BeastState extends Schema {
