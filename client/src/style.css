@@ -20,7 +20,7 @@
   --text:#2a2230; --muted:#4a4452; --accent:#245a46;
   --hp:#c0392b; --mp:#2a5ab0; --xp:#a8780e; --xp-t:#684a09; /* --xp-t: chữ màu vàng trên giấy (4,7 : 1); --xp chỉ cho thanh / viền */ --warn:#853a0d;
   --wash:rgba(58,52,64,.08); --wash2:rgba(58,52,64,.16);
-  --ink-panel:rgba(26,16,32,.72); --ink-text:#ece2c8;
+  --ink-panel:rgba(26,16,32,.72); --ink-hatch:rgba(26,16,32,.6); --ink-hatch2:rgba(26,16,32,.55); --ink-fade:rgba(26,16,32,.7); --ink-dim:rgba(26,16,32,.35); --ink-veil:rgba(8,12,10,.96); --gold-hi:#ffe08a; --ink-text:#ece2c8;
   /* Viền chữ 1 điểm màu mực: tên võ hồn / vật phẩm mang màu sáng vẫn đọc được trên giấy. */
   --stroke:1px 0 #1a1020,-1px 0 #1a1020,0 1px #1a1020,0 -1px #1a1020;
   /* ===== UI-0: token dùng chung (GAME_DESIGN.md 5.11 C). Màu độ hiếm / niên hạn --tier-N, --tier-N-glow, --rare-N do uiArt.ts đặt từ TIERS

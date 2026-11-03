@@ -42,14 +42,14 @@
 #ping2{display:flex;align-items:center;justify-content:center;gap:var(--sp-2);margin:var(--sp-1) auto 0;max-width:168px;color:var(--plate-text);font:var(--fs-s)/1.3 var(--f10);white-space:nowrap}
 #ping2 .pg2-mark{font-style:normal;--pg:var(--plate-text);color:var(--pg)}
 #ping2[data-level="good"]{--pg:#7fd89a}
-#ping2[data-level="warn"]{--pg:var(--qgold,#ffe08a)}
+#ping2[data-level="warn"]{--pg:var(--qgold,var(--gold-hi))}
 #ping2[data-level="bad"]{--pg:var(--son-l)}
 
 /* (4) Mũi tên mục tiêu nhiệm vụ: khung đặt chừa chỗ cho cột trái (chỉ số), cột phải (radar), thanh kỹ năng; mũi tên nằm trên biên khung. */
 #qarrow{position:absolute;top:72px;bottom:150px;left:250px;right:250px;z-index:1;pointer-events:none}
 #qarrow[hidden]{display:none}
 #qarrow .qa-pt{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:var(--sp-1)}
-#qarrow .qa-ar{font:var(--fs-l)/1 var(--f12);font-style:normal;color:#ffe08a;text-shadow:var(--stroke);transform:rotate(var(--qa-deg,0deg))}
+#qarrow .qa-ar{font:var(--fs-l)/1 var(--f12);font-style:normal;color:var(--gold-hi);text-shadow:var(--stroke);transform:rotate(var(--qa-deg,0deg))}
 #qarrow .qa-tx{padding:var(--sp-1) var(--sp-3);font:var(--fs-s)/1.3 var(--f10);color:var(--plate-text);background:var(--plate);border:var(--bd-fine) solid var(--ink2);white-space:nowrap}
 #qarrow .qa-pt[data-x="r"]{align-items:flex-end;transform:translate(-100%,-50%)}
 #qarrow .qa-pt[data-x="l"]{align-items:flex-start;transform:translate(0,-50%)}
