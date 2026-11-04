@@ -5,7 +5,8 @@
 // Trường tự săn / tông / danh hiệu chỉ đặt ở state phía trình duyệt (cảnh chỉ đọc state để vẽ); server không đổi.
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { readFileSync, writeFileSync } from "node:fs";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
@@ -52,7 +53,13 @@ try {
   const hook = "\nconst atCreate = GameScene.prototype.create; GameScene.prototype.create = function(...a) { window.__at = this; window.__setAutoStatus = setAutoStatus; return atCreate.apply(this, a); };";
   if (base) { // vite phục vụ từ đĩa: tạm thay GameScene.ts bằng bản trước, khôi phục ở finally
     const mb = execFileSync("git", ["merge-base", "HEAD", "origin/main"], { cwd: root }).toString().trim();
-    saved = await readFile(scenePath, "utf8");
+    saved = readFileSync(scenePath, "utf8");
+    // Thoát bất thường (Ctrl+C, kill, lỗi) không chạy finally: khôi phục đồng bộ để GameScene.ts không bị commit nhầm bản cũ.
+    const restore = () => { if (saved !== null) { writeFileSync(scenePath, saved); saved = null; } };
+    process.on("exit", restore);
+    for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => { restore(); process.exit(130); });
+    process.on("uncaughtException", (e) => { restore(); console.error(e); process.exit(1); });
+    console.warn("[autotitle] AUTOTITLE_BASE=1 tạm thay client/src/scenes/GameScene.ts; nếu thấy tệp này bị đổi sau khi chạy: git checkout -- client/src/scenes/GameScene.ts");
     await writeFile(scenePath, execFileSync("git", ["show", `${mb}:client/src/scenes/GameScene.ts`], { cwd: root, maxBuffer: 1 << 26 }).toString("utf8"));
   }
   await page.route("**/src/scenes/GameScene.ts*", async (route) => {
@@ -130,7 +137,7 @@ try {
   }
   console.log(`autotitle-browser (${tag}): ok. Ảnh:`, out);
 } finally {
-  if (saved !== null) await writeFile(scenePath, saved);
+  if (saved !== null) { writeFileSync(scenePath, saved); saved = null; }
   await Promise.allSettled(bots.map((b) => b.leave()));
   await browser?.close().catch(() => {});
   for (const c of children) c.kill();
