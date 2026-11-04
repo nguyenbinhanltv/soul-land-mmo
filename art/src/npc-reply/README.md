@@ -27,3 +27,9 @@ Ba NPC `trieu_vo_cuc`, `tho_may`, `tho_may_thien_dau` giữ nguyên thân/idle t
 Importer ghi chuỗi LPC nguồn vào `replyLpc` của pose trong manifest; validator và bài kiểm thử đối chiếu với hồ sơ nguồn. Client tra đúng key theo mã NPC và chỉ dùng pose khi chuỗi này khớp, idle đã ghép và mọi lớp đều sẵn sàng, không đang tải lại. Bộ thiếu lớp, bộ khác ngoại hình hoặc thiếu pose giữ idle. Tải đủ lớp giữa cuộc hội thoại không tự phát cử chỉ; lần mở sau mới xét lại. Nhịp 480 ms và vòng đời hủy giống lô 3. Harness so idle runtime từng pixel với nguồn đã ghi, kiểm thêm thiếu lớp/ngoại hình khác khi texture cũ còn cache, và kiểm hủy giữa pose.
 
 Cả ba ảnh ghép có lớp trang phục **CC-BY-SA 3.0** (hai thợ may còn có dép CC-BY-SA 3.0), nên các pose phái sinh giữ **CC-BY-SA 3.0**. Các lớp OGA-BY/CC-BY khác giữ nguyên nghĩa vụ ghi công. Tác giả, URL và lựa chọn giấy phép từng món ở `nguon.json` (dòng nguyên văn từ bảng LPC trong `art/CREDITS.md`); không gán CC0 cho ảnh ghép. Phần sinh/chỉnh bằng OpenAI không thay thế giấy phép của nguồn LPC. Ảnh/clip lô 4 ở artifacts `npc-reply-lo-4/index.html` của phiên `soul_land_game-1055`.
+
+## Lô 5: ba NPC tông môn (#1804)
+
+`su_gia_hao_thien`, `ninh_phong_tri`, `su_gia_lam_dien` dùng cùng quy trình xuất idle/stencil đủ lớp, Codex sinh riêng từng pose và nhập bằng `npc-reply-import.mjs --install`. Không thêm mã hiển thị hay chuỗi LPC vào JS; importer đăng ký `replyLpc` trong manifest để phép khớp nguồn của lô 4 bật pose. Harness kiểm cả ba NPC và so idle runtime với nguồn, tám hướng, hủy, Giảm chuyển động và fallback thiếu lớp/khác ngoại hình.
+
+Cả ba pose phái sinh giữ **CC-BY-SA 3.0**: áo giao lĩnh của Sứ giả Hạo Thiên; tóc/áo/dép của Ninh Phong Trí; áo bào và khăn quàng của Sứ giả Lam Điện. Bảng ghi công từng lớp giữ nguyên trong hồ sơ, các lớp OGA-BY/CC-BY khác tiếp tục được ghi công. RAW và ảnh dẫn ngoài repo Q17; ảnh trước–sau/clip để duyệt ở artifacts `npc-reply-lo-5/index.html` của phiên `soul_land_game-1055`.
