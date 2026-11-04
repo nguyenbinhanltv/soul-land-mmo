@@ -1,6 +1,6 @@
 // Thử kế hoạch phát hiệu ứng pixelfx (pixelfx.ts, #1802 P2): chọn khóa theo độ hiếm / mức hiệu ứng, bù chân → tâm ô, thiếu meta thì không phát.
 import assert from "node:assert/strict";
-import { deathKeys, hatchKey, lootKey, pfxPlan, setPixelfxMeta, PFX_STYLE } from "../src/pixelfx.ts";
+import { deathKeys, hatchKey, reviveKey, lootKey, pfxPlan, setPixelfxMeta, PFX_STYLE } from "../src/pixelfx.ts";
 import { SPR } from "../src/iso.ts";
 
 assert.equal(lootKey(-1, 3, "high"), null, "-1 = tin đầu / không có đồ mới");
@@ -23,4 +23,5 @@ assert.deepEqual(deathKeys(1, "low"), [], "mức Thấp bỏ tinh anh");
 assert.deepEqual(deathKeys(2, "high"), ["fx_pfx_poof", "fx_pfx_soul_rise_light"]);
 assert.deepEqual(deathKeys(3, "low"), ["fx_pfx_soul_rise_light"], "thú vương / boss luôn có hồn bay lên");
 assert.equal(hatchKey("low"), null); assert.equal(hatchKey("mid"), "fx_pfx_poof");
+assert.equal(reviveKey("low", false), null, "mức Thấp: người khác bỏ"); assert.equal(reviveKey("low", true), "fx_pfx_respawn_beam_light"); assert.equal(reviveKey("mid", false), "fx_pfx_respawn_beam_light");
 console.log("pixelfx-test OK");
