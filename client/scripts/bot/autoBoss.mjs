@@ -114,8 +114,12 @@ export async function autoBossTest(){
     await cfg({years:[0,0],king:false,world:false});
     ok(await until(async()=>(await info()).target===E1.bid,6000),"bật lại: nhắm lại tinh anh");
     const k0=me().kills, lowHp=async bid=>{ const b=A.room.state.beasts.get(bid); if(b) await test(A,"kdmg",{bid,v:Math.max(1,b.hp-200)}); };
-    await lowHp(E1.bid);
-    ok(await waitFor(()=>!A.room.state.beasts.has(E1.bid)&&me().kills>k0,30000),
+    const hp0=A.room.state.beasts.get(E1.bid)?.hp; await lowHp(E1.bid); const tK=Date.now();
+    // Không đo bằng `kills`: me().kills là số hạ của võ hồn đang ra trận, tự săn đổi võ hồn giữa chừng thì số đó đổi theo (CI main dd7f9698:
+    // tinh anh hạ ngay mà kills không tăng, bài chờ đủ 30 giây). Hạ có tính cho A thì kiểm ở khóa ELITE.lock ngay sau đây (do server ghi).
+    const killed=await waitFor(()=>!A.room.state.beasts.has(E1.bid),30000);
+    console.log(`[đo] hạ tinh anh ${((Date.now()-tK)/1000).toFixed(1)} giây (máu lúc đầu ${hp0}, kills ${k0}->${me().kills}, võ hồn ${me().vh})`);
+    ok(killed,
       `tự săn hạ tinh anh [tự săn ${JSON.stringify(await info().then(x=>({target:x.target,boss:x.boss,away:x.away})))}, A ${me().x?.toFixed(0)},${me().y?.toFixed(0)} ${me().hp}/${me().maxHp}, tinh anh ${A.room.state.beasts.get(E1.bid)?.hp}]`);
     const lk=(await test(A,"elock")).locks; ok(lk[lockKey]>ELITE.lock-30,`nhận thưởng tinh anh: khóa ${lockKey} ${Math.round(lk[lockKey]??0)} giây`);
     await autoOp("off");
