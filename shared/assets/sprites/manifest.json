@@ -46394,6 +46394,33 @@
       "iso": true,
       "replyLpc": "1|0|light|brown|body.body,head.male,brow.thick=navy,hair.parted_side_bangs=navy,torso.su_lai_khac=white,legs.pantaloons=charcoal,feet.slippers=brown,belt.obi=navy,hat.headband_tied=navy"
     },
+    {
+      "key": "npc_reply_su_gia_hao_thien",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "replyLpc": "1|0|light|brown|body.body,head.male,brow.thin=dark_brown,hair.parted_side_bangs=dark_brown,torso.giao_linh=navy,legs.pantaloons=tan,feet.sandals=brown,belt.obi=charcoal,hat.headband_thick=maroon,arms.bracers"
+    },
+    {
+      "key": "npc_reply_ninh_phong_tri",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "replyLpc": "1|0|light|brown|body.body,head.male,brow.thick=gray,hair.pixie=gray,torso.su_lai_khac=white,legs.pantaloons=charcoal,feet.slippers=brown,belt.obi=navy,hat.headband_tied=navy"
+    },
+    {
+      "key": "npc_reply_su_gia_lam_dien",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "replyLpc": "1|0|light|gray|body.body,head.male_gaunt,brow.thick=light_brown,hair.ponytail2=light_brown,torso.ao_bao=charcoal,legs.pants2=black,feet.boots_fold=brown,cape.solid=slate,belt.leather=walnut,neck.scarf=maroon"
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
