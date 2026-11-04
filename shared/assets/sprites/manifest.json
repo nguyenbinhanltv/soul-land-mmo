@@ -46327,6 +46327,46 @@
       ],
       "iso": true
     },
+    {
+      "key": "fx_pfx_poof",
+      "frame": [
+        91,
+        86
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_soul_rise_light",
+      "frame": [
+        88,
+        129
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_respawn_beam_light",
+      "frame": [
+        126,
+        150
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_collect_burst",
+      "frame": [
+        84,
+        87
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_power_star_light",
+      "frame": [
+        78,
+        71
+      ],
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

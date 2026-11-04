@@ -86,7 +86,7 @@ export function qualityCheck(manifest, root = ROOT) {
     try { info = inspectPng(file, { frame: spec.frame ?? entry.frame, origin: expectedOrigin, palette: expectedPalette(entry, spec) }); }
     catch (error) { errors.push(`${key}: không đọc được PNG (${error.message})`); continue; }
     if (spec.size && info.size.some((n, i) => n !== spec.size[i])) errors.push(`${key}: cỡ ${info.size.join("×")}, cần ${spec.size.join("×")}`);
-    if (info.semiTransparent) errors.push(`${key}: có ${info.semiTransparent} điểm alpha bán trong suốt`);
+    if (info.semiTransparent && !key.startsWith("fx_pfx_")) /* pixelfx: alpha mềm, xem nguon-giay-phep.md */ errors.push(`${key}: có ${info.semiTransparent} điểm alpha bán trong suốt`);
     if (info.badColors.length) errors.push(`${key}: màu ngoài bảng ${info.badColors.slice(0, 8).join(", ")}`);
     if (entry.frame && spec.frame && JSON.stringify(entry.frame) !== JSON.stringify(spec.frame)) errors.push(`${key}: manifest.frame lệch quy cách ${spec.frame.join("×")}`);
     if (declaredOrigin && JSON.stringify(declaredOrigin) !== JSON.stringify(expectedOrigin)) errors.push(`${key}: manifest.origin lệch neo ${expectedOrigin?.join(",") ?? "không có"}`);

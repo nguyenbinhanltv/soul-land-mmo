@@ -27,6 +27,8 @@ const nineOpt = +opt("--nine", "0"), mapOpt = opt("--map", ""), isoAt = args.ind
 const staticAt = args.indexOf("--static"), staticOpt = staticAt >= 0 && !!args.splice(staticAt, 1); // hồn thú lai: sheet tĩnh 3 hướng (#386)
 const keepOrderAt = args.indexOf("--keep-order"), keepOrder = keepOrderAt >= 0 && !!args.splice(keepOrderAt, 1); // nhập lô nhỏ, giữ thứ tự các khóa có sẵn
 
+const noCreditsAt = args.indexOf("--no-credits"), noCredits = noCreditsAt >= 0 && !!args.splice(noCreditsAt, 1); // bộ nhập có dòng ghi công chung (pixelfx-import.mjs): không thêm dòng riêng vào mục AI
+
 const manifestSource = readFileSync(MANIFEST, "utf8");
 const manifest = JSON.parse(manifestSource);
 manifest.sprites ??= [];
@@ -93,13 +95,14 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     used.add(c);
     if (!free && !palette.has(c)) bad.set(c, (bad.get(c) ?? 0) + 1);
   }
-  if (semi) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
+  // `fx_pfx_*` (pixelfx, #1802): ánh sáng cộng của pixelfx là alpha mềm và nhiều màu (hàng nghìn); điểm ảnh vẫn nằm trên lưới 1×, hiển thị bằng lớp cộng sáng, nên không ép alpha 0/255 và trần màu.
+  if (semi && !key.startsWith("fx_pfx_")) err(key, `${semi} điểm bán trong suốt (chỉ được alpha 0 hoặc 255)`);
   if (spec.vohonIcon) {
     let clear = 0, opaque = 0;
     for (let i = 3; i < img.data.length; i += 4) { if (img.data[i] === 0) clear++; else if (img.data[i] === 255) opaque++; }
     if (!clear || !opaque) err(key, "icon nearest phải có cả chủ thể và nền trong suốt");
   }
-  if (free && !spec.static && spec.kind !== "vhanim" && spec.kind !== "ui2" && spec.kind !== "danhhieu" && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
+  if (free && !key.startsWith("fx_pfx_") && !spec.static && spec.kind !== "vhanim" && spec.kind !== "ui2" && spec.kind !== "danhhieu" && used.size > (spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS)) err(key, `${used.size} màu, ${spec.kind === "fx" ? "hiệu ứng" : spec.kind === "phaptuong" ? "pháp tướng" : "chân dung"} tối đa ${spec.kind === "phaptuong" ? PT_MAX_COLORS : PORTRAIT_MAX_COLORS}`);
   if (spec.npc && !(npcIds_ ??= npcIds()).has(spec.npc)) err(key, `không có NPC "${spec.npc}" trong NPCS (shared/data.ts)`);
   if (spec.status && !(statusIds_ ??= statusIds()).has(spec.status)) err(key, `không có trạng thái / buff "${spec.status}" trong STATUS_IDS / BUFF_IDS / BEAST_BUFF_IDS (shared/data.ts)`);
   if (spec.beast && !(beastIds_ ??= beastIds()).has(spec.beast)) err(key, `không có loài "${spec.beast}" trong BEASTS (shared/data.ts)`);
@@ -148,9 +151,10 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     if (stray.length) err(key, `phụ thể vẽ vào ô client không đọc (cột 12–15 hoặc hàng 3): ` + stray.map(([r, c]) => `(${r},${c})`).join(" "));
     if (cellEmpty(img, 0, 0, img.w, img.h)) err(key, `sheet trống hoàn toàn: ghi "blank": true vào manifest và xóa file ảnh + _n (client không tải nửa trống)`);
   } else if (spec.kind === "beast" || spec.kind === "fx" || spec.kind === "npc-reply") {
-    if (spec.kind === "fx" && img.h !== fh) err(key, `hiệu ứng phải là dải một hàng khung ${fw}×${fh}`);
+    const grid = key.startsWith("fx_pfx_"); // pixelfx (#1802): lưới nhiều hàng, mọi ô phải có hình
+    if (spec.kind === "fx" && !grid && img.h !== fh) err(key, `hiệu ứng phải là dải một hàng khung ${fw}×${fh}`);
     const empty = [];
-    for (let c = 0; c < img.w / fw; c++) if (cellEmpty(img, c * fw, 0, fw, fh)) empty.push(c);
+    for (let r = 0; r < (grid ? 0 : 1); r++) for (let c = 0; c < img.w / fw; c++) if (cellEmpty(img, c * fw, r * fh, fw, fh)) empty.push(grid ? `${r}.${c}` : c);
     if (empty.length) err(key, `thiếu khung: cột ${empty.join(", ")}`);
   }
   return spec;
@@ -258,7 +262,7 @@ if (register) {
     if (keepOrder && i >= 0) throw new Error("--keep-order chỉ thêm khóa mới; khóa đã có không được đổi thuộc tính");
     writeFileSync(MANIFEST, keepOrder ? appendManifestEntry(manifestSource, entry) : JSON.stringify(manifest, null, 2) + "\n");
   }
-  upsertCredits(register, `shared/assets/sprites/${spec.file}`);
+  if (!noCredits) upsertCredits(register, `shared/assets/sprites/${spec.file}`);
   console.log(`[validate] đã đăng ký ${register}`);
   process.exit(0);
 }

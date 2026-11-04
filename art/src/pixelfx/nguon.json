@@ -1,0 +1,70 @@
+{
+  "effects": {
+    "fx_pfx_collect_burst": {
+      "key": "fx_pfx_collect_burst",
+      "id": "pickups/collect-burst",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs pickups/collect-burst --sheet --no-actor --seed 1 --out <thư-mục-tạm>",
+      "palette": null,
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "ec524d02a53b2b164ab73b9092242effa3a5a83ed8f822adad738c8b534abb57",
+      "sha256": "89c905d8679a108f13eb390a5142f5e9670d8e8d8ccb03065e57d66fb5fdb3de",
+      "role": "nhặt vật phẩm (màu gốc)"
+    },
+    "fx_pfx_poof": {
+      "key": "fx_pfx_poof",
+      "id": "spawn/poof",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs spawn/poof --sheet --no-actor --seed 1 --out <thư-mục-tạm>",
+      "palette": null,
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "05bda0a4be6b2abebfb609a23248540def78fe6a2a4ecff589c3601fedb7ab70",
+      "sha256": "edd0140e700f24061260b7b66a04a0c8ca15d65054c69ebe8c13a02b1a10acf6",
+      "role": "hồn thú chết (khói xám gốc)"
+    },
+    "fx_pfx_power_star_light": {
+      "key": "fx_pfx_power_star_light",
+      "id": "pickups/power-star",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs pickups/power-star --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#6e5619\",\"#b8902a\",\"#dcbd65\",\"#ffe9a0\",\"#fff4d0\",\"#ffffff\"]}",
+      "palette": "light",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "8199017c09d6136e305281e353cd46778f615f2347f4d225a2fc2be5b58caa1f",
+      "sha256": "9ac93d68a190f1da9a3bddb63b65d9c8e1249d8b37708472792d4e788365b379",
+      "role": "nhặt vật phẩm hiếm (hệ quang)"
+    },
+    "fx_pfx_respawn_beam_light": {
+      "key": "fx_pfx_respawn_beam_light",
+      "id": "spawn/respawn-beam",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs spawn/respawn-beam --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#6e5619\",\"#b8902a\",\"#dcbd65\",\"#ffe9a0\",\"#fff4d0\",\"#ffffff\"]}",
+      "palette": "light",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "3470542cedb33e33da8a5105f6651a562cf044205cee4711827659bbfb4ece01",
+      "sha256": "ce619b9ab54cf2bded22d142506b106331591b470a1d32dd26075ca93549b94f",
+      "role": "hồi sinh (hệ quang)"
+    },
+    "fx_pfx_soul_rise_light": {
+      "key": "fx_pfx_soul_rise_light",
+      "id": "spawn/soul-rise",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs spawn/soul-rise --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#6e5619\",\"#b8902a\",\"#dcbd65\",\"#ffe9a0\",\"#fff4d0\",\"#ffffff\"]}",
+      "palette": "light",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "7fa96b4cbcde80df9e1043b258e2e1db51cf9c549447e28e00b6fca73a95a470",
+      "sha256": "8d9b2a93ebaf75a2f617fd7043ba5c6b4dab083ece05c1ce4fff5c502b1312f8",
+      "role": "hồn sư ngã / hồn bay lên (hệ quang)"
+    }
+  },
+  "pixelfx": {
+    "repo": "https://github.com/patch-gg/pixelfx",
+    "sha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+    "license": "MIT",
+    "spec": "tools/assets/pixelfx/lo-mau.json"
+  }
+}

@@ -50,6 +50,7 @@ class FxTestScene extends Phaser.Scene {
   constructor() { super("fxtest"); }
   preload() {
     this.load.json("m", "sprites/manifest.json");
+    this.load.json("pfxm", "sprites/pixelfx.json");
     this.load.once("filecomplete-json-m", (_k: string, _t: string, d: { sprites?: ({ key: string; frame?: [number, number] } | string)[] }) => {
       for (const e of d?.sprites ?? []) if (typeof e !== "string" && /^fx_/.test(e.key) && e.frame) this.load.spritesheet(e.key, `sprites/iso/fx/${e.key.slice(3)}.png`, { frameWidth: e.frame[0], frameHeight: e.frame[1] });
       if (PT_ON) for (const e of d?.sprites ?? []) if (typeof e !== "string" && /^pt_/.test(e.key)) this.load.spritesheet(e.key, `sprites/phaptuong/${e.key.slice(3)}.png`, { frameWidth: 160, frameHeight: 160 });
@@ -74,6 +75,14 @@ class FxTestScene extends Phaser.Scene {
         if (n) this.fxp.footDust(this.hero.x, this.hero.y + 4 * SPR, 0x9a8b68, n, q.get("run") !== "1");
       }
     });
+    // #1802: `pfx=fx_pfx_a,fx_pfx_b` phát lặp các sheet pixelfx (sprites/pixelfx.json: fps, chân) thành một hàng ở giữa; `pfxadd=1` vẽ cộng sáng. Chỉ để duyệt mỹ thuật.
+    const pfx = (q.get("pfx") ?? "").split(",").filter((k) => this.textures.exists(k));
+    if (pfx.length) {
+      const meta = (this.cache.json.get("pfxm") ?? {}) as Record<string, { fps: number; frame: [number, number]; pivot: [number, number] }>, sheets = new SheetFx(this), add = q.get("pfxadd") === "1";
+      this.events.on("update", (_t: number, dt: number) => sheets.update(dt));
+      const play = () => pfx.forEach((key, i) => { const m = meta[key]; if (m) sheets.play({ key, x: (i - (pfx.length - 1) / 2) * 84 * SPR, y: 30, scale: SPR, fps: m.fps, normal: !add, lift: (m.pivot[1] - m.frame[1] / 2) * SPR }); });
+      this.time.addEvent({ delay: 2600, loop: true, callback: play }); play();
+    }
     // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/tech/hieu-nang-soak.md).
     const P = Number(q.get("stress") ?? 0);
     if (q.get("legacy") === "1") SHEET_TUNE.othersK = 1; // bản trước H8: người khác dùng cả trần sheet (và không tự hạ mức, xem fxTestScreen)

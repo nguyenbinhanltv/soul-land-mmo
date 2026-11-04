@@ -448,7 +448,8 @@ export function sheetSpec(key, frame, iso = false, stat = false) {
     // NPC phụ / dân thường ghép từ LPC (lpc-compose --game): bố cục sheet hồn sư 24 × 6, đã tô màu (không hoán màu), một lớp.
     if ((m = key.match(/^lpc_([a-z0-9_]+)$/))) return spec(`iso/lpc/${m[1]}.png`, isoLayout("honsu"), { kind: "lpc" });
     // Hiệu ứng (lpc-item.mjs): dải một hàng khung vuông `frame` (manifest ghi), giữ màu gốc của gói như chân dung.
-    if ((m = key.match(/^fx_([a-z0-9_]+)$/)) && frame && frame[0] === frame[1]) return { file: `iso/fx/${m[1]}.png`, frame, kind: "fx", iso: true };
+    // Riêng `fx_pfx_*` (pixelfx, #1802): khung chữ nhật cắt theo vùng chứa của hiệu ứng.
+    if ((m = key.match(/^fx_([a-z0-9_]+)$/)) && frame && (frame[0] === frame[1] || key.startsWith("fx_pfx_"))) return { file: `iso/fx/${m[1]}.png`, frame, kind: "fx", iso: true };
     // Bộ ảnh Danh Hiệu (#1792, art/src/danh-hieu-1777): khung nine-patch 128×32, đầu 36×32, biểu tượng nhóm 32×32, clip 16×24 × 4 khung, hạt 8×8 × 4 khung; màu giữ như bản duyệt (không ép bảng chung).
     if ((m = key.match(/^danh_hieu_((?:khung|dau|nhom|clip|hat)_[a-z0-9_]+)$/))) {
       const kind = m[1].split("_")[0], size = { khung: [128, 32], dau: [36, 32], nhom: [32, 32] }[kind] ?? (frame ? [frame[0] * 4, frame[1]] : null);
