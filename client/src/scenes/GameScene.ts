@@ -77,6 +77,7 @@ import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, be
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
+import { loadPixelfx, playPfx, lootKey } from "../pixelfx.ts"; // #1802: hiệu ứng pixelfx (sheet fx_pfx_*)
 import { loadPrivateAssets, playPriv } from "../privateAssets.ts"; // #623: hiệu ứng kho riêng (thiếu thì giữ hình cũ)
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } from "../skillVisual.ts";
 /** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
@@ -549,7 +550,7 @@ export class GameScene extends Phaser.Scene {
     this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
     this.skfx = new SkillFx(this, this.fxp);
     registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL)
-    void loadPrivateAssets(this); // #623: kho riêng (không chặn vào game; không có kho thì không làm gì)
+    void loadPixelfx(); void loadPrivateAssets(this); // #623: kho riêng (không chặn vào game; không có kho thì không làm gì)
     this.teleTop = this.add.graphics().setDepth(99983.5); // trên mọi hiệu ứng chiêu (≤ 99983), dưới tên / số sát thương
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
     const cam = this.cameras.main;
@@ -1738,7 +1739,7 @@ export class GameScene extends Phaser.Scene {
     // Túi đồ và Hồn Tệ (bước 3.1): chỉ gửi riêng cho mình; client chỉ gửi id ô muốn dùng / hấp thụ / bỏ, server kiểm tra.
     // Mảnh võ hồn trong túi (3.4): bảng đội hình hiện tiến độ mở / lên sao nên vẽ lại cùng túi.
     // Từ #215 sau tin "bag" đầu tiên chỉ nhận phần đổi (tin "bagd"); chưa có túi gốc thì bỏ qua (tin "bag" đang tới).
-    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); const rare = lootToasts(this.bag?.items ?? null, m.items); if (this.bag && document.getElementById("bag")?.hidden) { const g = lootGained(this.bag.items, m.items).length; if (g) setBadge("bag", "new", (badgeOf("bag")?.n ?? 0) + g); } if (rare >= RARE_LOOT_MIN) this.audio.playUi("rare"); else if (rare >= 1) this.audio.playUi("reward"); this.pickupBag(this.bag, m); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
+    const onBag = (m: BagMsg) => { if (m.slots - m.items.filter((i) => i.vohon === null).length <= GUIDE_BAG_FREE) guideHint("bag"); const rare = lootToasts(this.bag?.items ?? null, m.items); if (this.bag && document.getElementById("bag")?.hidden) { const g = lootGained(this.bag.items, m.items).length; if (g) setBadge("bag", "new", (badgeOf("bag")?.n ?? 0) + g); } if (rare >= RARE_LOOT_MIN) this.audio.playUi("rare"); else if (rare >= 1) this.audio.playUi("reward"); this.pickupBag(this.bag, m); this.lootBurst(rare); this.bag = m; this.renderBag(); this.renderRoster(); hud.npcBag(m); };
     this.room.onMessage("bag", onBag);
     this.room.onMessage("equipbestp", (m: { token: string; slot?: number; count: number; gain: number }) => {
       confirmDialog({ title: "Mặc tốt nhất", body: `Sẽ đổi ${m.count} món, sức mạnh +${m.gain.toLocaleString("vi-VN")}`,
@@ -2611,6 +2612,11 @@ export class GameScene extends Phaser.Scene {
   pickupBag(prev: BagMsg | null, next: BagMsg) {
     if (!prev) return;
     if (next.honTe > prev.honTe) chatLoot("coin", "Hồn Tệ", next.honTe - prev.honTe, COIN_COL);
+  }
+  /** Nhặt đồ (#1802 P2): chùm sáng pixelfx dưới chân mình, sao sáng nếu có đồ hiếm; SheetFx lo trần SHEET_CAP và Giảm chuyển động. */
+  lootBurst(rare: number) {
+    const v = this.players.get(this.me), key = lootKey(rare, RARE_LOOT_MIN, fxLevel()); if (!v || !key || !v.root.active) return;
+    playPfx(this.svis.sheets, key, { x: v.root.x, y: v.root.y });
   }
   /** Vẽ các dòng nhận được (pickupFx.planPickup) trên đầu mình: số dòng theo mức hiệu ứng, Giảm chuyển động thì đứng yên rồi mờ. */
   pickupFloat(lines: PickupLine[]) {
