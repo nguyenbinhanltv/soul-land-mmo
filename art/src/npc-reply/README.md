@@ -33,3 +33,9 @@ Cả ba ảnh ghép có lớp trang phục **CC-BY-SA 3.0** (hai thợ may còn 
 `su_gia_hao_thien`, `ninh_phong_tri`, `su_gia_lam_dien` dùng cùng quy trình xuất idle/stencil đủ lớp, Codex sinh riêng từng pose và nhập bằng `npc-reply-import.mjs --install`. Không thêm mã hiển thị hay chuỗi LPC vào JS; importer đăng ký `replyLpc` trong manifest để phép khớp nguồn của lô 4 bật pose. Harness kiểm cả ba NPC và so idle runtime với nguồn, tám hướng, hủy, Giảm chuyển động và fallback thiếu lớp/khác ngoại hình.
 
 Cả ba pose phái sinh giữ **CC-BY-SA 3.0**: áo giao lĩnh của Sứ giả Hạo Thiên; tóc/áo/dép của Ninh Phong Trí; áo bào và khăn quàng của Sứ giả Lam Điện. Bảng ghi công từng lớp giữ nguyên trong hồ sơ, các lớp OGA-BY/CC-BY khác tiếp tục được ghi công. RAW và ảnh dẫn ngoài repo Q17; ảnh trước–sau/clip để duyệt ở artifacts `npc-reply-lo-5/index.html` của phiên `soul_land_game-1055`.
+
+## Lô 6: ba NPC cuối (#1809)
+
+`hai_ma_dau_la`, `ba_tai_tay`, `chu_giao_vu_hon_dien` dùng cùng quy trình xuất nguồn LpcRig đủ lớp, Codex sinh riêng và nhập bằng `npc-reply-import.mjs --install`. Hai NPC đầu ở Hải Thần Đảo; Chủ giáo ở Thiên Đấu Thành. Giữ nguyên idle, hướng, vòng đời hủy và fallback; chuỗi ngoại hình nằm trong manifest, không thêm mã hiển thị hay tăng mốc bundle.
+
+Pose phái sinh giữ **CC-BY-SA 3.0** do áo/dép; Hải Mã Đấu La còn có tóc SA. Tóc bob của Ba Tái Tây là CC0 nhưng toàn bộ ảnh ghép vẫn giữ SA. Hồ sơ giữ ghi công từng lớp và prompt/hash RAW/nguồn/stencil/đầu ra; RAW và ảnh dẫn ngoài repo Q17. Ảnh trước–sau/clip ở artifacts `npc-reply-lo-6/index.html`, kèm bảng kiểm kê phủ đủ NPC có ngoại hình hiện tại trong NPCS (biển hiệu, dân thường/lính gác ngoài phạm vi).

@@ -24,7 +24,7 @@ import * as party from "../party.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { CHANNEL_CAP, channelSwitchAt, eliteLockLeft, eliteLocks, fusionReady, leftRoom } from "./procState.ts";
-import { testNoLeaveLock, testOfflineAgo } from "./testState.ts";
+import { testNoLeaveLock, testOfflineAgo, testOfflineSeed, seededRng } from "./testState.ts";
 import { channelLeftKey, channelSwitchKey, fusionKey, worldChatKey, claimHeld, strIn, testShift } from "./common.ts";
 
 /**
@@ -277,7 +277,7 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
   // Bot tung lại cùng hạt bằng rollEquipDrop của shared để so kết quả (hạt dùng tiếp theo thứ tự các lần gọi).
   else if (op === "edrop") {
     if (o.off === true) d.testEquip = null;
-    else { let a = int(o.seed, 0, 2 ** 31, 1) >>> 0; d.testEquip = () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+    else d.testEquip = seededRng(int(o.seed, 0, 2 ** 31, 1));
   }
   else if (op === "bone") {
     const r = int(o.r, -1, 100, -1);
@@ -690,6 +690,8 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     // Auto 3: `ago` (giây, 0–7 ngày) lùi thời điểm của lần ủy thác offline kế tiếp (giả lập thời gian trôi); trả vùng săn chỗ đang
     // đứng nếu thoát ở đây thì được ủy thác (null = không), `ago` đang đặt, chế độ và giờ của đồng hồ lịch (chia quỹ theo ngày).
     if (typeof o.ago === "number" && Number.isFinite(o.ago)) testOfflineAgo.set(d.accountId, Math.max(0, Math.min(7 * 86400, o.ago)));
+    // `eseed` (số nguyên): hạt RNG trang bị cho lượt nhận thưởng offline kế tiếp (vào lại tạo PData mới nên `edrop` không tới được); `eseed: -1` bỏ.
+    if (typeof o.eseed === "number" && Number.isFinite(o.eseed)) { if (o.eseed < 0) testOfflineSeed.delete(d.accountId); else testOfflineSeed.set(d.accountId, int(o.eseed, 0, 2 ** 31, 1)); }
     out = { zone: room.offlineZone(id)?.name ?? null, ago: testOfflineAgo.get(d.accountId) ?? 0, clock: bossClockMode(),
       now: bossNow() + room.dayShift * 86400000, day: room.today() };
   }

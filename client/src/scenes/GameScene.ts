@@ -77,7 +77,7 @@ import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, be
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
-import { loadPixelfx, playPfx, lootKey, deathKeys, hatchKey } from "../pixelfx.ts"; // #1802: hiệu ứng pixelfx (sheet fx_pfx_*)
+import { loadPixelfx, playPfx, lootKey, deathKeys, hatchKey, reviveKey } from "../pixelfx.ts"; // #1802: hiệu ứng pixelfx (sheet fx_pfx_*)
 import { loadPrivateAssets, playPriv } from "../privateAssets.ts"; // #623: hiệu ứng kho riêng (thiếu thì giữ hình cũ)
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } from "../skillVisual.ts";
 /** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
@@ -316,6 +316,8 @@ export class GameScene extends Phaser.Scene {
   zoomFx: Phaser.Tweens.Tween | null = null;
   /** Hồn thú vừa bị đòn kết liễu (id → thời điểm nhận tin `dmg` có `kill`), để biết lúc bị xoá khỏi state là chết thật. */
   beastKilled = new Map<string, number>();
+  /** Hồn sư đã gục ở khung trước (id → true): đổi sang sống lại thì phát trụ sáng hồi sinh (#1802 P2). */
+  private wasDead = new Map<string, boolean>();
   /** Bản đồ vẽ theo phép chiếu (ô hình thoi, khối cao sắp lớp theo độ sâu), bước 10.1. */
   isoMap!: IsoMap;
   /** Vùng cảnh báo chiêu báo trước đang hiện (3.5), theo mã hồn thú: hình đã khóa (từ BĐ4 có thể nhiều vùng), lúc bắt đầu, thời lượng (ms). */
@@ -3023,6 +3025,8 @@ export class GameScene extends Phaser.Scene {
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
       const { root, label, title, tongT, autoT } = v;
+      if (this.wasDead.get(id) && !p.dead) { const rk = reviveKey(fxLevel(), id === this.me); if (rk) { const rp = W2S(p.x, p.y); playPfx(this.svis.sheets, rk, { x: rp.x, y: rp.y, light: id !== this.me }); } } // vị trí hồi sinh do server đặt (doanh trại) trong cùng nhịp với dead → sống; root còn ở chỗ gục
+      if (!!this.wasDead.get(id) !== !!p.dead) this.wasDead.set(id, !!p.dead);
       const mine = id === this.me && this.pred;
       // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); thân LPC chỉ có 4 hướng nên hiện hướng gần nhất (lpcFace).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
@@ -3100,7 +3104,7 @@ export class GameScene extends Phaser.Scene {
       title.setData("tier", tier);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
-    for (const [id, v] of this.players) if (!seenP.has(id)) { this.pt.drop(id); if (v.lpcKey) this.lpc.release(v.lpcKey); v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); v.autoT.destroy(); this.players.delete(id); }
+    for (const [id, v] of this.players) if (!seenP.has(id)) { this.wasDead.delete(id); this.pt.drop(id); if (v.lpcKey) this.lpc.release(v.lpcKey); v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); v.autoT.destroy(); this.players.delete(id); }
     const meS = this.ghost && st.players.get(this.me);
     if (meS) { const s = W2S(meS.x, meS.y); this.ghost!.clear().lineStyle(1, 0xff4040, 1).strokeRect(s.x - 6 * SPR, s.y - 22 * SPR, 12 * SPR, 24 * SPR); }
 
