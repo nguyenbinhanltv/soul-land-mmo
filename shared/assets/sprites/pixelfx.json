@@ -1,0 +1,127 @@
+{
+  "fx_pfx_poof": {
+    "frame": [
+      91,
+      86
+    ],
+    "cols": 22,
+    "rows": 2,
+    "frames": 23,
+    "cells": 44,
+    "fps": 15.35,
+    "pivot": [
+      48,
+      75
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 44,
+      "fps": 30,
+      "frame": [
+        112,
+        92
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_soul_rise_light": {
+    "frame": [
+      88,
+      129
+    ],
+    "cols": 23,
+    "rows": 3,
+    "frames": 47,
+    "cells": 69,
+    "fps": 15,
+    "pivot": [
+      44,
+      116
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 93,
+      "fps": 30,
+      "frame": [
+        96,
+        140
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_respawn_beam_light": {
+    "frame": [
+      126,
+      150
+    ],
+    "cols": 16,
+    "rows": 3,
+    "frames": 35,
+    "cells": 48,
+    "fps": 15,
+    "pivot": [
+      63,
+      136
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 69,
+      "fps": 30,
+      "frame": [
+        128,
+        150
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_collect_burst": {
+    "frame": [
+      84,
+      87
+    ],
+    "cols": 18,
+    "rows": 1,
+    "frames": 18,
+    "cells": 18,
+    "fps": 15,
+    "pivot": [
+      42,
+      80
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 35,
+      "fps": 30,
+      "frame": [
+        112,
+        108
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_power_star_light": {
+    "frame": [
+      78,
+      71
+    ],
+    "cols": 25,
+    "rows": 1,
+    "frames": 25,
+    "cells": 25,
+    "fps": 15.32,
+    "pivot": [
+      39,
+      64
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 48,
+      "fps": 30,
+      "frame": [
+        88,
+        84
+      ]
+    },
+    "loop": true
+  }
+}
