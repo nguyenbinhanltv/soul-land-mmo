@@ -25,10 +25,10 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 const dur = (secs: number) => (secs < 60 ? `${Math.max(0, Math.round(secs))} giây` : autoTimeText(secs));
 
 let ctx: AutoPanelCtx | null = null;
-/** Việc tự săn đang làm (tin `autost`, AH2 #609): bảng, chữ trên đầu nhân vật và đường đi trên radar đọc từ đây; null khi không tự săn. */
+/** Việc tự săn đang làm (tin `autost`, AH2 #609): bảng, chip HUD và đường đi trên radar đọc từ đây (không còn chữ trên đầu nhân vật, #1811); null khi không tự săn. */
 let job: AutoStMsg | null = null;
 export const autoJob = () => job;
-/** Chữ ngắn của việc đang làm để hiện trên đầu nhân vật ("Đang đánh Sói Xám"); rỗng khi chưa có tin. */
+/** Chữ ngắn của việc đang làm ("Đang đánh Sói Xám"); rỗng khi chưa có tin. */
 export const autoJobText = () => (job ? autoStatusText(job) : "");
 let last: AutoMsg | null = null;
 /** Tổng kết lượt gần nhất (mục "Lượt vừa rồi", kèm giờ treo còn lại lúc dừng): chỉ thay khi tin mới có `sum`, xóa khi bật lại. */
