@@ -9,7 +9,7 @@ import { TIERS, VOHON, PHAP_TUONG, ringSkill, chanThanOf, tienCoOf, MAX_RINGS } 
 import { ELEMENTS, RARE_LOOT_MIN, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, fxGov, fxLevel, type FxLevel } from "./combatFx.ts";
 import { SheetFx, SHEET_TUNE } from "./fxSheet.ts";
-import { loadPixelfx, playPfx, lootKey } from "./pixelfx.ts";
+import { loadPixelfx, playPfx, lootKey, deathKeys } from "./pixelfx.ts";
 import { loadPrivateAssets, playPriv } from "./privateAssets.ts";
 import { playFx } from "./sprites.ts";
 import { PhapTuongSystem } from "./phapTuong.ts";
@@ -87,6 +87,9 @@ class FxTestScene extends Phaser.Scene {
     // #1802 P2: `loot=N` = N lần nhặt đồ mỗi giây quanh hồn sư (20% đồ hiếm), cùng đường phát với GameScene.lootBurst; đo FPS bật / tắt (docs/tech/hieu-nang-hieu-ung.md).
     const LOOT = Number(q.get("loot") ?? 0);
     if (LOOT > 0) { void loadPixelfx(); this.time.addEvent({ delay: 1000 / LOOT, loop: true, callback: () => { const k = lootKey(testRandom() < 0.2 ? 5 : 0, RARE_LOOT_MIN, fxLevel()); if (k) playPfx(this.svp.sheets, k, { x: this.hero.x + (testRandom() - 0.5) * 30, y: this.hero.y + 6 }); } }); }
+    // `die=N`: N hồn thú bị hạ mỗi giây (rank 1 / 2 / 3 đều nhau), cùng đường phát với GameScene.beastDown.
+    const DIE = Number(q.get("die") ?? 0);
+    if (DIE > 0) { void loadPixelfx(); this.time.addEvent({ delay: 1000 / DIE, loop: true, callback: () => { const x = (testRandom() - 0.5) * 360, y = (testRandom() - 0.5) * 150; for (const k of deathKeys(1 + ((testRandom() * 3) | 0), fxLevel())) playPfx(this.svp.sheets, k, { x, y, light: testRandom() < 0.7 }); } }); }
     // `stress=P`: P người chơi, mỗi người tung một hồn kỹ ngẫu nhiên mỗi ~2,5 s (đo FPS 40–60 người, docs/tech/hieu-nang-soak.md).
     const P = Number(q.get("stress") ?? 0);
     if (q.get("legacy") === "1") SHEET_TUNE.othersK = 1; // bản trước H8: người khác dùng cả trần sheet (và không tự hạ mức, xem fxTestScreen)
