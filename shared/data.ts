@@ -62,6 +62,27 @@ export function beastStats(years: number) {
   const f = b === a ? 0 : Math.log(y / a.years) / Math.log(b.years / a.years), mix = (x: number, z: number) => x * Math.pow(z / x, f);
   return { hp: Math.round(mix(a.hp, b.hp)), dmg: +mix(a.dmg, b.dmg).toFixed(2), xp: Math.round(mix(a.xp, b.xp)) };
 }
+/**
+ * "Quái trâu hơn" (#1714, chủ repo chọn hướng này; chờ chủ repo duyệt số): hệ số theo mốc TIERS (nội suy log như beastStats) nhân
+ * thêm vào CHỈ hồn thú thường (rank 0) khi sinh và khi tính ủy thác. `hp`: máu; `dmg`: sát thương đòn thường; `xp`: kinh nghiệm một con; `def`: nhân thủ (BEAST_DEF, vẫn kẹp ở `cap`; beastDef với `tough`).
+ * Mục tiêu (docs/design/hon-thu-boss.md "Quái trâu hơn"): thời gian hạ một con cùng cấp tăng gấp ~4 (đánh một mình vài giây → 4–10 giây,
+ * đội 4 người ~1–2,5 giây), mất nhiều máu hơn mỗi trận, còn kinh nghiệm mỗi giờ giữ gần như cũ (`xp` bù phần thời gian dài thêm) nên
+ * nhịp lên cấp (#909, XP_NEED_MULT) không đổi; thứ giảm là số con hạ mỗi giờ, tức hồn hoàn / Hồn Tệ / mảnh rơi mỗi giờ. Tinh anh, thú
+ * vương, boss thế giới tính trên beastStats gốc (không nhân), riêng tinh anh chỉnh ELITE.hp để vẫn hơn hồn thú thường nhiều lần.
+ */
+export const BEAST_TOUGH = { hp: [4.5, 4.5, 4, 3.8, 3.5], dmg: [1, 1, 1, 1, 1], xp: [2.2, 2.2, 2.2, 2.4, 2.4], def: [1.14, 1.12, 1.1, 1.14, 1.17] };
+/** Hệ số BEAST_TOUGH của hồn thú thường `years` năm (nội suy hình học giữa hai mốc kề nhau, như beastStats). */
+export function beastTough(years: number) {
+  const y = Math.max(TIERS[0].years, Math.min(MAX_YEARS, years)), t = tierOfYears(y), u = Math.min(t + 1, TIERS.length - 1);
+  const f = u === t ? 0 : Math.log(y / TIERS[t].years) / Math.log(TIERS[u].years / TIERS[t].years);
+  const mix = (k: number[]) => k[t] * Math.pow(k[u] / k[t], f);
+  return { hp: mix(BEAST_TOUGH.hp), dmg: mix(BEAST_TOUGH.dmg), xp: mix(BEAST_TOUGH.xp), def: mix(BEAST_TOUGH.def) };
+}
+/** Chỉ số hồn thú THƯỜNG `years` năm (rank 0): beastStats × BEAST_TOUGH. Máu / sát thương thật khi sinh; `xp` là kinh nghiệm gốc một con. */
+export function normalBeastStats(years: number) {
+  const st = beastStats(years), k = beastTough(years);
+  return { hp: Math.round(st.hp * k.hp), dmg: +(st.dmg * k.dmg).toFixed(2), xp: Math.round(st.xp * k.xp) };
+}
 /** "437 năm", "1.760 năm", "100.000 năm". */
 export const formatYears = (years: number) => `${Math.max(0, Math.floor(years)).toLocaleString("vi-VN")} năm`;
 
@@ -860,11 +881,11 @@ export const BEAST_DEF_MULT: Record<string, number> = {
   nhu_cot_tho_hoang: 0.6, dien_thu: 0.6, hoi_vu_tuoc: 0.6, doc_cham_phong: 0.6, hac_vu_bien_buc: 0.6, cuc_yeu_hoa_linh: 0.6,
   hoa_linh_diep: 0.6, y_la_hoa_yeu: 0.6, thuc_nhan_hoa: 0.8, quy_dien_hai_yeu: 0.8, u_linh_hai_mau: 0.6,
 };
-/** Thủ của hồn thú loài `species` (mã BEASTS) `years` năm (BEAST_DEF). */
-export function beastDef(species: string, years: number) {
+/** Thủ của hồn thú loài `species` (mã BEASTS) `years` năm (BEAST_DEF); `tough`: hồn thú thường (rank 0) nhân thêm BEAST_TOUGH.def, tinh anh trở lên thì không. */
+export function beastDef(species: string, years: number, tough = false) {
   const y = Math.max(TIERS[0].years, Math.min(MAX_YEARS, years)), t = tierOfYears(y), u = Math.min(t + 1, TIERS.length - 1), k = BEAST_DEF.years;
   const f = u === t ? 0 : Math.log(y / TIERS[t].years) / Math.log(TIERS[u].years / TIERS[t].years);
-  return Math.min(BEAST_DEF.cap, BEAST_DEF.ref * (k[t] + (k[u] - k[t]) * f) * (BEAST_DEF_MULT[species] ?? 1));
+  return Math.min(BEAST_DEF.cap, BEAST_DEF.ref * (k[t] + (k[u] - k[t]) * f) * (BEAST_DEF_MULT[species] ?? 1) * (tough ? beastTough(years).def : 1));
 }
 /** Hệ số sát thương đòn trực tiếp lên hồn thú thủ `def` khi bị giảm `cut` phần thủ (Phá giáp + xuyên thủ, kẹp 0–1). */
 export const defMult = (def: number, cut: number) => (1 - def * (1 - Math.min(1, Math.max(0, cut)))) / (1 - BEAST_DEF.ref);
@@ -1429,7 +1450,7 @@ export const kingYears = (mapId: string): number | null => {
  * `hp` 8 (#263, trước là 2,5; báo cáo #176): với 2,5 tinh anh chết trong 3–7 giây, Cuồng nộ (ELITE_RAGE) chỉ kéo dài 1–3 giây và hai
  * chiêu báo trước thường không kịp tung lần nào.
  */
-export const ELITE = { hp: 8, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
+export const ELITE = { hp: 16, dmg: 1.5, xp: 2.5, bone: 3, respawn: [480, 720] as [number, number], scale: 1.25,
   radius: 250, outSecs: 30, dropEvery: 10, idleSecs: 15, lock: 480 };
 /** Máu tăng theo số người tham gia (mục 5.4, tinh anh trở lên): máu tối đa × (1 + BOSS_HP_PER_PLAYER × (N − 1)). */
 export const BOSS_HP_PER_PLAYER = 0.6;
@@ -5759,8 +5780,8 @@ export interface OfflinePower { atk: number; crit: number; critMult: number; max
  * OFFLINE.hpCap sinh lực tối đa (không đánh nổi: chỉ mất OFFLINE.seek giây).
  */
 export function offlineFight(pw: OfflinePower, years: number, species: string) {
-  const st = beastStats(years);
-  const dps = pw.atk * (1 + pw.crit * (pw.critMult - 1)) * defMult(beastDef(species, years), 0) * OFFLINE.skill / ATTACK_CD;
+  const st = normalBeastStats(years);
+  const dps = pw.atk * (1 + pw.crit * (pw.critMult - 1)) * defMult(beastDef(species, years, true), 0) * OFFLINE.skill / ATTACK_CD;
   const fight = dps > 0 ? st.hp / dps : Infinity, taken = fight * st.dmg * pw.def / BEAST_ATK_CD;
   const ok = pw.maxHp > 0 && taken <= pw.maxHp * OFFLINE.hpCap;
   return { ok, secs: ok ? OFFLINE.seek + fight + taken / (pw.maxHp * PLAYER_REGEN.hpCalm) : OFFLINE.seek };

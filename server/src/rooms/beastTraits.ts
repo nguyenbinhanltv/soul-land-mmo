@@ -9,4 +9,4 @@ export const rootedReach = (tier: number, skills: readonly BeastSkillDef[]) =>
   Math.max(beastMelee(tier, true), ...skills.map((s) => s.range)) + BEAST_ROOTED.margin;
 
 /** Thủ của hồn thú (#116, BEAST_DEF): theo loài gốc và số năm. */
-export const beastDefOf = (rank: number, species: number, years: number) => beastDef(beastBase(rank, species)?.id ?? "", years);
+export const beastDefOf = (rank: number, species: number, years: number) => beastDef(beastBase(rank, species)?.id ?? "", years, rank === 0);

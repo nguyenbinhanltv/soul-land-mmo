@@ -1,6 +1,6 @@
 // Hạ hồn thú (GAME_DESIGN.md mục 5.2, 5.4, 5.9), tách khỏi MapRoom.ts (#702, bước 24): `killBeast` (kinh nghiệm, Hồn Tệ, đồ rơi, khóa tinh anh, chia tổ đội).
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts; nguyên văn từ MapRoom, không đổi thứ tự xử lý / thứ tự gọi RNG (`roll*` giữ thứ tự cũ). MapRoom chỉ chuyển tiếp `killBeast`.
-import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, partyXpShare } from "../../../shared/data.ts";
+import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, partyXpShare, beastTough } from "../../../shared/data.ts";
 import { achvCount } from "./achv.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import { persistEliteLock } from "./presenceState.ts";
@@ -44,7 +44,7 @@ export function killBeast(room: MapRoom, bid: string, by: string) {
   const got = new Set<string>(); // người nhận thưởng tinh anh lần này (kinh nghiệm x ELITE.xp, quyền ưu tiên đồ rơi tinh anh)
   for (const pid of team) {
     const full = !!e && free(pid); if (full) got.add(pid);
-    room.rewardKill(pid, b.years, (full ? ELITE.xp : 1) * share);
+    room.rewardKill(pid, b.years, (full ? ELITE.xp : 1) * beastTough(b.years).xp * share);
     if (!b.rank) dexKilled(room, pid, b.species); // Sổ tay hồn thú (#1720): hạ loài thường thì ghi (cả đồng đội cùng chia kinh nghiệm)
   }
   if (owner) got.add(owner);

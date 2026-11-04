@@ -3,7 +3,7 @@
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts / tick.ts; nguyên văn từ MapRoom, không đổi số / thứ tự RNG / thứ tự xử lý. MapRoom chỉ chuyển tiếp 13 hàm
 // (`setup`, `tick`, `boss.ts`, `gm.ts`, `combat.ts` gọi `room.spawnX` / `room.addBeast` / `room.eliteX` như cũ).
 // Còn ở MapRoom: `killBeast`, `dispelBeast`, `beastDmg` / `syncBeastBuff`, `applyStatus` / `applyPStatus`, `beginCast` / `tickCast`, Chân Thân, tiên cơ.
-import { tierOfYears, BEASTS, MAPS, RED_BEAST_CHANCE, kingYears, MAX_YEARS, tierBand, rollYears, beastStats, beastSkillOf, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, BEAST_BUFFS, KING, WORLD, worldBossOn, TIERS, SPAWN_PLAYER_GAP, type FormDef } from "../../../shared/data.ts";
+import { tierOfYears, BEASTS, MAPS, RED_BEAST_CHANCE, kingYears, MAX_YEARS, tierBand, rollYears, beastStats, normalBeastStats, beastSkillOf, BOSSES, bossIndex, ELITE, ELITE_RAGE, bossHpMult, beastName, BEAST_BUFFS, KING, WORLD, worldBossOn, TIERS, SPAWN_PLAYER_GAP, type FormDef } from "../../../shared/data.ts";
 import { bossOffset } from "../schedule.ts";
 import { isRooted, rootedReach, beastDefOf } from "./beastTraits.ts";
 import { BOSS_BOX } from "./worldBoss.ts";
@@ -59,13 +59,13 @@ export function addBeast(room: MapRoom, zi: number, years: number, species: numb
   // Từ BĐ6e `rank` 3 (boss thế giới): máu x WORLD.hp, sát thương x WORLD.dmg, dùng bộ máy thú vương (KingData.world).
   const st = beastStats(years), b = new BeastState(), boss = rank >= 1 && rank <= 3 ? BOSSES[species] : undefined;
   const world = boss?.rank === 3, king = boss?.rank === 2 || world;
-  const hp = Math.round(st.hp * (!boss ? 1 : world ? WORLD.hp : king ? boss.hp ?? 6 : ELITE.hp));
+  const hp = !boss ? normalBeastStats(years).hp : Math.round(st.hp * (world ? WORLD.hp : king ? boss.hp ?? 6 : ELITE.hp));
   b.x = x; b.y = y; b.years = years; b.tier = tierOfYears(years); b.species = species; b.rank = boss ? boss.rank : 0; b.hp = b.maxHp = hp;
   b.phase = king ? 1 : 0; b.parts = boss ? 1 : 0;
   const id = uid("b"); room.state.beasts.set(id, b); room.interest.beasts.put(id, x, y);
   const sk = boss ? null : beastSkillOf(BEASTS[species]?.id ?? "", years);
   room.bdata.set(id, { zone: zi, hx: x, hy: y, tx: x, ty: y, wt: 0, cd: 0, kx: 0, ky: 0, target: null, hitBy: null, anim: 0, ret: 0, rooted: isRooted(b.rank, species), reach: 0,
-    st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: st.dmg * (!boss ? 1 : world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg), def: beastDefOf(b.rank, species, years),
+    st: new Map(), dotT: 0, calm: 99, regen: 0, dmg: !boss ? normalBeastStats(years).dmg : st.dmg * (world ? WORLD.dmg : king ? KING.dmg : ELITE.dmg), def: beastDefOf(b.rank, species, years),
     skills: boss ? boss.skills.map((def) => ({ def, cd: 0 })) : sk ? [{ def: sk, cd: 0 }] : [], skT: 0, cast: null,
     buffs: new Map(), minions: new Set(),
     elite: boss ? { base: hp, n: 1, engaged: false, parts: new Map(), lonely: 0, dropT: 0, dmgBy: new Map(), supBy: new Map(), acc: new Map(), rageCd: 0,
