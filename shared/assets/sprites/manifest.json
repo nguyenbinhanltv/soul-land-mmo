@@ -46327,6 +46327,33 @@
       ],
       "iso": true
     },
+    {
+      "key": "npc_reply_trieu_vo_cuc",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "replyLpc": "1|0|light|brown|body.body,head.male,brow.thin=dark_brown,hair.plain=dark_brown,torso.giao_linh=navy,legs.pantaloons=tan,feet.sandals=brown,belt.obi=charcoal,hat.headband_thick=maroon,arms.bracers"
+    },
+    {
+      "key": "npc_reply_tho_may",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "replyLpc": "1|1|light|green|body.body,head.female_small,hair.braid=light_brown,torso.giao_linh=forest,legs.skirts_slit=walnut,feet.slippers=brown,belt.obi=tan,hat.bandana=brown"
+    },
+    {
+      "key": "npc_reply_tho_may_thien_dau",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true,
+      "replyLpc": "1|0|light|brown|body.body,head.male,brow.thick=navy,hair.parted_side_bangs=navy,torso.su_lai_khac=white,legs.pantaloons=charcoal,feet.slippers=brown,belt.obi=navy,hat.headband_tied=navy"
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

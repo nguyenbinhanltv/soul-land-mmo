@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { MANIFEST_KEY } from "./sprites";
 
 // Chỉ bật cho sheet đã soát tóc / cổ áo / tay ở đủ năm hàng hướng.
 // Râu dài, tóc đuôi / bím dài, tóc xõa dài đi qua hàng 29 cần pose riêng (hai bộ thí điểm ở REPLY_POSES).
@@ -18,10 +19,13 @@ const REPLY_POSES: Record<string, string> = {
 export class NpcReply {
   private active: { body: Phaser.GameObjects.Sprite; head: Phaser.GameObjects.Sprite; idle: string; at: number; pose: boolean; visible: boolean } | null = null;
 
-  start(body: Phaser.GameObjects.Sprite, idle: string, now: number) {
+  start(body: Phaser.GameObjects.Sprite, idle: string, now: number, rig?: { id: string; lpc: string; ready: boolean }) {
     this.cancel();
-    // Chỉ sheet đã kiểm bằng mắt; bộ ghép dự phòng / sheet thiếu vẫn đứng idle.
-    const poseKey = REPLY_POSES[body.texture.key];
+    // Chỉ bộ nguồn đã soát; bộ ghép chưa duyệt/thiếu lớp hoặc sheet thiếu giữ idle.
+    // Bộ ghép động phải khớp chuỗi LPC nguồn do importer ghi vào manifest.
+    const rigKey = rig?.ready ? `npc_reply_${rig.id}` : undefined;
+    const rigPose = rigKey && body.scene.cache.json.get(MANIFEST_KEY)?.sprites?.find((e: { key?: string; replyLpc?: string }) => e.key === rigKey);
+    const poseKey = REPLY_POSES[body.texture.key] ?? (rig?.ready && rigPose?.replyLpc === rig.lpc && /^lpcc_[mf]_\d+$/.test(body.texture.key) ? rigKey : undefined);
     if ((!poseKey && !REPLY_SHEETS.has(body.texture.key)) || !body.parentContainer || !body.scene.anims.exists(idle)) return;
     const first = body.scene.anims.get(idle).frames[0]?.frame;
     if (!first || first.width !== 64 || first.height !== 64) return;

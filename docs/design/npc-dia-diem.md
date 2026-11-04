@@ -25,5 +25,7 @@ Ngọc Tiểu Cương, Thương nhân Nặc Đinh, Thợ rèn Nặc Đinh, Chư�
 
 Lão Kiệt Khắc và Thợ rèn Thiên Đấu dùng pose Codex riêng để râu / tóc đuôi dài liền khối, không cắt ngang đầu ở hàng 29. Vẫn cùng nhịp 480 ms, thân / tay / chân giữ cố định; pose riêng chỉ hiện ở đoạn gật đầu 100–320 ms, rồi trả idle. Chỉ tải dải pose khi bản đồ có NPC đó và manifest khai đủ sheet; thiếu pose riêng giữ idle. Những NPC còn lại giữ idle, chưa nhân rộng (#1552).
 
+Triệu Vô Cực, Thợ may Nặc Đinh và Thợ may Thiên Đấu dùng pose Codex từ đúng bộ LPC ghép hiện tại, cùng nhịp và vòng đời hủy ở trên; thân/idle không thay. Chỉ bật khi mã NPC, chuỗi ngoại hình và bộ ghép đủ lớp khớp nguồn đã soát. Thiếu lớp, đang tải lại, ngoại hình đổi hoặc thiếu dải pose giữ idle; tải đủ lớp giữa hội thoại không tự phát cử chỉ. Các NPC khác chưa nhân rộng vẫn giữ idle (#1552).
+
 ## Lịch sử / issue liên quan
 - Nhật ký từng bước: `docs/lich-su.md`.
