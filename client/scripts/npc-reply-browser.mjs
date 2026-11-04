@@ -12,6 +12,7 @@ import { chromium } from "playwright";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const out = resolve(process.env.NPC_REPLY_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "npc-reply-")));
 const npcId = process.env.NPC_REPLY_ID ?? "dai_su", npcMap = process.env.NPC_REPLY_MAP ?? "nac_dinh_thanh", sheet = `lpc_${npcId}`;
+const separatePose = ["lao_kiet_khac", "lo_ren_thien_dau"].includes(npcId);
 const children = [];
 let browser;
 const killChildren = () => { for (const child of children) { if (child.exitCode !== null || !child.pid) continue; if (process.platform === "win32") spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore" }); else child.kill("SIGTERM"); } };
@@ -53,6 +54,7 @@ try {
   browser = await chromium.launch({ headless: true, channel: process.env.FLOW_CHANNEL || undefined, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const videoStarted = Date.now();
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, recordVideo: { dir: out, size: { width: 1280, height: 720 } } });
+  page.setDefaultTimeout(15000);
   const errors = [];
   page.on("pageerror", (e) => { errors.push(e.message); console.error("[trình duyệt]", e.stack); });
   // Kho riêng không có trong worktree: mô phỏng 404 như server thật, tránh SPA fallback HTML của Vite.
@@ -65,7 +67,7 @@ try {
     await route.fulfill({ response, body: await response.text() + `
 const replyCreate = GameScene.prototype.create;
 GameScene.prototype.create = function(...a) {
-  window.__npcReplyScene = this; window.__npcReplyTarget = ${JSON.stringify(npcId)}; window.__npcLpcStr = npcLpcStr; window.__npcReplySnapshot = ()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),a=s.npcReply.active;return {active:!!a,head: a?{flip:a.head.flipX,frame:a.head.frame.name,y:a.head.y}:null,flip:n.body.flipX,crop:n.body.isCropped,anim:n.body.anims.currentAnim?.key,x:n.body.parentContainer.x,y:n.body.parentContainer.y,bodyX:n.body.x,bodyY:n.body.y};}; return replyCreate.apply(this, a);
+  window.__npcReplyScene = this; window.__npcReplyTarget = ${JSON.stringify(npcId)}; window.__npcLpcStr = npcLpcStr; window.__npcReplySnapshot = ()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),a=s.npcReply.active;return {active:!!a,pose:a?.pose,head: a?{flip:a.head.flipX,frame:a.head.frame.name,y:a.head.y,key:a.head.texture.key,visible:a.head.visible}:null,bodyVisible:n.body.visible,flip:n.body.flipX,crop:n.body.isCropped,anim:n.body.anims.currentAnim?.key,x:n.body.parentContainer.x,y:n.body.parentContainer.y,bodyX:n.body.x,bodyY:n.body.y};}; return replyCreate.apply(this, a);
 };` });
   });
   await page.goto(`${web}/choi/`);
@@ -101,9 +103,18 @@ GameScene.prototype.create = function(...a) {
   const state = () => page.evaluate(()=>window.__npcReplySnapshot());
   await move(24,24);
   await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),c=s.cameras.main;c.stopFollow(); c.setZoom(5);c.centerOn(n.body.parentContainer.x+65,n.body.parentContainer.y-20);});
+  await page.waitForTimeout(100);
+  await page.screenshot({path:resolve(out,'truoc.png')});
   // Quay clip trong game thật: mở bằng tin talk được server xác nhận, chờ về idle rồi đóng.
   const clipAt=(Date.now()-videoStarted)/1000;
   await talk();
+  if (separatePose) {
+    await page.waitForFunction(()=>window.__npcReplySnapshot().head?.visible && !window.__npcReplySnapshot().bodyVisible);
+    // Dừng đúng pose đã phát trong game để ảnh chụp không rơi qua cửa sổ 220 ms khi máy bận.
+    await page.evaluate(()=>window.__npcReplyScene.scene.pause());
+    await page.screenshot({path:resolve(out,'cu-chi.png')});
+    await page.evaluate(()=>window.__npcReplyScene.scene.resume());
+  }
   await page.waitForTimeout(900);
   await page.screenshot({path:resolve(out,'trong-game.png')});
   await close();
@@ -113,9 +124,14 @@ GameScene.prototype.create = function(...a) {
     await move(dx,dy);
     const expected=await page.evaluate(async({dx,dy})=>{const {dir8}=await import('/src/iso.ts'),{honsuAnimKey}=await import('/src/sprites.ts'); return honsuAnimKey('lpc_'+window.__npcReplyTarget,'idle',dir8(dx,dy));},{dx,dy});
     const during=await talk();
-    assert.equal(during.anim,expected.key); assert.equal(during.flip,expected.flip); assert.equal(during.head.flip,expected.flip); assert.ok(during.crop);
+    assert.equal(during.anim,expected.key); assert.equal(during.flip,expected.flip); assert.equal(during.head.flip,expected.flip); assert.equal(during.crop,!separatePose);
+    if (separatePose) {
+      assert.equal(during.head.key,`npc_reply_${npcId}`);
+      assert.equal(String(during.head.frame),String(['s','se','e','ne','n'].indexOf(expected.key.split('_').at(-1))));
+      assert.equal(during.head.y,during.bodyY,'pose riêng giữ gốc đứng');
+    }
     await page.waitForTimeout(560); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:4000}).catch(()=>{}); const after=await state();
-    assert.ok(!after.active&&!after.crop, `sau cử chỉ hướng ${dx},${dy}: ${JSON.stringify(after)}`); assert.equal(after.anim,expected.key); assert.equal(after.x,during.x); assert.equal(after.y,during.y); assert.equal(after.bodyX,during.bodyX); assert.equal(after.bodyY,during.bodyY);
+    assert.ok(!after.active&&!after.crop&&after.bodyVisible, `sau cử chỉ hướng ${dx},${dy}: ${JSON.stringify(after)}`); assert.equal(after.anim,expected.key); assert.equal(after.x,during.x); assert.equal(after.y,during.y); assert.equal(after.bodyX,during.bodyX); assert.equal(after.bodyY,during.bodyY);
     await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.npcBag({slots:30,honTe:0,items:[],bones:[],cores:[],gears:[]});});
     await page.waitForTimeout(100); assert.ok(!(await state()).active,'túi không phát lại');
     await close(); assert.equal((await state()).anim,sheet+':idle_s');
@@ -123,17 +139,27 @@ GameScene.prototype.create = function(...a) {
   console.log(npcId, '✓ Tám hướng / giữ điểm chân / về idle / cập nhật túi không phát lại');
   console.log("Kiểm đóng sớm"); await move(24,24); await talk(); await close(); assert.ok(!(await state()).active && !(await state()).crop);
   // Đổi NPC qua HUD thật để kiểm hủy lớp tạm (NPC còn lại xa nên chỉ kiểm vòng đời hiển thị).
-  console.log("Kiểm đổi NPC"); await talk(); await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.openNpc('lo_ren_thien_dau',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active);
+  console.log("Kiểm đổi NPC"); await talk(); await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.openNpc(window.__npcReplyTarget==='lo_ren_thien_dau'?'dai_su':'lo_ren_thien_dau',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active);
   console.log("Kiểm mở lại nhanh"); await close(); await talk();
   await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.closeNpc();h.openNpc(window.__npcReplyTarget,null,{});});
   await page.waitForTimeout(70); assert.ok((await state()).active,'mở lại cùng NPC giữa hai frame'); await close();
   console.log("Kiểm Giảm chuyển động"); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;});
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active); await close();
+  console.log("Kiểm bật Giảm chuyển động giữa cử chỉ");
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;});
   await talk(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:2000}); assert.ok(!(await state()).active); await close();
+  console.log("Kiểm bộ LPC dự phòng");
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); const key=s.lpc.acquire(window.__npcLpcStr(n.def.looks));window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');});
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active,'sheet không đúng giữ idle'); await close();
   await page.evaluate(()=>window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.stop().setTexture('lpc_'+window.__npcReplyTarget).play('lpc_'+window.__npcReplyTarget+':idle_s'));
+  if (separatePose) {
+    const key=`npc_reply_${npcId}`;
+    await page.evaluate(key=>window.__npcReplyScene.textures.renameTexture(key,key+'_test_missing'),key);
+    await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget));
+    await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget);
+    await page.waitForTimeout(160); assert.ok(!(await state()).active,'thiếu pose riêng giữ idle'); await close();
+    await page.evaluate(key=>window.__npcReplyScene.textures.renameTexture(key+'_test_missing',key),key);
+  }
   await talk();
   await page.evaluate(()=>{window.__oldReply=window.__npcReplyScene.npcReply;window.__oldReplyMap=window.__npcReplyScene.mapId;window.__npcReplyScene.room.send('test',{op:'warp',mapId:window.__npcReplyScene.mapId==='thanh_hon_thon'?'nac_dinh_thanh':'thanh_hon_thon'});});
   await page.waitForFunction(()=>window.__npcReplyScene?.mapId!==window.__oldReplyMap&&window.__npcReplyScene.players.size>0);

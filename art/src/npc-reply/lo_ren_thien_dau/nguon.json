@@ -1,0 +1,143 @@
+{
+  "id": "lo_ren_thien_dau",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-04",
+  "modelId": null,
+  "seed": null,
+  "source": "shared/assets/sprites/iso/lpc/lo_ren_thien_dau.png",
+  "sourceSha256": "6ce962c62d3b437d35bd55f8785ff54fb3b0228e8ab55a05dbd0e7f7510478ed",
+  "reference": {
+    "method": "Cột idle đầu của hàng 0, 2, 4; ba ô 64×64 phóng nearest ×4, 768×256, ngoài repo",
+    "sha256": "1b1006ececa5a23b929db07cac575dedd0aa3dc917225342f423640eb423126f"
+  },
+  "raw": {
+    "path": "C:/Users/PC/.codex/generated_images/01a1a20d-7aa3-71f2-b969-71eb786b9482/exec-11dc9369-8ace-4de2-90fa-bd834d59d4c4.png",
+    "width": 2170,
+    "height": 725,
+    "sha256": "f10c0e2675fe72c4d1793b9cdd1816dda49dd59cf9b40b0a12195ae762b09bb8"
+  },
+  "prompt": "Edit target is attached exact LPC pixel sprite strip, three cells 256 by 256 each (64x64 logical pixels enlarged 4x). Preserve EXACT canvas 768x256, same three positions and same three directions: front, right side profile, back. Preserve identical character costume and identity: female blacksmith with silver high long ponytail and sleeveless dark indigo tunic, dark trousers. Make ONLY a very small polite acknowledgment nod of the head and hair, lowering the chin by about one logical pixel (4 image pixels). Ponytail follows naturally as a continuous shape, no cut at neck. All pixels below shoulders including torso, hands, belt, legs, shoes must match the input precisely. Do not redesign character, do not add any details, no weapons, no text. Strictly preserve four-pixel square hard pixel grid, palette and transparent background. This is a minor animation pose edit not a redraw.",
+  "masks": [
+    [
+      [
+        20,
+        0
+      ],
+      [
+        44,
+        0
+      ],
+      [
+        47,
+        25
+      ],
+      [
+        42,
+        29
+      ],
+      [
+        40,
+        33
+      ],
+      [
+        24,
+        33
+      ],
+      [
+        21,
+        29
+      ],
+      [
+        18,
+        25
+      ]
+    ],
+    [
+      [
+        16,
+        0
+      ],
+      [
+        36,
+        0
+      ],
+      [
+        45,
+        17
+      ],
+      [
+        45,
+        29
+      ],
+      [
+        39,
+        33
+      ],
+      [
+        29,
+        33
+      ],
+      [
+        24,
+        32
+      ],
+      [
+        23,
+        46
+      ],
+      [
+        20,
+        46
+      ],
+      [
+        18,
+        43
+      ],
+      [
+        18,
+        27
+      ],
+      [
+        16,
+        14
+      ]
+    ],
+    [
+      [
+        21,
+        10
+      ],
+      [
+        43,
+        10
+      ],
+      [
+        45,
+        22
+      ],
+      [
+        43,
+        28
+      ],
+      [
+        40,
+        31
+      ],
+      [
+        24,
+        31
+      ],
+      [
+        22,
+        28
+      ],
+      [
+        20,
+        22
+      ]
+    ]
+  ],
+  "license": "LPC gốc: OGA-BY 3.0 / CC-BY 3.0 (các lựa chọn và tác giả ở art/CREDITS.md, mục lo_ren_thien_dau); râu CC0 nếu có. Phần sinh/chỉnh: điều khoản đầu ra OpenAI; không gán CC0 cho toàn bộ ảnh.",
+  "outputSha256": "d4a49a89d1d90cfb87602d961cbd28436a35190122105072745352cdfadf206f",
+  "output": "shared/assets/sprites/iso/npc-reply/lo_ren_thien_dau.png"
+}

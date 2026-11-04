@@ -445,6 +445,7 @@ type ManifestEntry = string | { key: string; frame?: [number, number]; iso?: boo
 /** Đường dẫn ảnh và kích thước khung suy ra từ key (bảng thư mục ở mục 5.11). */
 function sheetSpec(key: string, frame?: readonly [number, number], iso = false): SheetSpec | null {
   let m: RegExpMatchArray | null;
+  if ((m = key.match(/^npc_reply_([a-z_]+)$/))) return { url: `iso/npc-reply/${m[1]}.png`, frame: [64, 64] };
   if ((m = key.match(/^vh_([a-z_]+_[bf])$/))) return { url: `vohon/${m[1]}.png`, frame: iso ? [ISO_VH_FRAME, ISO_VH_FRAME] : [VH_FRAME, VH_FRAME] };
   // Phụ thể hoạt ảnh vẽ thật (Phụ thể v2 P2, #1023): nửa sau / trước; khung vuông 96 hoặc 128 do manifest ghi (`frame`), mặc định 96.
   if ((m = key.match(/^vhanim_([a-z_]+_[bf])$/))) return { url: `vohonanim/${m[1]}.png`, frame: frame ?? [ISO_VH_FRAME, ISO_VH_FRAME] };
@@ -478,12 +479,13 @@ export function loadSpriteKey(scene: Phaser.Scene, key: string) {
  * Gọi trong preload(): đọc manifest rồi xếp hàng tải các ảnh có trong đó. Sheet NPC LPC (`lpc_<tên>`) chỉ cần cho bản đồ đang vào
  * nên không tải hết: `lpc` nhận danh sách tên có trong manifest và tự xếp hàng tải những tên bản đồ dùng (crowd.ts).
  */
-export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) => void, after?: () => void) {
+export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>, replies: Set<string>) => void, after?: () => void) {
   void loadPhuAnchors(BASE + "vohonanim/anchor.json"); // neo khối thân của phụ thể (phutheAnchor.ts); thiếu thì hành vi cũ
   scene.cache.json.remove(MANIFEST_KEY); // Game giữ qua các bản đồ (#716 bước 5): cache JSON còn thì loader bỏ qua file, sự kiện filecomplete không bắn
   scene.load.json(MANIFEST_KEY, BASE + "manifest.json");
   scene.load.once(`filecomplete-json-${MANIFEST_KEY}`, (_key: string, _type: string, data: { sprites?: ManifestEntry[] }) => {
     const lpcNames = new Set<string>();
+    const replyNames = new Set<string>();
     for (const e of data?.sprites ?? []) {
       // Asset isometric (mục 5.11): từ 10.4 tải bộ hồn sư (cả 3 lớp cùng có "iso", validate.mjs kiểm), từ 10.5 phụ thể 96×96 (võ hồn
       // chưa có ảnh mới vẫn dùng bộ 48×48 cũ hoặc vẽ bằng code; vohonFrame ánh xạ khung giữa hai bố cục); vật đứng do isoMap.ts tải
@@ -491,6 +493,7 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // (loài chưa có vẫn sheet một hàng cũ hoặc vẽ bằng code; `"lpc": true` là hình tạm từ thú LPC, beastSheetSpecies); chân dung,
       // NPC, vật phẩm do giao diện HTML đọc manifest (uiArt.ts); hiệu ứng `fx_*` (#201) là dải một hàng, chạy bằng playFx.
       const key = typeof e === "string" ? e : e.key, iso = typeof e !== "string" && !!e.iso;
+      if (/^npc_reply_/.test(key)) { replyNames.add(key.slice(10)); continue; }
       if (/^lpc_/.test(key)) { lpcNames.add(key.slice(4)); continue; }
       if (iso && !/^(vh|vhanim|vkanim|beast|fx|pt|danh_hieu_(khung|dau|clip|hat))_/.test(key)) continue;
       if (typeof e !== "string" && e.anim && /^beast_[a-z_]+_anim$/.test(key)) { const L = parseLayout(e.anim); ANIM_LAYOUTS.set(key, L); markPartialAnim(key, !!L.dirsOk); }
@@ -510,7 +513,7 @@ export function preloadSprites(scene: Phaser.Scene, lpc?: (names: Set<string>) =
       // Normal map của bộ hồn sư / phụ thể isometric (`<ảnh>_n.png`, 10.7): tải riêng, GameScene gắn vào texture (attachNormal).
       if (iso && !key.startsWith("fx_") && !key.startsWith("pt_") && !key.startsWith("danh_hieu_") && lightingOn(scene.game)) scene.load.image(`${key}_n`, BASE + spec.url.replace(/\.png$/, "_n.png"));
     }
-    lpc?.(lpcNames);
+    lpc?.(lpcNames, replyNames);
     after?.(); // sau khi manifest đã ghi spec (vohonLazy): nơi gọi xin thêm sheet cần ngay
   });
 }
