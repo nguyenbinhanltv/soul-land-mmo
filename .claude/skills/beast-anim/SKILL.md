@@ -46,7 +46,8 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 2b. **Ô vàng + dòng `Nghi tư thế … --eye "…"`** (#1080: `die-ngang` ở `s` / `n`, `hurt-lat` ở khối khác `e`) là **đoán nhẹ**, không chặn, không phải `LỖI:` (≈ 60% đúng): mở đúng khung được tô; đúng thì vẽ lại khối đó (bảng A4) và khai `--eye`, sai thì bỏ qua.
 3. **Bằng mắt** (công cụ không kiểm hết, kể cả khi không có ô vàng): `n` / `ne` không thấy mặt (kể cả hurt, die); `se` khác `e` (thấy mặt chếch xuống); hurt lùi đúng hướng; die giữ hướng; đúng loài; cùng cỡ với tờ chuẩn.
 4. Sinh NGUON: `node tools/assets/beast-nguon.mjs --species <loài> --write [--model … --seed … --attempts toA=2] [--eye "toB=hướng — N H8 C3–4 — die lộ mặt"] [--eye-ok toA]`. Công cụ ghi cỡ thật, byte, SHA256, prompt (`to<X>.prompt.txt`, `turnaround.prompt.txt`) và dòng `LỖI:` từ kiểm tự động; `turnaround.png` có mục riêng (không kiểm tự động, chỉ `--eye turnaround=…`), loài mới chỉ có turnaround cũng sinh được; mục xem bằng mắt khai bằng `--eye` / `--eye-ok`. **Không viết NGUON hay dòng `LỖI:` bằng tay**; model / seed công cụ không công bố thì để `unknown`, không đoán.
-5. PR: ghi `Part of #<đợt>`; ảnh gốc đi kèm NGUON tự sinh. Không cắt, không sửa client.
+5. **Một bản nguồn mỗi loài (#1061):** chỉ commit tờ của lần nộp mới nhất, đúng tên (`toA.png`, `to-ne.png`, `turnaround.png`…). Vẽ lại thì **thay file cũ cùng đường dẫn**, không thêm `-attemptN` / `-legacy` / `-before` / ảnh review song song. RAW, lượt thử, bản nháp để **ngoài repo** (artifacts); truy vết bằng prompt + SHA256 trong `NGUON.md` / `to<X>.source.json`. Chỉ tờ **bị chặn chưa có `toX.png`** được ở `candidates/toX-attemptN.png`, **một lượt** mỗi nhãn. `node tools/ci/check-beast-src.mjs` (trong `npm run check`) chặn vi phạm và cảnh báo khi vượt `BEAST_SRC_BUDGET_MB`. Luật đầy đủ: `docs/art/hon-thu-hoat-anh.md` mục "Nguồn trong git".
+6. PR: ghi `Part of #<đợt>`; ảnh gốc đi kèm NGUON tự sinh. Không cắt, không sửa client.
 
 ### A4. Bảng triệu chứng → sửa prompt
 | Triệu chứng (thấy ở tờ liên hệ / lỗi) | Sửa lượt sau |
@@ -63,7 +64,7 @@ Prompt và hướng dẫn tiếng Việt do công cụ sinh (`<loài>-turnaround
 | Tờ phụ lệch phong cách so với tờ chuẩn | Đính tờ hướng đã **đạt** làm tham chiếu thứ ba; không dùng tờ lỗi. |
 
 ### A5. Giới hạn lượt
-**Tối đa 3 lượt cho mỗi khối** (turnaround, hoặc một tờ hướng). Chọn lượt có ít mục chặn / nhẹ nhất (số từ `beast:check`) rồi mắt. **Không** dùng tờ / ảnh lỗi làm tham chiếu cho lượt sau (lỗi lan từ tờ A sang tờ B ở các đợt trước). Vẽ lại **chỉ khối hỏng**, không cả loài.
+**Tối đa 3 lượt cho mỗi khối** (turnaround, hoặc một tờ hướng). Chọn lượt có ít mục chặn / nhẹ nhất (số từ `beast:check`) rồi mắt. Chỉ lượt được chọn vào repo (thay file cũ); các lượt còn lại ở ngoài repo, ghi hash vào NGUON. **Không** dùng tờ / ảnh lỗi làm tham chiếu cho lượt sau (lỗi lan từ tờ A sang tờ B ở các đợt trước). Vẽ lại **chỉ khối hỏng**, không cả loài.
 
 **Quá 3 lượt:** dừng, nộp lượt tốt nhất kèm NGUON tự sinh (dòng `LỖI:` giữ nguyên), ghi vào PR / issue khối nào vẫn chặn; orchestrator nhập từng khối không chặn bằng `anim.dirsOk` (Phần B bước 7), khối chặn giữ ảnh tĩnh (hoặc xin chủ repo duyệt phương án dự phòng). Không tạo prompt viết tay để "cố thêm".
 

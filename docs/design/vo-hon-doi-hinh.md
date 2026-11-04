@@ -91,7 +91,7 @@ Hạ hồn thú thì kinh nghiệm (đã giảm theo chênh cấp, mục 5.3) ch
 
 ### Nhịp lên cấp (mục tiêu thời gian, #909)
 - **Mục tiêu (chủ repo chọn 2026-11-02):** một võ hồn ra trận từ cấp 1 → 100 mất khoảng **150 giờ săn tích cực** (không tính chờ hồn hoàn; cả đội 4 võ hồn khoảng 240 giờ). Số giờ tính theo giờ săn thật, Ủy Thác (tự săn) dùng đúng công thức kinh nghiệm của săn tay nên cũng tính; mục tiêu cho võ hồn chính và đội 4, không ép cả bộ sưu tập (24 võ hồn).
-- **Cách đạt:** kinh nghiệm cần cho một cấp `xpNeed` có phần cấp² nhân `XP_NEED_MULT`; kinh nghiệm một hồn thú (`beastStats`, `xpLevelScale`) và chia đội (`XP_SHARE_ACTIVE`, `XP_SHARE_BENCH`) giữ nguyên. Đổi mục tiêu thì đổi `XP_NEED_MULT` (thời gian tăng gần tuyến tính theo hệ số).
+- **Cách đạt:** kinh nghiệm cần cho một cấp `xpNeed` có phần cấp² nhân `XP_NEED_MULT`; kinh nghiệm một hồn thú (`beastStats` × `BEAST_TOUGH.xp`, `xpLevelScale`; hệ số này bù hồn thú thường trâu hơn nên kinh nghiệm mỗi giờ giữ gần như cũ, xem hon-thu-boss "Quái trâu hơn") và chia đội (`XP_SHARE_ACTIVE`, `XP_SHARE_BENCH`) giữ nguyên. Đổi mục tiêu thì đổi `XP_NEED_MULT` (thời gian tăng gần tuyến tính theo hệ số).
 - **Số đo** (mô hình dùng `offlineFight`, chỉ số võ hồn không trang bị, nên là cận trên về thời gian): trước khi đổi chỉ ~2,2 giờ một võ hồn, mỗi cấp 4–15 con. Bình cảnh không là nút thắt về thời gian (mọi con hạ rơi hồn hoàn, hấp thụ trong giới hạn luôn thành công).
 - **Chưa làm (tùy):** thu hẹp cửa sổ `XP_LEVEL_STEPS` (hiện hồn thú thấp hơn tới 9 cấp vẫn đủ kinh nghiệm); bậc mới còn đổi nghĩa "hồn thú hợp cấp" (`fitBeast`, nhiệm vụ hằng ngày) nên để việc riêng.
 

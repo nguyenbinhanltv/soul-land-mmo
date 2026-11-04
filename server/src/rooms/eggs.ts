@@ -1,6 +1,6 @@
 // Bọc trứng của chiêu có `eggs` (#162, Vạn Chu Phệ của Tà hóa Thiên Độc Chu Hoàng, mục 5.4). Số liệu ở EggDef (shared/data.ts);
 // MapRoom gọi `lay` khi chiêu tung, `tick` mỗi nhịp, `broke` khi bọc bị phá (thay cho killBeast: không thưởng).
-import { BOSSES, MAX_YEARS, TELE_FIRST, beastIndex, rollYears, type EggDef } from "../../../shared/data.ts";
+import { BOSSES, MAX_YEARS, beastStats, TELE_FIRST, beastIndex, rollYears, type EggDef } from "../../../shared/data.ts";
 import type { MapRoom } from "./MapRoom.ts";
 import type { BeastState } from "./schema.ts";
 
@@ -36,7 +36,7 @@ export class SpiderEggs {
       if (r.map.hits(x, y, 6, 4) || r.map.inSafe(x, y) || (lair && b.rank >= 2 && !r.map.inLair(x, y))) continue;
       const years = Math.min(MAX_YEARS - 1, rollYears(def.years[0], def.years[1], Math.random()));
       const eid = r.addBeast(bd.zone, years, sp, x, y), e = r.state.beasts.get(eid)!, ed = r.bdata.get(eid)!;
-      e.hp = e.maxHp = Math.max(1, Math.round(e.maxHp * def.hp));
+      e.hp = e.maxHp = Math.max(1, Math.round(Math.round(beastStats(years).hp) * def.hp)); // trứng là cơ chế của thú vương: máu tính trên beastStats gốc, không nhân BEAST_TOUGH
       ed.rooted = true; ed.skills = []; ed.reach = 0; // đứng yên, không đánh, không tung chiêu, không bị đẩy / kéo
       e.egg = Math.min(255, Math.ceil(def.secs * 10)); // uint8: tối đa 25,5 giây
       this.eggs.set(eid, { mother: bid, def, t: def.secs });
