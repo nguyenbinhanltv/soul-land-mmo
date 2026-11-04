@@ -1,7 +1,7 @@
 // Khối ab1 của INLINE: 2.5a–2.5d (bot E), BĐ5, 3.2 (nhóm 1) (#703 bước 5, tách nguyên văn từ bot-test.mjs; nhận ctx = các biến của luồng A / B / C).
 import { bot, waitFor, test, ok, lastLog, sleep, step, sendTeam, same, mapUrl, post, enter, qtyOf, bonesOf, bagKey, useItem, sj } from "./lib.mjs";
 import * as SD from "../../../shared/data.ts";
-import { skillPower, buffPower, calcStats, vohonIndex, tierOfYears, STATUS, hpRegen, mpRegen, VOHON, SAFE_REGEN_MULT, TEAM_COMBAT_SECS, TEAM_SIZE, skillsOf, TIERS, CC_TIER_MULT, PCT_HP_CAP, BEAST_REGEN, BEAST_DEF_MULT, beastDef, BEAST_DEF, BEASTS, beastIndex, defMult, TIEN_CO_RIENG, SKILLS, PHOENIX_FIELD_R, TIEN_CO_MAX, PHONG_LOI, TIEN_CO_IDLE_SECS, REVIVE_SECS, bondsOf, BONDS, bondSum, BOND_KEYS, BUFFS, kingNext, kingActive, KING, vnHHMM, BOSSES, parseLevelRange, bossIndex, MAPS, vnDay, KING_TIMES, KING_CHEST, bossHpMult, beastStats, TELE_WARN, chestCode, kingShardPool, shardCode, CORE_ITEM, coreStarBand, coreSetIndex, CORE_SUBS, BAG_SLOTS, RING_ITEM, DROP_OWNER_SECS, formatYears, ringLimit, absorbChance, MAX_YEARS, absorbSecs, MAX_LEVEL, MAX_RINGS, starCost, STAR_COST, MAX_STARS, SHARD_UNLOCK, shardChance, itemDef, starMult, boneChance, BONE_SLOTS, BONE_ITEM, boneStats, boneName, PICKUP_RANGE, ELITE, beastName, coreChance, CORE_SETS, MAX_CORE_STARS, CORE_STAT_IDS, CORE_STAR_K, coreMainValue, coreName, coreStatText, rollCore, CORE_STATS, coreSubMax, CORE_SUB_ROLL, CORE_MAP_SET, boneBonus, BONE_SKILLS, BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, BONE_PASSIVE_CAP, statusBit, boneFeedXp, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, BONE_MAX_ENHANCE, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult, boneEnhancePreview, enhanceFee, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, CORE_MAX_ENHANCE, formatHonTe, parseBoneSubs, BONE_MAX_SUBS, boneSubsDue, CORE_SLOTS, coreBonus, coreFx, CORE_SET_FX, CRIT, TIEN_CO_GAIN, tienCoOf, coreFeedXp, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, coreEnhanceLevel, coreEnhanceNeed, CORE_ENHANCE_MAIN, coreSubRolls, coreUpgradeSubs, CORE_MAX_SUBS, coreEnhancePreview } from "../../../shared/data.ts";
+import { skillPower, normalBeastStats, buffPower, calcStats, vohonIndex, tierOfYears, STATUS, hpRegen, mpRegen, VOHON, SAFE_REGEN_MULT, TEAM_COMBAT_SECS, TEAM_SIZE, skillsOf, TIERS, CC_TIER_MULT, PCT_HP_CAP, BEAST_REGEN, BEAST_DEF_MULT, beastDef, BEAST_DEF, BEASTS, beastIndex, defMult, TIEN_CO_RIENG, SKILLS, PHOENIX_FIELD_R, TIEN_CO_MAX, PHONG_LOI, TIEN_CO_IDLE_SECS, REVIVE_SECS, bondsOf, BONDS, bondSum, BOND_KEYS, BUFFS, kingNext, kingActive, KING, vnHHMM, BOSSES, parseLevelRange, bossIndex, MAPS, vnDay, KING_TIMES, KING_CHEST, bossHpMult, beastStats, TELE_WARN, chestCode, kingShardPool, shardCode, CORE_ITEM, coreStarBand, coreSetIndex, CORE_SUBS, BAG_SLOTS, RING_ITEM, DROP_OWNER_SECS, formatYears, ringLimit, absorbChance, MAX_YEARS, absorbSecs, MAX_LEVEL, MAX_RINGS, starCost, STAR_COST, MAX_STARS, SHARD_UNLOCK, shardChance, itemDef, starMult, boneChance, BONE_SLOTS, BONE_ITEM, boneStats, boneName, PICKUP_RANGE, ELITE, beastName, coreChance, CORE_SETS, MAX_CORE_STARS, CORE_STAT_IDS, CORE_STAR_K, coreMainValue, coreName, coreStatText, rollCore, CORE_STATS, coreSubMax, CORE_SUB_ROLL, CORE_MAP_SET, boneBonus, BONE_SKILLS, BONE_ACTIVE_SLOTS, boneSkillOf, bonePassive, BONE_PASSIVE_CAP, statusBit, boneFeedXp, BONE_FEED_PER_YEAR, BONE_FEED_SAME_SLOT, BONE_FEED_CARRY, BONE_MAX_ENHANCE, boneEnhanceLevel, boneEnhanceNeed, boneSkillMult, boneEnhancePreview, enhanceFee, BONE_ENHANCE_FEE, CORE_ENHANCE_FEE, CORE_MAX_ENHANCE, formatHonTe, parseBoneSubs, BONE_MAX_SUBS, boneSubsDue, CORE_SLOTS, coreBonus, coreFx, CORE_SET_FX, CRIT, TIEN_CO_GAIN, tienCoOf, coreFeedXp, CORE_FEED_STAR, CORE_FEED_SAME_SET, CORE_FEED_CARRY, coreEnhanceLevel, coreEnhanceNeed, CORE_ENHANCE_MAIN, coreSubRolls, coreUpgradeSubs, CORE_MAX_SUBS, coreEnhancePreview } from "../../../shared/data.ts";
 import { readFileSync } from "node:fs";
 
 // 2.5a–2.5d dùng bot E.
@@ -93,14 +93,14 @@ export async function ab1Block1(ctx) {
     let want=exp(atk*P(1)*sk[1].dmg);
     ok(want.includes(dmgsOn(E,f)[0]?.v)&&beastOf(E,f)?.armor===2&&beastOf(E,bk)?.armor===2,`${sk[1].name}: sát thương ${dmgsOn(E,f)[0]?.v} (cần ${want.join(" hoặc ")}), Phá giáp ${beastOf(E,f)?.armor} tầng`);
     await cast(E,0);
-    want=exp((atk*P(0)*sk[0].dmg+Math.min(TIERS[3].hp*sk[0].pctHp,atk*P(0)*PCT_HP_CAP))*(1+2*STATUS.armor.amp));
+    want=exp((atk*P(0)*sk[0].dmg+Math.min(normalBeastStats(TIERS[3].years).hp*sk[0].pctHp,atk*P(0)*PCT_HP_CAP))*(1+2*STATUS.armor.amp));
     ok(want.includes(dmgsOn(E,f)[0]?.v)&&!dmgsOn(E,bk).length,`${sk[0].name}: nửa trước mặt ${dmgsOn(E,f)[0]?.v} (cần ${want.join(" hoặc ")}: +3% sinh lực, Phá giáp +20%), hồn thú phía sau không trúng`);
     await test(E,"clear"); const lb=await spawnAt(4,40); await test(E,"ready"); await cast(E,2,0);
     ok(await waitFor(()=>dmgsOn(E,lb).length>=4&&hasSt(beastOf(E,lb),"stun"),1500),`${sk[2].name}: ${dmgsOn(E,lb).length} nhát liên hoàn, nhát cuối hất tung (Choáng)`);
-    want=exp(atk*P(2)*sk[2].dmg+Math.min(TIERS[4].hp*sk[2].pctHp,atk*P(2)*PCT_HP_CAP));
+    want=exp(atk*P(2)*sk[2].dmg+Math.min(normalBeastStats(TIERS[4].years).hp*sk[2].pctHp,atk*P(2)*PCT_HP_CAP));
     ok(dmgsOn(E,lb).every(d=>want.includes(d.v)),`mỗi nhát ${dmgsOn(E,lb).map(d=>d.v).join("/")} (cần ${want.join(" hoặc ")})`);
     await test(E,"clear"); const pb=await spawnAt(4,40); await test(E,"ready"); await cast(E,3);
-    want=exp(atk*P(3)*sk[3].dmg+Math.min(TIERS[4].hp*sk[3].pctHp,atk*P(3)*PCT_HP_CAP));
+    want=exp(atk*P(3)*sk[3].dmg+Math.min(normalBeastStats(TIERS[4].years).hp*sk[3].pctHp,atk*P(3)*PCT_HP_CAP));
     ok(want.includes(dmgsOn(E,pb)[0]?.v)&&hasSt(beastOf(E,pb),"stun"),`${sk[3].name}: sát thương ${dmgsOn(E,pb)[0]?.v} (cần ${want.join(" hoặc ")}, có 6% sinh lực), hất tung`);
     await test(E,"clear");
   }
@@ -194,7 +194,7 @@ export async function ab1Block1(ctx) {
     await test(E,"clear"); await spawnAt(2,110);
     await test(E,"bhp",{pct:50}); const g1=(await test(E,"regen",{s:5})).gain;
     await test(E,"bhp",{pct:50}); await test(E,"status",{s:"poison",secs:30}); const g2=(await test(E,"regen",{s:5})).gain;
-    const w1=Math.floor(TIERS[2].hp*BEAST_REGEN.pct*5);
+    const w1=Math.floor(normalBeastStats(TIERS[2].years).hp*BEAST_REGEN.pct*5);
     ok(g1===w1&&g2===Math.floor(w1*(1-STATUS.poison.healCut)),`hồn thú hồi ${g1} sinh lực trong 5 giây ngoài giao chiến (cần ${w1}); Trúng độc chỉ hồi ${g2}`);
     await test(E,"clear");
   }
@@ -207,7 +207,7 @@ export async function ab1Block1(ctx) {
       await test(E,"status",{bid,s:"root",secs:30}); return {bid,def:(await test(E,"bst",{bid}))?.def}; };
     const deal=async bid=>(await test(E,"bdmg",{bid,v:1000}))?.dealt;
     const h4=await thu(hard,4), s4=await thu(soft,4), h0=await thu(hard,0);
-    ok(Math.abs(h4.def-beastDef(hard,TIERS[4].years))<1e-9&&h4.def>BEAST_DEF.ref&&s4.def<BEAST_DEF.ref&&h0.def<h4.def,
+    ok(Math.abs(h4.def-beastDef(hard,TIERS[4].years,true))<1e-9&&h4.def>BEAST_DEF.ref&&s4.def<BEAST_DEF.ref&&h0.def<h4.def,
       `thủ theo loài / niên hạn: ${BEASTS[beastIndex(hard)].name} ${TIERS[4].age} ${h4.def?.toFixed(3)}, cùng loài ${TIERS[0].age} ${h0.def?.toFixed(3)}, `+
       `${BEASTS[beastIndex(soft)].name} ${TIERS[4].age} ${s4.def?.toFixed(3)} (thủ chuẩn ${BEAST_DEF.ref.toFixed(3)})`);
     const h=await thu(hard,4), d0=await deal(h.bid), want=n=>Math.max(1,Math.round(1000*defMult(h.def,n*STATUS.armor.shred)));
@@ -229,7 +229,7 @@ export async function ab1Block1(ctx) {
     ok(r.fx?.own&&r.fx.vh===vohonIndex(id)&&await lastLog(E,new RegExp(own.name)),`tiên cơ riêng ${vname(id)}: ${own.name}`);
     const b=r.bid?beastOf(E,r.bid):null;
     if(own.dmg){
-      const w=exp(atk*own.dmg+(own.pctHp?Math.min(TIERS[3].hp*own.pctHp,atk*PCT_HP_CAP):0));
+      const w=exp(atk*own.dmg+(own.pctHp?Math.min(normalBeastStats(TIERS[3].years).hp*own.pctHp,atk*PCT_HP_CAP):0));
       ok(w.includes(r.dmg),`${own.name}: sát thương ${r.dmg} (cần ${w.join(" hoặc ")})`);
     }
     if(own.status) ok(await waitFor(()=>own.status.every(a=>hasSt(b,a.s)&&(!a.n||b[a.s]===a.n)),500),`${own.name}: gây ${own.status.map(a=>STATUS[a.s].name+(a.n?` ${a.n} tầng`:"")).join(", ")}`);

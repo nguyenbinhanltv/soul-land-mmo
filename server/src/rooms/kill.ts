@@ -44,7 +44,7 @@ export function killBeast(room: MapRoom, bid: string, by: string) {
   const got = new Set<string>(); // người nhận thưởng tinh anh lần này (kinh nghiệm x ELITE.xp, quyền ưu tiên đồ rơi tinh anh)
   for (const pid of team) {
     const full = !!e && free(pid); if (full) got.add(pid);
-    room.rewardKill(pid, b.years, (full ? ELITE.xp : beastTough(b.years).xp) * share);
+    room.rewardKill(pid, b.years, (full ? ELITE.xp : 1) * beastTough(b.years).xp * share);
     if (!b.rank) dexKilled(room, pid, b.species); // Sổ tay hồn thú (#1720): hạ loài thường thì ghi (cả đồng đội cùng chia kinh nghiệm)
   }
   if (owner) got.add(owner);
