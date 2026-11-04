@@ -213,5 +213,18 @@ Redis được tắt / bật bởi harness ngoài bài bot đúng giữa lượt
 ## Trang bị hồn sư (E7)
 Chạy dài lệnh Thợ rèn / mặc đồ (40 bot × 20 phút, và PostgreSQL 20 bot × 5 phút): tick ~0,9 ms, không chậm dần, bộ nhớ không rò, vào lại đúng trạng thái. Số liệu, cách chạy (`bot:local --only equipsoak`) và kết luận cân bằng ở `docs/trang-bi-kinh-te.md` mục E7.
 
+## Danh Hiệu: 40 người dồn một chỗ, mọi người đeo bậc cao (#1789)
+Kịch bản: `auto-soak.mjs` thêm hai biến `CLUSTER=1` (dồn mọi bot về một điểm, ai cũng thấy ai) và `TITLES=1` (mỗi bot mở + đeo danh hiệu bậc cao nhất qua hook `title`, nên `PlayerState.titleId` khác rỗng ở cả 40 người, vượt xa ngưỡng `TITLE_FX.crowd`). Đối chứng cùng server, cùng kịch bản, `TITLES=0` chạy trước: `CLUSTER=1 MODE=walk N=40 SECS=60 TITLES=<0|1>`, bản đồ Tinh Đấu Ngoại vi ×8, bot đi lang thang. Máy như mục "Cách đo", có phiên khác chạy cùng; một tiến trình server chạy hai lượt liền (lượt sau còn hồn thú đang thức từ lượt trước, `awake` ở lượt `TITLES=1` cao hơn).
+
+| Lượt | tick + vá (ms, trung bình mỗi 10 giây) | vá (ms) | max lớn nhất (ms) | thức (hồn thú) | KB/s mỗi client |
+|---|---|---|---|---|---|
+| Trước: không ai đeo (6 dòng `[perf]`) | 5,1 / 10,7 / 13,3 / 12,7 / 12,6 / 14,4 | 2,5 – 6,0 (tb 5,1) | 44 | 114 → 265 | 16,0 |
+| Sau: 40 người đeo bậc cao (7 dòng) | 6,8 / 11,8 / 14,9 / 15,5 / 16,2 / 13,9 / 15,0 | 2,7 – 6,7 (tb 5,6) | 128 (một nhịp, `slow` 2) | 161 → 325 | 15,4 |
+
+- Số đo này là **phía server**: một chuỗi mã trong state công khai không làm băng thông mỗi client tăng (16,0 → 15,4 KB/s, sai số đo) và phần vá chỉ chênh ~0,5 ms trong khi số hồn thú thức tăng ~40 %. Chênh tick tương ứng số thức, không do `titleId`.
+- Dồn 40 người một chỗ là tình huống xấu hơn mốc "rải đều" (mục 1: 40 bot ~7,7 ms): tick + vá ở cả hai lượt vượt ngưỡng báo động ~10 ms, vì mọi người thấy nhau và hồn thú dồn về thức. Không phải lỗi của danh hiệu; ghi lại để đừng so với mục 1.
+- **FPS client với 1 / 6 / 12 / 40 người đeo bậc cao: Chưa đo.** Cần Chrome thật có GPU (skill `soak-perf` chỉ đo server); ngưỡng `TITLE_FX.crowd` giữ nguyên cho tới khi có số FPS. Cách đo cho lượt sau: `CLUSTER=1 TITLES=1 N=12 MODE=walk` chạy nền, mở một client Chrome vào cùng điểm, đọc FPS ở bảng FPS của game.
+- Bot kiểm thử: `BOT_ONLY=danhhieu` 82 / 82 đạt (RAM và `--pg`).
+
 ## Issue liên quan
-#167 (soak ×8), #220 / #222 (thú vương Tinh Đấu Nội địa), #229 (soak 30 phút), #240, #241, #250, #273 và #375 (nhịp chậm), #311 (`PERF_LOG` theo đoạn), #394 (hiệu ứng G3), #418 (E7), #496 (Redis), #739 (soak 2 giờ).
+#167 (soak ×8), #220 / #222 (thú vương Tinh Đấu Nội địa), #229 (soak 30 phút), #240, #241, #250, #273 và #375 (nhịp chậm), #311 (`PERF_LOG` theo đoạn), #394 (hiệu ứng G3), #418 (E7), #496 (Redis), #739 (soak 2 giờ), #1789 (Danh Hiệu).

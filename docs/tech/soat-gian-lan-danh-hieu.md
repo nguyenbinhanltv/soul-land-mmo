@@ -52,3 +52,19 @@ Phạm vi: `titleAchvClaimed` (achv.ts), `titleBossKilled` (boss.ts `killKing`),
 Ghi chú vận hành: server-first tính từ lúc `043` chạy (lần hạ đầu tiên SAU khi triển khai thắng; không truy hồi lịch sử). Lần chốt tuần đầu sau triển khai cấp theo bảng điểm lúc đó. Người đang online không thấy danh hiệu tuần mới tới khi gửi `title {op:"get"}` / vào lại phòng (không đẩy riêng).
 
 Không có lỗi Nghiêm trọng / Cao / Vừa còn tồn.
+
+## Soát cuối P6: bot + đối chiếu ba điểm chốt (#1789)
+
+Phạm vi: bài bot `client/scripts/bot/title.mjs` (`BOT_ONLY=danhhieu`, nhóm 2 của `BOT_PART`; chạy `bot:local` cả RAM và `--pg`, 82 / 82 kiểm tra đạt), hook kiểm thử `test {op:"title"}` mới ở `rooms/gm.ts` (CHỈ `GAME_TEST=1`; ngoài đó `testHook` trả `enabled:false` từ dòng đầu), đọc lại toàn bộ chỗ gọi `titleGrant` / `grantTitle` / `titleCloseWeek` / `bossFirst` / `titleEquip`.
+
+| # | Điểm chốt | Kết quả | Mức |
+|---|---|---|---|
+| 22 | Chốt tuần idempotent | **Đạt**: `titleCloseWeek` ghi dấu `(week_day, board)` cùng transaction với các dòng `title_owned`; lần hai không ghi được dấu → không cấp, trả null (Pg: `ON CONFLICT DO NOTHING` + ROLLBACK; Memory: tập `titleWeeks`). `titleGrant` vốn idempotent (dup khi còn hạn) nên cả hai tầng cùng chặn cấp trùng; test `title-test` chạy chốt hai lần | — |
+| 23 | Server-first không chạy đua | **Đạt**: `bossFirst` là một lệnh ghi có điều kiện theo khoá chính `boss_id` (Pg `INSERT … ON CONFLICT DO NOTHING` rồi so `kill_key`; Memory `Map` đồng bộ); chỉ lần hạ ghi được dòng thắng, mọi người đóng góp CÙNG lần hạ cùng thắng. Không có bước "đọc rồi ghi" tách rời | — |
+| 24 | Không có đường client ghi danh hiệu | **Đạt**: tin client duy nhất `title` chỉ nhận `op` `get` / `equip`; bài bot gửi `op:"grant"`, `"set"`, id lạ / object / mảng / `__proto__` / số / null và 200 `equip` dồn: không mở gì, không rời kết nối. Chỗ gọi `titleGrant` ngoài đó chỉ có `title.ts` (cấp theo cấp / thành tựu đã nhận / hạng tuần / boss, đều từ trạng thái server), `db.ts` (`titleCloseWeek`) và hook `gm.ts` (chỉ GAME_TEST) | — |
+| 25 | Hook `test {op:"title"}` mở đường cấp cho client ở production | **Không**: cùng cổng `GAME_TEST` với mọi hook kiểm thử khác (production không bật, `enabled:false`); chỉ cấp cho chính người gọi, mã phải có trong `TITLE_DEFS` | Thông tin |
+| 26 | Người khác thấy `titleId` ngoài tầm nhìn | **Không rò**: bot đưa người quan sát ra xa hơn 900 pixel thì người đeo không còn trong state của họ; quay lại thì thấy lại | — |
+| 27 | Danh hiệu có hạn đang đeo tự về mặc định | **Đạt** ở cả RAM và PostgreSQL: bộ hẹn giờ hạ `titleId` về rỗng, tin riêng báo lại, đeo lại danh hiệu đã hết hạn bị từ chối | — |
+
+Không có lỗi Nghiêm trọng / Cao / Vừa còn tồn; soát lần cuối không đổi luật chống gian lận nào (chỉ thêm bài bot và hook GAME_TEST).
+
