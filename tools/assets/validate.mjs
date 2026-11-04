@@ -147,7 +147,7 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     for (let r = 0; r < 4; r++) for (let c = 0; c < SHEET_COLS; c++) if ((r === 3 || c >= 12) && !cellEmpty(img, ...at(r, c), fw, fh)) stray.push([r, c]);
     if (stray.length) err(key, `phụ thể vẽ vào ô client không đọc (cột 12–15 hoặc hàng 3): ` + stray.map(([r, c]) => `(${r},${c})`).join(" "));
     if (cellEmpty(img, 0, 0, img.w, img.h)) err(key, `sheet trống hoàn toàn: ghi "blank": true vào manifest và xóa file ảnh + _n (client không tải nửa trống)`);
-  } else if (spec.kind === "beast" || spec.kind === "fx") {
+  } else if (spec.kind === "beast" || spec.kind === "fx" || spec.kind === "npc-reply") {
     if (spec.kind === "fx" && img.h !== fh) err(key, `hiệu ứng phải là dải một hàng khung ${fw}×${fh}`);
     const empty = [];
     for (let c = 0; c < img.w / fw; c++) if (cellEmpty(img, c * fw, 0, fw, fh)) empty.push(c);

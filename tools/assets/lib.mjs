@@ -427,6 +427,7 @@ export function appendManifestEntry(text, entry) {
 
 export function sheetSpec(key, frame, iso = false, stat = false) {
   let m;
+  if (iso && (m = key.match(/^npc_reply_([a-z_]+)$/))) return { file: `iso/npc-reply/${m[1]}.png`, frame: [64, 64], size: [320, 64], kind: "npc-reply", npc: m[1], iso: true };
   // Icon võ hồn v2: hai cỡ24/32, lượng tử hóa theo trần màu chân dung.
   if (iso && (m = key.match(/^icon_([a-z_]+)_(24|32)$/)) && vohonColors(m[1])) return { file: `iso/portrait/${m[1]}_icon${m[2]}.png`, size: [+m[2], +m[2]], kind: "portrait", iso: true, vohonIcon: m[1] };
   if (iso) {
