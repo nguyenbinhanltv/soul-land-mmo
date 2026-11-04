@@ -101,7 +101,9 @@ GameScene.prototype.create = function(...a) {
     try { return await handle.jsonValue(); } finally { await handle.dispose(); }
   };
   const state = () => page.evaluate(()=>window.__npcReplySnapshot());
-  await move(24,24);
+  const nod = async () => { if (separatePose) await page.waitForFunction(()=>window.__npcReplySnapshot().head?.visible && !window.__npcReplySnapshot().bodyVisible); };
+  // Đứng lệch để hồn sư không che chân NPC trong ảnh bàn giao.
+  await move(24,-24);
   await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),c=s.cameras.main;c.stopFollow(); c.setZoom(5);c.centerOn(n.body.parentContainer.x+65,n.body.parentContainer.y-20);});
   await page.waitForTimeout(100);
   await page.screenshot({path:resolve(out,'truoc.png')});
@@ -109,7 +111,7 @@ GameScene.prototype.create = function(...a) {
   const clipAt=(Date.now()-videoStarted)/1000;
   await talk();
   if (separatePose) {
-    await page.waitForFunction(()=>window.__npcReplySnapshot().head?.visible && !window.__npcReplySnapshot().bodyVisible);
+    await nod();
     // Dừng đúng pose đã phát trong game để ảnh chụp không rơi qua cửa sổ 220 ms khi máy bận.
     await page.evaluate(()=>window.__npcReplyScene.scene.pause());
     await page.screenshot({path:resolve(out,'cu-chi.png')});
@@ -137,9 +139,9 @@ GameScene.prototype.create = function(...a) {
     await close(); assert.equal((await state()).anim,sheet+':idle_s');
   }
   console.log(npcId, '✓ Tám hướng / giữ điểm chân / về idle / cập nhật túi không phát lại');
-  console.log("Kiểm đóng sớm"); await move(24,24); await talk(); await close(); assert.ok(!(await state()).active && !(await state()).crop);
+  console.log("Kiểm đóng sớm"); await move(24,24); await talk(); await nod(); await close(); assert.ok(!(await state()).active && !(await state()).crop && (await state()).bodyVisible);
   // Đổi NPC qua HUD thật để kiểm hủy lớp tạm (NPC còn lại xa nên chỉ kiểm vòng đời hiển thị).
-  console.log("Kiểm đổi NPC"); await talk(); await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.openNpc(window.__npcReplyTarget==='lo_ren_thien_dau'?'dai_su':'lo_ren_thien_dau',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active);
+  console.log("Kiểm đổi NPC"); await talk(); await nod(); await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.openNpc(window.__npcReplyTarget==='lo_ren_thien_dau'?'dai_su':'lo_ren_thien_dau',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active && (await state()).bodyVisible);
   console.log("Kiểm mở lại nhanh"); await close(); await talk();
   await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.closeNpc();h.openNpc(window.__npcReplyTarget,null,{});});
   await page.waitForTimeout(70); assert.ok((await state()).active,'mở lại cùng NPC giữa hai frame'); await close();
@@ -147,7 +149,7 @@ GameScene.prototype.create = function(...a) {
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active); await close();
   console.log("Kiểm bật Giảm chuyển động giữa cử chỉ");
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;});
-  await talk(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:2000}); assert.ok(!(await state()).active); await close();
+  await talk(); await nod(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:2000}); assert.ok(!(await state()).active && (await state()).bodyVisible); await close();
   console.log("Kiểm bộ LPC dự phòng");
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); const key=s.lpc.acquire(window.__npcLpcStr(n.def.looks));window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');});
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active,'sheet không đúng giữ idle'); await close();
