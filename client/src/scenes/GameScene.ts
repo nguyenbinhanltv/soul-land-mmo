@@ -3095,7 +3095,7 @@ export class GameScene extends Phaser.Scene {
       label.setText(`${kind === "pk" ? "[PK] " : kind === "party" ? "[Đội] " : ""}${p.name} (${p.level})`);
       const col = id === this.me ? "#ffe9a0" : nameplateAppearance(kind).color;
       if (label.style.color !== col) label.setColor(col);
-      // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
+      // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); không đổi theo tự săn, chip tự săn ở autoT (#1811).
       const tt = titleText(p.titleId, p.level);
       title.setText(tt);
       // Màu chữ theo bậc hiếm (bảng màu tạm, titlePlate.ts); danh hiệu không đổi chữ / màu theo tự săn (#1811).
