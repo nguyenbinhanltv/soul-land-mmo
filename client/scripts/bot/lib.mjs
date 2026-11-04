@@ -1,6 +1,6 @@
 // Tiện ích chung của bài bot (#703): bot-test.mjs (bộ chạy + bảng nhóm) và các nhóm trong bot/<nhóm>.mjs cùng dùng.
 // Biến toàn cục cũ (API, RUN, PASS, đếm lỗi) nằm ở đây và được export; đếm lỗi đọc qua failCount() vì không export được `let` ghi đè.
-import { TICK_RATE, parseLevelRange, beastStats, ELITE, BEASTS, tierOfYears, bossHpMult, BOSSES, SPAWN_CLEAR, BEAST_WANDER, BEAST_AGGRO_R } from "../../../shared/data.ts";
+import { TICK_RATE, parseLevelRange, beastStats, normalBeastStats, ELITE, BEASTS, tierOfYears, bossHpMult, BOSSES, SPAWN_CLEAR, BEAST_WANDER, BEAST_AGGRO_R } from "../../../shared/data.ts";
 import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { Client } from "colyseus.js";
@@ -249,7 +249,7 @@ export function checkBeastYears(b){
     const near=zs.filter(z=>z.yr&&x.x>=z.x-240&&x.x<=z.x+z.width+240&&x.y>=z.y-240&&x.y<=z.y+z.height+240);
     // Loài và số năm phải khớp cùng một vùng (bảng 5.3): loài khai báo ở `beasts`, tuổi trong `years`.
     // Tinh anh (BĐ4, `rank` 1): niên hạn bằng mức trên của vùng, máu x ELITE.hp (nhân thêm theo số người tham gia nếu đang giao chiến).
-    const base=x.rank?Math.round(beastStats(x.years).hp*ELITE.hp):beastStats(x.years).hp;
+    const base=x.rank?Math.round(beastStats(x.years).hp*ELITE.hp):normalBeastStats(x.years).hp;
     if(!near.some(z=>x.rank?x.years===z.yr[1]:x.years>=z.yr[0]&&x.years<=z.yr[1]&&z.sp.includes(BEASTS[x.species]?.id))||x.tier!==tierOfYears(x.years)
       ||!(x.maxHp===base||x.rank&&[2,3,4,5,6].some(n=>x.maxHp===Math.round(base*bossHpMult(n)))))
       bad.push(`${x.rank?BOSSES[x.species]?.id:BEASTS[x.species]?.id} ${x.years}@${x.x.toFixed(0)},${x.y.toFixed(0)}`); });

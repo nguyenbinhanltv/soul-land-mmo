@@ -5,7 +5,7 @@
 import { store, type AutoRow, type Item } from "../db.ts";
 import { loadMap, type Zone } from "../map.ts";
 import { bossNow } from "../schedule.ts";
-import { BEASTS, MAPS, TIERS, MAX_YEARS, autoHint, OFFLINE, boneChance, AUTO_MSG_RATE, parseAuto, AUTO_DAILY_SECS, autoTimeText, AUTO_MAX_PER_CELL, autoLeft, type AutoSummary, type AutoHint, type ItemDef, AUTO_BONUS_MAX, offlineSplit, offlineFight, beastStats, xpLevelScale, beastLevel, BEAST_COIN, tierOfYears, shardChance, shardCode, SHARD_QTY, itemDef, herbChance, HERBS, rollEquipDrop, BONE_SLOTS, coreChance, rollCore, XP_SHARE_ACTIVE, XP_SHARE_BENCH, formatYears, formatHonTe, rollYears, tierBand } from "../../../shared/data.ts";
+import { BEASTS, MAPS, TIERS, MAX_YEARS, autoHint, OFFLINE, boneChance, AUTO_MSG_RATE, parseAuto, AUTO_DAILY_SECS, autoTimeText, AUTO_MAX_PER_CELL, autoLeft, type AutoSummary, type AutoHint, type ItemDef, AUTO_BONUS_MAX, offlineSplit, offlineFight, normalBeastStats, xpLevelScale, beastLevel, BEAST_COIN, tierOfYears, shardChance, shardCode, SHARD_QTY, itemDef, herbChance, HERBS, rollEquipDrop, BONE_SLOTS, coreChance, rollCore, XP_SHARE_ACTIVE, XP_SHARE_BENCH, formatYears, formatHonTe, rollYears, tierBand } from "../../../shared/data.ts";
 import { MOVE_DEAD } from "../../../shared/move.ts";
 import { bagUsed } from "./items.ts";
 import { AutoHunter } from "./autoHunt.ts";
@@ -181,7 +181,7 @@ export async function claimOffline(room: MapRoom, id: string) {
     t += f.secs;
     if (!f.ok) { weak++; continue; }
     kills++;
-    xp += beastStats(years).xp * xpLevelScale(lv, beastLevel(years));
+    xp += normalBeastStats(years).xp * xpLevelScale(lv, beastLevel(years));
     const [lo, hi] = BEAST_COIN[tierOfYears(years)] ?? BEAST_COIN[0]; coins += lo + Math.floor(Math.random() * (hi - lo + 1));
     // Mảnh, tiên thảo vào thẳng túi như khi hạ tay; hồn cốt, hồn hạch, hồn hoàn theo bộ lọc nhặt của tự săn.
     if (def.shards.length && Math.random() < shardChance(years)) {
@@ -262,4 +262,4 @@ export function offlineSpecies(z: Zone) {
   for (const b of list) { r -= b.w; if (r <= 0) return b.species; }
   return list[list.length - 1].species;
 }
-
+
