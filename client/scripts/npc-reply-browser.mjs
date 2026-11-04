@@ -219,6 +219,7 @@ GameScene.prototype.create = function(...a) {
     const looks=rig?{sex:0,hair:0,hairCol:0,outfitCol:0,skin:n.def.looks.skin===0?1:0}:n.def.looks;
     const source=window.__npcLpcStr(looks);
     if(rig&&source===window.__npcLpcStr(n.def.looks))throw new Error('Fixture dự phòng phải khác ngoại hình nguồn');
+    window.__fallbackLooks=looks;
     const key=s.lpc.acquire(source);window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');
   },rigPose);
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active,'sheet không đúng giữ idle'); await close();
@@ -230,7 +231,7 @@ GameScene.prototype.create = function(...a) {
     await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);s.lpc.byKey.get(n.body.texture.key).layers[0].state=window.__oldLayerState;});
     await page.waitForTimeout(160);assert.ok(!(await state()).active,'tải đủ lớp giữa hội thoại không phát lại');await close();
     console.log("Kiểm looks thay đổi nhưng texture cũ còn cache");
-    await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);window.__oldNpcLooks=n.def.looks;n.def.looks={sex:0,hair:0,hairCol:0,outfitCol:0,skin:0};});
+    await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);window.__oldNpcLooks=n.def.looks;if(window.__npcLpcStr(window.__fallbackLooks)===window.__npcLpcStr(n.def.looks))throw new Error('Fixture đổi looks phải khác nguồn');n.def.looks=window.__fallbackLooks;});
     await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget));await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget);await page.waitForTimeout(160);assert.ok(!(await state()).active,'looks khác giữ idle');await close();
     await page.evaluate(()=>{window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).def.looks=window.__oldNpcLooks;});
   }
