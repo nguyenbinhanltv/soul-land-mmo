@@ -113,7 +113,7 @@ interface PView {
   face: Dir8;                               // hướng nhìn 8 phía trên màn hình theo hướng đi (10.1)
   body: Sprite; vb: Sprite; vf: Sprite;
   ringsB: Phaser.GameObjects.Container; ringsF: Phaser.GameObjects.Container;
-  label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text; tongT: Phaser.GameObjects.Text; // tongT: tên tông môn dưới tên (#196)
+  label: Phaser.GameObjects.Text; title: Phaser.GameObjects.Text; tongT: Phaser.GameObjects.Text; autoT: Phaser.GameObjects.Text; // tongT: tên tông môn dưới tên (#196)
   looks: string; vh: number; rings: string; playing: string;
   vhAnim: PhuAnimSet | null;                // phụ thể hoạt ảnh vẽ thật `vhanim_{id}` (phutheAnim.ts); null = nhánh cũ (phụ thể tĩnh + syncLayers)
   vhBlank: [boolean, boolean];              // nửa [sau, trước] của phụ thể không có ảnh (manifest "blank", #974): lớp mượn texture nửa kia và luôn trong suốt
@@ -3013,12 +3013,16 @@ export class GameScene extends Phaser.Scene {
           fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "5.5px", fontStyle: "700",
           color: "#ffffff", stroke: "#000", strokeThickness: 2, resolution: 8,
         }).setOrigin(0.5, 1).setDepth(99985);
-        v = { root, wx: p.x, wy: p.y, face: "s", body, vb, vf, ringsB, ringsF, label, title, tongT, looks: "", vh: -1, vhAnim: null, vhBlank: [false, false], rings: "", playing: "", lpcKey: "", lpcFace: { shown: null, pend: null },
+        const autoT = this.add.text(at.x, at.y - HEAD, "", {
+          fontFamily: '"Be Vietnam Pro", "Galmuri 11", system-ui, sans-serif', fontSize: "5px", fontStyle: "700",
+          color: "#86e0b0", stroke: "#000", strokeThickness: 2, resolution: 8,
+        }).setOrigin(0.5, 1).setDepth(99985);
+        v = { root, wx: p.x, wy: p.y, face: "s", body, vb, vf, ringsB, ringsF, label, title, tongT, autoT, looks: "", vh: -1, vhAnim: null, vhBlank: [false, false], rings: "", playing: "", lpcKey: "", lpcFace: { shown: null, pend: null },
           act: null, hurtT: -1e9, lit: null, halo: null, ringY: [], fly: null, lock: null };
         this.players.set(id, v);
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
-      const { root, label, title, tongT } = v;
+      const { root, label, title, tongT, autoT } = v;
       const mine = id === this.me && this.pred;
       // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); thân LPC chỉ có 4 hướng nên hiện hướng gần nhất (lpcFace).
       // Chính mình khi dự đoán: theo phím ngay; người khác: theo hướng đang trượt tới vị trí server, đứng yên thì theo `dir` của server.
@@ -3073,15 +3077,15 @@ export class GameScene extends Phaser.Scene {
       if (!p.dead) this.stepSound(id, v.wx, v.wy, walk, self ? this.walk : false, time);
       // Tàng hình (Yêu Hồ, 2.5c): người khác thấy mờ hẳn, chính mình thấy nửa trong suốt.
       const hidden = (p.buff & buffBit("hide")) !== 0, a = hidden ? (id === this.me ? 0.5 : 0.22) : 1;
-      if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); tongT.setAlpha(a); }
+      if (v.root.alpha !== a) { v.root.setAlpha(a); label.setAlpha(a); title.setAlpha(a); tongT.setAlpha(a); autoT.setAlpha(a); }
       // Võ Hồn Chân Thân: hồn sư giữ nguyên cỡ, sau lưng hiện pháp tướng (PhapTuongSystem, #486); hào quang vẽ trong drawStatus.
       const vhId = VOHON[p.vh]?.id ?? "";
       this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.lpcFace.shown ?? v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
       const tg = tongByIndex(p.tong);
-      // Tự săn (#1811): nhãn tĩnh "● Tự động" ở dòng dưới tên (cùng dòng tông môn), không đổi chữ theo nhịp; chữ chi tiết chỉ ở HUD / bảng Tự động.
-      tongT.setText(p.auto ? (tg ? `${tg.name} · ● Tự động` : "● Tự động") : tg?.name ?? "");
-      const tongCol = tg && !p.auto ? tg.col : p.auto ? "#86e0b0" : "";
-      if (tongCol && tongT.style.color !== tongCol) tongT.setColor(tongCol);
+      tongT.setText(tg?.name ?? "");
+      if (tg && tongT.style.color !== tg.col) tongT.setColor(tg.col);
+      // Tự săn (#1811): chip riêng "● Tự động" (lục, tĩnh) dưới tên, tách khỏi tên tông và danh hiệu; chữ chi tiết chỉ ở HUD / bảng Tự động.
+      autoT.setText(p.auto ? "● Tự động" : "");
       const kind = playerNameplateKind(id, this.watching ? this.followSid : this.me,
         !!this.party?.members.some((m) => m.sid === id), this.isArena && st.sides ? [...st.sides].map((s: any) => s.sid) : []); // phòng Bí Cảnh cũng kind arena nhưng MapState không có sides
       label.setText(`${kind === "pk" ? "[PK] " : kind === "party" ? "[Đội] " : ""}${p.name} (${p.level})`);
@@ -3096,7 +3100,7 @@ export class GameScene extends Phaser.Scene {
       title.setData("tier", tier);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
-    for (const [id, v] of this.players) if (!seenP.has(id)) { this.pt.drop(id); if (v.lpcKey) this.lpc.release(v.lpcKey); v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); this.players.delete(id); }
+    for (const [id, v] of this.players) if (!seenP.has(id)) { this.pt.drop(id); if (v.lpcKey) this.lpc.release(v.lpcKey); v.root.destroy(); v.label.destroy(); v.title.destroy(); v.tongT.destroy(); v.autoT.destroy(); this.players.delete(id); }
     const meS = this.ghost && st.players.get(this.me);
     if (meS) { const s = W2S(meS.x, meS.y); this.ghost!.clear().lineStyle(1, 0xff4040, 1).strokeRect(s.x - 6 * SPR, s.y - 22 * SPR, 12 * SPR, 24 * SPR); }
 
@@ -3398,7 +3402,7 @@ export class GameScene extends Phaser.Scene {
     const mates = new Set(this.party?.members.map((m) => m.sid) ?? []);
     this.players.forEach((v, id) => {
       const p = st.players.get(id);
-      const lines = [v.label, v.tongT, v.title];
+      const lines = [v.label, v.autoT, v.tongT, v.title];
       lines.forEach((t) => t.setVisible(false));
       if (!p || p.dead) return;
       body(`player:${id}`, v.root.x, v.root.y, 16 * SPR, HEAD);
