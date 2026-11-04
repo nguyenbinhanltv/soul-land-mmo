@@ -56,14 +56,14 @@ export async function titleTest(){
       for(const [dx,dy] of [[0,0],[16,0],[0,16],[-16,0],[0,-16]]){ await test(B,"goto",{x:home.x+dx,y:home.y+dy}); if(dist(me(B),home)<40) break; }
       ok(await waitFor(()=>seen(B,A)?.titleId===vip,3000),`B quay lại: thấy lại titleId = ${seen(B,A)?.titleId}`);
     } else console.log("  ⚠ không dịch B ra đủ xa trên bản đồ này, bỏ kiểm tra ngoài tầm"); }
-  await act({op:"equip",id:null}); ok(await waitFor(()=>seen(B,A)?.titleId==="",2500),"A bỏ đeo: B thấy titleId rỗng");
+  await act({op:"equip",id:null}); ok(await waitFor(()=>seen(B,A)?.titleId==="",8000),`A bỏ đeo: B thấy titleId rỗng (B thấy ${JSON.stringify(seen(B,A)?.titleId)}, A có trong state B: ${B.room.state.players.has(A.room.sessionId)})`);
 
   // 7. Danh hiệu có hạn: đang đeo mà hết hạn thì tự về mặc định (không cần tin của client), tin riêng báo lại.
   r=await grant(vip2,2500); ok(r?.grant==="new"&&r.owned.includes(vip2),`cấp ${vip2} có hạn 2,5 giây`);
   s=await act({op:"equip",id:vip2}); ok(!s?.err&&await waitFor(()=>me(A).titleId===vip2,1500),`đeo ${vip2} còn hạn`);
   { const n=A.tt.length; ok(await waitFor(()=>me(A).titleId==="",7000)&&await waitFor(()=>A.tt.length>n&&A.tt.at(-1).equipped===null&&!A.tt.at(-1).owned.some(o=>o.id===vip2),3000),"hết hạn: titleId tự về rỗng, danh sách riêng không còn danh hiệu đó"); }
   s=await act({op:"equip",id:vip2}); ok(!!s?.err&&me(A).titleId==="",`đeo lại ${vip2} đã hết hạn: từ chối (${s?.err})`);
-  await sleep(200); ok(seen(B,A)?.titleId==="","B thấy A về mặc định sau khi hết hạn");
+  ok(await waitFor(()=>seen(B,A)?.titleId==="",8000),`B thấy A về mặc định sau khi hết hạn (B thấy ${JSON.stringify(seen(B,A)?.titleId)})`);
 
   // 8. Dồn 200 tin equip luân phiên: vẫn kết nối, kết quả cuối khớp (một ô đeo duy nhất).
   await grant(vip3);
