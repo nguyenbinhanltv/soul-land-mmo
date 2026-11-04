@@ -112,6 +112,7 @@ export async function offlineTest(){
   m=await away(H);
   ok(h&&m&&m.kills===0&&m.weak>0&&m.stop==="vùng quá sức",`cấp 1 ở ${deep.name} (${zy(deep).join("–")} năm): không hạ được con nào (${m?.weak} con quá sức, ${m?.stop})`);
 
+  const SEED_E2=166;
   // ---- E2 (#413): túi đầy chỉ vì trang bị rơi thì bỏ món đó, vẫn săn tiếp (không dừng "túi đầy"), báo số món bỏ ----
   await test(A,"set",{rowId:act,level:21,rings:[423,812]}); h=await stand(shallow);
   await autoOp(A,"set",{cfg:{ring:-1,bone:false,core:false}});
@@ -121,8 +122,11 @@ export async function offlineTest(){
   const fill=Math.max(0,free()-6);
   for(let i=0;i<fill;i++) await test(A,"gear",{tpl:"vu_khi_chi_bao"});
   ok(await waitFor(()=>free()===6,3000),`làm đầy túi bằng ${fill} món trang bị: còn ${free()} ô trống (cần đúng 6)`);
+  // Hạt cố định cho RNG rơi trang bị (chống chập chờn #1806: Math.random có thể không rơi đủ để phải bỏ món); trả ngẫu nhiên ngay sau.
   await test(A,"auto",{used:0});
+  await test(A,"offline",{eseed:SEED_E2}); // away() vào lại = PData mới, nên hạt đi theo tài khoản tới lượt nhận thưởng offline
   m=await away(H);
+  await test(A,"edrop",{off:true});
   ok(m&&m.stop!=="túi đầy"&&m.kills>0&&m.used>m.secs-120&&m.equipLost>0,`túi đầy vì trang bị: vẫn săn đủ ${m?.used}/${m?.secs} giây (${m?.kills} con), bỏ ${m?.equipLost} món (dừng: ${m?.stop})`);
   await test(A,"gear",{clear:true}); await autoOp(A,"set",{cfg:{}}); await waitFor(()=>free()>6,2000);
 
