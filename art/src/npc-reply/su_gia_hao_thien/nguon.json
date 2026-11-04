@@ -1,0 +1,327 @@
+{
+  "id": "su_gia_hao_thien",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-04",
+  "modelId": null,
+  "seed": null,
+  "source": "art/src/npc-reply/su_gia_hao_thien/idle.png",
+  "sourceSha256": "57014c939e7cd99703f6a0ba857fbc6ca7d344634f5ea7ceb214d7cf65eb257d",
+  "maskSource": "art/src/npc-reply/su_gia_hao_thien/head-mask.png",
+  "maskSha256": "26ff97168c3880ec47d9ce90f4b7cc97a712c04d06fbcc5036d2ab6cc1876388",
+  "lpc": "1|0|light|brown|body.body,head.male,brow.thin=dark_brown,hair.parted_side_bangs=dark_brown,torso.giao_linh=navy,legs.pantaloons=tan,feet.sandals=brown,belt.obi=charcoal,hat.headband_thick=maroon,arms.bracers",
+  "looks": {
+    "sex": 0,
+    "hair": 3,
+    "hairCol": 1,
+    "outfitCol": 3,
+    "skin": 0
+  },
+  "idleOk": false,
+  "parts": [
+    {
+      "id": "body.body",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "head.male",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "brow.thin",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "hair.parted_side_bangs",
+      "license": [
+        "OGA-BY 3.0+",
+        "CC-BY 3.0+"
+      ],
+      "sa": false
+    },
+    {
+      "id": "torso.giao_linh",
+      "license": [
+        "CC-BY-SA 3.0"
+      ],
+      "sa": true
+    },
+    {
+      "id": "legs.pantaloons",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "feet.sandals",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "belt.obi",
+      "license": [
+        "OGA-BY 3.0+",
+        "CC-BY 3.0+"
+      ],
+      "sa": false
+    },
+    {
+      "id": "hat.headband_thick",
+      "license": [
+        "OGA-BY 3.0+",
+        "CC-BY 3.0+"
+      ],
+      "sa": false
+    },
+    {
+      "id": "arms.bracers",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    }
+  ],
+  "layers": [
+    {
+      "sheet": "lpcp_body_body_m_10",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_body_body_m_10.png",
+      "sha256": "683757885e8b08a474970db41e1ef348bbdf318d05ef471de714920243ad37ca"
+    },
+    {
+      "sheet": "lpcp_feet_sandals_m_15",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          4267525
+        ],
+        [
+          9797760,
+          4926227
+        ],
+        [
+          12891551,
+          6436124
+        ],
+        [
+          15066823,
+          7621424
+        ],
+        [
+          16777215,
+          10054474
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_feet_sandals_m_15.png",
+      "sha256": "729d1df8428fb8ccf6b6b173a1826a92210499596533d8da51d225d3e788ac3e"
+    },
+    {
+      "sheet": "lpcp_legs_pantaloons_m_20",
+      "pairs": [
+        [
+          2627616,
+          4072979
+        ],
+        [
+          5065309,
+          6833173
+        ],
+        [
+          9797760,
+          9988640
+        ],
+        [
+          12891551,
+          12028993
+        ],
+        [
+          15066823,
+          12032362
+        ],
+        [
+          16777215,
+          13616519
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_legs_pantaloons_m_20.png",
+      "sha256": "6e8190f75352c4b44ab0ff77836aa6b68527e2d7da68b0187cb87c6daad37e48"
+    },
+    {
+      "sheet": "lpcp_torso_giao_linh_m_31_navy",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_torso_giao_linh_m_31_navy.png",
+      "sha256": "13931f3ae63dfaf5eb0073b23a64ec998cdd93cb979387b394765af53fb609f3"
+    },
+    {
+      "sheet": "lpcp_torso_giao_linh_m_35_navy",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_torso_giao_linh_m_35_navy.png",
+      "sha256": "af006fff07d7a486a2a90fafa2eee5d5bbe7cfe987be2e7c18d912fa67b71f75"
+    },
+    {
+      "sheet": "lpcp_belt_obi_m_65_charcoal",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_belt_obi_m_65_charcoal.png",
+      "sha256": "1b878376eedd9636b59e54a7d4d31778d90db47fc1cee79123b8e78bd4227ee8"
+    },
+    {
+      "sheet": "lpcp_arms_bracers_m_70",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_arms_bracers_m_70.png",
+      "sha256": "b1ef7dc7ae3ed74948d61ec8a3402c162734201d159cb5cbe19bebf1f6d7b702"
+    },
+    {
+      "sheet": "lpcp_head_male_m_100",
+      "pairs": [
+        [
+          2767945,
+          2301975
+        ],
+        [
+          5670574,
+          5524526
+        ],
+        [
+          5754596,
+          8277536
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_head_male_m_100.png",
+      "sha256": "b7c8f31e3bf475e2941125f9b19c6332f018a8e2af5425d2c9514beeff203e14"
+    },
+    {
+      "sheet": "lpcp_brow_thin_m_106",
+      "pairs": [
+        [
+          2493716,
+          327936
+        ],
+        [
+          6951176,
+          1443585
+        ],
+        [
+          10757632,
+          2690562
+        ],
+        [
+          12533760,
+          4331011
+        ],
+        [
+          15029760,
+          6233860
+        ],
+        [
+          16747008,
+          7940102
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_brow_thin_m_106.png",
+      "sha256": "6096e45c491c34e93f365179d6ad0439c8443582ba6cc2752b4886461793ad43"
+    },
+    {
+      "sheet": "lpcp_hair_parted_side_bangs_m_120",
+      "pairs": [
+        [
+          2493716,
+          327936
+        ],
+        [
+          6951176,
+          1443585
+        ],
+        [
+          10757632,
+          2690562
+        ],
+        [
+          12533760,
+          4331011
+        ],
+        [
+          15029760,
+          6233860
+        ],
+        [
+          16747008,
+          7940102
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_hair_parted_side_bangs_m_120.png",
+      "sha256": "d1b1b327c6a3b12cc5d4cbad381010502a3dad33ecbeb6813d2f4405aa35522a"
+    },
+    {
+      "sheet": "lpcp_hat_headband_thick_m_125",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          4197151
+        ],
+        [
+          9797760,
+          5577762
+        ],
+        [
+          12891551,
+          6824225
+        ],
+        [
+          15066823,
+          8593697
+        ],
+        [
+          16777215,
+          11420234
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_hat_headband_thick_m_125.png",
+      "sha256": "4b459edd12359820ae5e3aa97189ab9ecae62a2386456f645c2fa51105189481"
+    }
+  ],
+  "credits": [
+    "| `body.body` | body/bodies/male, body/bodies/female | bluecarrot16, JaidynReiman, Benjamin K. Smith (BenCreating), Evert, Eliza Wyatt (ElizaWy), TheraHedwig, MuffinElZangano, Durrani, Johannes Sjölund (wulax), Stephen Challener (Redshrike), Pierre Vigier (pvigier), ElizaWy, Matthew Krohn (makrohn) | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles> <https://opengameart.org/content/lpc-medieval-fantasy-character-sprites> <https://opengameart.org/content/lpc-male-jumping-animation-by-durrani> <https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle> <https://opengameart.org/content/lpc-revised-character-basics> <https://opengameart.org/content/lpc-be-seated> <https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads> <https://opengameart.org/content/lpc-jump-expanded> <https://opengameart.org/content/lpc-character-bases> <https://opengameart.org/content/lpc-ladies> <https://opengameart.org/content/lpc-7-womens-shirts> <https://gitlab.com/vagabondgame/lpc-characters> |",
+    "| `head.male` | head/heads/human/male | bluecarrot16, Benjamin K. Smith (BenCreating), Stephen Challener (Redshrike) | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles> <https://opengameart.org/content/lpc-character-bases> |",
+    "| `brow.thin` | eyes/eyebrows/thin/adult | ElizaWy | OGA-BY 3.0 | OGA-BY 3.0 | <https://github.com/ElizaWy/LPC/tree/main/Characters/Hair> <https://opengameart.org/content/lpc-expanded-sit-run-jump-more> |",
+    "| `hair.parted_side_bangs` | hair/parted_side_bangs/adult | JaidynReiman | OGA-BY 3.0+, CC-BY 3.0+, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0+, CC-BY 3.0+ | <https://opengameart.org/content/lpc-1-hairstyle-2-hair-extensions-3-previously-unofficially-released-hairstyles> <https://github.com/jrconway3/Universal-LPC-spritesheet/commit/46ddcf05a0e43e7aa6ffd47d350eef0eb529ac24> |",
+    "| `torso.giao_linh` | torso/jacket/frock/male, dress/kimono/split/universal/female, custom/c3/trim/male, dress/kimono/normal/trim/universal/female | bluecarrot16, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) | CC-BY-SA 3.0, OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0 | CC-BY-SA 3.0 (cờ SA) | <https://opengameart.org/content/lpc-pirates> <https://opengameart.org/content/lpc-kimono-relm> |",
+    "| `legs.pantaloons` | legs/pantaloons/male, legs/pantaloons/thin | Nila122, JaidynReiman, Johannes Sjölund (wulax), Stephen Challener (Redshrike) | OGA-BY 3.0, GPL 2.0, GPL 3.0, CC-BY-SA 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/lpc-pirates> <https://opengameart.org/content/more-lpc-clothes-and-hair> <https://opengameart.org/content/lpc-expanded-pants> |",
+    "| `feet.sandals` | feet/sandals/male, feet/sandals/thin | Nila122, JaidynReiman, Matthew Krohn (makrohn), Johannes Sjölund (wulax) | OGA-BY 3.0, CC-BY-SA 3.0, GPL 2.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/lpc-roman-armor> <http://opengameart.org/content/lpc-clothing-updates> <https://opengameart.org/content/lpc-expanded-socks-shoes> |",
+    "| `belt.obi` | torso/waist/obi/male, torso/waist/obi/thin | JaidynReiman | OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0 | OGA-BY 3.0+, CC-BY 3.0+ | <https://opengameart.org/content/lpc-kimono-relm> |",
+    "| `hat.headband_thick` | hat/headband/thick/adult | JaidynReiman | OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0 | OGA-BY 3.0+, CC-BY 3.0+ | <https://opengameart.org/content/lpc-relm-hair-xlong-ponytail> <https://opengameart.org/content/lpc-expanded-hats-facial-helmets> |",
+    "| `arms.bracers` | arms/bracers/male, arms/bracers/thin | Matthew Krohn (makrohn), Johannes Sjölund (wulax), JaidynReiman | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/lpc-medieval-fantasy-character-sprites> |"
+  ],
+  "reference": {
+    "method": "Idle từ LpcRig đủ lớp, xuất khung logic 24×6; ảnh dẫn ba hướng s/e/n phóng nearest ×4; stencil theo lớp head/brow/hair/hat/beard/face, trừ lớp che phía trước và lấy viền đầu từ hình đầy đủ.",
+    "sha256": "9301a73322d45e434706169935be329212508f9dcf0916185e29846d2592a093"
+  },
+  "raw": {
+    "path": "C:/Users/PC/.codex/generated_images/01a1a20d-7aa3-71f2-b969-71eb786b9482/exec-72ad7ca7-30c6-45aa-89b5-e1a467075b4b.png",
+    "width": 2170,
+    "height": 725,
+    "sha256": "c37f43b46f531a95066025525578f3370aefb4d2a5a62ff4bededee316603289"
+  },
+  "prompt": "Edit this exact LPC pixel sprite strip, preserving the existing character identity and THREE equal square cells in a horizontal row: down/front, right profile, back, in precisely the reference positions. Male sect envoy with dark brown side-parted hair, maroon thick headband, dark navy crossover tunic, charcoal sash, tan trousers, wrist bracers and brown sandals. Make ONLY a tiny polite chin-down acknowledgment nod, moving head/hair/headband together about ONE logical pixel lower, keeping original head size and width. All body pixels below the collar including arms, hands, waist, trousers, feet must remain faithful and stationary. Preserve hard chunky LPC pixel shapes and source palette, four-image-pixel grid, transparent background and generous margins. Same 3:1 proportions as the 768x256 reference. No new details, text, labels, props, weapons, shadows, floor or base. Minor dialogue animation edit, never attack or spell.",
+  "license": "Ảnh ghép và pose phái sinh: CC-BY-SA 3.0; các lớp còn lại giữ ghi công/giấy phép ở parts và credits. Phần sinh/chỉnh bằng OpenAI, không gán CC0 và không bỏ nghĩa vụ SA.",
+  "output": "shared/assets/sprites/iso/npc-reply/su_gia_hao_thien.png",
+  "outputSha256": "af6553317059075243e46381c65f389f5fe18ed1e1f3ef6429ee08c927338c10"
+}
