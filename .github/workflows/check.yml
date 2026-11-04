@@ -569,6 +569,7 @@ jobs:
       - run: node tools/assets/iso-atlas.mjs --check # atlas ô / vật khớp ảnh nguồn sprites/iso
       - run: node tools/maps/quet-chan.mjs # vật vẽ khớp ô chặn (xoá / đổi tên prop không để tường vô hình)
       - run: node tools/ci/check-private-assets.mjs # chặn gói riêng / giấy phép hạn chế lọt vào repo công khai
+      - run: node tools/ci/check-beast-src.mjs # một bản nguồn mỗi loài hồn thú; PR chỉ đổi art/src/beast-anim chạy mức assets nên không qua `npm run check` (#1061)
       - run: node tools/docs-check.mjs # PR chỉ đổi tài liệu cũng được kiểm (trước đây nhờ `npm run check` trong check-build)
       - name: manifest.json / credits.json đọc được
         run: |

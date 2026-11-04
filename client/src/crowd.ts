@@ -60,10 +60,11 @@ export const crowdNames = (mapId: string): string[] => {
  * chỉ xếp hàng tải sheet `lpc_<tên>` của NPC bản đồ đó (mã trong NPCS) và của dân thường (CROWD).
  */
 export function lpcPreloader(scene: Phaser.Scene, mapId: string) {
-  let have: Set<string> | null = null, npcs: string[] | null = null;
+  let have: Set<string> | null = null, replies = new Set<string>(), npcs: string[] | null = null;
   const go = () => {
     if (!have || !npcs) return;
     for (const n of new Set([...npcs, ...crowdNames(mapId)])) if (have.has(n)) loadSpriteKey(scene, `lpc_${n}`);
+    for (const n of new Set(npcs)) if (have.has(n) && replies.has(n)) loadSpriteKey(scene, `npc_reply_${n}`);
   };
   scene.load.once(`filecomplete-tilemapJSON-${mapId}`, (_k: string, _t: string, data: any) => {
     npcs = [];
@@ -72,7 +73,7 @@ export function lpcPreloader(scene: Phaser.Scene, mapId: string) {
     if (data && campMerchantSpot(data, mapId)) npcs.push(CAMP_MERCHANT); // #111: thương nhân lưu động không có object `npc`
     go();
   });
-  return (names: Set<string>) => { have = names; go(); };
+  return (names: Set<string>, replyNames: Set<string>) => { have = names; replies = replyNames; go(); };
 }
 
 /** Số ngẫu nhiên ổn định theo hạt giống (mulberry32). */

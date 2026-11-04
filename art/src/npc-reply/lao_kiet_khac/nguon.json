@@ -1,0 +1,127 @@
+{
+  "id": "lao_kiet_khac",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-04",
+  "modelId": null,
+  "seed": null,
+  "source": "shared/assets/sprites/iso/lpc/lao_kiet_khac.png",
+  "sourceSha256": "a666f988dcfee8cf0c7acc9a048dc2b5e68b9cfadf1139766f5c9ff4e4ce7b37",
+  "reference": {
+    "method": "Cột idle đầu của hàng 0, 2, 4; ba ô 64×64 phóng nearest ×4, 768×256, ngoài repo",
+    "sha256": "b47d911de1fc64bc7dd94d476f977a253736a458a59e7b195985b94ee73f679f"
+  },
+  "raw": {
+    "path": "C:/Users/PC/.codex/generated_images/01a1a20d-7aa3-71f2-b969-71eb786b9482/exec-9adcbb7a-e5ae-4bf5-b655-cdfb5f60dd24.png",
+    "width": 2170,
+    "height": 725,
+    "sha256": "c89dc12aa5fec736c97a39ffc582cebcf9c525aae06beb790be65e64b9f792ea"
+  },
+  "prompt": "Edit this exact LPC sprite strip. Preserve the three equal cells and positions: FRONT, RIGHT PROFILE, BACK. Same elderly village elder, bald with silver side hair and long full gray beard; brown belted tunic, brown shoes. Make a tiny friendly chin-down nod, lowering face and entire attached beard by one original pixel while the neck bends. IMPORTANT the long beard moves as a connected shape with the face; no horizontal cut. Preserve precisely the source head width and height, clothes, arm positions, body silhouette and shading. Keep every pixel below the collar stationary, including torso, hands, belt, legs and boots. Preserve the original simple chunky pixel art palette and four-image-pixel block grid. Do not render a new design, do not add buckle, folds, details, glasses or props. Three cells only in one row, same transparent background. Canvas has generous blank margins exactly as reference. No text, no ground, no shadows. Minor dialogue acknowledgment animation pose, not attack.",
+  "masks": [
+    [
+      [
+        20,
+        12
+      ],
+      [
+        44,
+        12
+      ],
+      [
+        44,
+        29
+      ],
+      [
+        42,
+        30
+      ],
+      [
+        42,
+        36
+      ],
+      [
+        39,
+        39
+      ],
+      [
+        25,
+        39
+      ],
+      [
+        22,
+        36
+      ],
+      [
+        22,
+        29
+      ],
+      [
+        20,
+        29
+      ]
+    ],
+    [
+      [
+        21,
+        12
+      ],
+      [
+        42,
+        12
+      ],
+      [
+        45,
+        28
+      ],
+      [
+        45,
+        39
+      ],
+      [
+        31,
+        39
+      ],
+      [
+        27,
+        34
+      ],
+      [
+        24,
+        31
+      ],
+      [
+        21,
+        29
+      ]
+    ],
+    [
+      [
+        20,
+        13
+      ],
+      [
+        44,
+        13
+      ],
+      [
+        44,
+        29
+      ],
+      [
+        40,
+        32
+      ],
+      [
+        25,
+        32
+      ],
+      [
+        21,
+        29
+      ]
+    ]
+  ],
+  "license": "LPC gốc: OGA-BY 3.0 / CC-BY 3.0 (các lựa chọn và tác giả ở art/CREDITS.md, mục lao_kiet_khac); râu CC0 nếu có. Phần sinh/chỉnh: điều khoản đầu ra OpenAI; không gán CC0 cho toàn bộ ảnh.",
+  "outputSha256": "a1943e5c6ac2a51c3ae3bde2620ea18112ca6a711eb8d833866279d1dccbde34",
+  "output": "shared/assets/sprites/iso/npc-reply/lao_kiet_khac.png"
+}

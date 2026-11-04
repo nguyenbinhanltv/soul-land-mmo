@@ -46311,6 +46311,22 @@
       "iso": true,
       "map": "nac_dinh_thanh"
     },
+    {
+      "key": "npc_reply_lao_kiet_khac",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true
+    },
+    {
+      "key": "npc_reply_lo_ren_thien_dau",
+      "frame": [
+        64,
+        64
+      ],
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
