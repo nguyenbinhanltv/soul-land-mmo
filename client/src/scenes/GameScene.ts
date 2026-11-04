@@ -93,7 +93,7 @@ import { ParticleLayer, HIT_SPARK, SHAKE_TIER, beastJerk, shakeK, flashOn, zoomO
 import { bindAudioPanel, closeAudioPanel, toggleSettings } from "../audio/settingsPanel.ts";
 import { bindUiSounds } from "../audio/uiSounds.ts";
 import { AMBIENT_FIRE_PROPS, AMBIENT_PROFILES } from "../audio/ambientLayers.ts";
-import { autoJob, autoJobText, bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, setAutoStatus, toggleAutoPanel } from "../autoPanel.ts";
+import { autoJob, bindAutoPanel, closeAutoPanel, closeAutoSum, setAutoMsg, setAutoStatus, toggleAutoPanel } from "../autoPanel.ts";
 import { bossPhase, combatHit } from "../audio/music.ts";
 import { ArenaShow } from "../arenaShow.ts";
 import { showOffline, type OfflineMsg } from "../offline.ts";
@@ -3078,8 +3078,10 @@ export class GameScene extends Phaser.Scene {
       const vhId = VOHON[p.vh]?.id ?? "";
       this.pt.sync(id, { x: root.x, y: root.y, depth: root.depth, face: v.lpcFace.shown ?? v.face, alpha: a }, { ava: p.ava, dead: p.dead, rings: p.rings.length, vohonId: vhId }, id === this.me, time, dt);
       const tg = tongByIndex(p.tong);
-      tongT.setText(tg?.name ?? "");
-      if (tg && tongT.style.color !== tg.col) tongT.setColor(tg.col);
+      // Tự săn (#1811): nhãn tĩnh "● Tự động" ở dòng dưới tên (cùng dòng tông môn), không đổi chữ theo nhịp; chữ chi tiết chỉ ở HUD / bảng Tự động.
+      tongT.setText(p.auto ? (tg ? `${tg.name} · ● Tự động` : "● Tự động") : tg?.name ?? "");
+      const tongCol = tg && !p.auto ? tg.col : p.auto ? "#86e0b0" : "";
+      if (tongCol && tongT.style.color !== tongCol) tongT.setColor(tongCol);
       const kind = playerNameplateKind(id, this.watching ? this.followSid : this.me,
         !!this.party?.members.some((m) => m.sid === id), this.isArena && st.sides ? [...st.sides].map((s: any) => s.sid) : []); // phòng Bí Cảnh cũng kind arena nhưng MapState không có sides
       label.setText(`${kind === "pk" ? "[PK] " : kind === "party" ? "[Đội] " : ""}${p.name} (${p.level})`);
@@ -3087,10 +3089,10 @@ export class GameScene extends Phaser.Scene {
       if (label.style.color !== col) label.setColor(col);
       // Danh hiệu theo cấp võ hồn đang ra trận (mục 5.1); đang tự săn (Auto 1) thì thêm chữ "Tự động", màu lục.
       const tt = titleText(p.titleId, p.level);
-      title.setText(p.auto ? `${tt} · ${id === this.me && autoJobText() || "Tự động"}` : tt);
-      // Màu chữ theo bậc hiếm (bảng màu tạm, titlePlate.ts); tự săn thì chữ lục như cũ.
+      title.setText(tt);
+      // Màu chữ theo bậc hiếm (bảng màu tạm, titlePlate.ts); danh hiệu không đổi chữ / màu theo tự săn (#1811).
       const tier = titleDef(p.titleId)?.tier ?? titleDef(titleIdOf(p.level))?.tier ?? 1;
-      const tcol = p.auto ? "#86e0b0" : titlePal(tier).text; if (title.style.color !== tcol) title.setColor(tcol);
+      const tcol = titlePal(tier).text; if (title.style.color !== tcol) title.setColor(tcol);
       title.setData("tier", tier);
     });
     if (this.stepT.size > st.players.size) for (const id of this.stepT.keys()) if (!st.players.has(id)) this.stepT.delete(id);
