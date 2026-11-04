@@ -1,0 +1,413 @@
+{
+  "id": "su_gia_lam_dien",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-04",
+  "modelId": null,
+  "seed": null,
+  "source": "art/src/npc-reply/su_gia_lam_dien/idle.png",
+  "sourceSha256": "e57ecfffb58d5277f6f373b534b9f7099a5879e0bcdb3c27fb37bc1199265e59",
+  "maskSource": "art/src/npc-reply/su_gia_lam_dien/head-mask.png",
+  "maskSha256": "9e5a020f0d0da878678c44b74833958392ec352120c1db25c6558cd8c4f4434b",
+  "lpc": "1|0|light|gray|body.body,head.male_gaunt,brow.thick=light_brown,hair.ponytail2=light_brown,torso.ao_bao=charcoal,legs.pants2=black,feet.boots_fold=brown,cape.solid=slate,belt.leather=walnut,neck.scarf=maroon",
+  "looks": {
+    "sex": 0,
+    "hair": 1,
+    "hairCol": 2,
+    "outfitCol": 5,
+    "skin": 0
+  },
+  "idleOk": false,
+  "parts": [
+    {
+      "id": "body.body",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "head.male_gaunt",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "brow.thick",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "hair.ponytail2",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "torso.ao_bao",
+      "license": [
+        "CC-BY-SA 3.0"
+      ],
+      "sa": true
+    },
+    {
+      "id": "legs.pants2",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "feet.boots_fold",
+      "license": [
+        "OGA-BY 3.0+",
+        "CC-BY 3.0+"
+      ],
+      "sa": false
+    },
+    {
+      "id": "cape.solid",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "belt.leather",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "neck.scarf",
+      "license": [
+        "OGA-SA 3.0",
+        "CC-BY-SA 3.0"
+      ],
+      "sa": true
+    }
+  ],
+  "layers": [
+    {
+      "sheet": "lpcp_cape_solid_m_5",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          3223870
+        ],
+        [
+          9797760,
+          4870231
+        ],
+        [
+          12891551,
+          8489867
+        ],
+        [
+          15066823,
+          11775905
+        ],
+        [
+          16777215,
+          15066823
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_cape_solid_m_5.png",
+      "sha256": "f515bb73c11f77b13a90386bdb164409222e5aff98333114fbf4f5d5fe6be624"
+    },
+    {
+      "sheet": "lpcp_hair_ponytail2_m_9",
+      "pairs": [
+        [
+          2493716,
+          1707524
+        ],
+        [
+          6951176,
+          3152647
+        ],
+        [
+          10757632,
+          6305039
+        ],
+        [
+          12533760,
+          8209683
+        ],
+        [
+          15029760,
+          11429930
+        ],
+        [
+          16747008,
+          13143384
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_hair_ponytail2_m_9.png",
+      "sha256": "fb3262eef3bea38b2aa933a8199af0fa8c34af0ef081ef6f45b2c137eec6bf83"
+    },
+    {
+      "sheet": "lpcp_body_body_m_10",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_body_body_m_10.png",
+      "sha256": "683757885e8b08a474970db41e1ef348bbdf318d05ef471de714920243ad37ca"
+    },
+    {
+      "sheet": "lpcp_legs_pants2_m_20",
+      "pairs": [
+        [
+          2627616,
+          0
+        ],
+        [
+          5065309,
+          1053716
+        ],
+        [
+          9797760,
+          1843746
+        ],
+        [
+          12891551,
+          2238506
+        ],
+        [
+          15066823,
+          2764852
+        ],
+        [
+          16777215,
+          4870231
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_legs_pants2_m_20.png",
+      "sha256": "94bb0cc564e3ef89ea7955dd4c521986fc5b07e44715356b6dd171dfca4e6e54"
+    },
+    {
+      "sheet": "lpcp_feet_boots_fold_m_25",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          4267525
+        ],
+        [
+          9797760,
+          4926227
+        ],
+        [
+          12891551,
+          6436124
+        ],
+        [
+          15066823,
+          7621424
+        ],
+        [
+          16777215,
+          10054474
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_feet_boots_fold_m_25.png",
+      "sha256": "8759cf698ff45f787986f25aafb6d443b9e8677a999d52bf6e514ec2dd9b7f19"
+    },
+    {
+      "sheet": "lpcp_torso_ao_bao_m_31_charcoal",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_torso_ao_bao_m_31_charcoal.png",
+      "sha256": "9acb2adc9ce971a693ca90dfc20aa612d9964c6518b95d79c50b2b6af9fea52e"
+    },
+    {
+      "sheet": "lpcp_torso_ao_bao_m_35_charcoal",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_torso_ao_bao_m_35_charcoal.png",
+      "sha256": "284cc01b8bbb769d3083b452ec56a895e7637ed61c284e2e32a4050afe2ee249"
+    },
+    {
+      "sheet": "lpcp_belt_leather_m_70_walnut",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_belt_leather_m_70_walnut.png",
+      "sha256": "2d33018d1264e0e12b23e395876a0c146bcb3a01bc5cb8cae3ea4c304afef11c"
+    },
+    {
+      "sheet": "lpcp_cape_solid_m_85",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          3223870
+        ],
+        [
+          9797760,
+          4870231
+        ],
+        [
+          12891551,
+          8489867
+        ],
+        [
+          15066823,
+          11775905
+        ],
+        [
+          16777215,
+          15066823
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_cape_solid_m_85.png",
+      "sha256": "7715ecb01213146d5b90d4a17fb7cc4b57da18955fe34686ef90893b9dbe1789"
+    },
+    {
+      "sheet": "lpcp_neck_scarf_m_90",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          4197151
+        ],
+        [
+          9797760,
+          5577762
+        ],
+        [
+          12891551,
+          6824225
+        ],
+        [
+          15066823,
+          8593697
+        ],
+        [
+          16777215,
+          11420234
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_neck_scarf_m_90.png",
+      "sha256": "6aae5f0c4b0078c717e78fa90b45a9db5809703b02c41055b3838eb9ad3b20ae"
+    },
+    {
+      "sheet": "lpcp_head_male_gaunt_m_100",
+      "pairs": [
+        [
+          2767945,
+          4013111
+        ],
+        [
+          5670574,
+          9144697
+        ],
+        [
+          5754596,
+          11379087
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_head_male_gaunt_m_100.png",
+      "sha256": "30be5568e9927fe8422ae137b63a37ec4258db04e008e0434e31ff6a3f20d858"
+    },
+    {
+      "sheet": "lpcp_brow_thick_m_106",
+      "pairs": [
+        [
+          2493716,
+          1707524
+        ],
+        [
+          6951176,
+          3152647
+        ],
+        [
+          10757632,
+          6305039
+        ],
+        [
+          12533760,
+          8209683
+        ],
+        [
+          15029760,
+          11429930
+        ],
+        [
+          16747008,
+          13143384
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_brow_thick_m_106.png",
+      "sha256": "5de2c9f7a1e5102ba6fa164d744fcf01a140b6edd91d01bdddd33452f4bb0fdf"
+    },
+    {
+      "sheet": "lpcp_hair_ponytail2_m_120",
+      "pairs": [
+        [
+          2493716,
+          1707524
+        ],
+        [
+          6951176,
+          3152647
+        ],
+        [
+          10757632,
+          6305039
+        ],
+        [
+          12533760,
+          8209683
+        ],
+        [
+          15029760,
+          11429930
+        ],
+        [
+          16747008,
+          13143384
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_hair_ponytail2_m_120.png",
+      "sha256": "e2e8d4f991e36a051c60903bb672c64aad49a5f0343825529db1da29dc02ebe8"
+    }
+  ],
+  "credits": [
+    "| `body.body` | body/bodies/male, body/bodies/female | bluecarrot16, JaidynReiman, Benjamin K. Smith (BenCreating), Evert, Eliza Wyatt (ElizaWy), TheraHedwig, MuffinElZangano, Durrani, Johannes Sjölund (wulax), Stephen Challener (Redshrike), Pierre Vigier (pvigier), ElizaWy, Matthew Krohn (makrohn) | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles> <https://opengameart.org/content/lpc-medieval-fantasy-character-sprites> <https://opengameart.org/content/lpc-male-jumping-animation-by-durrani> <https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle> <https://opengameart.org/content/lpc-revised-character-basics> <https://opengameart.org/content/lpc-be-seated> <https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads> <https://opengameart.org/content/lpc-jump-expanded> <https://opengameart.org/content/lpc-character-bases> <https://opengameart.org/content/lpc-ladies> <https://opengameart.org/content/lpc-7-womens-shirts> <https://gitlab.com/vagabondgame/lpc-characters> |",
+    "| `head.male_gaunt` | head/heads/human/male_gaunt | Stephen Challener (Redshrike), bluecarrot16 | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles> <https://opengameart.org/content/lpc-folk> |",
+    "| `brow.thick` | eyes/eyebrows/thick/adult | ElizaWy | OGA-BY 3.0 | OGA-BY 3.0 | <https://github.com/ElizaWy/LPC/tree/main/Characters/Hair> <https://opengameart.org/content/lpc-expanded-sit-run-jump-more> |",
+    "| `hair.ponytail2` | hair/ponytail2/adult/fg, hair/ponytail2/adult/bg | JaidynReiman, Manuel Riecke (MrBeast), Joe White | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles> <https://opengameart.org/content/ponytail-and-plain-hairstyles> <https://opengameart.org/content/lpc-expanded-hair> |",
+    "| `torso.ao_bao` | torso/jacket/frock/male, dress/kimono/split/universal/female, custom/c3/wide/male, dress/kimono/sleeves_oversize/universal/female | bluecarrot16, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) | CC-BY-SA 3.0, OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0 | CC-BY-SA 3.0 (cờ SA) | <https://opengameart.org/content/lpc-pirates> <https://opengameart.org/content/lpc-kimono-relm> |",
+    "| `legs.pants2` | legs/pants2/male, legs/pants2/thin | JaidynReiman, ElizaWy, Bluecarrot16, Johannes Sjölund (wulax), Stephen Challener (Redshrike) | OGA-BY 3.0, GPL 3.0 | OGA-BY 3.0 | <https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing> <https://opengameart.org/content/lpc-expanded-sit-run-jump-more> <https://opengameart.org/content/lpc-expanded-pants> |",
+    "| `feet.boots_fold` | feet/boots/fold/male, feet/boots/fold/thin | JaidynReiman | OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0 | OGA-BY 3.0+, CC-BY 3.0+ | <https://opengameart.org/content/lpc-kimono-relm> <https://opengameart.org/content/lpc-expanded-socks-shoes> |",
+    "| `cape.solid` | cape/solid/fg, cape/solid/bg | bluecarrot16, JaidynReiman, Nila122 | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more> <https://opengameart.org/content/lpc-roman-armor> <http://opengameart.org/content/lpc-clothing-updates> |",
+    "| `belt.leather` | torso/waist/belt_leather/male, torso/waist/belt_leather/female | bluecarrot16, Johannes Sjölund (wulax), Matthew Krohn (makrohn) | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/lpc-combat-armor-for-women> <https://opengameart.org/content/lpc-pirates> |",
+    "| `neck.scarf` | neck/scarf | Nila122, JaidynReiman, Johannes Sjölund (wulax), Stephen Challener (Redshrike) | OGA-SA 3.0, CC-BY-SA 3.0, GPL 2.0, GPL 3.0 | OGA-SA 3.0, CC-BY-SA 3.0 (cờ SA) | <https://opengameart.org/content/more-lpc-clothes-and-hair> |"
+  ],
+  "reference": {
+    "method": "Idle từ LpcRig đủ lớp, xuất khung logic 24×6; ảnh dẫn ba hướng s/e/n phóng nearest ×4; stencil theo lớp head/brow/hair/hat/beard/face, trừ lớp che phía trước và lấy viền đầu từ hình đầy đủ.",
+    "sha256": "af0ca51225bc7528397cfbde61c4f8ab172c07ea2ad76aabd4685ac47687ba81"
+  },
+  "raw": {
+    "path": "C:/Users/PC/.codex/generated_images/01a1a20d-7aa3-71f2-b969-71eb786b9482/exec-c337e4e9-cdc0-453e-bf17-442ba41b1c84.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "b56b31c91192970a8d1ff8dba80ff8adc79ce9f54c2e725aa480357e5205f8b8"
+  },
+  "prompt": "Edit this exact LPC pixel sprite strip without redesigning the character. THREE equal square cells in one horizontal row: down/front, right profile, back, same positions as reference. Male sect envoy with light brown hair and long tied ponytail visible behind head, gaunt pale face, dark charcoal robe, maroon scarf, brown leather belt, black pants, brown folded boots and slate-gray cape visible on the back. Draw ONLY a very small polite chin-down acknowledgment nod. Head, hair and attached ponytail move together about ONE logical pixel lower; scarf and cape remain faithful and stationary. Preserve original head size and body proportions, exact source palette, hard chunky enlarged LPC pixel grid. All garment/arms/hands/waist/legs/feet below collar remain unchanged. Transparent background, generous margins, same 3:1 proportions as 768x256 reference. No text, labels, tools, weapons, shadows, floor, base, additional ornaments or glow. Minor dialogue opening pose, no attack or spell.",
+  "license": "Ảnh ghép và pose phái sinh: CC-BY-SA 3.0; các lớp còn lại giữ ghi công/giấy phép ở parts và credits. Phần sinh/chỉnh bằng OpenAI, không gán CC0 và không bỏ nghĩa vụ SA.",
+  "output": "shared/assets/sprites/iso/npc-reply/su_gia_lam_dien.png",
+  "outputSha256": "ed397b42bfabefbb99329941d230b4cfab4d637513bb92ffb9528c3fe30cbe31"
+}
