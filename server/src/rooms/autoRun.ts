@@ -5,6 +5,7 @@
 import { store, type AutoRow, type Item } from "../db.ts";
 import { loadMap, type Zone } from "../map.ts";
 import { bossNow } from "../schedule.ts";
+import { testOfflineSeed, seededRng } from "./testState.ts";
 import { BEASTS, MAPS, TIERS, MAX_YEARS, autoHint, OFFLINE, boneChance, AUTO_MSG_RATE, parseAuto, AUTO_DAILY_SECS, autoTimeText, AUTO_MAX_PER_CELL, autoLeft, type AutoSummary, type AutoHint, type ItemDef, AUTO_BONUS_MAX, offlineSplit, offlineFight, normalBeastStats, xpLevelScale, beastLevel, BEAST_COIN, tierOfYears, shardChance, shardCode, SHARD_QTY, itemDef, herbChance, HERBS, rollEquipDrop, BONE_SLOTS, coreChance, rollCore, XP_SHARE_ACTIVE, XP_SHARE_BENCH, formatYears, formatHonTe, rollYears, tierBand } from "../../../shared/data.ts";
 import { MOVE_DEAD } from "../../../shared/move.ts";
 import { bagUsed } from "./items.ts";
@@ -162,6 +163,7 @@ export async function claimOffline(room: MapRoom, id: string) {
   const d0 = room.pdata.get(id); if (!d0 || room.map.kind === "arena") return;
   const row = await store.takeOffline(d0.accountId);
   const p = room.state.players.get(id), d = room.pdata.get(id); if (!row || !p || !d) return;
+  const eseed = testOfflineSeed.get(d.accountId); if (eseed !== undefined) { testOfflineSeed.delete(d.accountId); d.testEquip = seededRng(eseed); } // hook test `offline {eseed}`
   const away = Math.max(0, Math.floor((Date.now() - row.at) / 1000)), def = MAPS[row.mapId];
   const zone = def?.kind === "hunt" ? loadMap(row.mapId).zones.find((z) => z.name === row.zone && z.count > 0) : undefined;
   if (away < OFFLINE.minSecs || !zone) return;

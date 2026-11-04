@@ -9,5 +9,9 @@ export const testNoLeaveLock = new Set<number>(); // map-co-dinh: đường xóa
  * như đã thoát từ `ago` giây trước (giả lập thời gian trôi: bot vào lại ngay mà vẫn nhận thưởng theo quãng vắng mặt đó).
  */
 export const testOfflineAgo = new Map<number, number>(); // map-co-dinh: đường xóa duy nhất là `testOfflineAgo.delete` ở onLeave (join.ts), như trước khi tách
+/** RNG có hạt (mulberry32) của hook test `edrop` / `offline {eseed}`. */
+export function seededRng(seed: number): () => number { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+/** Hook test `offline {eseed}`: hạt RNG trang bị giữ qua lần vào lại (PData mới có testEquip = null) cho lượt nhận thưởng offline; `claimOffline` dùng rồi xóa. */
+export const testOfflineSeed = new Map<number, number>(); // map-co-dinh: xóa ở claimOffline (autoRun.ts) ngay khi dùng
 /** Hook kiểm thử (server/scripts/map-leak-test.ts): nạp tài liệu khung, lấy các khung còn hạn, đếm / hỏi bộ nhớ đệm rương. */
 export const kingClaimTest = { apply: applyKingDoc, recs: kingRecs, size: () => kingClaimCache.size, has: (mapId: string, slot: number) => kingClaimCache.has(`${mapId}:${slot}`) };

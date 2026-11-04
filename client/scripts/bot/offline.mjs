@@ -123,8 +123,8 @@ export async function offlineTest(){
   for(let i=0;i<fill;i++) await test(A,"gear",{tpl:"vu_khi_chi_bao"});
   ok(await waitFor(()=>free()===6,3000),`làm đầy túi bằng ${fill} món trang bị: còn ${free()} ô trống (cần đúng 6)`);
   // Hạt cố định cho RNG rơi trang bị (chống chập chờn #1806: Math.random có thể không rơi đủ để phải bỏ món); trả ngẫu nhiên ngay sau.
-  await test(A,"edrop",{seed:SEED_E2});
   await test(A,"auto",{used:0});
+  await test(A,"offline",{eseed:SEED_E2}); // away() vào lại = PData mới, nên hạt đi theo tài khoản tới lượt nhận thưởng offline
   m=await away(H);
   await test(A,"edrop",{off:true});
   ok(m&&m.stop!=="túi đầy"&&m.kills>0&&m.used>m.secs-120&&m.equipLost>0,`túi đầy vì trang bị: vẫn săn đủ ${m?.used}/${m?.secs} giây (${m?.kills} con), bỏ ${m?.equipLost} món (dừng: ${m?.stop})`);
