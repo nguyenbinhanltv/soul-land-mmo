@@ -64,7 +64,7 @@ export function lpcPreloader(scene: Phaser.Scene, mapId: string) {
   const go = () => {
     if (!have || !npcs) return;
     for (const n of new Set([...npcs, ...crowdNames(mapId)])) if (have.has(n)) loadSpriteKey(scene, `lpc_${n}`);
-    for (const n of new Set(npcs)) if (have.has(n) && replies.has(n)) loadSpriteKey(scene, `npc_reply_${n}`);
+    for (const n of new Set(npcs)) if (replies.has(n)) loadSpriteKey(scene, `npc_reply_${n}`);
   };
   scene.load.once(`filecomplete-tilemapJSON-${mapId}`, (_k: string, _t: string, data: any) => {
     npcs = [];

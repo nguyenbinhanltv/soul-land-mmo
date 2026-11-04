@@ -1,0 +1,304 @@
+{
+  "id": "tho_may",
+  "tool": "Codex builtin OpenAI image_gen.imagegen",
+  "date": "2026-11-04",
+  "modelId": null,
+  "seed": null,
+  "source": "art/src/npc-reply/tho_may/idle.png",
+  "sourceSha256": "8249608296bccee72adc4938129e2f494f32435a0cd037dd167dd57f94051061",
+  "maskSource": "art/src/npc-reply/tho_may/head-mask.png",
+  "maskSha256": "c6532ef26507af2b3e02c7ea40305a4a23acccd88a30aab284503af2594c369f",
+  "lpc": "1|1|light|green|body.body,head.female_small,hair.braid=light_brown,torso.giao_linh=forest,legs.skirts_slit=walnut,feet.slippers=brown,belt.obi=tan,hat.bandana=brown",
+  "looks": {
+    "sex": 1,
+    "hair": 2,
+    "hairCol": 2,
+    "outfitCol": 2,
+    "skin": 0
+  },
+  "idleOk": true,
+  "parts": [
+    {
+      "id": "body.body",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "head.female_small",
+      "license": [
+        "OGA-BY 3.0",
+        "CC-BY"
+      ],
+      "sa": false
+    },
+    {
+      "id": "hair.braid",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "torso.giao_linh",
+      "license": [
+        "CC-BY-SA 3.0"
+      ],
+      "sa": true
+    },
+    {
+      "id": "legs.skirts_slit",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    },
+    {
+      "id": "feet.slippers",
+      "license": [
+        "CC-BY-SA 3.0"
+      ],
+      "sa": true
+    },
+    {
+      "id": "belt.obi",
+      "license": [
+        "OGA-BY 3.0+",
+        "CC-BY 3.0+"
+      ],
+      "sa": false
+    },
+    {
+      "id": "hat.bandana",
+      "license": [
+        "OGA-BY 3.0"
+      ],
+      "sa": false
+    }
+  ],
+  "layers": [
+    {
+      "sheet": "lpcp_hair_braid_f_9",
+      "pairs": [
+        [
+          2493716,
+          1707524
+        ],
+        [
+          6951176,
+          3152647
+        ],
+        [
+          10757632,
+          6305039
+        ],
+        [
+          12533760,
+          8209683
+        ],
+        [
+          15029760,
+          11429930
+        ],
+        [
+          16747008,
+          13143384
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_hair_braid_f_9.png",
+      "sha256": "48d890a51a4d85145735f52f8c188ab0d6285c82750b9e4e526583f067e0c0e9"
+    },
+    {
+      "sheet": "lpcp_body_body_f_10",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_body_body_f_10.png",
+      "sha256": "e6de9f01566b59db8d1e2e149126252354da0ca220ed18d8086e67a722e0635c"
+    },
+    {
+      "sheet": "lpcp_feet_slippers_f_15",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          4267525
+        ],
+        [
+          9797760,
+          4926227
+        ],
+        [
+          12891551,
+          6436124
+        ],
+        [
+          15066823,
+          7621424
+        ],
+        [
+          16777215,
+          10054474
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_feet_slippers_f_15.png",
+      "sha256": "f88bf1ab490234eff2f7318680de7f95cc7b34288ef25265bc8b4e6e1a63a3ff"
+    },
+    {
+      "sheet": "lpcp_legs_skirts_slit_f_20",
+      "pairs": [
+        [
+          2627616,
+          1904398
+        ],
+        [
+          5065309,
+          4072979
+        ],
+        [
+          9797760,
+          6436124
+        ],
+        [
+          12891551,
+          7621424
+        ],
+        [
+          15066823,
+          10054474
+        ],
+        [
+          16777215,
+          10583120
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_legs_skirts_slit_f_20.png",
+      "sha256": "2d73ca85b6b54fa8ef9b068c308fc845a233c9d07b91df90620266d9bed11387"
+    },
+    {
+      "sheet": "lpcp_torso_giao_linh_f_31_forest",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_torso_giao_linh_f_31_forest.png",
+      "sha256": "71985d58002fc6b9d575e8f123025dd2d66c13b101b05024e60b5288c2a8233e"
+    },
+    {
+      "sheet": "lpcp_torso_giao_linh_f_35_forest",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_torso_giao_linh_f_35_forest.png",
+      "sha256": "5744243f2cd7426790f77baaea039ebc2f1b1475cfb3a93b5a179981a17a54c1"
+    },
+    {
+      "sheet": "lpcp_belt_obi_f_65_tan",
+      "pairs": [],
+      "file": "shared/assets/lpcparts/lpcp_belt_obi_f_65_tan.png",
+      "sha256": "d8fa4baf7c6d77a3d5bc98240cf3441c583fbf815442a1073bec4679f957dba3"
+    },
+    {
+      "sheet": "lpcp_head_female_small_f_100",
+      "pairs": [
+        [
+          2767945,
+          2837289
+        ],
+        [
+          5670574,
+          5485393
+        ],
+        [
+          5754596,
+          8711248
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_head_female_small_f_100.png",
+      "sha256": "bdb795c13709ca3d719e5d565306168923b637d077fa89989da5e21db2da66b4"
+    },
+    {
+      "sheet": "lpcp_hair_braid_f_120",
+      "pairs": [
+        [
+          2493716,
+          1707524
+        ],
+        [
+          6951176,
+          3152647
+        ],
+        [
+          10757632,
+          6305039
+        ],
+        [
+          12533760,
+          8209683
+        ],
+        [
+          15029760,
+          11429930
+        ],
+        [
+          16747008,
+          13143384
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_hair_braid_f_120.png",
+      "sha256": "193c73e4532f82f6e6fc4c9d22967778a2ec475843e77a27e4049aa7ad0734cf"
+    },
+    {
+      "sheet": "lpcp_hat_bandana_f_120",
+      "pairs": [
+        [
+          2627616,
+          1905438
+        ],
+        [
+          5065309,
+          4267525
+        ],
+        [
+          9797760,
+          4926227
+        ],
+        [
+          12891551,
+          6436124
+        ],
+        [
+          15066823,
+          7621424
+        ],
+        [
+          16777215,
+          10054474
+        ]
+      ],
+      "file": "shared/assets/lpcparts/lpcp_hat_bandana_f_120.png",
+      "sha256": "e992b5945c67f450c3785db994589a77d9de904ad0c2c9567e05d790f92872ba"
+    }
+  ],
+  "credits": [
+    "| `body.body` | body/bodies/male, body/bodies/female | bluecarrot16, JaidynReiman, Benjamin K. Smith (BenCreating), Evert, Eliza Wyatt (ElizaWy), TheraHedwig, MuffinElZangano, Durrani, Johannes Sjölund (wulax), Stephen Challener (Redshrike), Pierre Vigier (pvigier), ElizaWy, Matthew Krohn (makrohn) | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles> <https://opengameart.org/content/lpc-medieval-fantasy-character-sprites> <https://opengameart.org/content/lpc-male-jumping-animation-by-durrani> <https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle> <https://opengameart.org/content/lpc-revised-character-basics> <https://opengameart.org/content/lpc-be-seated> <https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads> <https://opengameart.org/content/lpc-jump-expanded> <https://opengameart.org/content/lpc-character-bases> <https://opengameart.org/content/lpc-ladies> <https://opengameart.org/content/lpc-7-womens-shirts> <https://gitlab.com/vagabondgame/lpc-characters> |",
+    "| `head.female_small` | head/heads/human/female_small | ElizaWy, Stephen Challener (Redshrike) | OGA-BY 3.0, CC-BY | OGA-BY 3.0, CC-BY |  |",
+    "| `hair.braid` | hair/braid/adult/fg, hair/braid/adult/bg | Nila122, ElizaWy | OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0, GPL 2.0 | OGA-BY 3.0 | <https://opengameart.org/content/3-hairs-for-lpc> <https://opengameart.org/content/lpc-hair> |",
+    "| `torso.giao_linh` | torso/jacket/frock/male, dress/kimono/split/universal/female, custom/c3/trim/male, dress/kimono/normal/trim/universal/female | bluecarrot16, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) | CC-BY-SA 3.0, OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0 | CC-BY-SA 3.0 (cờ SA) | <https://opengameart.org/content/lpc-pirates> <https://opengameart.org/content/lpc-kimono-relm> |",
+    "| `legs.skirts_slit` | legs/skirts/slit/thin | Nila122, ElizaWy, bluecarrot16 | OGA-BY 3.0, CC-BY-SA 3.0, GPL 2.0, GPL 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/lpc-clothes-and-hair> <http://opengameart.org/content/lpc-clothing-updates> |",
+    "| `feet.slippers` | feet/slippers/male, feet/slippers/thin | bluecarrot16, JaidynReiman, Joe White, Luke Mehl | CC-BY-SA 3.0, GPL 3.0 | CC-BY-SA 3.0 (cờ SA) | <https://opengameart.org/content/thin-mage-clothing-set> <http://opengameart.org/content/lpc-clothing-updates> <https://opengameart.org/content/lpc-expanded-socks-shoes> |",
+    "| `belt.obi` | torso/waist/obi/male, torso/waist/obi/thin | JaidynReiman | OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0 | OGA-BY 3.0+, CC-BY 3.0+ | <https://opengameart.org/content/lpc-kimono-relm> |",
+    "| `hat.bandana` | hat/cloth/bandana/adult | Matthew Krohn (makrohn), JaidynReiman, Marcel van de Steeg (MadMarcel) | OGA-BY 3.0, CC-BY-SA 3.0 | OGA-BY 3.0 | <https://opengameart.org/content/lpc-female-orcogregoblintroll-base-walkcycle> <https://github.com/makrohn/Universal-LPC-spritesheet/commit/f50007cb47c235d8896cafae7a613f0b6a9a09a8?short_path=02b86d4#diff-02b86d45789a3e3e8e79519c7d17d15c9e6ecc9b4ddecb1bcd8dfbbaef430b75> <https://opengameart.org/content/lpc-expanded-hats-facial-helmets> |"
+  ],
+  "reference": {
+    "method": "Idle từ LpcRig đủ lớp, xuất khung logic 24×6; ảnh dẫn ba hướng s/e/n phóng nearest ×4; stencil theo lớp head/brow/hair/hat/beard/face, trừ lớp che phía trước và lấy viền đầu từ hình đầy đủ.",
+    "sha256": "5900069f8ddb6ee87bbc7eb4740f643793a9bbddd20643023279a97a320f6c4e"
+  },
+  "raw": {
+    "path": "C:/Users/PC/.codex/generated_images/01a1a20d-7aa3-71f2-b969-71eb786b9482/exec-284eec48-e895-49e6-929f-69c433ebf5f6.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "fcac2277fa84b098d05d626059048f588505511261077c9dded81487be3c5e97"
+  },
+  "prompt": "Edit this exact LPC pixel sprite strip. Keep THREE equal square cells in a single horizontal row with identical reference positions and directions: down/front, right profile, back. Preserve this female tailor's precise existing design: brown bandana over light brown braided hair, green crossover tunic, tan sash, dark brown slit skirt, brown slippers. One green eye is partly hidden by hair in the first view; preserve the reference hairstyle and face direction rather than redesigning the face. Make only a small friendly chin-down acknowledgment nod, head, bandana and attached braid moving together about ONE logical pixel lower. Keep every pixel of arms, hands, garment below the collar, waist, legs and shoes stationary and faithful to the input. Keep original head size, silhouette, simple hard pixel clusters and source palette. Three cells only, generous transparent margins, no text, labels, props, needles, scissors, weapons, shadows, base or floor. Preserve 3:1 canvas proportions of the 768x256 reference and the crisp enlarged LPC pixel grid. This is a minor dialogue animation pose edit, not a new character illustration.",
+  "license": "Ảnh ghép và pose phái sinh: CC-BY-SA 3.0; các lớp còn lại giữ ghi công/giấy phép ở parts và credits. Phần sinh/chỉnh bằng OpenAI, không gán CC0 và không bỏ nghĩa vụ SA.",
+  "output": "shared/assets/sprites/iso/npc-reply/tho_may.png",
+  "outputSha256": "81d8b731edbf1ac8c6e25b406ce55f5c531c632d68d6f525883743ffaab33942"
+}

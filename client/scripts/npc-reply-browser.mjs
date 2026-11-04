@@ -2,17 +2,20 @@
 // NPC_REPLY_ID / NPC_REPLY_MAP chọn NPC và bản đồ; mặc định kiểm hồi quy Đại Sư.
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { mkdir, mkdtemp } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+import { readPng, decodePng } from "../../tools/assets/lib.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const out = resolve(process.env.NPC_REPLY_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "npc-reply-")));
-const npcId = process.env.NPC_REPLY_ID ?? "dai_su", npcMap = process.env.NPC_REPLY_MAP ?? "nac_dinh_thanh", sheet = `lpc_${npcId}`;
-const separatePose = ["lao_kiet_khac", "lo_ren_thien_dau"].includes(npcId);
+const npcId = process.env.NPC_REPLY_ID ?? "dai_su", npcMap = process.env.NPC_REPLY_MAP ?? "nac_dinh_thanh";
+let sheet = `lpc_${npcId}`;
+const rigPose = ["trieu_vo_cuc", "tho_may", "tho_may_thien_dau"].includes(npcId);
+const separatePose = rigPose || ["lao_kiet_khac", "lo_ren_thien_dau"].includes(npcId);
 const children = [];
 let browser;
 const killChildren = () => { for (const child of children) { if (child.exitCode !== null || !child.pid) continue; if (process.platform === "win32") spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore" }); else child.kill("SIGTERM"); } };
@@ -67,7 +70,7 @@ try {
     await route.fulfill({ response, body: await response.text() + `
 const replyCreate = GameScene.prototype.create;
 GameScene.prototype.create = function(...a) {
-  window.__npcReplyScene = this; window.__npcReplyTarget = ${JSON.stringify(npcId)}; window.__npcLpcStr = npcLpcStr; window.__npcReplySnapshot = ()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),a=s.npcReply.active;return {active:!!a,pose:a?.pose,head: a?{flip:a.head.flipX,frame:a.head.frame.name,y:a.head.y,key:a.head.texture.key,visible:a.head.visible}:null,bodyVisible:n.body.visible,flip:n.body.flipX,crop:n.body.isCropped,anim:n.body.anims.currentAnim?.key,x:n.body.parentContainer.x,y:n.body.parentContainer.y,bodyX:n.body.x,bodyY:n.body.y};}; return replyCreate.apply(this, a);
+  window.__npcReplyScene = this; window.__npcReplyTarget = ${JSON.stringify(npcId)}; window.__npcLpcStr = npcLpcStr; window.__npcReplySnapshot = ()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),running=s.npcReply.active,a=running?.body===n.body?running:null;return {active:!!a,pose:a?.pose,head: a?{flip:a.head.flipX,frame:a.head.frame.name,y:a.head.y,key:a.head.texture.key,visible:a.head.visible}:null,bodyVisible:n.body.visible,flip:n.body.flipX,crop:n.body.isCropped,anim:n.body.anims.currentAnim?.key,x:n.body.parentContainer.x,y:n.body.parentContainer.y,bodyX:n.body.x,bodyY:n.body.y};}; return replyCreate.apply(this, a);
 };` });
   });
   await page.goto(`${web}/choi/`);
@@ -78,6 +81,64 @@ GameScene.prototype.create = function(...a) {
   await page.evaluate(to => { if(window.__npcReplyScene.mapId !== to) window.__npcReplyScene.room.send("test", { op: "warp", mapId: to }); }, npcMap);
   await page.waitForFunction(to => window.__npcReplyScene?.mapId === to && window.__npcReplyScene.npcs.some(n => n.id === window.__npcReplyTarget), npcMap);
   await page.waitForTimeout(1200);
+  if (process.env.NPC_REPLY_SOURCE_ONLY === "1") {
+    await page.waitForFunction(()=>{
+      const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),c=s.lpc.byKey.get(n.body.texture.key);
+      return c?.done.has('idle') && c.layers.every(L=>L.state==='ready'&&!L.redo);
+    });
+    const source=await page.evaluate(async(dataUrl)=>{
+      const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),c=s.lpc.byKey.get(n.body.texture.key);
+      const data=await import(dataUrl),looks=data.decodeLpc(c.str);
+      const cv=document.createElement('canvas');cv.width=1536;cv.height=384;const ctx=cv.getContext('2d');
+      const mask=document.createElement('canvas');mask.width=1536;mask.height=384;const maskCtx=mask.getContext('2d');
+      const partIds=new Set(Object.values(looks.parts));
+      const headParts=data.LPC_PARTS.filter(p=>partIds.has(p.id)&&['head','brow','hair','hat','beard','face'].includes(p.slot));
+      const A=data.LPC_SHEET.anims.idle,strip=c.idleOk?data.LPC_SHEET.strips[A.strip]:data.LPC_SHEET.strips.walk;
+      const srcCol=strip.col+(c.idleOk?A.idx[0]:0),rows=data.LPC_SHEET.rows;
+      // Texture rig có ba hàng vật lý; xuất theo tên khung logic để giữ đủ năm hướng LPC.
+      for(let row=0;row<5;row++)for(let col=0;col<4;col++){
+        const f=n.body.texture.get(String(row*24+col));
+        ctx.drawImage(n.body.texture.getSourceImage(),f.cutX,f.cutY,64,64,col*64,row*64,64,64);
+      }
+      for(let row=0;row<5;row++){
+        const raw=document.createElement('canvas'),head=document.createElement('canvas');raw.width=raw.height=head.width=head.height=64;
+        const rawCtx=raw.getContext('2d'),headCtx=head.getContext('2d'),srcRow=row===0?rows.s:row===4?rows.n:rows.e;
+        for(const L of c.layers){
+          rawCtx.drawImage(L.img,srcCol*64,srcRow*64,64,64,0,0,64,64);
+          headCtx.globalCompositeOperation=headParts.some(p=>L.sheet.startsWith('lpcp_'+p.id.replace('.','_')+'_'))?'source-over':'destination-out';
+          headCtx.drawImage(L.img,srcCol*64,srcRow*64,64,64,0,0,64,64);
+        }
+        const h=headCtx.getImageData(0,0,64,64).data,r=rawCtx.getImageData(0,0,64,64).data;
+        const full=ctx.getImageData(0,row*64,64,64).data,m=maskCtx.createImageData(64,64);
+        const headAt=(x,y)=>x>=0&&y>=0&&x<64&&y<64&&h[(y*64+x)*4+3]>0;
+        for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+          const i=(y*64+x)*4;
+          const outline=full[i+3]&&!r[i+3]&&(headAt(x-1,y)||headAt(x+1,y)||headAt(x,y-1)||headAt(x,y+1));
+          if(full[i+3]&&(headAt(x,y)||outline))m.data.set([255,255,255,255],i);
+        }
+        maskCtx.putImageData(m,0,row*64);
+      }
+      return {png:cv.toDataURL('image/png').split(',')[1],mask:mask.toDataURL('image/png').split(',')[1],id:n.id,lpc:c.str,looks:n.def.looks,
+        parts:Object.values(looks.parts).map(id=>data.LPC_PARTS.find(p=>p.id===id)),
+        layers:c.layers.map(L=>({sheet:L.sheet,pairs:L.pairs})),idleOk:c.idleOk};
+    },'/@fs/'+root.replaceAll('\\','/')+'shared/data.ts');
+    await writeFile(resolve(out,'idle.png'),Buffer.from(source.png,'base64'));
+    await writeFile(resolve(out,'head-mask.png'),Buffer.from(source.mask,'base64'));
+    delete source.png;delete source.mask;
+    await writeFile(resolve(out,'runtime.json'),JSON.stringify(source,null,2)+'\n');
+    console.log(`Đã xuất idle đủ lớp + ngoại hình/giấy phép: ${out}`);
+    await page.close();
+  } else {
+  sheet=await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);return window.__npcReplySheet=n.body.texture.key;});
+  if(rigPose){
+    await page.waitForFunction(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);return s.lpc.readyWithAllLayers(n.body.texture.key,window.__npcLpcStr(n.def.looks),'idle');});
+    const png=await page.evaluate(()=>{
+      const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),cv=document.createElement('canvas');cv.width=1536;cv.height=384;const ctx=cv.getContext('2d');
+      for(let row=0;row<5;row++)for(let col=0;col<4;col++){const f=n.body.texture.get(String(row*24+col));ctx.drawImage(n.body.texture.getSourceImage(),f.cutX,f.cutY,64,64,col*64,row*64,64,64);}
+      return cv.toDataURL('image/png').split(',')[1];
+    });
+    assert.deepEqual(decodePng(Buffer.from(png,'base64')).data,readPng(resolve(root,'art/src/npc-reply',npcId,'idle.png')).data,'idle runtime khớp từng pixel nguồn pose đã kiểm');
+  }
   const move = async (dx, dy) => {
     // Một số NPC sát tường: giảm khoảng cách trên cùng tia, không đổi hướng kiểm.
     const point = await page.evaluate(async ({dx,dy,moveUrl}) => {
@@ -124,7 +185,7 @@ GameScene.prototype.create = function(...a) {
   // So hướng bằng cùng hợp đồng dir8 của #1511, kiểm clone đầu lật cùng thân.
   for (const [dx,dy] of dirs) {
     await move(dx,dy);
-    const expected=await page.evaluate(async({dx,dy})=>{const {dir8}=await import('/src/iso.ts'),{honsuAnimKey}=await import('/src/sprites.ts'); return honsuAnimKey('lpc_'+window.__npcReplyTarget,'idle',dir8(dx,dy));},{dx,dy});
+    const expected=await page.evaluate(async({dx,dy})=>{const {dir8}=await import('/src/iso.ts'),{honsuAnimKey}=await import('/src/sprites.ts'); return honsuAnimKey(window.__npcReplySheet,'idle',dir8(dx,dy));},{dx,dy});
     const during=await talk();
     assert.equal(during.anim,expected.key); assert.equal(during.flip,expected.flip); assert.equal(during.head.flip,expected.flip); assert.equal(during.crop,!separatePose);
     if (separatePose) {
@@ -141,7 +202,7 @@ GameScene.prototype.create = function(...a) {
   console.log(npcId, '✓ Tám hướng / giữ điểm chân / về idle / cập nhật túi không phát lại');
   console.log("Kiểm đóng sớm"); await move(24,24); await talk(); await nod(); await close(); assert.ok(!(await state()).active && !(await state()).crop && (await state()).bodyVisible);
   // Đổi NPC qua HUD thật để kiểm hủy lớp tạm (NPC còn lại xa nên chỉ kiểm vòng đời hiển thị).
-  console.log("Kiểm đổi NPC"); await talk(); await nod(); await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.openNpc(window.__npcReplyTarget==='lo_ren_thien_dau'?'dai_su':'lo_ren_thien_dau',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active && (await state()).bodyVisible);
+  console.log("Kiểm đổi NPC"); await talk(); await nod(); await page.evaluate(async()=>{window.__switchedReplyHead=window.__npcReplyScene.npcReply.active.head;const h=await import('/src/hudNpc.ts');h.openNpc(window.__npcReplyTarget==='lo_ren_thien_dau'?'dai_su':'lo_ren_thien_dau',null,{});}); await page.waitForTimeout(70); assert.ok(!(await state()).active && (await state()).bodyVisible);assert.ok(await page.evaluate(()=>!window.__switchedReplyHead.scene),'lớp tạm NPC cũ đã hủy dù NPC mới có thể đáp lời');
   console.log("Kiểm mở lại nhanh"); await close(); await talk();
   await page.evaluate(async()=>{const h=await import('/src/hudNpc.ts');h.closeNpc();h.openNpc(window.__npcReplyTarget,null,{});});
   await page.waitForTimeout(70); assert.ok((await state()).active,'mở lại cùng NPC giữa hai frame'); await close();
@@ -151,9 +212,20 @@ GameScene.prototype.create = function(...a) {
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;});
   await talk(); await nod(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:2000}); assert.ok(!(await state()).active && (await state()).bodyVisible); await close();
   console.log("Kiểm bộ LPC dự phòng");
-  await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); const key=s.lpc.acquire(window.__npcLpcStr(n.def.looks));window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');});
+  await page.evaluate(async(rig)=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); const looks=rig?{sex:0,hair:0,hairCol:0,outfitCol:0,skin:0}:n.def.looks;const key=s.lpc.acquire(window.__npcLpcStr(looks));window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');},rigPose);
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active,'sheet không đúng giữ idle'); await close();
-  await page.evaluate(()=>window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.stop().setTexture('lpc_'+window.__npcReplyTarget).play('lpc_'+window.__npcReplyTarget+':idle_s'));
+  await page.evaluate(()=>window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.stop().setTexture(window.__npcReplySheet).play(window.__npcReplySheet+':idle_s'));
+  if(rigPose){
+    console.log("Kiểm bộ ghép thiếu lớp dù idle đã tạo");
+    await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget),c=s.lpc.byKey.get(n.body.texture.key);window.__oldLayerState=c.layers[0].state;c.layers[0].state='fail';});
+    await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget));await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget);await page.waitForTimeout(160);assert.ok(!(await state()).active,'thiếu lớp giữ idle');
+    await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);s.lpc.byKey.get(n.body.texture.key).layers[0].state=window.__oldLayerState;});
+    await page.waitForTimeout(160);assert.ok(!(await state()).active,'tải đủ lớp giữa hội thoại không phát lại');await close();
+    console.log("Kiểm looks thay đổi nhưng texture cũ còn cache");
+    await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);window.__oldNpcLooks=n.def.looks;n.def.looks={sex:0,hair:0,hairCol:0,outfitCol:0,skin:0};});
+    await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget));await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget);await page.waitForTimeout(160);assert.ok(!(await state()).active,'looks khác giữ idle');await close();
+    await page.evaluate(()=>{window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).def.looks=window.__oldNpcLooks;});
+  }
   if (separatePose) {
     const key=`npc_reply_${npcId}`;
     await page.evaluate(key=>window.__npcReplyScene.textures.renameTexture(key,key+'_test_missing'),key);
@@ -171,6 +243,7 @@ GameScene.prototype.create = function(...a) {
   console.log(`Cử chỉ đầu tại giây ${clipAt.toFixed(2)}`);
   await page.close();
   console.log(`Clip và ảnh: ${out}`);
+  }
 } finally {
   clearTimeout(watchdog);
   await browser?.close().catch(()=>{});

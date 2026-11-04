@@ -1,4 +1,4 @@
-// Nhập pose Codex cho NPC râu / tóc dài (#1552). RAW luôn ở ngoài repo.
+// Nhập pose Codex cho NPC (#1552). RAW luôn ở ngoài repo.
 // node tools/assets/npc-reply-import.mjs --id <NPC> --raw <RAW.png> --out <thư mục tạm> [--install]
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -35,13 +35,13 @@ function nearest(p, palette) {
 
 /** Giữ stencil đầu LPC (cả râu / tóc đuôi), nhập màu pose từ ảnh sinh rồi hạ đầu một điểm.
  * Thân / tay / chân ngoài hợp hai stencil giữ nguyên từng byte; không cắt ngang hàng 29. */
-export function importReply(source, raw, spec) {
+export function importReply(source, raw, spec, mask) {
   const out = new Img(64 * 5, 64), report = [];
   for (let row = 0; row < 5; row++) {
-    const col = row === 0 ? 0 : row === 4 ? 2 : 1, polygon = spec.masks[col];
+    const col = row === 0 ? 0 : row === 4 ? 2 : 1, polygon = spec.masks?.[col];
     const base = new Img(64, 64);
     for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) base.set(x, y, source.get(x, row * 64 + y));
-    const oldMask = (x, y) => y >= 0 && y < 64 && inside(x + .5, y + .5, polygon) && base.alpha(x, y) > 0;
+    const oldMask = (x, y) => y >= 0 && y < 64 && (mask ? mask.alpha(x, row * 64 + y) > 0 : inside(x + .5, y + .5, polygon)) && base.alpha(x, y) > 0;
     const newMask = (x, y) => oldMask(x, y - 1);
     const bb = bounds(base, 0, 64), rb = bounds(raw, Math.floor(col * raw.w / 3), Math.floor((col + 1) * raw.w / 3));
     const headPalette = [], clothPalette = [];
@@ -83,7 +83,11 @@ function main() {
   if (sha(rawFile) !== record.raw.sha256 || sha(sourceFile) !== record.sourceSha256) throw new Error("Hash RAW / LPC gốc không khớp hồ sơ");
   const source = readPng(sourceFile), raw = readPng(rawFile);
   if (source.w !== 1536 || source.h !== 384 || raw.w !== record.raw.width || raw.h !== record.raw.height) throw new Error("Kích thước nguồn sai hồ sơ");
-  const { image, report } = importReply(source, raw, record);
+  const maskFile = record.maskSource && path.join(ROOT, record.maskSource);
+  if (maskFile && sha(maskFile) !== record.maskSha256) throw new Error("Hash stencil LPC không khớp");
+  const mask = maskFile ? readPng(maskFile) : undefined;
+  if (mask && (mask.w !== source.w || mask.h !== source.h)) throw new Error("Stencil sai kích thước");
+  const { image, report } = importReply(source, raw, record, mask);
   mkdirSync(outDir, { recursive: true });
   const filename = `${id}.png`, bytes = encodePng(image);
   if (createHash("sha256").update(bytes).digest("hex") !== record.outputSha256) throw new Error("Đầu ra không khớp hash đã soát");
