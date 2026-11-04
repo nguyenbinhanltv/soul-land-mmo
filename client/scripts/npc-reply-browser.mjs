@@ -212,7 +212,15 @@ GameScene.prototype.create = function(...a) {
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;});
   await talk(); await nod(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:2000}); assert.ok(!(await state()).active && (await state()).bodyVisible); await close();
   console.log("Kiểm bộ LPC dự phòng");
-  await page.evaluate(async(rig)=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); const looks=rig?{sex:0,hair:0,hairCol:0,outfitCol:0,skin:0}:n.def.looks;const key=s.lpc.acquire(window.__npcLpcStr(looks));window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');},rigPose);
+  await page.evaluate(async(rig)=>{
+    (await import('/src/combatFx.ts')).fxPrefs.reduce=false;
+    const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);
+    // Chủ giáo dùng đúng preset mặc định; đổi tông da để bộ dự phòng chắc chắn khác nguồn NPC.
+    const looks=rig?{sex:0,hair:0,hairCol:0,outfitCol:0,skin:n.def.looks.skin===0?1:0}:n.def.looks;
+    const source=window.__npcLpcStr(looks);
+    if(rig&&source===window.__npcLpcStr(n.def.looks))throw new Error('Fixture dự phòng phải khác ngoại hình nguồn');
+    const key=s.lpc.acquire(source);window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');
+  },rigPose);
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active,'sheet không đúng giữ idle'); await close();
   await page.evaluate(()=>window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.stop().setTexture(window.__npcReplySheet).play(window.__npcReplySheet+':idle_s'));
   if(rigPose){
