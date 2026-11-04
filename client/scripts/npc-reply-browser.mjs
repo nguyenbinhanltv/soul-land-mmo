@@ -14,7 +14,7 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const out = resolve(process.env.NPC_REPLY_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "npc-reply-")));
 const npcId = process.env.NPC_REPLY_ID ?? "dai_su", npcMap = process.env.NPC_REPLY_MAP ?? "nac_dinh_thanh";
 let sheet = `lpc_${npcId}`;
-const rigPose = ["trieu_vo_cuc", "tho_may", "tho_may_thien_dau", "su_gia_hao_thien", "ninh_phong_tri", "su_gia_lam_dien"].includes(npcId);
+const rigPose = ["trieu_vo_cuc", "tho_may", "tho_may_thien_dau", "su_gia_hao_thien", "ninh_phong_tri", "su_gia_lam_dien", "hai_ma_dau_la", "ba_tai_tay", "chu_giao_vu_hon_dien"].includes(npcId);
 const separatePose = rigPose || ["lao_kiet_khac", "lo_ren_thien_dau"].includes(npcId);
 const children = [];
 let browser;

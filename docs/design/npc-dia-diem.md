@@ -23,11 +23,13 @@ Khi mở hội thoại, client chốt hướng thân LPC về phía hồn sư th
 
 Ngọc Tiểu Cương, Thương nhân Nặc Đinh, Thợ rèn Nặc Đinh, Chưởng quỹ Thiên Đấu, Tố Vân Đào, Phất Lan Đức, Sứ giả Đại Đấu Hồn Trường và Thương nhân lưu động gật đầu ngắn một lần khi mở hội thoại, rồi về idle theo hướng đang nói. Dùng mẫu 480 ms của Đại Sư đã được chủ repo duyệt, chỉ trên sheet LPC đã soát đủ tóc / cổ áo / tay, giữ nguyên thân / tay / chân; bộ dự phòng hoặc Giảm chuyển động giữ idle. Đóng / đổi NPC / đổi bản đồ hủy cử chỉ. Cập nhật túi và lời thoại không phát lại.
 
-Lão Kiệt Khắc và Thợ rèn Thiên Đấu dùng pose Codex riêng để râu / tóc đuôi dài liền khối, không cắt ngang đầu ở hàng 29. Vẫn cùng nhịp 480 ms, thân / tay / chân giữ cố định; pose riêng chỉ hiện ở đoạn gật đầu 100–320 ms, rồi trả idle. Chỉ tải dải pose khi bản đồ có NPC đó và manifest khai đủ sheet; thiếu pose riêng giữ idle. Những NPC còn lại giữ idle, chưa nhân rộng (#1552).
+Lão Kiệt Khắc và Thợ rèn Thiên Đấu dùng pose Codex riêng để râu / tóc đuôi dài liền khối, không cắt ngang đầu ở hàng 29. Vẫn cùng nhịp 480 ms, thân / tay / chân giữ cố định; pose riêng chỉ hiện ở đoạn gật đầu 100–320 ms, rồi trả idle. Chỉ tải dải pose khi bản đồ có NPC đó và manifest khai đủ sheet; thiếu pose riêng giữ idle.
 
-Triệu Vô Cực, Thợ may Nặc Đinh và Thợ may Thiên Đấu dùng pose Codex từ đúng bộ LPC ghép hiện tại, cùng nhịp và vòng đời hủy ở trên; thân/idle không thay. Chỉ bật khi mã NPC, chuỗi ngoại hình và bộ ghép đủ lớp khớp nguồn đã soát. Thiếu lớp, đang tải lại, ngoại hình đổi hoặc thiếu dải pose giữ idle; tải đủ lớp giữa hội thoại không tự phát cử chỉ. Các NPC khác chưa nhân rộng vẫn giữ idle (#1552).
+Triệu Vô Cực, Thợ may Nặc Đinh và Thợ may Thiên Đấu dùng pose Codex từ đúng bộ LPC ghép hiện tại, cùng nhịp và vòng đời hủy ở trên; thân/idle không thay. Chỉ bật khi mã NPC, chuỗi ngoại hình và bộ ghép đủ lớp khớp nguồn đã soát. Thiếu lớp, đang tải lại, ngoại hình đổi hoặc thiếu dải pose giữ idle; tải đủ lớp giữa hội thoại không tự phát cử chỉ.
 
-Sứ giả Hạo Thiên Tông, Ninh Phong Trí và Sứ giả Lam Điện Bá Vương Long Tông dùng pose Codex riêng từ bộ LPC ghép hiện tại, theo cùng luật một lần mở, hướng, hủy và fallback ở trên. Chuỗi ngoại hình nguồn nằm trong metadata manifest, không đổi thân/idle hay dữ liệu server. Hải Mã Đấu La, Ba Tái Tây và Chủ giáo Vũ Hồn Điện chưa nhân rộng (#1552).
+Sứ giả Hạo Thiên Tông, Ninh Phong Trí và Sứ giả Lam Điện Bá Vương Long Tông dùng pose Codex riêng từ bộ LPC ghép hiện tại, theo cùng luật một lần mở, hướng, hủy và fallback ở trên. Chuỗi ngoại hình nguồn nằm trong metadata manifest, không đổi thân/idle hay dữ liệu server.
+
+Hải Mã Đấu La, Ba Tái Tây và Chủ giáo Vũ Hồn Điện dùng pose Codex riêng theo cùng luồng metadata và phép kiểm đủ lớp ở trên. Đây là lô cuối của #1552: toàn bộ NPC có ngoại hình trong `NPCS` hiện có cử chỉ; biển Đại Đấu Hồn Trường và dân thường/lính gác trang trí ngoài phạm vi. Bộ nguồn không khớp, thiếu pose hoặc Giảm chuyển động vẫn giữ idle an toàn.
 
 ## Lịch sử / issue liên quan
 - Nhật ký từng bước: `docs/lich-su.md`.
