@@ -8,6 +8,7 @@ import { fogEmpty, fogFill } from "../../../shared/fog.ts";
 import { publishBoss, bossNow, bossClockMode } from "../schedule.ts";
 import { randomUUID } from "node:crypto";
 import { store, saveFailTest } from "../db.ts";
+import { titleDef } from "../../../shared/data.ts";
 import { sendState as achvSend } from "./achv.ts";
 import { mailNotify } from "./mail.ts";
 import { chatReset, inviteReset, rallyReset, friendReset } from "../ratelimit.ts";
@@ -206,6 +207,11 @@ export async function testHook(room: MapRoom, c: Client, m: unknown) {
     const key = strIn(o.key), n = int(o.n, 1, 1e6, 1);
     if ((ACHV_COUNTERS as readonly string[]).includes(key)) await store.achvBump(d.accountId, key, n);
     await achvSend(room, id); out = { counters: (await store.achvGet(d.accountId)).counters };
+  }
+  else if (op === "title") { // Danh Hiệu (5.25): `grant` mã danh hiệu (+ `ttlMs` hạn tương đối, thiếu = vĩnh viễn) mở thẳng cho người gọi như server cấp; trả danh sách đã mở (còn hạn). Chỉ GAME_TEST; tin `title` của client vẫn chỉ get / equip
+    const tid = strIn(o.grant), def = titleDef(tid);
+    if (def) out = { grant: await store.titleGrant(d.accountId, def.id, o.ttlMs === undefined ? null : Date.now() + int(o.ttlMs, 1, 1e10, 1)) };
+    out = { ...out, owned: (await store.titleGet(d.accountId)).owned.map((x) => x.id) };
   }
   else if (op === "mail") { // Thư (5.24): gửi một thư cho chính người gọi (`title`, `honTe`, `items` [{code, qty}], `dedup`, `ttlMs`, `kind`); trả kết quả `res` hoặc `error`
     try {

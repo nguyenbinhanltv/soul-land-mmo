@@ -8,11 +8,13 @@ import { Client } from "colyseus.js";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { solidGrid, hits, PLAYER_HW, PLAYER_HH } from "../../shared/move.ts";
-import { AUTO_RADIUS, AWAKEN_CHOICES, SYNC_VIEW, TILE } from "../../shared/data.ts";
+import { AUTO_RADIUS, AWAKEN_CHOICES, SYNC_VIEW, TILE, TITLE_DEFS, TITLE_FX } from "../../shared/data.ts";
 
 const API = process.env.SERVER_URL ?? "http://localhost:2567", WS = API.replace(/^http/, "ws");
 const N = Math.max(1, Number(process.env.N) || 20), SECS = Math.max(10, Number(process.env.SECS) || 60), MODE = process.env.MODE === "walk" ? "walk" : "auto";
 const MAP = process.env.MAP ?? "tinh_dau_ngoai_vi";
+// Danh Hiệu (#1789): TITLES=1 mọi bot mở + đeo danh hiệu bậc cao nhất (titleId trong state); CLUSTER=1 dồn mọi bot về một điểm neo để thấy nhau (quá TITLE_FX.crowd bảng thì client tắt hiệu ứng động).
+const TITLES = process.env.TITLES === "1", CLUSTER = process.env.CLUSTER === "1", TOP_TITLE = [...TITLE_DEFS].sort((a, b) => b.tier - a.tier)[0].id;
 const V1 = new Set((process.env.MAP_V1 ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 const file = !(V1.has(MAP) || V1.has("all")) && existsSync(new URL(`../../shared/assets/${MAP}.v2.json`, import.meta.url)) ? `${MAP}.v2` : MAP;
 const raw = JSON.parse(readFileSync(new URL(`../../shared/assets/${file}.json`, import.meta.url), "utf8")), grid = solidGrid(raw);
@@ -48,6 +50,7 @@ async function join(b) {
 const hook = async (b, op, extra = {}) => { b.test = null; b.room.send("test", { op, ...extra }); await waitFor(() => b.test, 3000); return b.test; };
 const stops = new Map();
 
+const me0 = (b) => b.room.state.players?.get(b.room.sessionId);
 async function makeBot(i, at) {
   const b = { name: `Soak ${MODE} ${i} ${RUN}` };
   const l = await post("/api/login", { name: b.name, password: PASS }); b.token = l.token;
@@ -60,14 +63,15 @@ async function makeBot(i, at) {
   await waitFor(() => b.room.state.players?.get(b.room.sessionId), 3000);
   // Võ hồn ra trận cấp 30, 3 hồn hoàn để bãi săn không quá khó (bot ít gục, tự săn chạy đủ thời gian đo).
   const v = await hook(b, "stats"); if (v?.rowId) await hook(b, "set", { rowId: v.rowId, level: 30, rings: [600, 1200, 2400] });
+  if (TITLES) { await hook(b, "title", { grant: TOP_TITLE }); b.tt = null; b.room.onMessage("title", (m) => { b.tt = m; }); b.room.send("title", { op: "equip", id: TOP_TITLE }); await waitFor(() => me0(b)?.titleId === TOP_TITLE, 3000); }
   b.at = at;
   return b;
 }
 
-const spots = anchors(N);
-console.log(`[soak] ${N} bot, ${MODE}, ${SECS} giây, bản đồ ${file} (${grid.MW}×${grid.MH} ô), ${spots.length} điểm neo, bán kính tự săn ${AUTO_RADIUS} pixel`);
+const spots = anchors(CLUSTER ? 1 : N); if (CLUSTER) while (spots.length < N) spots.push({ ...spots[0] });
+console.log(`[soak] ${TITLES ? `đeo danh hiệu ${TOP_TITLE} (ngưỡng crowd ${TITLE_FX.crowd}), ` : ""}${CLUSTER ? "dồn một chỗ, " : ""}${N} bot, ${MODE}, ${SECS} giây, bản đồ ${file} (${grid.MW}×${grid.MH} ô), ${spots.length} điểm neo, bán kính tự săn ${AUTO_RADIUS} pixel`);
 const bots = [];
-for (let i = 0; i < spots.length; i++) bots.push(await makeBot(i, spots[i]));
+for (let i = 0; i < spots.length; i += 8) bots.push(...await Promise.all(spots.slice(i, i + 8).map((at, j) => makeBot(i + j, at)))); // cụm 8 bot vào song song (vào lần lượt rất chậm khi 40 bot)
 const me = (b) => b.room.state.players?.get(b.room.sessionId);
 const kills0 = bots.map((b) => me(b)?.kills ?? 0);
 for (const b of bots) b.bytes = 0;
