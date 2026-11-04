@@ -137,6 +137,12 @@ export class LpcRig {
     return false;
   }
 
+  /** Đúng bộ nguồn và mọi lớp đã tải/ghép đủ; không nhận hình tạm thiếu lớp hoặc đang tải lại. */
+  readyWithAllLayers(key: string, str: string, anim: HsAnim): boolean {
+    const c = this.byKey.get(key);
+    return !!c && c.str === str && c.done.has(anim) && c.layers.every((L) => L.state === "ready" && !L.redo);
+  }
+
   private want(c: Combo, anim: HsAnim) {
     if (c.done.has(anim) || c.want.has(anim)) return;
     c.want.add(anim); this.dirty.add(c);

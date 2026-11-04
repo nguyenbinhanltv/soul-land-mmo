@@ -18,7 +18,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { checkIsoTiles } from "./iso-build.mjs";
 import path from "node:path";
-import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS, vhanimSize, appendManifestEntry } from "./lib.mjs";
+import { ROOT, SPRITES, MANIFEST, PT_MAX_COLORS, readPng, toHex, allowedColors, accentColors, readGpl, npcIds, itemIconIds, skillIconIds, statusIds, heIds, beastIds, sheetSpec, GRAY_RAMP, OUTLINE, SHEET_COLS, HS_ANIMS, HS_ORIGIN, HS_LAYERS, PORTRAIT_MAX_COLORS, ISO_PROP_STEP, ISO_DIRS, vhanimSize, appendManifestEntry, npcReplyPalette } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : d; };
@@ -83,7 +83,11 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
   if (spec.kind === "prop" && (img.w % ISO_PROP_STEP || img.h % ISO_PROP_STEP)) return err(key, `kích thước ${img.w}×${img.h} không chia hết cho ${ISO_PROP_STEP}`);
 
   // Màu và alpha.
-  const palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
+  let palette = /^hs_(hair|outfit)_/.test(key) ? grayOnly : spec.kind === "prop" ? withAccents : map ? new Set([...allowed, ...mapColors(key, map)]) : allowed;
+  if (spec.kind === "npc-reply") {
+    try { palette = npcReplyPalette(key.slice(10)); }
+    catch (e) { return err(key, `không đọc được bảng màu nguồn LPC: ${e.message}`); }
+  }
   // Chân dung / biểu tượng và hiệu ứng fx_* (màu gốc của gói LPC) không theo bảng chung, chỉ giới hạn số màu.
   const free = spec.kind === "portrait" || spec.kind === "ui2" || spec.kind === "fx" || spec.kind === "danhhieu" || spec.kind === "phaptuong" || spec.kind === "vhanim" || !!spec.static; // sheet tĩnh ComfyUI: bảng màu riêng từng loài, như chân dung
   const bad = new Map(), used = new Set(); let semi = 0;
@@ -312,6 +316,10 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
+  if (key.startsWith("npc_reply_")) {
+    const record = JSON.parse(readFileSync(path.join(ROOT, "art/src/npc-reply", key.slice(10), "nguon.json"), "utf8"));
+    if (e.replyLpc !== record.lpc) err(key, "replyLpc phải khớp ngoại hình trong hồ sơ nguồn");
+  }
   const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", typeof e.nine === "number" ? e.nine : 0, !!e.static, !!e.blank, e.anim?.cols ?? 0);
   if (spec) { seen.add(spec.file); if (spec.alt) seen.add(spec.alt); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
   if (spec && typeof e !== "string" && e.anim?.dirsOk !== undefined) checkDirsOk(key, e, spec);

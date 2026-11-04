@@ -791,7 +791,10 @@ export class GameScene extends Phaser.Scene {
       const d = n.id === open && Math.hypot(dx, dy) > 2 ? dir8(dx, dy) ?? "s" : "s";
       const a = honsuAnimKey(n.body.texture.key, "idle", d);
       n.body.setFlipX(a.flip).play(a.key, true);
-      if (n.id === open && !fxPrefs.reduce) this.npcReply.start(n.body, a.key, this.time.now);
+      if (n.id === open && !fxPrefs.reduce) {
+        const lpc = n.def?.looks ? npcLpcStr(n.def.looks) : "";
+        this.npcReply.start(n.body, a.key, this.time.now, { id: n.id, lpc, ready: this.lpc.readyWithAllLayers(n.body.texture.key, lpc, "idle") });
+      }
     }
     this.talkingNpc = open;
     this.talkingNpcStamp = stamp;

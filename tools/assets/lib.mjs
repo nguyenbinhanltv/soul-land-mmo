@@ -292,6 +292,14 @@ export function allowedColors() {
   return set;
 }
 
+/** Pose hội thoại giữ đúng bảng màu ảnh LPC nguồn (kể cả bộ ghép động), không thêm màu tự do. */
+export function npcReplyPalette(id, root = ROOT) {
+  const record = JSON.parse(readFileSync(path.join(root, "art/src/npc-reply", id, "nguon.json"), "utf8"));
+  const source = readPng(path.join(root, record.source)), colors = new Set();
+  for (let i = 0; i < source.data.length; i += 4) if (source.data[i + 3]) colors.add(toHex(source.data.subarray(i, i + 4)));
+  return colors;
+}
+
 // ---------- PNG ----------
 const SIG = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const CRC_TABLE = (() => {

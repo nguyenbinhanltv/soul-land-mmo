@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import {
-  ROOT, MANIFEST, OUTLINE, Img, readPng, encodePng, sheetSpec, allowedColors, accentColors, readGpl,
+  ROOT, MANIFEST, OUTLINE, Img, readPng, encodePng, sheetSpec, allowedColors, accentColors, readGpl, npcReplyPalette,
 } from "./lib.mjs";
 
 const ASSET_ROOT = path.join(ROOT, "shared", "assets");
@@ -48,7 +48,8 @@ function manifestEntries(manifest, root = ROOT) {
   return { entries, errors };
 }
 
-function expectedPalette(entry, spec) {
+function expectedPalette(entry, spec, root) {
+  if (spec.kind === "npc-reply") return npcReplyPalette(entry.key.slice(10), root);
   if (spec.kind === "portrait" || spec.kind === "ui2" || spec.kind === "danhhieu" || spec.kind === "fx" || spec.kind === "phaptuong" || spec.kind === "vhanim" || spec.static) return null;
   if (/^hs_(hair|outfit)_/.test(entry.key)) return new Set(["#3a3a3a", "#6a6a6a", "#9a9a9a", "#cacaca", OUTLINE]);
   const colors = new Set([...allowedColors(), ...accentColors()]);
@@ -83,7 +84,7 @@ export function qualityCheck(manifest, root = ROOT) {
   for (const { key, entry, spec, file, url, declaredOrigin, expectedOrigin } of entries) {
     if (!existsSync(file)) { errors.push(`${key}: thiếu ${rel(file, root)}`); continue; }
     let info;
-    try { info = inspectPng(file, { frame: spec.frame ?? entry.frame, origin: expectedOrigin, palette: expectedPalette(entry, spec) }); }
+    try { info = inspectPng(file, { frame: spec.frame ?? entry.frame, origin: expectedOrigin, palette: expectedPalette(entry, spec, root) }); }
     catch (error) { errors.push(`${key}: không đọc được PNG (${error.message})`); continue; }
     if (spec.size && info.size.some((n, i) => n !== spec.size[i])) errors.push(`${key}: cỡ ${info.size.join("×")}, cần ${spec.size.join("×")}`);
     if (info.semiTransparent && !key.startsWith("fx_pfx_")) /* pixelfx: alpha mềm, xem nguon-giay-phep.md */ errors.push(`${key}: có ${info.semiTransparent} điểm alpha bán trong suốt`);
