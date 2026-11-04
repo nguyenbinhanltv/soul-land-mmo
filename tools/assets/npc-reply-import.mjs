@@ -96,8 +96,14 @@ function main() {
     const dir = path.join(SPRITES, "iso/npc-reply"); mkdirSync(dir, { recursive: true });
     writeFileSync(path.join(dir, filename), bytes);
     const text = readFileSync(MANIFEST, "utf8"), key = `npc_reply_${id}`;
-    if (!JSON.parse(text).sprites.some((e) => (typeof e === "string" ? e : e.key) === key))
-      writeFileSync(MANIFEST, appendManifestEntry(text, { key, frame: [64, 64], iso: true }));
+    const entry = { key, frame: [64, 64], iso: true, ...(record.lpc ? { replyLpc: record.lpc } : {}) };
+    const old = JSON.parse(text).sprites.find((e) => (typeof e === "string" ? e : e.key) === key);
+    if (!old) writeFileSync(MANIFEST, appendManifestEntry(text, entry));
+    else if (old.replyLpc !== entry.replyLpc) {
+      const block = new RegExp(`    \\{\\s*"key": "${key}",[^{}]*?\\n    \\}`);
+      if (!block.test(text)) throw new Error("Không tìm thấy khối manifest pose");
+      writeFileSync(MANIFEST, text.replace(block, JSON.stringify(entry, null, 2).split("\n").map((s) => `    ${s}`).join("\n")));
+    }
   }
   console.log(JSON.stringify({ id, report, sha256: createHash("sha256").update(bytes).digest("hex") }, null, 2));
 }

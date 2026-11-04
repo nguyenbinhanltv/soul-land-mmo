@@ -311,6 +311,10 @@ for (const e of manifest.sprites) {
   const key = entryKey(e);
   if (seen.has(key)) err(key, "trùng key trong manifest");
   seen.add(key);
+  if (key.startsWith("npc_reply_")) {
+    const record = JSON.parse(readFileSync(path.join(ROOT, "art/src/npc-reply", key.slice(10), "nguon.json"), "utf8"));
+    if (e.replyLpc !== record.lpc) err(key, "replyLpc phải khớp ngoại hình trong hồ sơ nguồn");
+  }
   const spec = typeof e === "string" ? check(key) : check(key, e.frame, !!e.iso, e.map ?? "", typeof e.nine === "number" ? e.nine : 0, !!e.static, !!e.blank, e.anim?.cols ?? 0);
   if (spec) { seen.add(spec.file); if (spec.alt) seen.add(spec.alt); seen.add(spec.file.replace(/\.png$/, "_n.png")); }
   if (spec && typeof e !== "string" && e.anim?.dirsOk !== undefined) checkDirsOk(key, e, spec);

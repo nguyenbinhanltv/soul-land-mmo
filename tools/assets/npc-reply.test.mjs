@@ -7,6 +7,8 @@ import path from "node:path";
 
 for (const id of ["lao_kiet_khac", "lo_ren_thien_dau", "trieu_vo_cuc", "tho_may", "tho_may_thien_dau"]) test(`${id}: pose giữ chân, thân và hướng LPC`, () => {
   const record = JSON.parse(readFileSync(path.join(ROOT, "art/src/npc-reply", id, "nguon.json"), "utf8"));
+  const entry = JSON.parse(readFileSync(path.join(ROOT, "shared/assets/sprites/manifest.json"), "utf8")).sprites.find((e) => e.key === `npc_reply_${id}`);
+  assert.equal(entry.replyLpc, record.lpc, "metadata ngoại hình khớp hồ sơ nguồn");
   const sourceFile = path.join(ROOT, record.source), source = readPng(sourceFile), pose = readPng(path.join(ROOT, record.output));
   const mask = record.maskSource ? readPng(path.join(ROOT, record.maskSource)) : null, palette = npcReplyPalette(id);
   for (const layer of record.layers ?? []) assert.equal(createHash("sha256").update(readFileSync(path.join(ROOT, layer.file))).digest("hex"), layer.sha256, "lớp LPC nguồn không đổi");

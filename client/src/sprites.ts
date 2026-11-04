@@ -19,7 +19,7 @@ import { registerVohonSheet, registerBlankSheet, setBeastSheetHook, isLazySkillF
 import { readFxPrefs } from "./fxSettings.ts";
 import { DEFAULT_LAYOUT, beastDirPlan, lungeKeep, newBeastAnimState, parseLayout, stepBeastAnim, type AnimLayout, type BeastAnimState } from "./beastAnim.ts";
 
-const MANIFEST_KEY = "sprites-manifest";
+export const MANIFEST_KEY = "sprites-manifest";
 const BASE = "sprites/";
 
 /** Bố cục spritesheet phụ thể cũ 48×48 (vẽ bằng code, honsuArt.ts): 16 cột × 4 hàng. */

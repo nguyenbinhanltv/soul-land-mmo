@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { MANIFEST_KEY } from "./sprites";
 
 // Chỉ bật cho sheet đã soát tóc / cổ áo / tay ở đủ năm hàng hướng.
 // Râu dài, tóc đuôi / bím dài, tóc xõa dài đi qua hàng 29 cần pose riêng (hai bộ thí điểm ở REPLY_POSES).
@@ -12,12 +13,6 @@ const REPLY_POSES: Record<string, string> = {
   lpc_lao_kiet_khac: "npc_reply_lao_kiet_khac",
   lpc_lo_ren_thien_dau: "npc_reply_lo_ren_thien_dau",
 };
-// Chỉ các bộ ghép động có pose khớp nguồn đã xuất và soát đủ lớp.
-const RIG_REPLY_POSES: Record<string, { key: string; lpc: string }> = {
-  trieu_vo_cuc: { key: "npc_reply_trieu_vo_cuc", lpc: "1|0|light|brown|body.body,head.male,brow.thin=dark_brown,hair.plain=dark_brown,torso.giao_linh=navy,legs.pantaloons=tan,feet.sandals=brown,belt.obi=charcoal,hat.headband_thick=maroon,arms.bracers" },
-  tho_may: { key: "npc_reply_tho_may", lpc: "1|1|light|green|body.body,head.female_small,hair.braid=light_brown,torso.giao_linh=forest,legs.skirts_slit=walnut,feet.slippers=brown,belt.obi=tan,hat.bandana=brown" },
-  tho_may_thien_dau: { key: "npc_reply_tho_may_thien_dau", lpc: "1|0|light|brown|body.body,head.male,brow.thick=navy,hair.parted_side_bangs=navy,torso.su_lai_khac=white,legs.pantaloons=charcoal,feet.slippers=brown,belt.obi=navy,hat.headband_tied=navy" },
-};
 
 /** Gật đầu một điểm ảnh theo mẫu Đại Sư đã duyệt, từ pose đứng đủ lớp.
  * Không dùng khung đánh / niệm phép, không dịch thân hoặc chân, không đổi idle gốc. */
@@ -27,8 +22,10 @@ export class NpcReply {
   start(body: Phaser.GameObjects.Sprite, idle: string, now: number, rig?: { id: string; lpc: string; ready: boolean }) {
     this.cancel();
     // Chỉ bộ nguồn đã soát; bộ ghép chưa duyệt/thiếu lớp hoặc sheet thiếu giữ idle.
-    const rigPose = rig && RIG_REPLY_POSES[rig.id];
-    const poseKey = REPLY_POSES[body.texture.key] ?? (rig?.ready && rigPose?.lpc === rig.lpc && /^lpcc_[mf]_\d+$/.test(body.texture.key) ? rigPose.key : undefined);
+    // Bộ ghép động phải khớp chuỗi LPC nguồn do importer ghi vào manifest.
+    const rigKey = rig?.ready ? `npc_reply_${rig.id}` : undefined;
+    const rigPose = rigKey && body.scene.cache.json.get(MANIFEST_KEY)?.sprites?.find((e: { key?: string; replyLpc?: string }) => e.key === rigKey);
+    const poseKey = REPLY_POSES[body.texture.key] ?? (rig?.ready && rigPose?.replyLpc === rig.lpc && /^lpcc_[mf]_\d+$/.test(body.texture.key) ? rigKey : undefined);
     if ((!poseKey && !REPLY_SHEETS.has(body.texture.key)) || !body.parentContainer || !body.scene.anims.exists(idle)) return;
     const first = body.scene.anims.get(idle).frames[0]?.frame;
     if (!first || first.width !== 64 || first.height !== 64) return;
