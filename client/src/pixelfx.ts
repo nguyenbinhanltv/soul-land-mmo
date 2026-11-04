@@ -54,3 +54,6 @@ export function deathKeys(rank: number, level: "low" | "mid" | "high"): string[]
 }
 /** Trứng nở (hồn thú xuất hiện): khói nhẹ ở mức Vừa trở lên. */
 export const hatchKey = (level: "low" | "mid" | "high"): string | null => (level === "low" ? null : "fx_pfx_poof");
+
+/** Hồi sinh (hồn sư gục đứng dậy): trụ sáng tia hồi sinh. Mức Thấp chỉ cho chính mình (sheet lớn, người khác nhường chỗ). */
+export const reviveKey = (level: "low" | "mid" | "high", mine: boolean): string | null => (level === "low" && !mine ? null : "fx_pfx_respawn_beam_light");
