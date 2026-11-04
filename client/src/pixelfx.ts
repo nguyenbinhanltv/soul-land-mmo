@@ -43,3 +43,14 @@ export function lootKey(rare: number, rareMin: number, level: "low" | "mid" | "h
   if (rare >= rareMin) return "fx_pfx_power_star_light";
   return level === "low" ? null : "fx_pfx_collect_burst";
 }
+
+/**
+ * Hồn thú bị hạ (`rank` BeastState: 0 thường, 1 tinh anh, 2 thú vương, 3 boss): tinh anh nổ khói (poof), thú vương / boss thêm hồn bay lên (soul_rise).
+ * Hồn thú thường giữ hiệu ứng bụi cũ (đông, nhỏ: sheet đầu tiên vẫn lớn hơn thân chúng). Mức Thấp chỉ thú vương / boss.
+ */
+export function deathKeys(rank: number, level: "low" | "mid" | "high"): string[] {
+  if (rank >= 2) return level === "low" ? ["fx_pfx_soul_rise_light"] : ["fx_pfx_poof", "fx_pfx_soul_rise_light"];
+  return rank >= 1 && level !== "low" ? ["fx_pfx_poof"] : [];
+}
+/** Trứng nở (hồn thú xuất hiện): khói nhẹ ở mức Vừa trở lên. */
+export const hatchKey = (level: "low" | "mid" | "high"): string | null => (level === "low" ? null : "fx_pfx_poof");
