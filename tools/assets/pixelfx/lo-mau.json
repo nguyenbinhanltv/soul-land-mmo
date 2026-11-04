@@ -1,0 +1,44 @@
+{
+  "about": "Lô mẫu #1802 P1: 5 hiệu ứng nhập thử. Bộ chọn cuối 17 hiệu ứng (spawn: poof, soul-rise, respawn-beam, disintegrate, shatter-death, dissolve-burn, spawn-portal; pickups: collect-burst, xp-orb, power-star, loot-beam, gem-spin, crystal-shard, potion, heart-pickup; ui: exclamation, confetti) nhập dần ở P2. Loại: achievement / combo-counter / crit-number / countdown / quest-complete / level-up (chữ tiếng Anh cứng, font pixelfx không có dấu tiếng Việt; level-up còn vẽ cả người mẫu), damage-number / health-bar-hit / heart-lost (game có giao diện riêng), summon-rise và coin-drop / egg-hatch / coin-spin / chest-open / key-glint (nặng hoặc ngoài thế giới game).",
+  "sha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+  "effects": [
+    {
+      "id": "spawn/poof",
+      "name": "poof",
+      "stride": 2,
+      "seed": 1,
+      "role": "hồn thú chết (khói xám gốc)"
+    },
+    {
+      "id": "spawn/soul-rise",
+      "name": "soul-rise-light",
+      "palette": "light",
+      "stride": 2,
+      "seed": 1,
+      "role": "hồn sư ngã / hồn bay lên (hệ quang)"
+    },
+    {
+      "id": "spawn/respawn-beam",
+      "name": "respawn-beam-light",
+      "palette": "light",
+      "stride": 2,
+      "seed": 1,
+      "role": "hồi sinh (hệ quang)"
+    },
+    {
+      "id": "pickups/collect-burst",
+      "name": "collect-burst",
+      "stride": 2,
+      "seed": 1,
+      "role": "nhặt vật phẩm (màu gốc)"
+    },
+    {
+      "id": "pickups/power-star",
+      "name": "power-star-light",
+      "palette": "light",
+      "stride": 2,
+      "seed": 1,
+      "role": "nhặt vật phẩm hiếm (hệ quang)"
+    }
+  ]
+}

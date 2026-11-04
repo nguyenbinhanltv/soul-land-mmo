@@ -62,6 +62,22 @@ Concept Danh Hiệu P4a (#1770, phần #1766): Codex builtin OpenAI `image_gen.i
 - `lpc-compose.mjs`, `lpc-item.mjs` và `tools/audio` nhận mọi giấy phép đã biết, tự ghi giấy phép kèm cờ SA / GPL / NC vào `CREDITS.md`, và dừng nếu không đọc được giấy phép.
 - Gigapack và Forest (kho riêng) **cấm đưa vào AI**: không dùng làm ảnh tham chiếu, không đưa vào PixelLab / model.
 
+## Hiệu ứng pixelfx (#1802)
+
+Hiệu ứng `fx_pfx_*` xuất từ **pixelfx** (https://github.com/patch-gg/pixelfx, commit `a84159688af3ca37a4be05a0d422b94451b2e24e`, **MIT**): sprite sheet xuất offline (`node tools/render.mjs <nhóm>/<tên> --sheet --no-actor`), nhập bằng `tools/assets/pixelfx-import.mjs` (bớt khung 30 → 15 fps, cắt vùng chứa, xếp lưới, đổi màu theo bảng hệ `ELEMENT_COL`). Sheet thô không vào repo; nguồn từng khóa (SHA commit, lệnh, bảng màu, seed, SHA256) ở `art/src/pixelfx/nguon.json`; một dòng chung ở mục "Asset bên ngoài" của `art/CREDITS.md`. Game **không** chạy thư viện pixelfx lúc chơi (chỉ phát ảnh).
+
+Thông báo bản quyền MIT (giữ nguyên, theo `LICENSE` và `NOTICE.md` của pixelfx):
+
+- **pixelfx**: Copyright (c) 2026 Patch, MIT License.
+- **Hugo Duprez (Sprite Fusion)**: `src/core/sim.js` và các hiệu ứng ghi rõ ở đầu file của pixelfx là bản chuyển thể từ hiệu ứng mã nguồn mở của Sprite Fusion (https://www.spritefusion.com/pixel-art-vfx), Copyright (c) 2026 Hugo Duprez, MIT License.
+- **Hollow Crown**: `src/core/act.js` chuyển thể cách Hollow Crown phát kỹ năng (https://github.com/rehan-remade/hollow-crown), Copyright (c) 2026 rehan-remade, MIT License. (Dự án chỉ xuất hiệu ứng, không dùng chế độ "acted out" nên không dùng phần này lúc chạy.)
+
+> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+**Không dùng** font Patch Pixel (`gallery/fonts` của pixelfx): bản quyền riêng của Patch, không thuộc MIT. Ảnh trong game không chứa chữ của font này.
+
+Ngoại lệ kiểm tra: khóa `fx_pfx_*` giữ alpha mềm và nhiều màu của pixelfx (ánh sáng cộng), nên `validate.mjs` không áp trần "alpha 0/255, 32 màu" cho riêng nhóm này; khung chữ nhật, xếp lưới nhiều hàng.
+
 ## Đồng bộ ghi công khi gộp nhánh
 
 `art/CREDITS.md` là hồ sơ nguồn (không phải file sinh); ghi công hồn thú hoạt ảnh nằm riêng trong bảng `## Ghi công` của `art/src/beast-anim/<loài>/NGUON.md`. `shared/assets/credits/credits.json` là dữ liệu gộp do công cụ sinh từ các hồ sơ này và `tools/assets/private-packs.json`; **không sửa tay**, không chọn nguyên bản của một nhánh để giải quyết xung đột JSON.

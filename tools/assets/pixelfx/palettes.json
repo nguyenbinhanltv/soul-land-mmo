@@ -1,0 +1,45 @@
+{
+  "about": "Nguồn: ELEMENT_COL ở client/src/skillFx.ts (test pixelfx-import.test.mjs đối chiếu). Chỉ lưu main/hi/lo; dải 6 mức do rampOf() dựng.",
+  "elements": {
+    "fire": {
+      "main": "ff7a2a",
+      "hi": "ffe08a",
+      "lo": "8f2a14"
+    },
+    "ice": {
+      "main": "7fd8ff",
+      "hi": "eafcff",
+      "lo": "2a5a9a"
+    },
+    "lightning": {
+      "main": "8ac8ff",
+      "hi": "ffffff",
+      "lo": "3a4aa8"
+    },
+    "poison": {
+      "main": "9bd64a",
+      "hi": "e4ffa0",
+      "lo": "3a5a1a"
+    },
+    "light": {
+      "main": "ffe9a0",
+      "hi": "ffffff",
+      "lo": "b8902a"
+    },
+    "dark": {
+      "main": "a06bff",
+      "hi": "e0c8ff",
+      "lo": "2a1a4a"
+    },
+    "wood": {
+      "main": "5ed06a",
+      "hi": "d0ffc0",
+      "lo": "1f5a2a"
+    },
+    "wind": {
+      "main": "bff4ff",
+      "hi": "ffffff",
+      "lo": "5a8aa0"
+    }
+  }
+}
