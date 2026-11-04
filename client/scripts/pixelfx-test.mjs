@@ -1,6 +1,6 @@
 // Thử kế hoạch phát hiệu ứng pixelfx (pixelfx.ts, #1802 P2): chọn khóa theo độ hiếm / mức hiệu ứng, bù chân → tâm ô, thiếu meta thì không phát.
 import assert from "node:assert/strict";
-import { lootKey, pfxPlan, setPixelfxMeta, PFX_STYLE } from "../src/pixelfx.ts";
+import { deathKeys, hatchKey, lootKey, pfxPlan, setPixelfxMeta, PFX_STYLE } from "../src/pixelfx.ts";
 import { SPR } from "../src/iso.ts";
 
 assert.equal(lootKey(-1, 3, "high"), null, "-1 = tin đầu / không có đồ mới");
@@ -17,4 +17,10 @@ assert.deepEqual([p.key, p.x, p.y, p.scale, p.fps, p.light, p.delay, p.normal], 
 assert.equal(p.lift, (80 - 43) * SPR, "chân thấp hơn tâm ô thì nâng ảnh lên đúng khoảng đó");
 assert.equal(pfxPlan("fx_pfx_x", { x: 0, y: 0 }).lift, 0, "chân ở tâm: không bù");
 assert.ok(Object.keys(PFX_STYLE).every((k) => k.startsWith("fx_pfx_")));
+assert.deepEqual(deathKeys(0, "high"), [], "thú thường giữ bụi cũ");
+assert.deepEqual(deathKeys(1, "mid"), ["fx_pfx_poof"]);
+assert.deepEqual(deathKeys(1, "low"), [], "mức Thấp bỏ tinh anh");
+assert.deepEqual(deathKeys(2, "high"), ["fx_pfx_poof", "fx_pfx_soul_rise_light"]);
+assert.deepEqual(deathKeys(3, "low"), ["fx_pfx_soul_rise_light"], "thú vương / boss luôn có hồn bay lên");
+assert.equal(hatchKey("low"), null); assert.equal(hatchKey("mid"), "fx_pfx_poof");
 console.log("pixelfx-test OK");

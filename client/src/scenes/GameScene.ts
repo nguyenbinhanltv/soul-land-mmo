@@ -77,7 +77,7 @@ import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, be
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
-import { loadPixelfx, playPfx, lootKey } from "../pixelfx.ts"; // #1802: hiệu ứng pixelfx (sheet fx_pfx_*)
+import { loadPixelfx, playPfx, lootKey, deathKeys, hatchKey } from "../pixelfx.ts"; // #1802: hiệu ứng pixelfx (sheet fx_pfx_*)
 import { loadPrivateAssets, playPriv } from "../privateAssets.ts"; // #623: hiệu ứng kho riêng (thiếu thì giữ hình cũ)
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } from "../skillVisual.ts";
 /** `?sv=0`: tắt sheet SKILL_VISUAL (chỉ hiệu ứng G3), để quay ảnh "trước" cạnh "sau" trong game thật. */
@@ -1836,7 +1836,7 @@ export class GameScene extends Phaser.Scene {
       this.ringFx(c, 2, 12, col, 400);
       return;
     }
-    if (m.s === "hatch") { this.ringFx(c, 4, 28, col, 550); this.ringFx(c, 2, 16, "#ffffff", 400, 120); this.floatText(c.x, c.y - 22 * SPR, "Nở!", "#ff6b6b"); }
+    if (m.s === "hatch") { const hk = hatchKey(fxLevel()); if (hk) playPfx(this.svis.sheets, hk, { x: c.x, y: c.y, light: true }); this.ringFx(c, 4, 28, col, 550); this.ringFx(c, 2, 16, "#ffffff", 400, 120); this.floatText(c.x, c.y - 22 * SPR, "Nở!", "#ff6b6b"); }
     if (m.s === "break") this.ringFx(c, 2, 16, "#ffffff", 350);
     for (let k = 0; k < 7; k++) {
       const a = (k / 7) * Math.PI * 2 + Math.random() * 0.5, d = (10 + Math.random() * 8) * SPR;
@@ -1932,6 +1932,7 @@ export class GameScene extends Phaser.Scene {
   beastDown(s: Phaser.GameObjects.Sprite, h: { tier: number; rank: number; mine: boolean }) {
     const col = hex(TIERS[h.tier]?.glow ?? "#ffffff"), w = (s.displayWidth || 24) * 0.9, hh = s.displayHeight || 24;
     if (fxLevel() !== "low") this.fxp.dust(s.x, s.y, w, hh, col, fxLevel() === "high" ? 26 : 14);
+    for (const k of deathKeys(h.rank, fxLevel())) playPfx(this.svis.sheets, k, { x: s.x, y: s.y, light: !h.mine }); // #1802 P2: khói / hồn bay lên (pixelfx)
     const me = this.players.get(this.me);
     if (h.mine && me && h.rank >= 2 && Math.hypot(me.root.x - s.x, me.root.y - s.y) < 260 * SPR) this.shakeTier(3);
   }
