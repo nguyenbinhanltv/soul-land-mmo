@@ -151,10 +151,11 @@ function check(key, frame, iso = false, map = "", nine = 0, stat = false, blank 
     if (stray.length) err(key, `phụ thể vẽ vào ô client không đọc (cột 12–15 hoặc hàng 3): ` + stray.map(([r, c]) => `(${r},${c})`).join(" "));
     if (cellEmpty(img, 0, 0, img.w, img.h)) err(key, `sheet trống hoàn toàn: ghi "blank": true vào manifest và xóa file ảnh + _n (client không tải nửa trống)`);
   } else if (spec.kind === "beast" || spec.kind === "fx" || spec.kind === "npc-reply") {
-    const grid = key.startsWith("fx_pfx_"); // pixelfx (#1802): lưới nhiều hàng, mọi ô phải có hình
+    const grid = key.startsWith("fx_pfx_"); // pixelfx (#1802): lưới nhiều hàng; ô đầu và ô cuối phải có hình (importer đã cắt khung trống ở đầu / đuôi); khung trống Ở GIỮA là nhịp nghỉ hợp lệ của hiệu ứng
     if (spec.kind === "fx" && !grid && img.h !== fh) err(key, `hiệu ứng phải là dải một hàng khung ${fw}×${fh}`);
     const empty = [];
-    for (let r = 0; r < (grid ? 0 : 1); r++) for (let c = 0; c < img.w / fw; c++) if (cellEmpty(img, c * fw, r * fh, fw, fh)) empty.push(grid ? `${r}.${c}` : c);
+    const cells = grid ? [[0, 0], [img.h / fh - 1, img.w / fw - 1]] : Array.from({ length: img.w / fw }, (_, c) => [0, c]);
+    for (const [r, c] of cells) if (cellEmpty(img, c * fw, r * fh, fw, fh)) empty.push(grid ? `${r}.${c}` : c);
     if (empty.length) err(key, `thiếu khung: cột ${empty.join(", ")}`);
   }
   return spec;

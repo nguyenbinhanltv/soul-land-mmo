@@ -58,3 +58,8 @@ test("--check: ảnh, manifest, pixelfx.json, thông báo MIT trong repo khớp 
   const r = spawnSync(process.execPath, [path.join(ROOT, "tools/assets/pixelfx-import.mjs"), "--check"], { encoding: "utf8" });
   assert.equal(r.status, 0, r.stdout + r.stderr);
 });
+
+test("processFx: bỏ khung trống ở đầu; khung trống giữa được giữ", () => {
+  const f = (d) => img(20, 20, d), o = processFx([f([]), f([[5, 5]]), f([]), f([[6, 6]]), f([])], [10, 10], 30, { stride: 1 });
+  assert.equal(o.meta.frames, 3); assert.deepEqual(o.meta.pivot, [5, 5]);
+});

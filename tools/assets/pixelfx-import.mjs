@@ -91,10 +91,12 @@ export function splitSheet(sheet, json) {
  * fps = fps gốc / bước thật (bước thật tính từ số khung đã chọn).
  */
 export function processFx(allFrames, pivot, fps, { stride = 2, max = Infinity } = {}) {
-  // Bỏ khung trống ở đuôi (hiệu ứng một lần mờ hết trước khi kết thúc): không tốn bộ nhớ ảnh, fxSheet tự mờ dần ở cuối.
+  // Bỏ khung trống ở đầu (khoảng chờ) và đuôi (hiệu ứng một lần mờ hết trước khi kết thúc): không tốn bộ nhớ ảnh, fxSheet tự mờ dần ở cuối.
   let end = allFrames.length;
   while (end > 1 && !unionBox([allFrames[end - 1]])) end--;
-  const frames = allFrames.slice(0, end);
+  let start = 0;
+  while (start < end - 1 && !unionBox([allFrames[start]])) start++;
+  const frames = allFrames.slice(start, end);
   const idx = pickFrames(frames.length, stride, max), picked = idx.map((i) => frames[i]);
   const box = unionBox(picked);
   if (!box) throw new Error("hiệu ứng trống");

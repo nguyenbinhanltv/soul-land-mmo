@@ -56,16 +56,16 @@
     ],
     "cols": 16,
     "rows": 3,
-    "frames": 36,
+    "frames": 35,
     "cells": 48,
-    "fps": 15.22,
+    "fps": 15,
     "pivot": [
       63,
       136
     ],
     "stride": 2,
     "src": {
-      "frames": 70,
+      "frames": 69,
       "fps": 30,
       "frame": [
         128,
