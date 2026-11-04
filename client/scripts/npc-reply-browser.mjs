@@ -14,7 +14,7 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const out = resolve(process.env.NPC_REPLY_OUTPUT ?? await mkdtemp(resolve(tmpdir(), "npc-reply-")));
 const npcId = process.env.NPC_REPLY_ID ?? "dai_su", npcMap = process.env.NPC_REPLY_MAP ?? "nac_dinh_thanh";
 let sheet = `lpc_${npcId}`;
-const rigPose = ["trieu_vo_cuc", "tho_may", "tho_may_thien_dau", "su_gia_hao_thien", "ninh_phong_tri", "su_gia_lam_dien"].includes(npcId);
+const rigPose = ["trieu_vo_cuc", "tho_may", "tho_may_thien_dau", "su_gia_hao_thien", "ninh_phong_tri", "su_gia_lam_dien", "hai_ma_dau_la", "ba_tai_tay", "chu_giao_vu_hon_dien"].includes(npcId);
 const separatePose = rigPose || ["lao_kiet_khac", "lo_ren_thien_dau"].includes(npcId);
 const children = [];
 let browser;
@@ -212,7 +212,16 @@ GameScene.prototype.create = function(...a) {
   await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;});
   await talk(); await nod(); await page.evaluate(async()=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=true;}); await page.waitForFunction(()=>!window.__npcReplySnapshot().active,null,{timeout:2000}); assert.ok(!(await state()).active && (await state()).bodyVisible); await close();
   console.log("Kiểm bộ LPC dự phòng");
-  await page.evaluate(async(rig)=>{(await import('/src/combatFx.ts')).fxPrefs.reduce=false;const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget); const looks=rig?{sex:0,hair:0,hairCol:0,outfitCol:0,skin:0}:n.def.looks;const key=s.lpc.acquire(window.__npcLpcStr(looks));window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');},rigPose);
+  await page.evaluate(async(rig)=>{
+    (await import('/src/combatFx.ts')).fxPrefs.reduce=false;
+    const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);
+    // Chủ giáo dùng đúng preset mặc định; đổi tông da để bộ dự phòng chắc chắn khác nguồn NPC.
+    const looks=rig?{sex:0,hair:0,hairCol:0,outfitCol:0,skin:n.def.looks.skin===0?1:0}:n.def.looks;
+    const source=window.__npcLpcStr(looks);
+    if(rig&&source===window.__npcLpcStr(n.def.looks))throw new Error('Fixture dự phòng phải khác ngoại hình nguồn');
+    window.__fallbackLooks=looks;
+    const key=s.lpc.acquire(source);window.__fallbackKey=key;n.body.stop().setTexture(key).play(key+':idle_s');
+  },rigPose);
   await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget)); await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget); await page.waitForTimeout(160); assert.ok(!(await state()).active,'sheet không đúng giữ idle'); await close();
   await page.evaluate(()=>window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).body.stop().setTexture(window.__npcReplySheet).play(window.__npcReplySheet+':idle_s'));
   if(rigPose){
@@ -222,7 +231,7 @@ GameScene.prototype.create = function(...a) {
     await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);s.lpc.byKey.get(n.body.texture.key).layers[0].state=window.__oldLayerState;});
     await page.waitForTimeout(160);assert.ok(!(await state()).active,'tải đủ lớp giữa hội thoại không phát lại');await close();
     console.log("Kiểm looks thay đổi nhưng texture cũ còn cache");
-    await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);window.__oldNpcLooks=n.def.looks;n.def.looks={sex:0,hair:0,hairCol:0,outfitCol:0,skin:0};});
+    await page.evaluate(()=>{const s=window.__npcReplyScene,n=s.npcs.find(n=>n.id===window.__npcReplyTarget);window.__oldNpcLooks=n.def.looks;if(window.__npcLpcStr(window.__fallbackLooks)===window.__npcLpcStr(n.def.looks))throw new Error('Fixture đổi looks phải khác nguồn');n.def.looks=window.__fallbackLooks;});
     await page.evaluate(()=>window.__npcReplyScene.talk(window.__npcReplyTarget));await page.waitForFunction(()=>window.__npcReplyScene.talkingNpc===window.__npcReplyTarget);await page.waitForTimeout(160);assert.ok(!(await state()).active,'looks khác giữ idle');await close();
     await page.evaluate(()=>{window.__npcReplyScene.npcs.find(n=>n.id===window.__npcReplyTarget).def.looks=window.__oldNpcLooks;});
   }

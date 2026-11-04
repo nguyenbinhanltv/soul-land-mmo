@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { ROOT, readPng, sheetSpec, toHex, npcReplyPalette } from "./lib.mjs";
 import path from "node:path";
 
-for (const id of ["lao_kiet_khac", "lo_ren_thien_dau", "trieu_vo_cuc", "tho_may", "tho_may_thien_dau", "su_gia_hao_thien", "ninh_phong_tri", "su_gia_lam_dien"]) test(`${id}: pose giữ chân, thân và hướng LPC`, () => {
+for (const id of ["lao_kiet_khac", "lo_ren_thien_dau", "trieu_vo_cuc", "tho_may", "tho_may_thien_dau", "su_gia_hao_thien", "ninh_phong_tri", "su_gia_lam_dien", "hai_ma_dau_la", "ba_tai_tay", "chu_giao_vu_hon_dien"]) test(`${id}: pose giữ chân, thân và hướng LPC`, () => {
   const record = JSON.parse(readFileSync(path.join(ROOT, "art/src/npc-reply", id, "nguon.json"), "utf8"));
   const entry = JSON.parse(readFileSync(path.join(ROOT, "shared/assets/sprites/manifest.json"), "utf8")).sprites.find((e) => e.key === `npc_reply_${id}`);
   assert.equal(entry.replyLpc, record.lpc, "metadata ngoại hình khớp hồ sơ nguồn");
