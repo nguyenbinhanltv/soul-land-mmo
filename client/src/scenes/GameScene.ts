@@ -3021,7 +3021,7 @@ export class GameScene extends Phaser.Scene {
         if (id === this.me) this.cameras.main.startFollow(root, true, 0.2, 0.2);
       }
       const { root, label, title, tongT } = v;
-      if (this.wasDead.get(id) && !p.dead) { const rk = reviveKey(fxLevel(), id === this.me); if (rk) playPfx(this.svis.sheets, rk, { x: root.x, y: root.y, light: id !== this.me }); }
+      if (this.wasDead.get(id) && !p.dead) { const rk = reviveKey(fxLevel(), id === this.me); if (rk) { const rp = W2S(p.x, p.y); playPfx(this.svis.sheets, rk, { x: rp.x, y: rp.y, light: id !== this.me }); } } // vị trí hồi sinh do server đặt (doanh trại) trong cùng nhịp với dead → sống; root còn ở chỗ gục
       if (!!this.wasDead.get(id) !== !!p.dead) this.wasDead.set(id, !!p.dead);
       const mine = id === this.me && this.pred;
       // Hướng nhìn 8 phía trên màn hình theo hướng đi (thế giới); thân LPC chỉ có 4 hướng nên hiện hướng gần nhất (lpcFace).
