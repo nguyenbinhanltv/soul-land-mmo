@@ -1,7 +1,7 @@
 // Trạng thái và thống kê theo giờ của tự săn (AH2, #609, mục 5.13). Chỉ đọc state của AutoHunter, không quyết định gì: AutoHunter.tick gọi
 // `feed.tick` mỗi nhịp; tin riêng `autost` chỉ gửi khi việc đang làm đổi (tối đa AUTO_STATUS.every giây một lần) hoặc đã AUTO_STATUS.rateEvery giây.
 import type { Client } from "colyseus";
-import { AUTO_STATUS, AUTO_STUCK, TILE, beastName, itemDef, type AutoJob, type AutoRate, type AutoStatus } from "../../../shared/data.ts";
+import { AUTO_STATUS, AUTO_STUCK, TILE, beastNameSeen, itemDef, type AutoJob, type AutoRate, type AutoStatus } from "../../../shared/data.ts";
 import type { PlayerState } from "./schema.ts";
 import type { AutoHunter, AutoSnap } from "./autoHunt.ts";
 
@@ -54,7 +54,7 @@ function jobOf(h: AutoHunter, p: PlayerState): AutoStatus {
   if (h.dodge) { k = "dodge"; to = h.dodge; }
   else if (h.away || h.warm) { k = "back"; to = h.goal; }
   else if (b) {
-    n = beastName(b.rank, b.species); to = b;
+    n = beastNameSeen(b.rank, b.species); to = b;
     if (h.hit || h.fighting()) k = "fight";
     else { k = "go"; d = Math.max(AUTO_STATUS.dist, Math.round(dist(b.x, b.y) / AUTO_STATUS.dist) * AUTO_STATUS.dist); }
   } else if (dr) { k = "loot"; n = dr.item ? itemDef(dr.item)?.name : "hồn hoàn"; to = dr; }

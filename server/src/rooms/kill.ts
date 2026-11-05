@@ -1,6 +1,6 @@
 // Hạ hồn thú (GAME_DESIGN.md mục 5.2, 5.4, 5.9), tách khỏi MapRoom.ts (#702, bước 24): `killBeast` (kinh nghiệm, Hồn Tệ, đồ rơi, khóa tinh anh, chia tổ đội).
 // Hàm nhận phòng (`room: MapRoom`) như loot.ts; nguyên văn từ MapRoom, không đổi thứ tự xử lý / thứ tự gọi RNG (`roll*` giữ thứ tự cũ). MapRoom chỉ chuyển tiếp `killBeast`.
-import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastName, fitBeast, partyXpShare, beastTough } from "../../../shared/data.ts";
+import { TIERS, BEASTS, beastIndex, formatHonTe, formatYears, DROP_OWNER_SECS, BOSSES, ELITE, beastNameSeen, fitBeast, partyXpShare, beastTough } from "../../../shared/data.ts";
 import { achvCount } from "./achv.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import { persistEliteLock } from "./presenceState.ts";
@@ -19,7 +19,7 @@ import { dexKilled } from "./dex.ts";
 export function killBeast(room: MapRoom, bid: string, by: string) {
   if (room.eggs.has(bid)) return room.eggs.broke(bid, by); // bọc trứng (#162): vỡ, không nở, không thưởng
   const b = room.state.beasts.get(bid)!, e = room.bdata.get(bid)?.elite, zone0 = room.bdata.get(bid)?.zone; // zone0: vùng sinh thật (B2 tự săn nhớ chỗ hồi sinh)
-  const td = TIERS[b.tier], name = beastName(b.rank, b.species), age = formatYears(b.years);
+  const td = TIERS[b.tier], name = beastNameSeen(b.rank, b.species), age = formatYears(b.years);
   room.state.beasts.delete(bid); room.bdata.delete(bid);
   // 6.2: vùng săn tính theo chỗ hồn thú bị hạ (khung vùng trong Tiled).
   const zone = room.map.zones.find((z) => b.x >= z.x0 && b.x < z.x1 && b.y >= z.y0 && b.y < z.y1)?.name;
