@@ -223,5 +223,105 @@
       ]
     },
     "loop": false
+  },
+  "fx_pfx_toxic_puddle_poison": {
+    "frame": [
+      106,
+      61
+    ],
+    "cols": 19,
+    "rows": 3,
+    "frames": 41,
+    "cells": 57,
+    "fps": 10.08,
+    "pivot": [
+      53,
+      48
+    ],
+    "stride": 3,
+    "src": {
+      "frames": 120,
+      "fps": 30,
+      "frame": [
+        176,
+        100
+      ]
+    },
+    "loop": true
+  },
+  "fx_pfx_root_snare_wood": {
+    "frame": [
+      85,
+      60
+    ],
+    "cols": 24,
+    "rows": 2,
+    "frames": 41,
+    "cells": 48,
+    "fps": 15.19,
+    "pivot": [
+      42,
+      43
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 80,
+      "fps": 30,
+      "frame": [
+        128,
+        96
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_tornado_wind": {
+    "frame": [
+      134,
+      164
+    ],
+    "cols": 15,
+    "rows": 2,
+    "frames": 21,
+    "cells": 30,
+    "fps": 10.17,
+    "pivot": [
+      72,
+      150
+    ],
+    "stride": 3,
+    "src": {
+      "frames": 60,
+      "fps": 30,
+      "frame": [
+        196,
+        168
+      ]
+    },
+    "loop": true
+  },
+  "fx_pfx_curse_dark": {
+    "frame": [
+      106,
+      116
+    ],
+    "cols": 19,
+    "rows": 3,
+    "frames": 51,
+    "cells": 57,
+    "fps": 15.15,
+    "pivot": [
+      53,
+      107
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 100,
+      "fps": 30,
+      "frame": [
+        112,
+        124
+      ]
+    },
+    "loop": false
   }
 }

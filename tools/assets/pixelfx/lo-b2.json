@@ -1,0 +1,38 @@
+{
+  "about": "Lô B nhóm 2 (#1815): chỉ giữ 4 lớp vùng (zone) thấy rõ khác trong game thật: độc, mộc, phong, ám. Đã thử và bỏ vì không khác: tia trúng độc / mộc / quang / ám (acid-splash, leaf-storm, smite, shadow-flames) và vùng quang (sunburst): ảnh Codex hiện có đã đủ.",
+  "sha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+  "effects": [
+    {
+      "id": "nature/toxic-puddle",
+      "name": "toxic-puddle-poison",
+      "palette": "poison",
+      "stride": 3,
+      "seed": 1,
+      "role": "hệ poison"
+    },
+    {
+      "id": "nature/root-snare",
+      "name": "root-snare-wood",
+      "palette": "wood",
+      "stride": 2,
+      "seed": 1,
+      "role": "hệ wood"
+    },
+    {
+      "id": "nature/tornado",
+      "name": "tornado-wind",
+      "palette": "wind",
+      "stride": 3,
+      "seed": 1,
+      "role": "hệ wind"
+    },
+    {
+      "id": "shadow/curse",
+      "name": "curse-dark",
+      "palette": "dark",
+      "stride": 2,
+      "seed": 1,
+      "role": "hệ dark"
+    }
+  ]
+}

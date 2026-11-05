@@ -26,6 +26,7 @@ export const PFX_STYLE: Record<string, { normal?: boolean; alpha?: number }> = {
   fx_pfx_power_star_light: { alpha: 0.9 },
   // Lô B nhóm 1 (#1815): hệ chiêu, lớp bổ sung trên ảnh `fx_<hệ>_*` (cộng sáng, hơi nhẹ để không che ảnh cũ)
   fx_pfx_fire_ring_fire: { alpha: 0.85 }, fx_pfx_frost_nova_ice: { alpha: 0.85 }, fx_pfx_ice_shatter_ice: { alpha: 0.9 }, fx_pfx_zap_hit_lightning: { alpha: 0.95 },
+  fx_pfx_toxic_puddle_poison: { alpha: 0.85 }, fx_pfx_root_snare_wood: { alpha: 0.85 }, fx_pfx_tornado_wind: { alpha: 0.8 }, fx_pfx_curse_dark: { alpha: 0.85 },
 };
 
 /** Kế hoạch phát (hàm thuần): chân hiệu ứng đặt đúng (x, y); SheetFx vẽ ảnh theo tâm ô nên bù độ cao từ chân tới tâm. */
@@ -68,6 +69,10 @@ export const ELEMENT_PFX: Readonly<Partial<Record<Element, Partial<Record<FxKind
   fire: { zone: "fx_pfx_fire_ring_fire" },
   ice: { zone: "fx_pfx_frost_nova_ice", hit: "fx_pfx_ice_shatter_ice" },
   lightning: { hit: "fx_pfx_zap_hit_lightning" },
+  poison: { zone: "fx_pfx_toxic_puddle_poison" },
+  wood: { zone: "fx_pfx_root_snare_wood" },
+  wind: { zone: "fx_pfx_tornado_wind" },
+  dark: { zone: "fx_pfx_curse_dark" },
 };
 /** Khóa sheet bổ sung cho chiêu hệ `el` kiểu `kind`; mức Thấp không thêm (trần sheet nhỏ, nhường chiêu chính). */
 /** `?elpfx=0`: tắt lớp này (quay ảnh trước / sau trong game thật). */
