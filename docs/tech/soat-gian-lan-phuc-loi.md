@@ -45,6 +45,15 @@ Không có lỗi Nghiêm trọng / Cao / Vừa. Hai mục "đã sửa / bổ sun
 
 **9. Đã bổ sung bài bot.** `client/scripts/bot/welfare.mjs` mục 3b: bật `baglimit {on:true}`, dồn 200 `sign`, kỳ vọng chỉ xử lý cỡ `MSG_GROUP.trade.burst` tin (đo được 20), `mask` và Hồn Tệ không đổi, vẫn kết nối.
 
+**10. Túi đầy → Thư (#1622).** Khi `bagFits` sai, `welfareAction` không cộng quà vào túi mà gửi nguyên phần quà ô đó (Hồn Tệ + vật phẩm, đúng `checkinGives(i)`) vào thư `welfare` qua `checkinClaim(…, mail)`: ô đã ký + thư + phí trong túi cùng một transaction (`PgStore` dùng chung `mailPutPg` với `mailSend`).
+- *Nhân thưởng:* quà chỉ ra MỘT chỗ. Nhánh thư không gọi `addCoin` / `addItem`; thư không đổi trần quà (thư = chuyển giao đúng phần của ô, mỗi ô ký được một lần mỗi chu kỳ).
+- *Nhận trùng thư:* `dedup = welfare:<chu kỳ>:<ô>` + `unique (account_id, dedup)`; `mailClaim` giữ `claimed_at IS NULL`. Bot: nhận lại thư bị từ chối, Hồn Tệ không đổi.
+- *Mất ô / mất quà:* mọi lỗi (DB, `ver` lệch, `dedup` đã có, hộp đầy) rollback cả ba phần, `takeBack` chỉ hoàn phí; ô chưa ký thì ký lại được. Hook `savefail` lúc túi đầy: không ký, không thư; ký lại ra đúng một thư.
+- *Hộp thư đầy:* từ chối, báo "Túi và hộp thư đều đầy", không mất ô (người chơi dọn thư đã nhận rồi ký lại).
+- *Thư hết hạn* (`MAIL.ttlDays`): quà bỏ nếu không nhận, chủ ý của `thu.md`; ô vẫn tính đã ký.
+- *Nuôi nhiều tài khoản:* thư chỉ chuyển cho chính tài khoản đó, không thành đường chuyển đồ.
+- Test: `welfare-test.ts` ("Quà mọi ô đều gửi thư được", "checkinClaim + thư"), bot `welfare` bước 10 / 10b (`--pg` để thử `PgStore`).
+
 ## Bảng trần quà một chu kỳ (số thật lúc soát)
 
 Hằng ở `shared/data.ts` (`CHECKIN`, `TONG_WEEK_REWARD`, `SHARD_BUY`, `AUTO_DAILY_SECS`, `AUTO_BONUS_MAX`, `SHOP`); `welfare-test.ts` kiểm các quan hệ, code không chép số.

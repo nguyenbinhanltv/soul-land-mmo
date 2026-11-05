@@ -3,7 +3,7 @@
 // Chạy: npm run test:welfare --prefix server
 import assert from "node:assert/strict";
 import { MemoryStore, type CheckinPatch } from "../src/db.ts";
-import { ARENA_SHARDS, AUTO_BONUS_MAX, AUTO_DAILY_SECS, AUTO_TOKEN, AUTO_TOKEN_SECS, CHECKIN, ITEMS, SHARD_BUY, SHOP, TONG_WEEK_REWARD, checkinCount, checkinDay, checkinFee, checkinOpen,
+import { ARENA_SHARDS, AUTO_BONUS_MAX, MAIL, itemDef, AUTO_DAILY_SECS, AUTO_TOKEN, AUTO_TOKEN_SECS, CHECKIN, ITEMS, SHARD_BUY, SHOP, TONG_WEEK_REWARD, checkinCount, checkinDay, checkinFee, checkinOpen,
   checkinValue, vnAt, vnDayNum } from "../../shared/data.ts";
 import { bagFits, checkinGives, welfareView } from "../src/rooms/welfare.ts";
 
@@ -123,5 +123,49 @@ await test("MemoryStore.checkinClaim (soát P5): không đổi / kéo dài start
   assert.equal(await s.checkinClaim(1, patch({ expect: 1, cycle: 2, startDay: 90, mask: 1, bit: 1, lastAt: 2000 }), bag()), null, "chu kỳ mới lùi ngày bắt đầu");
   await assert.rejects(() => s.checkinClaim(1, patch({ expect: 1, mask: 1 | 1 << CHECKIN.days, bit: 1 << CHECKIN.days, lastAt: 2000 }), bag()), /không hợp lệ/, "bit đúng ngoài lưới days");
   assert.equal(await s.checkinClaim(1, patch({ expect: 1, cycle: 2, startDay: 100 + CHECKIN.days, mask: 1, bit: 1, lastAt: 2000 }), bag()), 2, "ngay ngày đầu sau khi chu kỳ hết: mở được");
+});
+await test("Quà mọi ô đều gửi thư được (túi đầy → Thư): hợp lệ với mailOk, đúng phần quà, không vượt trần thư", async () => {
+  const s = new MemoryStore(); acc(s, 1);
+  for (let i = 0; i < CHECKIN.days; i++) {
+    const { honTe, gives } = checkinGives(i);
+    assert.ok(gives.length <= MAIL.maxAttach && honTe <= MAIL.maxHonTe && gives.every((g) => g.qty <= MAIL.maxQty), `ô ${i + 1} vừa trần thư`);
+    assert.ok(gives.every((g) => (itemDef(g.code)?.stack ?? 0) > 1), `ô ${i + 1}: chỉ vật phẩm gộp`);
+    const mail = { kind: "welfare", dedup: `welfare:1:${i}`, title: `Quà ô ${i + 1}`, honTe, items: gives };
+    assert.equal(await s.mailSend(1, mail), "ok", `ô ${i + 1} vào thư`);
+  }
+});
+await test("MemoryStore.checkinClaim + thư: ô đã ký, thư và túi cùng ghi; đúng một thư; không nhân quà", async () => {
+  const s = new MemoryStore(); acc(s, 1);
+  const { honTe, gives } = checkinGives(6), mail = { kind: "welfare", dedup: "welfare:1:6", title: "Quà ô 7", honTe, items: gives };
+  assert.equal(await s.checkinClaim(1, patch({ bit: 1 << 6, mask: 1 << 6 }), bag(50), mail), 1);
+  assert.equal(s.bags.get(1)!.honTe, 50, "túi chỉ nhận bản ghi phía gọi đưa (không cộng quà lần nữa)");
+  const list = await s.mailList(1);
+  assert.equal(list.length, 1); assert.equal(list[0].honTe, honTe); assert.deepEqual(list[0].items, gives); assert.equal(list[0].claimed, false);
+  assert.equal((await s.checkinGet(1))!.mask, 1 << 6);
+  // Ký lại cùng ô (tab khác / ver cũ): từ chối, không thêm thư.
+  assert.equal(await s.checkinClaim(1, patch({ bit: 1 << 6, mask: 1 << 6 }), bag(50), mail), null);
+  assert.equal(await s.checkinClaim(1, patch({ expect: 1, bit: 1 << 6, mask: 1 << 6 | 1 << 6, lastAt: 2000 }), bag(50), mail), null, "ô đã ký");
+  assert.equal((await s.mailList(1)).length, 1, "vẫn một thư");
+  // Thư nhận được đúng quà, rồi nhận lại không trùng.
+  const id = list[0].id;
+  assert.equal(await s.mailClaim(1, id, bag(50 + honTe)), "ok");
+  assert.equal(await s.mailClaim(1, id, bag(50 + 2 * honTe)), "gone");
+  assert.equal(s.bags.get(1)!.honTe, 50 + honTe, "nhận lại không cộng thêm");
+});
+await test("MemoryStore.checkinClaim + thư: dedup đã có / hộp đầy / túi hỏng thì không ghi sổ, không ghi túi", async () => {
+  const s = new MemoryStore(); acc(s, 1);
+  const mail = { kind: "welfare", dedup: "welfare:1:0", title: "Quà ô 1", honTe: 20 };
+  await s.mailSend(1, mail);
+  assert.equal(await s.checkinClaim(1, patch(), bag(5), mail), null, "dedup đã có (ô đã ra thư): từ chối");
+  assert.equal(await s.checkinGet(1), null, "sổ không đổi"); assert.equal(s.bags.get(1), undefined, "túi không đổi");
+  const t = new MemoryStore(); acc(t, 2);
+  for (let k = 0; k < MAIL.boxMax; k++) await t.mailSend(2, { kind: "gm", dedup: `gm:${k}`, title: "x", honTe: 1 });
+  assert.equal(await t.checkinClaim(2, patch(), bag(5), { ...mail, dedup: "welfare:1:1" }), "mailfull", "hộp đầy toàn thư còn quà");
+  assert.equal(await t.checkinGet(2), null, "hộp đầy: sổ không đổi"); assert.equal(t.bags.get(2), undefined, "hộp đầy: túi không đổi");
+  const u = new MemoryStore(); acc(u, 3);
+  await assert.rejects(() => u.checkinClaim(3, patch(), { honTe: -1, items: [] }, mail));
+  assert.equal((await u.mailList(3)).length, 0, "túi hỏng: không có thư"); assert.equal(await u.checkinGet(3), null);
+  await assert.rejects(() => u.checkinClaim(3, patch(), bag(1), { ...mail, kind: "la" }), /không hợp lệ/, "thư sai nguồn bị ném");
+  assert.equal(await u.checkinGet(3), null);
 });
 console.log("welfare-test: xong");

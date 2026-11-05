@@ -351,9 +351,11 @@ export interface Store {
   checkinGet(accountId: number): Promise<CheckinRow | null>;
   /**
    * Ghi một ô điểm danh / ký bù và túi (quà, phí Hồn Tệ) trong MỘT transaction, có điều kiện (`CheckinPatch`: đúng `ver`, ô chưa ký, không vượt `makeupMax`, đồng hồ không lùi).
-   * Trả `ver` mới; null = điều kiện không khớp (đã ký ở tab / tiến trình khác, đồng hồ lùi): không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
+   * Trả `ver` mới; null = điều kiện không khớp (đã ký ở tab / tiến trình khác, đồng hồ lùi, `mail.dedup` đã có): không ghi gì, kể cả túi. Lỗi DB thì ném, không ghi gì.
+   * `mail` (túi không đủ chỗ cho quà, docs/design/thu.md): thêm thư quà vào hộp trong CÙNG transaction (ô đã ký + thư + phí trong túi, không bao giờ chỉ một nửa);
+   * hộp thư đầy (MAIL.boxMax, không dọn được) thì trả "mailfull", không ghi gì.
    */
-  checkinClaim(accountId: number, patch: CheckinPatch, bag: Bag): Promise<number | null>;
+  checkinClaim(accountId: number, patch: CheckinPatch, bag: Bag, mail?: MailNew): Promise<number | null | "mailfull">;
   /** Thành Tựu của `accountId` (bảng `achv_state`, mục 5.23): mã đã nhận và bộ đếm sự kiện; chưa có dòng = rỗng. Đọc mới mỗi lần (không cache). */
   achvGet(accountId: number): Promise<AchvRow>;
   /** Tăng bộ đếm `key` (một trong ACHV_COUNTERS) thêm `n` (số nguyên dương); tạo dòng nếu chưa có (upsert, một câu nên hai lần ghi cùng lúc không mất lượt). Mã lạ / `n` sai thì ném. */
@@ -524,6 +526,24 @@ function mailOk(m: MailNew) {
   }
   if (m.ttlMs !== undefined && (!Number.isSafeInteger(m.ttlMs) || m.ttlMs < 1)) throw new Error("Thư: hạn không hợp lệ.");
   return { items: items.map((x) => ({ code: x.code, qty: x.qty })), honTe, body, ttlMs: m.ttlMs ?? MAIL.ttlDays * 86_400_000 };
+}
+/** Chèn một thư vào hộp `accountId` qua `q` (pool, hoặc kết nối đang trong transaction của `checkinClaim`): "dup" = `dedup` đã có, "full" = hộp đầy mà không dọn được. */
+async function mailPutPg(q: { query: (sql: string, args?: unknown[]) => Promise<{ rowCount: number | null; rows: any[] }> }, accountId: number, m: MailNew): Promise<"ok" | "dup" | "full"> {
+  const c = mailOk(m);
+  // Trùng `dedup` (kể cả thư đã xóa mềm) trả "dup" NGAY, trước khi đếm / dọn hộp: gửi lại không được làm mất thêm thư nào (cùng thứ tự với MemoryStore).
+  if ((await q.query("SELECT 1 FROM mail WHERE account_id=$1 AND dedup=$2", [accountId, m.dedup])).rowCount) return "dup";
+  const n = await q.query("SELECT COUNT(*)::int AS n FROM mail WHERE account_id=$1 AND deleted_at IS NULL AND expires_at > now()", [accountId]);
+  if (n.rows[0].n >= MAIL.boxMax) {
+    // Hộp đầy: dọn thư cũ nhất đã nhận hoặc không có đính kèm (xóa mềm, giữ `dedup`); không còn thì không nhận thêm.
+    const o = await q.query(
+      `UPDATE mail SET deleted_at = now() WHERE id = (SELECT id FROM mail WHERE account_id=$1 AND deleted_at IS NULL AND (claimed_at IS NOT NULL OR (hon_te = 0 AND items = '[]'::jsonb))
+         ORDER BY created_at, id LIMIT 1) RETURNING 1`, [accountId]);
+    if (!o.rowCount) return "full";
+  }
+  const r = await q.query(
+    `INSERT INTO mail(account_id, kind, dedup, title, body, hon_te, items, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb, now() + ($8::bigint * interval '1 millisecond'))
+     ON CONFLICT (account_id, dedup) DO NOTHING RETURNING 1`, [accountId, m.kind, m.dedup, m.title, c.body, c.honTe, JSON.stringify(c.items), c.ttlMs]);
+  return r.rowCount ? "ok" : "dup";
 }
 const mailRow = (r: Record<string, unknown>): MailRow => ({ id: Number(r.id), kind: String(r.kind), title: String(r.title), body: String(r.body), honTe: Number(r.hon_te), items: (r.items as MailItem[]) ?? [],
   createdAt: Number(r.at), expiresAt: Number(r.exp), read: r.read_at != null, claimed: r.claimed_at != null });
@@ -960,8 +980,9 @@ export class MemoryStore implements Store {
     return resonancePage(all, page, pageSize, accountId);
   }
   async checkinGet(accountId: number) { const r = this.checkin.get(accountId); return r ? { ...r } : null; }
-  async checkinClaim(accountId: number, p: CheckinPatch, bag: Bag) {
+  async checkinClaim(accountId: number, p: CheckinPatch, bag: Bag, mail?: MailNew) {
     checkinPatchOk(p);
+    if (mail) mailOk(mail);
     const cur = this.checkin.get(accountId) ?? null;
     if ((cur?.ver ?? null) !== p.expect) return null;
     if (cur) {
@@ -970,6 +991,7 @@ export class MemoryStore implements Store {
       if (!same && !(p.cycle === cur.cycle + 1 && p.startDay >= cur.startDay + p.days && p.mask === p.bit && p.makeupUsed === 0)) return null;
     }
     this.checkBag(accountId, bag);
+    if (mail) { const m = this.mailPut(accountId, mail); if (m !== "ok") return m === "dup" ? null : "mailfull"; } // chỉ ghi thư khi mọi điều kiện khác đã đủ: bước cuối trước khi ghi sổ + túi
     const ver = (cur?.ver ?? 0) + 1;
     this.checkin.set(accountId, { cycle: p.cycle, startDay: p.startDay, mask: p.mask, makeupUsed: p.makeupUsed, lastAt: p.lastAt, ver });
     this.putBag(accountId, bag);
@@ -1050,7 +1072,9 @@ export class MemoryStore implements Store {
     this.mails.set(accountId, all);
     return all.filter((m) => !m.deleted).sort((a, b) => b.createdAt - a.createdAt || b.id - a.id).slice(0, MAIL.boxMax).map(({ dedup: _d, deleted: _x, ...r }) => ({ ...r, items: r.items.map((i) => ({ ...i })) }));
   }
-  async mailSend(accountId: number, m: MailNew) {
+  async mailSend(accountId: number, m: MailNew) { return this.mailPut(accountId, m); }
+  /** Thêm thư (đồng bộ, không await giữa chừng nên `checkinClaim` dùng được trong một bước nguyên tử). */
+  private mailPut(accountId: number, m: MailNew): "ok" | "dup" | "full" {
     const c = mailOk(m), now = Date.now(), all = (this.mails.get(accountId) ?? []).filter((x) => x.expiresAt > now);
     this.mails.set(accountId, all);
     if (all.some((x) => x.dedup === m.dedup)) return "dup";
@@ -1972,8 +1996,9 @@ export class PgStore implements Store {
     const x = r.rows[0];
     return { cycle: Number(x.cycle), startDay: Number(x.start_day), mask: Number(x.mask), makeupUsed: Number(x.makeup_used), lastAt: x.at === null ? null : Number(x.at), ver: Number(x.ver) };
   }
-  async checkinClaim(accountId: number, p: CheckinPatch, bag: Bag) {
+  async checkinClaim(accountId: number, p: CheckinPatch, bag: Bag, mail?: MailNew) {
     checkinPatchOk(p);
+    if (mail) mailOk(mail);
     const db = await this.pool.connect();
     try {
       await db.query("BEGIN");
@@ -1988,6 +2013,10 @@ export class PgStore implements Store {
              AND ((cycle=$3 AND start_day=$4 AND (mask & $8) = 0 AND (mask | $8) = $5 AND makeup_used <= $6 AND $6 <= makeup_used + 1) OR (cycle + 1 = $3 AND $4 >= start_day + $10::int AND $5 = $8 AND $6 = 0))
            RETURNING ver`, [accountId, p.expect, p.cycle, p.startDay, p.mask, p.makeupUsed, p.lastAt, p.bit, p.makeupMax, p.days]);
       if (!r.rowCount) { await db.query("ROLLBACK"); return null; }
+      if (mail) {
+        const m = await mailPutPg(db, accountId, mail);
+        if (m !== "ok") { await db.query("ROLLBACK"); return m === "dup" ? null : "mailfull"; }
+      }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
       return Number(r.rows[0].ver);
@@ -2112,23 +2141,7 @@ export class PgStore implements Store {
        FROM mail WHERE account_id=$1 AND deleted_at IS NULL ORDER BY created_at DESC, id DESC LIMIT $2`, [accountId, MAIL.boxMax]);
     return r.rows.map(mailRow);
   }
-  async mailSend(accountId: number, m: MailNew) {
-    const c = mailOk(m);
-    // Trùng `dedup` (kể cả thư đã xóa mềm) trả "dup" NGAY, trước khi đếm / dọn hộp: gửi lại không được làm mất thêm thư nào (cùng thứ tự với MemoryStore).
-    if ((await this.pool.query("SELECT 1 FROM mail WHERE account_id=$1 AND dedup=$2", [accountId, m.dedup])).rowCount) return "dup";
-    const n = await this.pool.query("SELECT COUNT(*)::int AS n FROM mail WHERE account_id=$1 AND deleted_at IS NULL AND expires_at > now()", [accountId]);
-    if (n.rows[0].n >= MAIL.boxMax) {
-      // Hộp đầy: dọn thư cũ nhất đã nhận hoặc không có đính kèm (xóa mềm, giữ `dedup`); không còn thì không nhận thêm.
-      const o = await this.pool.query(
-        `UPDATE mail SET deleted_at = now() WHERE id = (SELECT id FROM mail WHERE account_id=$1 AND deleted_at IS NULL AND (claimed_at IS NOT NULL OR (hon_te = 0 AND items = '[]'::jsonb))
-           ORDER BY created_at, id LIMIT 1) RETURNING 1`, [accountId]);
-      if (!o.rowCount) return "full";
-    }
-    const r = await this.pool.query(
-      `INSERT INTO mail(account_id, kind, dedup, title, body, hon_te, items, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb, now() + ($8::bigint * interval '1 millisecond'))
-       ON CONFLICT (account_id, dedup) DO NOTHING RETURNING 1`, [accountId, m.kind, m.dedup, m.title, c.body, c.honTe, JSON.stringify(c.items), c.ttlMs]);
-    return r.rowCount ? "ok" : "dup";
-  }
+  async mailSend(accountId: number, m: MailNew) { return mailPutPg(this.pool, accountId, m); }
   async mailRead(accountId: number, id: number) { await this.pool.query("UPDATE mail SET read_at = COALESCE(read_at, now()) WHERE id=$1 AND account_id=$2 AND deleted_at IS NULL", [id, accountId]); }
   async mailClaim(accountId: number, id: number, bag: Bag) {
     const db = await this.pool.connect();
