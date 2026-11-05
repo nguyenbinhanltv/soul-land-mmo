@@ -232,7 +232,10 @@ assert.equal(questActionable(["active", "done"]), 0); assert.equal(questActionab
   assert.equal(lose.title, "Thua"); assert.match(txt(lose), /giữ|không hoàn/); assert.match(txt(lose), /gục hết/);
   assert.match(txt(bc.endView({ k: "end", win: false, reason: "dead", why: "x", cleared: 0, of: 3, tomes: 0 })), /Chưa hạ sóng có quyển/);
   assert.match(txt(bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, capped: true })), /nhận đủ/, "chạm trần quyển ngày");
-  assert.match(txt(bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, full: true })), /Túi đầy/);
+  assert.match(txt(bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, mailed: 2 })), /gửi vào Thư/);
+  assert.ok(!/Chưa hạ sóng/.test(txt(win)), "thắng có quyển vào túi: không in dòng 'chưa hạ sóng'");
+  { const mf = txt(bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, err: "Túi và hộp thư đều đầy: lượt đã được hoàn lại.", refunded: true, mailfull: true }));
+    assert.ok(!/Chưa hạ sóng/.test(mf) && !/Lỗi hệ thống/.test(mf) && /hộp thư đều đầy/.test(mf), "hoàn lượt vì hộp thư đầy: không 'chưa hạ sóng', không 'lỗi hệ thống'"); }
   const bad = bc.endView({ k: "end", win: true, reason: "win", why: "x", cleared: 3, of: 3, tomes: 0, err: "Không lưu được kết quả.", refunded: true });
   assert.equal(bad.title, "Chưa lưu được kết quả"); assert.match(txt(bad), /hoàn lại/); assert.ok(!/Nhận /.test(txt(bad)), "lỗi hệ thống: không báo đã nhận quyển");
 }
