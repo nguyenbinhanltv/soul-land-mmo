@@ -198,9 +198,9 @@ export class BiCanhRoom extends MapRoom {
     if (p && d && p.dead) d.deadT = Infinity; // gục thì nằm lại tới khi rời phòng
     if (t.settled) return; // đã chốt (hoàn lượt) ở nơi khác
     t.settled = true;
-    if (reason === "win") achvCount(this, sid, "bicanh"); // Thành Tựu: lượt thắng đủ sóng (mỗi lượt đã trừ lượt nguyên tử, tối đa BICANH.runs + mua / ngày)
     const tomes = sc.waves.slice(0, this.cleared).reduce((a, w) => a + w.tomes, 0), win = reason === "win";
-    const report = (extra: Record<string, unknown>) => this.clients.getById(sid)?.send("bicanh", { k: "end", win, reason, why: REASON_TEXT[reason], cleared: this.cleared, of: sc.waves.length, tomes: 0, secs: this.time, ...extra });
+    // Thành Tựu: lượt thắng đủ sóng, đếm CHỈ khi chốt không hoàn lượt (hoàn lượt mà vẫn đếm thì lặp lại cày bộ đếm không tốn lượt; mỗi lượt đã trừ lượt nguyên tử, tối đa BICANH.runs + mua / ngày).
+    const report = (extra: Record<string, unknown>) => { if (win && !extra.refunded) achvCount(this, sid, "bicanh"); return this.clients.getById(sid)?.send("bicanh", { k: "end", win, reason, why: REASON_TEXT[reason], cleared: this.cleared, of: sc.waves.length, tomes: 0, secs: this.time, ...extra }); };
     const save = async () => {
       if (tomes <= 0) return report({});
       if (!d) { console.error(`[bí cảnh] tài khoản #${t.accountId} không còn trong phòng lúc chốt: ${tomes} quyển không ghi được`); return; }
