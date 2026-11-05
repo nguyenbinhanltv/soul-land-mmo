@@ -314,6 +314,11 @@ export interface Store {
    */
   claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, n?: number): Promise<number | null>;
   /**
+   * Như claimBoss, kèm một thư (Bí Cảnh cuối phòng, túi không đủ chỗ cho phần quyển dư, docs/design/thu.md): lượt + túi + thư ghi trong CÙNG transaction, không bao giờ chỉ một phần.
+   * `n` là TỔNG đã thưởng (phần vào túi + phần vào thư). `mail.dedup` đã có thì trả null (không ghi gì, như đã vượt trần); hộp thư đầy không dọn được thì trả "mailfull", không ghi gì.
+   */
+  claimBossMail(accountId: number, day: string, kind: string, limit: number, bag: Bag, n: number, mail: MailNew): Promise<number | null | "mailfull">;
+  /**
    * Hoàn `n` lượt của (`day`, `kind`) khi server lỗi (Bí Cảnh: phòng không mở được / sập, mục 5.22): trừ nguyên tử, không xuống dưới 0, không đụng túi.
    * Trả số lượt sau khi hoàn.
    */
@@ -933,10 +938,14 @@ export class MemoryStore implements Store {
     this.claims.set(key, left);
     return left;
   }
-  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) {
+  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) { return (await this.claimBossAny(accountId, day, kind, limit, bag, add)) as number | null; }
+  async claimBossMail(accountId: number, day: string, kind: string, limit: number, bag: Bag, add: number, mail: MailNew) { return this.claimBossAny(accountId, day, kind, limit, bag, add, mail); }
+  private async claimBossAny(accountId: number, day: string, kind: string, limit: number, bag: Bag, add: number, mail?: MailNew): Promise<number | null | "mailfull"> {
+    if (mail) mailOk(mail);
     const key = `${accountId}|${day}|${kind}`, n = this.claims.get(key) ?? 0;
     if (n + add > limit) return null;
     this.checkBag(accountId, bag);
+    if (mail) { const m = this.mailPut(accountId, mail); if (m !== "ok") return m === "dup" ? null : "mailfull"; } // bước cuối trước khi ghi lượt + túi (đồng bộ, không await giữa chừng)
     this.claims.set(key, n + add); this.putBag(accountId, bag);
     return n + add;
   }
@@ -1845,7 +1854,10 @@ export class PgStore implements Store {
       [accountId, day, kind, Math.max(0, Math.floor(n))]);
     return r.rowCount ? Number(r.rows[0].n) : 0;
   }
-  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) {
+  async claimBoss(accountId: number, day: string, kind: string, limit: number, bag: Bag, add = 1) { return (await this.claimBossAny(accountId, day, kind, limit, bag, add)) as number | null; }
+  async claimBossMail(accountId: number, day: string, kind: string, limit: number, bag: Bag, add: number, mail: MailNew) { return this.claimBossAny(accountId, day, kind, limit, bag, add, mail); }
+  private async claimBossAny(accountId: number, day: string, kind: string, limit: number, bag: Bag, add: number, mail?: MailNew): Promise<number | null | "mailfull"> {
+    if (mail) mailOk(mail);
     const db = await this.pool.connect();
     try {
       await db.query("BEGIN");
@@ -1855,6 +1867,10 @@ export class PgStore implements Store {
          ON CONFLICT (account_id, day, kind) DO UPDATE SET n = boss_claims.n + $5::int, updated_at = now() WHERE boss_claims.n + $5::int <= $4
          RETURNING n`, [accountId, day, kind, limit, add]);
       if (!r.rowCount || Number(r.rows[0].n) > limit) { await db.query("ROLLBACK"); return null; }
+      if (mail) {
+        const m = await mailPutPg(db, accountId, mail);
+        if (m !== "ok") { await db.query("ROLLBACK"); return m === "dup" ? null : "mailfull"; }
+      }
       await this.writeBag(db, accountId, bag);
       await db.query("COMMIT");
       if (bag?.tongPts?.length) rankBoardClear(); // sau COMMIT: bảng tông đọc được điểm mới (#738)
@@ -2299,7 +2315,7 @@ const withSaveFail = (s: Store): Store => new Proxy(s, {
     const f = Reflect.get(t, k, t);
     if (typeof f !== "function") return f;
     if (k === "saveBag") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
-    if (k === "claimBoss") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); }; // lượt boss / đổi mảnh / mua lượt Bí Cảnh (ghi lượt + túi)
+    if (k === "claimBoss" || k === "claimBossMail") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); }; // lượt boss / đổi mảnh / mua lượt Bí Cảnh (ghi lượt + túi)
     if (k === "mailClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "achvClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };
     if (k === "checkinClaim") return async (accountId: number, ...a: unknown[]) => { failSave(accountId, "bag"); return f.call(t, accountId, ...a); };

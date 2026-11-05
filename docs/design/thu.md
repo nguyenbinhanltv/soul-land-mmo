@@ -1,6 +1,6 @@
 # Thư hệ thống
 
-Màn **Thư** là hộp thư của người chơi, **một chiều** (hệ thống gửi, người chơi đọc và nhận): chỗ chứa thưởng từ Phúc Lợi, Bí Cảnh và lệnh GM, kèm vật phẩm / Hồn Tệ nhận một lần, có hạn. Thẻ "Thư" ở hub hiện đang khóa ("Chờ máy chủ", `client/src/hubMenu.ts`, mã `mail`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P4) đã có code** (#1336: `MAIL` / `MAIL_KINDS` ở `shared/data.ts`, `040_thu.sql`, `server/src/rooms/mail.ts`, bot nhóm `mail`, soát `docs/tech/soat-gian-lan-thu.md`); nguồn Phúc Lợi đã nối (#1622, chủ repo duyệt 2026-11-05; `welfareAction` → `checkinClaim` có thư), nguồn Bí Cảnh chưa nối (#1584); màn client (P5, `client/src/mailScreen.ts`, thẻ `mail` ở hub) xong.
+Màn **Thư** là hộp thư của người chơi, **một chiều** (hệ thống gửi, người chơi đọc và nhận): chỗ chứa thưởng từ Phúc Lợi, Bí Cảnh và lệnh GM, kèm vật phẩm / Hồn Tệ nhận một lần, có hạn. Thẻ "Thư" ở hub (mã `mail`, `client/src/hubMenu.ts`) mở màn Thư (`GameScene` nối `mail: openMail`). Số liệu ở `shared/data.ts` (tên hằng trong dấu `code`; tên *(đề xuất)* chưa tồn tại). Số issue ở cuối file. **Server (P1–P4) đã có code** (#1336: `MAIL` / `MAIL_KINDS` ở `shared/data.ts`, `040_thu.sql`, `server/src/rooms/mail.ts`, bot nhóm `mail`, soát `docs/tech/soat-gian-lan-thu.md`); nguồn Phúc Lợi đã nối (#1622, chủ repo duyệt 2026-11-05; `welfareAction` → `checkinClaim` có thư), nguồn Bí Cảnh đã nối (#1584, chủ repo duyệt 2026-11-05; `BiCanhRoom.finish` → `claimBossMail`); màn client (P5, `client/src/mailScreen.ts`, thẻ `mail` ở hub) xong.
 
 Tham chiếu: chỉ học bố cục (danh sách thư bên trái, nội dung bên phải, nút nhận) từ bộ tham chiếu UI của #877; không chép tên / chữ / ảnh.
 
@@ -18,7 +18,7 @@ Chỉ **server** tạo thư, ở nơi chính nó quyết định sự kiện. M�
 | `kind` | Khi nào gửi | `dedup` (đề xuất) |
 |---|---|---|
 | `welfare` (Phúc Lợi) | Ký ô điểm danh / ký bù mà **túi không đủ chỗ**: thay vì từ chối, **cả phần quà (Hồn Tệ + vật phẩm) vào thư** (đã duyệt, "Câu hỏi mở" 1; ô vẫn ký, phí ký bù vẫn trừ một lần) | `welfare:<chu kỳ>:<ô>` |
-| `bicanh` (Bí Cảnh) | Cuối phòng mà túi đầy: thưởng quyển chuyển vào thư thay vì mất | `bicanh:<ngày>:<mã phòng>` |
+| `bicanh` (Bí Cảnh) | Cuối phòng mà túi không đủ chỗ cho quyển (đã duyệt, #1584): **phần quyển dư** (đúng số không vào được túi, trong trần `BICANH.tomeDailyCap`) vào thư thay vì mất | `bicanh:<ngày>:<mã phòng>` |
 | `gm` (lệnh GM) | `/gm mail <mã vật phẩm> [số lượng]` của tài khoản trong `ADMIN_ACCOUNTS`: v1 gửi cho **chính người gõ** (thử hộp thư); gửi theo tên người khác để sau | `gm:<mã ngẫu nhiên mỗi lệnh>` |
 
 - Thư hệ thống do server soạn (tiêu đề, nội dung ngắn, tiếng Việt, đúng tên gốc Đấu La); thư GM v1 có tiêu đề / nội dung cố định. Mọi thư bị kiểm bởi `mailOk` (`db.ts`): nguồn trong `MAIL_KINDS`, trần độ dài (`MAIL.titleMax`, `MAIL.bodyMax`), đính kèm trong trần.
@@ -81,6 +81,7 @@ Soát theo skill `anti-cheat-audit`; kết quả ghi ở `docs/tech/soat-gian-la
 - **Không nhận trùng:** `claimed_at IS NULL` trong câu `UPDATE` nguyên tử + `unique (account_id, dedup)` lúc tạo; không có đường nhận ngoài transaction.
 - **Chỉ thư của chính mình:** mọi câu SQL ràng `account_id`; `id` thư của người khác coi như "thư lạ".
 - **Phúc Lợi (đã nối, #1622):** `checkinClaim(accountId, patch, bag, mail?)` ghi trong MỘT transaction: dòng `checkin_state` (ô đã ký) + thư `welfare` (`INSERT … ON CONFLICT (account_id, dedup) DO NOTHING`, dọn hộp như `mailSend`) + túi (chỉ trừ phí ký bù; quà KHÔNG vào túi). `dedup` đã có (ô này đã ra thư) → không ghi gì, như tranh chấp (`null`); hộp thư đầy mà không dọn được → `"mailfull"`, không ghi gì, hoàn phí, không mất ô. Không cần SQL mới (bảng `040_thu.sql`). Thư hết hạn sau `MAIL.ttlDays` (quà bỏ nếu quên nhận: người chơi thấy cảnh báo ở màn Thư).
+- **Bí Cảnh (đã nối, #1584):** `BiCanhRoom.finish` tính phần quyển vào túi bằng bản sao túi, phần dư `rest = give − qty` vào thư `bicanh` (dedup `bicanh:<ngày>:<mã phòng>`) qua `store.claimBossMail(…, n = give, mail)`: bộ đếm quyển ngày (+ `give` tổng) + túi + thư ghi MỘT transaction (`PgStore` dùng chung `mailPutPg`). `dedup` đã có → `null` (không ghi gì, báo "trần"); hộp thư đầy không dọn được → `"mailfull"`: không thưởng, **hoàn lượt** (cùng nhánh lỗi ghi DB, `releaseRun`), thông báo "Túi và hộp thư đều đầy". Không SQL mới. Test: `bicanh-test.ts` ("claimBossMail"), bot `bicanh` bước 7b.
 - **Không nhân thưởng qua thư:** thư từ Phúc Lợi / Bí Cảnh thay cho phần thưởng **không** cộng vào túi; server không cộng hai lần (túi + thư). Cách ghi chung một transaction với dấu "đã ký / đã dùng lượt" của nguồn.
 - **Không thành đường đổi đồ giữa tài khoản:** thư chỉ có chiều hệ thống → người chơi; thư không chứa tên / địa chỉ người chơi khác. Nuôi nhiều tài khoản chỉ nhận đúng phần từng tài khoản chơi thật.
 - **Tài khoản test** (`is_test`): nhận bình thường; bài bot dọn dòng `mail` khi xong.
@@ -115,7 +116,7 @@ Chất liệu **Giấy** (kit gốc, `docs/art/ui-kit.md`): cửa sổ riêng m�
 
 ### Câu hỏi mở (cho chủ repo)
 Ca đêm: chọn phương án **an toàn** làm tiếp; sửa sau nếu chủ repo muốn đổi.
-1. **Túi đầy ở Phúc Lợi / Bí Cảnh — ĐÃ DUYỆT (chủ repo, 2026-11-05): chuyển vào thư** thay vì từ chối (Phúc Lợi đã nối ở #1622; Bí Cảnh làm riêng ở #1584). Phương án thay: giữ hành vi hiện tại (từ chối, "Túi không đủ chỗ"), thư chỉ cho GM; ít đổi hơn nhưng bỏ mất mục đích chính. *Cũ: bước server đầu chỉ nối GM + đường thư, nối hai hệ kia chờ chủ repo xác nhận.*
+1. **Túi đầy ở Phúc Lợi / Bí Cảnh — ĐÃ DUYỆT (chủ repo, 2026-11-05): chuyển vào thư** thay vì từ chối (Phúc Lợi đã nối ở #1622; Bí Cảnh ở #1584, cả hai đã nối). Phương án thay: giữ hành vi hiện tại (từ chối, "Túi không đủ chỗ"), thư chỉ cho GM; ít đổi hơn nhưng bỏ mất mục đích chính. *Cũ: bước server đầu chỉ nối GM + đường thư, nối hai hệ kia chờ chủ repo xác nhận.*
 2. **Hộp đầy** (`MAIL.boxMax`): đề xuất giữ quà ở nguồn (không tạo thư) và báo người chơi dọn thư; phương án thay: ghi đè thư cũ nhất.
 3. **Thư hết hạn:** đề xuất bỏ đính kèm sau `MAIL.ttlDays`; phương án thay: không bao giờ hết hạn với thư có đính kèm (hộp dễ đầy).
 4. **Thư GM gửi cả máy chủ** (broadcast): để sau; v1 chỉ gửi theo từng tài khoản.

@@ -98,4 +98,4 @@ Bot tải ngoài repo (`bc-soak.mjs`, không commit): server riêng `GAME_TEST=1
 
 1. Trần quyển ngày so với lượt mua (bảng cân bằng, chọn A / B / C).
 2. Có lưu mốc ngày Bí Cảnh lớn nhất vào DB (như `last_at` của Phúc Lợi) để chặn đồng hồ lùi qua khởi động lại không (cần SQL mới).
-3. Túi đầy lúc chốt: giữ chờ nhận hay đi đường rơi đồ thường (câu hỏi mở 3 của `bi-canh.md`).
+3. ~~Túi đầy lúc chốt~~: **đã quyết** (chủ repo, 2026-11-05, #1584): phần quyển dư vào Thư cùng transaction chốt phòng; hộp thư đầy thì không thưởng và hoàn lượt (soát ở `soat-gian-lan-thu.md`, mục "Bí Cảnh túi đầy → Thư").

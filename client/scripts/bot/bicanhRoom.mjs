@@ -119,6 +119,28 @@ export async function bicanhRoomTest(){
   // 7. Đồng hồ lùi: đã vào ngày +1 rồi quay về ngày cũ thì từ chối.
   await test(B,"day",{shift:1}); await sleep(1300); f=await open(); ok(!f.err,`ngày +1: có lượt mới, vào phòng (${f.err??""})`);
   if(!f.err){ await B.room.leave(); await sleep(500); await back(); }
+  // 7b. Túi đầy cuối phòng (#1584): quyển vào Thư (kind bicanh) CHUNG một bước ghi với bộ đếm ngày + túi; ghi lỗi lúc chốt không thưởng + hoàn lượt; nhận thư đúng một lần.
+  { const filler="hoi_huyet_dan", want=Math.min(bicanhRunTomes(S),BICANH.tomeDailyCap);
+    for(const it of B.bag.items.filter(i=>i.code===BICANH.tome)) B.room.send("discard",{id:it.id}); await waitFor(()=>tomes()===0,2500);
+    /** Một lượt: bỏ một ô cho vừa quyển lúc vào, vào phòng rồi lấp đầy túi bằng đồ khác, thắng, về lại bản đồ. */
+    const up=async()=>{ await test(B,"day",{shift:1}); await sleep(1300); }; // hook `day` theo phòng bản đồ: mất sau mỗi lần về lại, đặt lại
+    const run=async sv=>{ await up(); const spare=B.bag.items.find(i=>i.code===filler); if(B.bag.items.length>=B.bag.slots&&spare){ B.room.send("discard",{id:spare.id}); await waitFor(()=>!B.bag.items.some(i=>i.id===spare.id),2000); }
+      const g=await open(); if(g.err) return {err:g.err,open:false}; await waitFor(()=>B.bag,3000);
+      await test(B,"give",{code:filler,qty:99*(B.bag.slots-B.bag.items.length+2)}); await waitFor(()=>B.bag.items.length>=B.bag.slots,2500);
+      await fight(); if(sv) await test(B,"savefail",{n:1,only:"bag"}); const e=await winAll(); await leave(); return e; };
+    const mails=()=>B.mv.at(-1)?.list.filter(m=>m.from==="Bí Cảnh")??[];
+    await up(); const l0=await left(), e1=await run(true);
+    ok(!!e1.err&&e1.refunded&&e1.tomes===0&&!e1.mailed&&mails().length===0&&tomes()===0&&(await up(),await left())===l0,`túi đầy + ghi DB lỗi lúc chốt: không quyển, không thư, hoàn lượt (${e1.err}; lượt ${l0})`);
+    const e2=await run(false);
+    ok(e2.win&&!e2.err&&e2.tomes===0&&e2.mailed===want,`túi đầy cuối phòng: thắng, ${e2.tomes} quyển vào túi, ${e2.mailed}/${want} quyển vào Thư`);
+    ok(await waitFor(()=>mails().length===1,3000)&&mails()[0].items.length===1&&mails()[0].items[0].code===BICANH.tome&&mails()[0].items[0].qty===want&&!mails()[0].claimed&&tomes()===0,`Thư Bí Cảnh: đúng ${want} quyển, chưa nhận, túi không có quyển (không nhân đôi)`);
+    const id=mails()[0]?.id, mact=async m=>{ const n=B.mv.length; B.room.send("mail",m); await waitFor(()=>B.mv.length>n,3000); await sleep(80); return B.mv.at(-1); };
+    await sleep(ASK_CD*1000+100);
+    { const m=await mact({op:"claim",id}); ok(!!m.err&&!m.list.find(x=>x.id===id).claimed&&tomes()===0,`nhận khi túi vẫn đầy: từ chối, thư còn nguyên (${m.err})`); }
+    { const sp=B.bag.items.find(i=>i.code===filler); B.room.send("discard",{id:sp?.id}); await waitFor(()=>!B.bag.items.some(i=>i.id===sp?.id),2000); await sleep(ASK_CD*1000+100);
+      const m=await mact({op:"claim",id}); ok(!m.err&&await waitFor(()=>tomes()===want,2000),`bỏ một ô rồi nhận: ${tomes()} quyển vào túi`);
+      await sleep(ASK_CD*1000+100); const m2=await mact({op:"claim",id}); await sleep(200); ok(!!m2.err&&tomes()===want,`nhận lại: từ chối, quyển vẫn ${tomes()} (không trùng)`); }
+  }
   await test(B,"day",{shift:0}); await sleep(1300);
   { const n=B.bc.length; B.room.send("bicanh",{op:"enter",id:ID}); await waitFor(()=>B.bc.length>n,3000); await sleep(200);
     ok(/lùi/.test(B.bc.at(-1)?.err??"")&&!B.bc.slice(n).some(x=>x.k==="found"),`đồng hồ lùi: từ chối enter (${B.bc.at(-1)?.err})`); }
