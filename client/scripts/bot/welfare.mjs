@@ -1,7 +1,7 @@
 // Nhóm bot "welfare" (Phúc Lợi: Sổ Điểm Danh 21 ngày, mục 5.21, P3 #877; BOT_ONLY=welfare, nhóm 2 của BOT_PART): tin `welfare {op:"get"|"sign"|"makeup"}` qua server thật.
 // Giờ do server quyết nên bot đẩy ngày bằng hook `day {shift}` (room.dayShift, như `today()`), không bao giờ gửi giờ / ngày. Phần thuần (trần quà, ranh giới 00:00,
 // luật ghi có điều kiện của store) do server/scripts/welfare-test.ts thử; ở đây thử đường đi đầy đủ: ký hôm nay, ký đúp, dồn 200 `sign`, ô lạ, ký bù miễn phí / trả
-// phí / hết lượt, hết chu kỳ mở chu kỳ mới, đồng hồ lùi, túi đầy, ghi lỗi hoàn lại (savefail), vào lại phòng, qua 00:00, trong sân đấu bị chặn.
+// phí / hết lượt, hết chu kỳ mở chu kỳ mới, đồng hồ lùi, túi đầy (quà vào Thư, nhận lại không trùng, ghi lỗi hoàn), ghi lỗi hoàn lại (savefail), vào lại phòng, qua 00:00, trong sân đấu bị chặn.
 import { post, sleep, waitFor, ok, bot, enter, test, qtyOf, npcSpot, AT, needHookSkip } from "./lib.mjs";
 import { ASK_CD, CHECKIN, MSG_GROUP, RING_ITEM, checkinFee } from "../../../shared/data.ts";
 
@@ -13,6 +13,8 @@ export async function welfareTest(){
   await waitFor(()=>A.bag&&B.bag,3000);
   /** Gửi một tin `welfare` và chờ tin trả lời mới (mọi lần từ chối cũng trả lại trạng thái kèm `err`); trả tin đó + dòng log mới. */
   const act=async(msg,b=A)=>{ const n=b.wf.length, nl=b.logs.length; b.room.send("welfare",msg); const got=await waitFor(()=>b.wf.length>n,3000); await sleep(60); return got?{...b.wf.at(-1),log:b.logs.slice(nl).at(-1)}:null; };
+  /** Như `act` nhưng cho tin `mail` (nhận thư): chờ hộp thư mới. */
+  const mact=async msg=>{ const n=A.mv.length; A.room.send("mail",msg); const got=await waitFor(()=>A.mv.length>n,3000); await sleep(80); return got?A.mv.at(-1):null; };
   const get=async()=>{ await sleep(ASK_CD*1000+100); return act({op:"get"}); };
   // Đẩy ngày bằng hook `day`; ngày đổi thì tick (mỗi giây) tự gửi một tin welfare mới: chờ tin đó (trừ khi `push` = false) để không lẫn với trả lời của lần `act` kế tiếp.
   let cur=0;
@@ -78,12 +80,34 @@ export async function welfareTest(){
   await test(A,"savefail",{n:1,only:"bag"}); s=await act({op:"sign"});
   ok(!!s?.err&&/Không lưu được/.test(s.err)&&s.mask===1&&await honTe(5000)===5000&&qtyOf(A,"hoi_huyet_dan")>=huyet0,`ghi DB lỗi: không cộng quà, mask không đổi (${s?.err})`); await sleep(200);
   s=await act({op:"sign"}); ok(!s?.err&&s.mask===3&&s.signed?.day===1,`ký lại sau lỗi: được (ô ${s?.signed?.day+1})`);
-  // 10. Túi đầy: ô 7 (mốc) có mảnh võ hồn chưa có chồng nào (cần ô mới) → từ chối cả phần quà, không mất ô; bỏ bớt đồ rồi ký được.
+  // 10. Túi đầy (docs/design/thu.md): ô 7 (mốc) có mảnh võ hồn chưa có chồng nào (cần ô mới) → vẫn ký được ô, CẢ phần quà vào Thư (không vào túi), nhận thư đủ quà đúng một lần.
+  //     Ghi DB lỗi lúc túi đầy: không ký, không có thư (hoàn); ký lại được, ra đúng một thư. Hộp thư cũng đầy: từ chối, không mất ô.
   await shift(CHECKIN.days+8); await coin(5000);
   { const free=A.bag.slots-loose().length; await test(A,"give",{code:RING_ITEM,qty:free,years:10}); await waitFor(()=>loose().length>=A.bag.slots,2000);
-    const mk=3; s=await act({op:"sign"}); ok(!!s?.err&&/không đủ chỗ/.test(s.err)&&s.mask===mk&&A.bag.honTe===5000,`túi đầy ${loose().length}/${A.bag.slots}: từ chối, không mất ô (${s?.err})`);
+    const mk=3, w=A.mv.length, mails=()=>A.mv.at(-1)?.list?.filter(m=>m.from==="Phúc Lợi"&&/ô 7/.test(m.title))??[];
+    await test(A,"savefail",{n:1,only:"bag"}); s=await act({op:"sign"});
+    ok(!!s?.err&&/Không lưu được/.test(s.err)&&s.mask===mk&&A.bag.honTe===5000&&A.mv.length===w,`túi đầy + ghi DB lỗi: hoàn, không ký, không có thư (${s?.err})`); await sleep(200);
+    s=await act({op:"sign"}); const mk2=mk|1<<6;
+    ok(!s?.err&&s.signed?.day===6&&s.signed.mailed===true&&s.mask===mk2&&s.signed.items.some(x=>x.code.startsWith("manh_"))&&A.bag.honTe===5000&&loose().length>=A.bag.slots,
+      `túi đầy ${loose().length}/${A.bag.slots}: ký được ô 7, quà vào Thư không vào túi (${items(s?.signed?.items??[])}; Hồn Tệ ${A.bag.honTe})`);
+    ok(await waitFor(()=>mails().length===1,3000),"hộp thư nhận đúng một thư quà ô 7 (chấm đỏ tới người đang online)");
+    const m=mails()[0]; ok(m&&!m.claimed&&m.from==="Phúc Lợi"&&m.honTe===(R[6].honTe??0)&&m.items.length===s.signed.items.length&&m.items.every((x,k)=>x.code===s.signed.items[k].code&&x.qty===s.signed.items[k].qty),`thư đúng phần quà ô 7: ${m?.honTe} Hồn Tệ + ${items(m?.items??[])}, người gửi "${m?.from}"`);
+    s=await act({op:"sign"}); ok(!!s?.err&&/đã điểm danh/.test(s.err)&&mails().length===1&&A.bag.honTe===5000,`ký lại ô 7: từ chối, vẫn một thư (${s?.err})`);
+    s=await mact({op:"claim",id:m.id}); ok(!!s?.err&&/chỗ/.test(s.err)&&mails().length===1&&!mails()[0].claimed&&A.bag.honTe===5000,"gặp thư mà túi vẫn đầy: từ chối, thư giữ nguyên (không nhận nửa phần)");
     const one=loose().find(i=>i.code===RING_ITEM); A.room.send("discard",{id:one?.id}); await waitFor(()=>!loose().some(i=>i.id===one?.id),2000);
-    s=await act({op:"sign"}); ok(!s?.err&&s.signed?.day===6&&s.mask===(mk|1<<6)&&s.signed.items.some(x=>x.code.startsWith("manh_"))&&await honTe(5000+(R[6].honTe??0))===5000+(R[6].honTe??0),`bỏ một ô rồi ký: được (ô ${s?.signed?.day+1}: ${items(s?.signed?.items??[])})`); }
+    s=await mact({op:"claim",id:m.id}); ok(!s?.err&&s.claimedNow?.count===1&&await honTe(5000+(R[6].honTe??0))===5000+(R[6].honTe??0)&&A.bag.items.some(x=>x.code.startsWith("manh_")),`bỏ một ô rồi nhận thư: đủ quà ô 7 (Hồn Tệ ${A.bag.honTe}), đúng bằng quà ô, không hơn`);
+    { const before=A.bag.honTe; s=await mact({op:"claim",id:m.id}); ok(!!s?.err&&A.bag.honTe===before&&mails().length===1,`nhận lại thư: từ chối, không cộng thêm (${s?.err})`); }
+    s=await get(); ok(s?.mask===mk2,"sổ vẫn mask ô 7, không ký thêm / không mất ô"); }
+  // 10b. Ký bù lúc túi đầy: cùng đường Thư (dedup theo ô); quà ra đúng một chỗ (túi HOẶC thư, tùy còn chồng cũ có chỗ), không bao giờ cả hai.
+  await coin(1e6);
+  { const free=A.bag.slots-loose().length; await test(A,"give",{code:RING_ITEM,qty:free,years:10}); await waitFor(()=>loose().length>=A.bag.slots,2000);
+    const day=3, code=R[day].items[0].code, qty=R[day].items[0].qty, n0=qtyOf(A,code), hon0=A.bag.honTe;
+    s=await act({op:"makeup",day}); const sent=A.mv.at(-1)?.list?.filter(m=>m.from==="Phúc Lợi"&&/ô 4/.test(m.title))??[];
+    await sleep(300); const gotBag=qtyOf(A,code)-n0;
+    ok(!s?.err&&s.signed?.day===day&&s.signed.makeup===true&&(s.mask&(1<<day))!==0,`ký bù ô 4 khi túi đầy: ký được (${s?.err??"ok"}, mailed ${s?.signed?.mailed})`);
+    ok(s?.signed?.mailed===true?(sent.length===1&&gotBag===0&&sent[0].items[0]?.qty===qty):(sent.length===0&&gotBag===qty),`quà ô 4 (${qty}×${code}) ra đúng một chỗ: ${s?.signed?.mailed?"Thư":"túi"} (túi +${gotBag}, thư ${sent.length}); không cộng cả hai`);
+    ok(A.bag.honTe===hon0,"ký bù miễn phí ô vật phẩm: Hồn Tệ không đổi");
+    s=await act({op:"makeup",day}); ok(!!s?.err&&/đã ký/.test(s.err)&&(A.mv.at(-1)?.list?.filter(m=>/ô 4/.test(m.title)).length??0)===sent.length,"ký bù lại ô 4: từ chối, không thêm thư"); }
   // 11. Vào lại phòng: sổ còn nguyên, server gửi trạng thái lúc vào (chấm đỏ); phòng giữ nhờ B.
   const keep=s?.mask; await A.room.leave(); await sleep(400); A.mapId=(await post("/api/me",{token:A.token})).mapId; await enter(A); await waitFor(()=>me(A)&&A.bag,3000);
   ok(await waitFor(()=>A.wf.length>0,3000)&&A.wf[0].mask===keep&&A.wf[0].cycle===2,`vào lại phòng: server tự gửi welfare (mask ${A.wf[0]?.mask}, chu kỳ ${A.wf[0]?.cycle})`);

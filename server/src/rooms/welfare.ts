@@ -1,11 +1,13 @@
 // Phúc Lợi: Sổ Điểm Danh 21 ngày (GAME_DESIGN.md mục 5.21, docs/design/phuc-loi.md, bước P3). Mọi phép tính nằm ở đây; MapRoom chỉ chuyển tiếp
 // `welfare {op: "get" | "sign" | "makeup", day?, pay?}`. Giờ do server quyết (`bossNow()` + dayShift, ngày theo vnDayNum): client không gửi giờ / ngày, chỉ gửi
 // chỉ số ô; quà, phí và túi ghi cùng một transaction (`store.checkinClaim`, như đổi mảnh ở Thương hội / thưởng tuần tông), lỗi thì hoàn lại.
+// Túi không đủ chỗ cho quà: ô vẫn ký được, CẢ phần quà (Hồn Tệ + vật phẩm) vào Thư (kind `welfare`, dedup `welfare:<chu kỳ>:<ô>`) trong cùng transaction đó (docs/design/thu.md).
 import { ARENA_SHARDS, CHECKIN, MSG_GROUP, checkinDay, checkinFee, checkinOpen, formatHonTe, itemDef, shardCode, vnAt, vnDayNum } from "../../../shared/data.ts";
-import { store, type CheckinRow } from "../db.ts";
+import { store, type CheckinRow, type MailNew } from "../db.ts";
 import { bossNow } from "../schedule.ts";
 import { takeToken } from "../ratelimit.ts";
 import { bagUsed } from "./items.ts";
+import { mailNotify } from "./mail.ts";
 import { type MapRoom } from "./MapRoom.ts";
 import type { PData } from "./types.ts";
 import { CLAIM_BUSY, claimHeld, intIn } from "./common.ts";
@@ -65,7 +67,8 @@ export function welfareDayPush(room: MapRoom, day: string) {
  * Tin client `welfare {op, day?, pay?}`. `get`: gửi trạng thái (nhịp `ask`, gộp). `sign`: điểm danh ô hôm nay (mở chu kỳ mới nếu chưa có / đã hết).
  * `makeup`: ký bù ô `day` (0-based, đã qua, chưa ký, trong chu kỳ đang chạy); lượt ngoài mức miễn phí tốn Hồn Tệ và chỉ chạy khi `pay === true` (client đã xác nhận).
  * Quà vào túi ngay trong RAM (`claimBusy` chặn bán / bỏ đồ), tới lượt trong chuỗi lưu mới đọc dòng DB, kiểm lại mọi điều kiện rồi ghi một transaction
- * (túi + sổ); DB báo điều kiện không khớp hoặc lỗi thì trả lại quà / phí, không đổi sổ. Túi không đủ chỗ cho cả phần quà thì từ chối, không mất ô.
+ * (túi + sổ); DB báo điều kiện không khớp hoặc lỗi thì trả lại quà / phí, không đổi sổ. Túi không đủ chỗ cho cả phần quà thì quà vào Thư thay vì từ chối: ô đã ký, thư và phí
+ * ghi chung một transaction, không cộng cả túi lẫn thư (thư là chuyển giao đúng phần quà ô đó, không thêm thưởng); hộp thư cũng đầy thì từ chối, không mất ô.
  */
 export function welfareAction(room: MapRoom, id: string, m: { op?: unknown; day?: unknown; pay?: unknown } | null | undefined) {
   const d = room.pdata.get(id), p = room.state.players.get(id); if (!d || !p || d.travelling) return;
@@ -100,23 +103,27 @@ export function welfareAction(room: MapRoom, id: string, m: { op?: unknown; day?
       fee = f; used++;
     }
     const bit = 1 << i, { honTe, gives } = checkinGives(i);
-    if (!bagFits(d, gives)) return deny("Túi không đủ chỗ cho phần quà: bỏ hoặc bán bớt đồ rồi thử lại.");
-    d.honTe -= fee; room.addCoin(d, honTe);
-    for (const g of gives) room.addItem(d, g.code, g.qty);
+    const toMail = !bagFits(d, gives); // túi đầy: quà vào Thư, túi chỉ bị trừ phí
+    d.honTe -= fee;
+    if (!toMail) { room.addCoin(d, honTe); for (const g of gives) room.addItem(d, g.code, g.qty); }
+    const mail: MailNew | undefined = toMail ? { kind: "welfare", dedup: `welfare:${cycle}:${i}`, title: `Quà điểm danh ô ${i + 1}`, honTe, items: gives,
+      body: `Túi không đủ chỗ nên quà ${makeup ? "ký bù" : "điểm danh"} ô ${i + 1} gửi vào Thư: mở Thư để nhận khi túi có chỗ.` } : undefined;
     const takeBack = () => {
-      d.honTe = Math.max(0, d.honTe + fee - honTe); d.bagDirty = true; // hoàn theo hiệu: Hồn Tệ kiếm được trong lúc chờ DB không bị ghi đè
-      for (const g of gives) {
+      d.honTe = Math.max(0, d.honTe + fee - (toMail ? 0 : honTe)); d.bagDirty = true; // hoàn theo hiệu: Hồn Tệ kiếm được trong lúc chờ DB không bị ghi đè
+      if (!toMail) for (const g of gives) {
         let n = g.qty;
         for (const x of d.bag.filter((it) => it.code === g.code && it.vohonId === null).reverse()) { const k = Math.min(n, x.qty); room.takeItem(d, x, k); n -= k; if (!n) break; }
       }
     };
-    let ver: number | null;
-    try { ver = await store.checkinClaim(d.accountId, { expect: row?.ver ?? null, cycle, startDay, mask: mask | bit, makeupUsed: used, lastAt: now, bit, makeupMax: CHECKIN.makeupMax, days: CHECKIN.days }, room.bagSnapshot(d)); }
+    let ver: number | null | "mailfull";
+    try { ver = await store.checkinClaim(d.accountId, { expect: row?.ver ?? null, cycle, startDay, mask: mask | bit, makeupUsed: used, lastAt: now, bit, makeupMax: CHECKIN.makeupMax, days: CHECKIN.days }, room.bagSnapshot(d), mail); }
     catch (e) { takeBack(); deny("Không lưu được lần điểm danh, thử lại sau (không mất Hồn Tệ, không mất ô)."); throw e; }
+    if (ver === "mailfull") { takeBack(); return deny("Túi và hộp thư đều đầy: bỏ bớt đồ hoặc xóa thư đã nhận rồi thử lại (không mất ô, không mất Hồn Tệ)."); }
     if (ver === null) { takeBack(); return deny("Sổ điểm danh vừa đổi (ô đã ký ở nơi khác): đã cập nhật lại."); }
+    if (toMail) mailNotify(room, id);
     const names = [honTe ? formatHonTe(honTe) : "", ...gives.map((g) => `${g.qty} ${itemDef(g.code)?.name ?? g.code}`)].filter(Boolean).join(", ");
-    room.log(id, `${makeup ? "Ký bù" : "Điểm danh"} ô ${i + 1}${CHECKIN.milestones.includes(i) ? " (mốc)" : ""}: ${names}${fee ? ` (phí ${formatHonTe(fee)})` : ""}.`, "#f2c84b");
-    void sendState(room, id, { signed: { day: i, makeup, fee, honTe, items: gives } });
+    room.log(id, `${makeup ? "Ký bù" : "Điểm danh"} ô ${i + 1}${CHECKIN.milestones.includes(i) ? " (mốc)" : ""}: ${names}${fee ? ` (phí ${formatHonTe(fee)})` : ""}${toMail ? ": túi không đủ chỗ nên quà đã gửi vào Thư" : ""}.`, "#f2c84b");
+    void sendState(room, id, { signed: { day: i, makeup, fee, honTe, items: gives, mailed: toMail } });
   }).then(() => {
     d.claimBusy--;
     if (room.pdata.get(id) === d) room.sendBag(id);

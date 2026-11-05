@@ -7,7 +7,7 @@ import { artImg, tintedUrl } from "./uiArt.ts";
 
 export interface WelfareMsg {
   cycle: number; day: number; mask: number; now: number; endsAt: number; makeupLeft: number; free: number; fee: number | null;
-  signed?: { day: number; makeup: boolean; fee: number; honTe: number; items: { code: string; qty: number }[] }; err?: string;
+  signed?: { day: number; makeup: boolean; fee: number; honTe: number; items: { code: string; qty: number }[]; mailed?: boolean }; err?: string;
 }
 export type CellState = "signed" | "today" | "makeup" | "missed" | "future";
 
@@ -58,7 +58,7 @@ function iconHtml(code: string): string {
 /** Kết quả lần vừa ký (tin `signed`) thành một dòng. */
 export function signedLine(s: NonNullable<WelfareMsg["signed"]>): string {
   const got = [...(s.honTe ? [`${s.honTe} Hồn Tệ`] : []), ...s.items.map((x) => `${itemDef(x.code)?.name ?? x.code} ×${x.qty}`)];
-  return `${s.makeup ? "Ký bù" : "Điểm danh"} ô ${s.day + 1}${s.fee ? ` (phí ${formatHonTe(s.fee)})` : ""}: nhận ${got.join(", ") || "quà"}.`;
+  return `${s.makeup ? "Ký bù" : "Điểm danh"} ô ${s.day + 1}${s.fee ? ` (phí ${formatHonTe(s.fee)})` : ""}: ${s.mailed ? "túi không đủ chỗ, quà đã gửi vào Thư" : "nhận"} ${got.join(", ") || "quà"}.`;
 }
 /** Nút chính: nhãn, khoá và lý do (nguyên tắc 5 của bộ spec: nút khoá luôn nói vì sao). */
 export function primaryOf(m: WelfareMsg | null, busy: boolean): { label: string; disabled: boolean; reason?: string } {
