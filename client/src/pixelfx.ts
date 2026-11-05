@@ -7,7 +7,7 @@ import { fetchAsset } from "./assetUrl.ts";
 import type { Element } from "./audio/soundMap.ts";
 import type { FxKind } from "./skillFx.ts";
 
-export interface PfxMeta { fps: number; frame: [number, number]; pivot: [number, number]; loop?: boolean }
+export interface PfxMeta { fps: number; frame: [number, number]; pivot: [number, number]; loop?: boolean; frames?: number }
 let metas: Record<string, PfxMeta> = {};
 let started: Promise<void> | null = null;
 /** Tải meta một lần (không chặn vào game; lỗi thì im lặng, không có hiệu ứng pixelfx). */
@@ -15,6 +15,8 @@ export function loadPixelfx(): Promise<void> {
   started ??= fetchAsset("sprites/pixelfx.json").then((r) => (r.ok ? r.json() : {})).then((j) => { metas = j as Record<string, PfxMeta>; }).catch(() => {});
   return started;
 }
+/** Meta một khóa (fps, ô, chân, số khung) hoặc undefined khi chưa tải. */
+export const pfxMetaOf = (key: string): PfxMeta | undefined => metas[key];
 export const setPixelfxMeta = (m: Record<string, PfxMeta>) => { metas = m; started = Promise.resolve(); }; // kiểm thử
 
 /** Cách vẽ từng khóa: `normal` = vẽ thường (khói giữ màu tối), mặc định cộng sáng (ánh sáng). */

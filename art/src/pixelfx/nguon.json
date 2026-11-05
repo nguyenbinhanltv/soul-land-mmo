@@ -120,6 +120,78 @@
       "sha256": "8d9b2a93ebaf75a2f617fd7043ba5c6b4dab083ece05c1ce4fff5c502b1312f8",
       "role": "hồn sư ngã / hồn bay lên (hệ quang)"
     },
+    "fx_pfx_st_burning": {
+      "key": "fx_pfx_st_burning",
+      "id": "status/burning",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs status/burning --sheet --no-actor --seed 1 --out <thư-mục-tạm>",
+      "palette": null,
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "9d783215728f9404ff853481632b31782d463906b96858bd12b26c3b9ff61956",
+      "sha256": "197fb94275b253e73ea926ad425234d100d2a5584718c13bbe960efaf8e3f174",
+      "role": "trạng thái burning"
+    },
+    "fx_pfx_st_charmed": {
+      "key": "fx_pfx_st_charmed",
+      "id": "status/charmed",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs status/charmed --sheet --no-actor --seed 1 --out <thư-mục-tạm>",
+      "palette": null,
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "adfb3ea975497fa6e149fb8e3a2e05a555f4e49806face5aedc0bca6d8c1e51d",
+      "sha256": "32c4b047575ce3d8bbeeb66a339c57b2f0297747d7c8c2e6110e83eb21a976c9",
+      "role": "trạng thái charmed"
+    },
+    "fx_pfx_st_cursed_dark": {
+      "key": "fx_pfx_st_cursed_dark",
+      "id": "status/cursed",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs status/cursed --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#19102c\",\"#2a1a4a\",\"#6543a5\",\"#a06bff\",\"#c09aff\",\"#e0c8ff\"]}",
+      "palette": "dark",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "1974e5ad2d5252d65be96bff533f9831f3047236442c50c731f5756eeabbb178",
+      "sha256": "990d14baa4fd232f788901ef5eae1260c4a1bb8a1d1deb2b2a979684562288d8",
+      "role": "trạng thái cursed"
+    },
+    "fx_pfx_st_frozen": {
+      "key": "fx_pfx_st_frozen",
+      "id": "status/frozen",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs status/frozen --sheet --no-actor --seed 1 --out <thư-mục-tạm>",
+      "palette": null,
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "86ffc950b5949ff45536a8d84bfbd0cbdd11e3be1fe596cac23bbab8385d9b1b",
+      "sha256": "1b187eafabf9ffdb3ff0660148e8dbbf309c05045f87aba6d968049a1779b4df",
+      "role": "trạng thái frozen"
+    },
+    "fx_pfx_st_poisoned": {
+      "key": "fx_pfx_st_poisoned",
+      "id": "status/poisoned",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs status/poisoned --sheet --no-actor --seed 1 --out <thư-mục-tạm>",
+      "palette": null,
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "c9a6f85bba1a5d9146cb5ed454fc3c7a615f664e8dadf16126760d19096fc4a8",
+      "sha256": "9a3683a6380f455fa133808db1a71175a0b5abbb5cde3dfa802f4951d1cfa5fc",
+      "role": "trạng thái poisoned"
+    },
+    "fx_pfx_st_stunned": {
+      "key": "fx_pfx_st_stunned",
+      "id": "status/stunned",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs status/stunned --sheet --no-actor --seed 1 --out <thư-mục-tạm>",
+      "palette": null,
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "e6c9b419293e9123ace18249f1bccefcb126669bc9450f5223875333c9b85a6b",
+      "sha256": "fdfe5a522663f4046ee187eb3450664c7562be295c3a26bd150d7f4bc53d6f0e",
+      "role": "trạng thái stunned"
+    },
     "fx_pfx_tornado_wind": {
       "key": "fx_pfx_tornado_wind",
       "id": "nature/tornado",
@@ -161,6 +233,6 @@
     "repo": "https://github.com/patch-gg/pixelfx",
     "sha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
     "license": "MIT",
-    "spec": "tools/assets/pixelfx/lo-b2.json"
+    "spec": "tools/assets/pixelfx/lo-b3.json"
   }
 }

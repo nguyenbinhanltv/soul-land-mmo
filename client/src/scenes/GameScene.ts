@@ -77,6 +77,8 @@ import { RARE_LOOT_MIN, STEP_INTERVAL_MS, elementOfVohonIndex, beastFamilyOf, be
 import { SkillFx, skillFxOf, isCinematic, type FxKind } from "../skillFx.ts";
 import { SkillCine, cineAllowed } from "../skillCine.ts";
 import { SheetFx } from "../fxSheet.ts";
+import { StatusPfxLayer } from "../statusPfxLayer.ts"; // #1815 lô B: sprite pixelfx cho trạng thái
+import { statusPfxKeys, STATUS_PFX } from "../statusPfx.ts";
 import { loadPixelfx, playPfx, lootKey, deathKeys, hatchKey, reviveKey } from "../pixelfx.ts"; // #1802: hiệu ứng pixelfx (sheet fx_pfx_*)
 import { loadPrivateAssets, playPriv } from "../privateAssets.ts"; // #623: hiệu ứng kho riêng (thiếu thì giữ hình cũ)
 import { SkillVisualPlayer, skillVisualOf, registerCodeSheets, FUSION_VISUAL } from "../skillVisual.ts";
@@ -306,7 +308,7 @@ export class GameScene extends Phaser.Scene {
   bface = new Map<string, Dir8>();
   /** G1 (#392) cảm giác đánh: lớp hạt dùng chung, dừng hình, nháy trắng / đẩy lùi chỉ hình của hồn thú vừa bị đánh, lần đánh cuối để nhận ra hạ thú. */
   fxp!: ParticleLayer; pt!: PhapTuongSystem; ptCut = new PhapTuongCutIn();
-  skfx!: SkillFx; svis!: SkillVisualPlayer; cine = new SkillCine();
+  skfx!: SkillFx; stpfx!: StatusPfxLayer; svis!: SkillVisualPlayer; cine = new SkillCine();
   castHeavy = { t: 0, heavy: 0 }; // độ nặng chiêu mình vừa tung (S1 #542): đòn trúng trong ~0,7 s sau đó khựng / giật lùi / tia lửa nặng hơn
   hitstopEnd = 0; hitstopNext = 0; slowmo = 1;
   hitFlash = new Map<string, number>();
@@ -550,7 +552,7 @@ export class GameScene extends Phaser.Scene {
     this.ov = this.add.graphics().setDepth(99990);
     this.fxp = new ParticleLayer(this, 99979, SPR);
     this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
-    this.skfx = new SkillFx(this, this.fxp);
+    this.skfx = new SkillFx(this, this.fxp); this.stpfx = new StatusPfxLayer(this);
     registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); this.skfx.sheets = this.svis.sheets; // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL); #1815: SkillFx thêm lớp pixelfx theo hệ
     void loadPixelfx(); void loadPrivateAssets(this); // #623: kho riêng (không chặn vào game; không có kho thì không làm gì)
     this.teleTop = this.add.graphics().setDepth(99983.5); // trên mọi hiệu ứng chiêu (≤ 99983), dưới tên / số sát thương
@@ -2657,6 +2659,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawStatus(g: Phaser.GameObjects.Graphics, st: any, time: number) {
+    this.stpfx.begin();
     const q = SPR; // hình gắn với thân hồn sư (sprite cũ phóng SPR) dùng pixel cũ × q; vòng trên mặt đất theo phép chiếu (RX, RY)
     st.players.forEach((p: any, id: string) => {
       const v = this.players.get(id); if (!v || p.dead) return;
@@ -2671,7 +2674,9 @@ export class GameScene extends Phaser.Scene {
           g.lineStyle(1, j % 2 ? 0xe8f6ff : 0x5ab8ff, 0.4 + 0.5 * k); g.lineBetween(x, y, x + 2 * q, y + 3 * q); g.lineBetween(x + 2 * q, y + 3 * q, x, y + 5 * q);
         }
       }
-      this.attachedStatusFx(g, rx, ry, p.st, time, id === this.me, q);
+      // #1815: sprite pixelfx đặt trước; hình vẽ bằng code của trạng thái nào đã có sprite thì bỏ (mức Thấp / chưa tải xong: giữ hình cũ)
+      const pk = p.st ? statusPfxKeys((x) => (p.st & statusBit(x)) !== 0, fxLevel()).filter((k) => this.stpfx.put(id, k, rx, ry, time, id === this.me)) : [], cov = (x: keyof typeof STATUS) => pk.includes(STATUS_PFX[x] ?? "");
+      this.attachedStatusFx(g, rx, ry, p.st, time, id === this.me, q, (cov("burn") ? statusBit("burn") : 0) | (cov("poison") ? statusBit("poison") : 0));
       if (p.buff & buffBit("inv")) {
         g.fillStyle(0xfff2b0, 0.18 + 0.08 * Math.sin(time / 120)).fillEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
         g.lineStyle(2, 0xfff2b0, 0.9).strokeEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
@@ -2683,9 +2688,9 @@ export class GameScene extends Phaser.Scene {
         if (ph("root")) this.rootSnare(g, rx, ry, time, q, 18);
         const icons = STATUS_ICONS.filter((x) => PLAYER_STATUS.includes(x) && ph(x));
         this.statusIcons(g, rx, ry - HEAD - 24 * this.txtK, icons, { chill: p.han ?? 0 }); // tầng Hàn (#163): chấm dưới bông tuyết
-        if (ph("freeze")) this.iceBlock(g, rx, ry, time);
-        if (ph("stun")) this.stunStars(g, rx, ry - 26 * q, time);
-        if (ph("charm")) this.charmHearts(g, rx, ry - 26 * q, time);
+        if (ph("freeze") && !cov("freeze")) this.iceBlock(g, rx, ry, time);
+        if (ph("stun") && !cov("stun")) this.stunStars(g, rx, ry - 26 * q, time);
+        if (ph("charm") && !cov("charm")) this.charmHearts(g, rx, ry - 26 * q, time);
       }
       let k = 0;
       for (const b of BUFF_IDS) {
@@ -2722,11 +2727,13 @@ export class GameScene extends Phaser.Scene {
       if (has("stun")) this.stunStars(g, s.x, headY, time);
       if (has("freeze")) this.iceBlock(g, s.x, s.y, time);
     });
+    this.stpfx.end();
   }
 
   /** Hình trạng thái nhỏ bám thân, lặp theo đồng hồ client; không đổi state và không rung màn. */
-  attachedStatusFx(g: Phaser.GameObjects.Graphics, cx: number, feet: number, bits: number, time: number, mine: boolean, q: number) {
-    const has = (x: keyof typeof STATUS) => (bits & statusBit(x)) !== 0;
+  /** `skip`: các bit trạng thái đã có sprite pixelfx (#1815), không vẽ lại hình bằng code. */
+  attachedStatusFx(g: Phaser.GameObjects.Graphics, cx: number, feet: number, bits: number, time: number, mine: boolean, q: number, skip = 0) {
+    const has = (x: keyof typeof STATUS) => (bits & ~skip & statusBit(x)) !== 0;
     const moving = !fxPrefs.reduce && fxLevel() !== "low";
     const alpha = mine ? 0.9 : 0.55, phase = moving ? time / 520 : 0;
     if (has("burn")) {
