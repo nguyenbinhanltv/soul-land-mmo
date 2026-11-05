@@ -2674,7 +2674,9 @@ export class GameScene extends Phaser.Scene {
           g.lineStyle(1, j % 2 ? 0xe8f6ff : 0x5ab8ff, 0.4 + 0.5 * k); g.lineBetween(x, y, x + 2 * q, y + 3 * q); g.lineBetween(x + 2 * q, y + 3 * q, x, y + 5 * q);
         }
       }
-      this.attachedStatusFx(g, rx, ry, p.st, time, id === this.me, q);
+      // #1815: sprite pixelfx đặt trước; hình vẽ bằng code của trạng thái nào đã có sprite thì bỏ (mức Thấp / chưa tải xong: giữ hình cũ)
+      const pk = p.st ? statusPfxKeys((x) => (p.st & statusBit(x)) !== 0, fxLevel()).filter((k) => this.stpfx.put(id, k, rx, ry, time, id === this.me)) : [], cov = (x: keyof typeof STATUS) => pk.includes(STATUS_PFX[x] ?? "");
+      this.attachedStatusFx(g, rx, ry, p.st, time, id === this.me, q, (cov("burn") ? statusBit("burn") : 0) | (cov("poison") ? statusBit("poison") : 0));
       if (p.buff & buffBit("inv")) {
         g.fillStyle(0xfff2b0, 0.18 + 0.08 * Math.sin(time / 120)).fillEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
         g.lineStyle(2, 0xfff2b0, 0.9).strokeEllipse(rx, ry - 12 * q, 32 * q, 36 * q);
@@ -2686,8 +2688,6 @@ export class GameScene extends Phaser.Scene {
         if (ph("root")) this.rootSnare(g, rx, ry, time, q, 18);
         const icons = STATUS_ICONS.filter((x) => PLAYER_STATUS.includes(x) && ph(x));
         this.statusIcons(g, rx, ry - HEAD - 24 * this.txtK, icons, { chill: p.han ?? 0 }); // tầng Hàn (#163): chấm dưới bông tuyết
-        // #1815: sprite pixelfx thay hình vẽ bằng code của băng / choáng / mê hoặc khi đã phát được (mức Thấp hoặc chưa tải: giữ hình cũ)
-        const pk = statusPfxKeys((x) => (p.st & statusBit(x)) !== 0, fxLevel()).filter((k) => this.stpfx.put(id, k, rx, ry, time, id === this.me)), cov = (x: keyof typeof STATUS) => pk.includes(STATUS_PFX[x] ?? "");
         if (ph("freeze") && !cov("freeze")) this.iceBlock(g, rx, ry, time);
         if (ph("stun") && !cov("stun")) this.stunStars(g, rx, ry - 26 * q, time);
         if (ph("charm") && !cov("charm")) this.charmHearts(g, rx, ry - 26 * q, time);
@@ -2731,8 +2731,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Hình trạng thái nhỏ bám thân, lặp theo đồng hồ client; không đổi state và không rung màn. */
-  attachedStatusFx(g: Phaser.GameObjects.Graphics, cx: number, feet: number, bits: number, time: number, mine: boolean, q: number) {
-    const has = (x: keyof typeof STATUS) => (bits & statusBit(x)) !== 0;
+  /** `skip`: các bit trạng thái đã có sprite pixelfx (#1815), không vẽ lại hình bằng code. */
+  attachedStatusFx(g: Phaser.GameObjects.Graphics, cx: number, feet: number, bits: number, time: number, mine: boolean, q: number, skip = 0) {
+    const has = (x: keyof typeof STATUS) => (bits & ~skip & statusBit(x)) !== 0;
     const moving = !fxPrefs.reduce && fxLevel() !== "low";
     const alpha = mine ? 0.9 : 0.55, phase = moving ? time / 520 : 0;
     if (has("burn")) {
