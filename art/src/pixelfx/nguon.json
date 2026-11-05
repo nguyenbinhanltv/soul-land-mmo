@@ -12,6 +12,18 @@
       "sha256": "89c905d8679a108f13eb390a5142f5e9670d8e8d8ccb03065e57d66fb5fdb3de",
       "role": "nhặt vật phẩm (màu gốc)"
     },
+    "fx_pfx_curse_dark": {
+      "key": "fx_pfx_curse_dark",
+      "id": "shadow/curse",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs shadow/curse --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#19102c\",\"#2a1a4a\",\"#6543a5\",\"#a06bff\",\"#c09aff\",\"#e0c8ff\"]}",
+      "palette": "dark",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "fb27770229e4a4e6ec2a3c4086cf9bdb2e14d3c2a251a93474b7a72dd1955aeb",
+      "sha256": "a16b9ff7002365a7527e399cdff6727a1c1da2678e6658217cc6cafa40af5b3b",
+      "role": "hệ dark"
+    },
     "fx_pfx_fire_ring_fire": {
       "key": "fx_pfx_fire_ring_fire",
       "id": "fire/fire-ring",
@@ -83,6 +95,18 @@
       "rawSha256": "3470542cedb33e33da8a5105f6651a562cf044205cee4711827659bbfb4ece01",
       "sha256": "e43e3f3fb938044d491be2e17d12d2ec6eacf1359a9befba80b3ede50d70e55b",
       "role": "hồi sinh (hệ quang)"
+    },
+    "fx_pfx_root_snare_wood": {
+      "key": "fx_pfx_root_snare_wood",
+      "id": "nature/root-snare",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs nature/root-snare --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#133619\",\"#1f5a2a\",\"#3f954a\",\"#5ed06a\",\"#97e895\",\"#d0ffc0\"]}",
+      "palette": "wood",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "f8c40d1b25d56ed16d56e83ce57d99ea28bc6182edd8556231424ecac4465890",
+      "sha256": "fe032d125ef39877bc43fe973767fcddffb8e41aa48b73a88a2eb0b88046149b",
+      "role": "hệ wood"
     },
     "fx_pfx_soul_rise_light": {
       "key": "fx_pfx_soul_rise_light",
@@ -167,6 +191,30 @@
       "rawSha256": "e6c9b419293e9123ace18249f1bccefcb126669bc9450f5223875333c9b85a6b",
       "sha256": "fdfe5a522663f4046ee187eb3450664c7562be295c3a26bd150d7f4bc53d6f0e",
       "role": "trạng thái stunned"
+    },
+    "fx_pfx_tornado_wind": {
+      "key": "fx_pfx_tornado_wind",
+      "id": "nature/tornado",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs nature/tornado --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#365360\",\"#5a8aa0\",\"#8dbfd0\",\"#bff4ff\",\"#dffaff\",\"#ffffff\"]}",
+      "palette": "wind",
+      "seed": 1,
+      "stride": 3,
+      "rawSha256": "a0bffb61b83572bb2ba7d45b09f8e48c672f32b2b194f24d531556ee4aded7b5",
+      "sha256": "ac0eb2f048ff574bc56c6790a190b96c78180e8522282128e8d3f5091eaa4684",
+      "role": "hệ wind"
+    },
+    "fx_pfx_toxic_puddle_poison": {
+      "key": "fx_pfx_toxic_puddle_poison",
+      "id": "nature/toxic-puddle",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs nature/toxic-puddle --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#233610\",\"#3a5a1a\",\"#6b9832\",\"#9bd64a\",\"#c0eb75\",\"#e4ffa0\"]}",
+      "palette": "poison",
+      "seed": 1,
+      "stride": 3,
+      "rawSha256": "804d4245c422548d9e0deacb174b59c8290de27629fb086d98e6c9d15c76d68f",
+      "sha256": "834a76f37ccd7c1a4aec3884a37cd31d2940526348f8be947984cd75b1151d7f",
+      "role": "hệ poison"
     },
     "fx_pfx_zap_hit_lightning": {
       "key": "fx_pfx_zap_hit_lightning",

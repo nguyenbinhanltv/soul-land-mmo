@@ -46481,6 +46481,38 @@
       "iso": true
     },
     {
+      "key": "fx_pfx_toxic_puddle_poison",
+      "frame": [
+        106,
+        61
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_root_snare_wood",
+      "frame": [
+        85,
+        60
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_tornado_wind",
+      "frame": [
+        134,
+        164
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_curse_dark",
+      "frame": [
+        106,
+        116
+      ],
+      "iso": true
+    },
+    {
       "key": "fx_pfx_st_burning",
       "frame": [
         46,
