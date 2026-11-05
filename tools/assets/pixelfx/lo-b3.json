@@ -1,0 +1,49 @@
+{
+  "about": "Lô B nhóm 3 (#1815): trạng thái trên đầu / quanh thân (nhóm status của pixelfx), màu gốc (cursed đổi sang hệ Ám). Khớp docs/design/trang-thai-buff.md: Thiêu đốt, Đóng băng, Trúng độc, Dễ thương (cursed), Choáng, Mê hoặc. Bỏ: slowed (vòng lớn che đầu, rườm; Làm chậm rất hay gặp), confused / sleep / haste / rage / petrified / bleeding (không có trạng thái tương ứng hoặc trùng).",
+  "sha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+  "effects": [
+    {
+      "id": "status/burning",
+      "name": "st-burning",
+      "stride": 2,
+      "seed": 1,
+      "role": "trạng thái burning"
+    },
+    {
+      "id": "status/frozen",
+      "name": "st-frozen",
+      "stride": 2,
+      "seed": 1,
+      "role": "trạng thái frozen"
+    },
+    {
+      "id": "status/poisoned",
+      "name": "st-poisoned",
+      "stride": 2,
+      "seed": 1,
+      "role": "trạng thái poisoned"
+    },
+    {
+      "id": "status/cursed",
+      "name": "st-cursed-dark",
+      "stride": 2,
+      "seed": 1,
+      "role": "trạng thái cursed",
+      "palette": "dark"
+    },
+    {
+      "id": "status/stunned",
+      "name": "st-stunned",
+      "stride": 2,
+      "seed": 1,
+      "role": "trạng thái stunned"
+    },
+    {
+      "id": "status/charmed",
+      "name": "st-charmed",
+      "stride": 2,
+      "seed": 1,
+      "role": "trạng thái charmed"
+    }
+  ]
+}

@@ -31,3 +31,12 @@ import { pfxLayerRoom, elementPfxKey } from "../src/pixelfx.ts";
 assert.equal(pfxLayerRoom(0, 10), true); assert.equal(pfxLayerRoom(4, 10), true); assert.equal(pfxLayerRoom(5, 10), false);
 assert.equal(pfxLayerRoom(2, 6), true); assert.equal(pfxLayerRoom(3, 6), false); assert.equal(pfxLayerRoom(0, 1), true); assert.equal(pfxLayerRoom(1, 3), false);
 assert.equal(elementPfxKey("ice", "hit", "low"), null); assert.equal(elementPfxKey("ice", "hit", "mid"), "fx_pfx_ice_shatter_ice"); assert.equal(elementPfxKey("wood", "hit", "high"), null);
+
+// #1815 nhóm 3: chọn sheet trạng thái
+import { statusPfxKeys, STATUS_PFX, STATUS_PFX_CAP, STATUS_PFX_PER_BODY } from "../src/statusPfx.ts";
+assert.deepEqual(statusPfxKeys(() => true, "low"), []);
+assert.deepEqual(statusPfxKeys((s) => s === "burn", "mid"), ["fx_pfx_st_burning"]);
+const all = statusPfxKeys(() => true, "high");
+assert.equal(all.length, STATUS_PFX_PER_BODY); assert.deepEqual(all, ["fx_pfx_st_frozen", "fx_pfx_st_stunned"]); // khống chế trước
+assert.deepEqual(statusPfxKeys((s) => s === "armor" || s === "silence", "high"), []); // trạng thái chưa có sheet: giữ biểu tượng cũ
+assert.ok(Object.values(STATUS_PFX).every((k) => k.startsWith("fx_pfx_st_")) && STATUS_PFX_CAP.low === 0 && STATUS_PFX_CAP.mid < STATUS_PFX_CAP.high);

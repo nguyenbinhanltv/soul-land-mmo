@@ -223,5 +223,155 @@
       ]
     },
     "loop": false
+  },
+  "fx_pfx_st_burning": {
+    "frame": [
+      46,
+      71
+    ],
+    "cols": 19,
+    "rows": 1,
+    "frames": 19,
+    "cells": 19,
+    "fps": 15.43,
+    "pivot": [
+      23,
+      67
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 36,
+      "fps": 30,
+      "frame": [
+        72,
+        80
+      ]
+    },
+    "loop": true
+  },
+  "fx_pfx_st_frozen": {
+    "frame": [
+      60,
+      60
+    ],
+    "cols": 31,
+    "rows": 1,
+    "frames": 31,
+    "cells": 31,
+    "fps": 15.25,
+    "pivot": [
+      27,
+      54
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 60,
+      "fps": 30,
+      "frame": [
+        72,
+        64
+      ]
+    },
+    "loop": true
+  },
+  "fx_pfx_st_poisoned": {
+    "frame": [
+      51,
+      49
+    ],
+    "cols": 25,
+    "rows": 1,
+    "frames": 25,
+    "cells": 25,
+    "fps": 15.32,
+    "pivot": [
+      26,
+      44
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 48,
+      "fps": 30,
+      "frame": [
+        72,
+        64
+      ]
+    },
+    "loop": true
+  },
+  "fx_pfx_st_cursed_dark": {
+    "frame": [
+      46,
+      81
+    ],
+    "cols": 37,
+    "rows": 1,
+    "frames": 37,
+    "cells": 37,
+    "fps": 15.21,
+    "pivot": [
+      23,
+      74
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 72,
+      "fps": 30,
+      "frame": [
+        64,
+        84
+      ]
+    },
+    "loop": true
+  },
+  "fx_pfx_st_stunned": {
+    "frame": [
+      49,
+      38
+    ],
+    "cols": 31,
+    "rows": 1,
+    "frames": 31,
+    "cells": 31,
+    "fps": 15.25,
+    "pivot": [
+      24,
+      54
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 60,
+      "fps": 30,
+      "frame": [
+        60,
+        64
+      ]
+    },
+    "loop": true
+  },
+  "fx_pfx_st_charmed": {
+    "frame": [
+      54,
+      59
+    ],
+    "cols": 37,
+    "rows": 1,
+    "frames": 37,
+    "cells": 37,
+    "fps": 15.21,
+    "pivot": [
+      27,
+      67
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 72,
+      "fps": 30,
+      "frame": [
+        60,
+        76
+      ]
+    },
+    "loop": true
   }
 }

@@ -10,6 +10,9 @@ import { ELEMENTS, RARE_LOOT_MIN, type Element } from "./audio/soundMap.ts";
 import { ParticleLayer, fxPrefs, setFxPrefs, hitstopMs, fxGov, fxLevel, type FxLevel } from "./combatFx.ts";
 import { SheetFx, SHEET_TUNE } from "./fxSheet.ts";
 import { loadPixelfx, playPfx, lootKey, deathKeys, reviveKey } from "./pixelfx.ts";
+import { StatusPfxLayer } from "./statusPfxLayer.ts";
+import { STATUS_PFX, statusPfxKeys } from "./statusPfx.ts";
+import type { StatusId } from "../../shared/data.ts";
 import { loadPrivateAssets, playPriv } from "./privateAssets.ts";
 import { playFx } from "./sprites.ts";
 import { PhapTuongSystem } from "./phapTuong.ts";
@@ -76,6 +79,19 @@ class FxTestScene extends Phaser.Scene {
         if (n) this.fxp.footDust(this.hero.x, this.hero.y + 4 * SPR, 0x9a8b68, n, q.get("run") !== "1");
       }
     });
+    // #1815 nhóm 3: `st=burn,poison` (hồn sư) / `st2=freeze,stun` (người kia) hiện sprite trạng thái pixelfx; `ststress=N` thêm N thân ngẫu nhiên mỗi thân 2 trạng thái (đo FPS); `stpfx=0` tắt lớp.
+    if (q.get("stpfx") !== "0") {
+      void loadPixelfx();
+      const layer = new StatusPfxLayer(this), ids = (k: string) => (q.get(k) ?? "").split(",").filter(Boolean) as StatusId[], mine = ids("st"), other = ids("st2");
+      const NS = Number(q.get("ststress") ?? 0), pool = Object.keys(STATUS_PFX) as StatusId[], bodies = Array.from({ length: NS }, (_, i) => ({ x: (testRandom() - 0.5) * 420, y: (testRandom() - 0.5) * 220 + 10, s: [pool[i % pool.length], pool[(i * 3 + 1) % pool.length]] as StatusId[] }));
+      this.events.on("update", (time: number) => {
+        layer.begin();
+        const put = (id: string, ss: StatusId[], x: number, y: number, me: boolean) => { for (const k of statusPfxKeys((s) => ss.includes(s), fxLevel())) layer.put(id, k, x, y, time, me); };
+        put("hero", mine, this.hero.x, this.hero.y + 12, true); put("dummy", other, this.dummy.x, this.dummy.y + 12, false);
+        bodies.forEach((b, i) => put("s" + i, b.s, b.x, b.y, false));
+        layer.end();
+      });
+    }
     // #1802: `pfx=fx_pfx_a,fx_pfx_b` phát lặp các sheet pixelfx (sprites/pixelfx.json: fps, chân) thành một hàng ở giữa; `pfxadd=1` vẽ cộng sáng. Chỉ để duyệt mỹ thuật.
     const pfx = (q.get("pfx") ?? "").split(",").filter((k) => this.textures.exists(k));
     if (pfx.length) {

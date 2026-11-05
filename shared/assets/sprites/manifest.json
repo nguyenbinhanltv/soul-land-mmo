@@ -46480,6 +46480,54 @@
       ],
       "iso": true
     },
+    {
+      "key": "fx_pfx_st_burning",
+      "frame": [
+        46,
+        71
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_st_frozen",
+      "frame": [
+        60,
+        60
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_st_poisoned",
+      "frame": [
+        51,
+        49
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_st_cursed_dark",
+      "frame": [
+        46,
+        81
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_st_stunned",
+      "frame": [
+        49,
+        38
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_st_charmed",
+      "frame": [
+        54,
+        59
+      ],
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },
