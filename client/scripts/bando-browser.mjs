@@ -50,7 +50,7 @@ try {
     const page = await context.newPage(), errors = [];
     page.setDefaultTimeout(20000); page.setDefaultNavigationTimeout(30000);
     page.on("pageerror", (e) => errors.push(e.message));
-    const dismiss = async () => { for (let i = 0; i < 4; i++) { const b = page.locator("#onboard:not([hidden]) .ob-skip, .guide:not([hidden]) button:has-text(\"Bỏ qua\")").first(); if (!(await b.isVisible().catch(() => false))) return; await b.click({ timeout: 2000 }).catch(() => {}); await sleep(150); } };
+    const dismiss = async () => { for (let i = 0; i < 4; i++) { const b = page.locator("#onboard:not([hidden]) .ob-skip, .guide:not([hidden]) button:has-text(\"Bỏ qua\")").first(); if (!(await b.isVisible().catch(() => false))) return; await b.click({ timeout: 2000 }).catch(() => {}); await sleep(1000); } }; // đợi nhịp nghỉ 700 ms trước Làm quen hệ thống (#1604)
     // Chỉ lấy tham chiếu cảnh để dùng hook thử (đứng lên trận mở khoá); không đổi dữ liệu hay hàm vẽ.
     await page.route("**/src/scenes/GameScene.ts*", async (route) => {
       const response = await route.fetch();
