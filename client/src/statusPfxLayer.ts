@@ -4,7 +4,7 @@ import Phaser from "phaser";
 import { SPR } from "./iso.ts";
 import { fxLevel, fxPrefs } from "./combatFx.ts";
 import { pfxMetaOf } from "./pixelfx.ts";
-import { STATUS_PFX_CAP } from "./statusPfx.ts";
+import { STATUS_PFX_CAP, STATUS_PFX_STYLE, STATUS_PFX_DEPTH } from "./statusPfx.ts";
 
 const snap = (v: number) => Math.round(v / SPR) * SPR;
 
@@ -12,7 +12,7 @@ export class StatusPfxLayer {
   private live = new Map<string, Phaser.GameObjects.Image>();
   private free: Phaser.GameObjects.Image[] = [];
   private seen = new Set<string>();
-  constructor(private scene: Phaser.Scene, private depth = 99980) {}
+  constructor(private scene: Phaser.Scene, private depth = STATUS_PFX_DEPTH) {}
   get active() { return this.live.size; }
   get pooled() { return this.live.size + this.free.length; }
 
@@ -32,7 +32,8 @@ export class StatusPfxLayer {
     this.seen.add(id);
     const frames = Math.max(1, (this.scene.textures.get(key).frameTotal - 1)), n = Math.min(frames, m.frames ?? frames);
     const f = fxPrefs.reduce ? n >> 1 : Math.floor((time * m.fps) / 1000) % n;
-    img.setFrame(f).setPosition(snap(x), snap(y - (m.pivot[1] - m.frame[1] / 2) * SPR)).setAlpha(mine ? 0.9 : 0.65);
+    const st = STATUS_PFX_STYLE[key], k = st?.k ?? 1, a = st?.alpha;
+    img.setFrame(f).setScale(SPR * k).setPosition(snap(x), snap(y - (m.pivot[1] - m.frame[1] / 2) * SPR * k)).setAlpha(a !== undefined ? (mine ? a : a * 0.75) : mine ? 0.9 : 0.65);
     return true;
   }
 

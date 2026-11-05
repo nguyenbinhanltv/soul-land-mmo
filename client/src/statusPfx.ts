@@ -7,8 +7,15 @@ export const STATUS_PFX: Readonly<Partial<Record<StatusId, string>>> = {
   freeze: "fx_pfx_st_frozen", stun: "fx_pfx_st_stunned", charm: "fx_pfx_st_charmed", burn: "fx_pfx_st_burning",
   poison: "fx_pfx_st_poisoned", vuln: "fx_pfx_st_cursed_dark",
 };
+/** Cỡ (nhân với SPR) và độ đục riêng của sheet cao / rộng hơn thân (Trúng độc rất hay gặp: không được trùm cả đầu). Mặc định cỡ 1, độ đục: chính mình 0.9, người khác 0.65. */
+export const STATUS_PFX_STYLE: Readonly<Record<string, { k?: number; alpha?: number }>> = {
+  fx_pfx_st_poisoned: { k: 0.5, alpha: 0.6 },
+  fx_pfx_st_cursed_dark: { k: 0.55, alpha: 0.7 },
+};
 /** Thứ tự ưu tiên khi một thân dính nhiều trạng thái (khống chế trước, rồi sát thương theo thời gian, rồi giảm / yếu đi). */
 export const STATUS_PFX_ORDER: readonly StatusId[] = ["freeze", "stun", "charm", "burn", "poison", "vuln"];
+/** Độ sâu lớp sprite trạng thái: DƯỚI bảng danh hiệu (TitlePlates 99983.8) và tên / chữ (99984) để khối băng / độc cao không đè lên chúng. */
+export const STATUS_PFX_DEPTH = 99980;
 /** Trần số sprite trạng thái cùng lúc theo mức (Thấp: không có lớp này, giữ biểu tượng cũ). */
 export const STATUS_PFX_CAP: Record<"low" | "mid" | "high", number> = { low: 0, mid: 5, high: 10 };
 /** Mỗi thân hiện tối đa ngần này sheet (còn lại chỉ có biểu tượng cũ). */
