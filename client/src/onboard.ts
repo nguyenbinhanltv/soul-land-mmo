@@ -35,7 +35,7 @@ export const OB_STEPS: readonly ObStep[] = [
   { id: "hub", title: "Mở menu", body: "Nút 魂 (hoặc Esc) mở menu: Nhiệm Vụ, Tông Môn, Cửa Hàng, Cẩm Nang đều ở đây.",
     target: ["#hubBtn"], open: ["#hub"] },
 ];
-export const OB_DONE_TEXT = { title: "Xong phần làm quen", body: "Xem mục tiêu và các bài hiện có trong khung Nhiệm vụ. Cần xem lại hướng dẫn thì mở Cẩm Nang trong menu (nút 魂 hoặc Esc)." };
+export const OB_DONE_TEXT = { title: "Xong phần Làm quen hệ thống", body: "Xem mục tiêu và các bài hiện có trong khung Nhiệm vụ. Cần xem lại hướng dẫn thì mở Cẩm Nang trong menu (nút 魂 hoặc Esc)." };
 
 /** Bảng lớn che giữa màn (#1601): đang mở một trong các bảng này thì thẻ thu về một dòng ở đáy và nằm dưới bảng, đóng bảng thì thẻ hiện lại đủ.
  *  Bảng mà bước hiện tại đang chờ mở (`open`) không cần ở đây: mở xong là bước tự qua. Hub (ngăn kéo z 7) không che thẻ nên không có mặt; bản đồ lớn `#mapview` (M / N, z 5) phủ cả màn nên thu thẻ như bảng (#1676). */
@@ -95,7 +95,7 @@ const persist = () => { if (who && saved) storage.set(obKey(who), JSON.stringify
 function root(): HTMLElement {
   if (card?.isConnected) return card;
   card = document.createElement("section"); card.id = "onboard"; card.className = "ob f2-giay-nho"; card.hidden = true;
-  card.setAttribute("role", "dialog"); card.setAttribute("aria-label", "Làm quen"); card.setAttribute("aria-live", "polite");
+  card.setAttribute("role", "dialog"); card.setAttribute("aria-label", "Làm quen hệ thống"); card.setAttribute("aria-live", "polite");
   // Chỉ phím điều hướng / kích hoạt nút thuộc về thẻ; phím chơi vẫn tới cảnh.
   card.addEventListener("keydown", (e) => {
     if (["Tab", "Enter", "Space"].includes(e.code)) e.stopPropagation();
@@ -137,7 +137,7 @@ function syncCover() {
 function paint() {
   const c = root(), s = OB_STEPS[step];
   c.hidden = false; c.dataset.mode = "step"; c.dataset.dock = s.dock ?? "";
-  q(c, ".ob-head b").textContent = `${reviewing ? "Xem lại Làm quen" : "Làm quen"} · bước ${step + 1}/${OB_STEPS.length}`;
+  q(c, ".ob-head b").textContent = `${reviewing ? "Xem lại Làm quen hệ thống" : "Làm quen hệ thống"} · bước ${step + 1}/${OB_STEPS.length}`;
   q(c, ".ob-dots").textContent = OB_STEPS.map((_, i) => (i < step ? "●" : i === step ? "◉" : "○")).join(" ");
   q(c, "h4").textContent = s.title; q(c, "p").textContent = s.body;
   q(c, ".ob-next").textContent = reviewing ? (step === OB_STEPS.length - 1 ? "Xong" : "Tiếp") : s.id === "ring" ? "Làm sau" : "Bỏ bước";
@@ -180,7 +180,7 @@ function finish(st: "done" | "skip") {
   if (st === "skip") return hide();
   // Hoàn thành: đường tiếp tục tùy chọn, giữ thẻ để người dùng bàn phím có thời gian đọc / chọn.
   const c = root(); c.hidden = false; c.dataset.mode = "done"; c.dataset.dock = ""; syncCover();
-  q(c, ".ob-head b").textContent = "Làm quen · xong"; q(c, ".ob-dots").textContent = OB_STEPS.map(() => "●").join(" ");
+  q(c, ".ob-head b").textContent = "Làm quen hệ thống · xong"; q(c, ".ob-dots").textContent = OB_STEPS.map(() => "●").join(" ");
   q(c, "h4").textContent = OB_DONE_TEXT.title; q(c, "p").textContent = OB_DONE_TEXT.body;
   q(c, ".ob-next").textContent = "Đóng"; q(c, ".ob-skip").hidden = true;
   q(c, ".ob-quest").hidden = false;
@@ -193,13 +193,14 @@ function run() {
 }
 
 /** Gắn vào một hồn sư (guide.ts gọi mỗi lần vào bản đồ): nạp tiến độ; đang làm dở thì tiếp tục (giữ bước khi GameScene dựng lại cảnh). */
-export function onboardAttach(name: string) {
+export function onboardAttach(name: string, ready = true) {
   if (name !== who) { stop(); hide(); reviewing = false; who = name; saved = parseSaved(storage.get(obKey(name))); step = saved?.s ?? 0; }
-  if (saved?.st === "run") run();
+  if (saved?.st === "run" && ready) run(); // chưa `ready` (Hướng dẫn điều khiển chưa xong): đợi onboardBegin, không bật chồng hai thẻ
 }
 /** Người chơi vừa xong / bỏ qua hướng dẫn điều khiển: bắt đầu làm quen một lần (đã có bản ghi thì không bắt đầu lại). */
 export function onboardBegin() {
-  if (!who || saved || reviewing) return;
+  if (!who || reviewing) return;
+  if (saved) { if (saved.st === "run") run(); return; } // bản ghi đang làm dở (chờ Hướng dẫn điều khiển): chạy tiếp
   saved = { s: 0, st: "run" }; step = 0; persist(); run();
 }
 /** Xem lại từ bước đầu, không ghi đè tiến độ; cùng hồn sư đổi bản đồ vẫn giữ bước xem lại. */

@@ -33,7 +33,9 @@ let who = "";
 let saved: Saved = {};
 let card: HTMLElement | null = null;
 let mode: "off" | "tour" | "review" | "hint" = "off";
-let step = 0, hintTimer = 0;
+let step = 0, hintTimer = 0, gapTimer = 0;
+/** Nhịp nghỉ giữa "Hướng dẫn điều khiển" và "Làm quen hệ thống" (ms): hai thẻ cùng chỗ giữa đáy không đè / không nối liền tức thì (#1604). */
+const ONBOARD_GAP_MS = 700;
 
 const keyOf = () => `soul-guide-v1:${who}`;
 function load() { try { const j = JSON.parse(storage.get(keyOf()) ?? "{}"); saved = j && typeof j === "object" ? j : {}; } catch { saved = {}; } }
@@ -53,7 +55,7 @@ function root(): HTMLElement {
   card = document.createElement("section"); card.id = "guide"; card.className = "panel guide"; card.hidden = true;
   card.setAttribute("role", "dialog"); card.setAttribute("aria-label", "Hướng dẫn điều khiển"); card.setAttribute("aria-live", "polite");
   card.innerHTML = `<div class="g-main"><div class="g-head"><b></b><span class="g-dots" aria-hidden="true"></span></div><h4></h4><p></p></div>
-    <div class="g-foot"><button type="button" class="g-next"></button><button type="button" class="g-skip"></button><button type="button" class="g-onboard" hidden>Xem lại hướng dẫn</button></div>`;
+    <div class="g-foot"><button type="button" class="g-next"></button><button type="button" class="g-skip"></button><button type="button" class="g-onboard" hidden>Xem lại Làm quen hệ thống</button></div>`;
   q(card, ".g-onboard").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); close(); onboardReview(); });
   q(card, ".g-skip").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); close(mode === "tour" ? "skip" : ""); });
   q(card, ".g-next").addEventListener("click", (e) => { (e.currentTarget as HTMLElement).blur(); if (mode === "hint") close(); else next(); });
@@ -64,14 +66,14 @@ function root(): HTMLElement {
 function render() {
   const c = root(), s = STEPS[step];
   c.hidden = false; c.dataset.mode = mode;
-  q(c, ".g-head b").textContent = `Hướng dẫn · bước ${step + 1}/${STEPS.length}`;
+  q(c, ".g-head b").textContent = `Hướng dẫn điều khiển · bước ${step + 1}/${STEPS.length}`;
   q(c, ".g-dots").textContent = STEPS.map((_, i) => (i < step ? "●" : i === step ? "◉" : "○")).join(" ");
   q(c, "h4").textContent = s.title;
   fill(q(c, "p"), s.body);
   q(c, ".g-skip").hidden = false; q(c, ".g-skip").textContent = mode === "tour" ? "Bỏ qua" : "Đóng";
   q(c, ".g-next").textContent = step === STEPS.length - 1 ? "Xong" : "Tiếp";
   q(c, ".g-onboard").hidden = mode !== "review";
-  q(c, ".g-onboard").title = "Xem lại 6 bước Làm quen: võ hồn, nhiệm vụ, Túi đồ, hồn hoàn, bản đồ và menu.";
+  q(c, ".g-onboard").title = "Xem lại 6 bước Làm quen hệ thống: võ hồn, nhiệm vụ, Túi đồ, hồn hoàn, bản đồ và menu.";
 }
 
 function close(result: "" | "skip" | "done" = "") {
@@ -80,7 +82,10 @@ function close(result: "" | "skip" | "done" = "") {
   const ended = mode === "tour" && !!result;
   if (ended) { saved.tour = result as "done" | "skip"; save(); }
   mode = "off";
-  if (ended) onboardBegin(); // làm quen (onboard.ts) nối tiếp sau chuỗi điều khiển
+  if (ended) { // Làm quen hệ thống (onboard.ts) chỉ bắt đầu SAU khi thẻ điều khiển đã ẩn, sau một nhịp nghỉ (#1604)
+    clearTimeout(gapTimer);
+    gapTimer = window.setTimeout(() => { gapTimer = 0; onboardBegin(); }, ONBOARD_GAP_MS);
+  }
 }
 
 function next() {
@@ -92,7 +97,7 @@ function next() {
 export function guideStart(name: string, starterDone: boolean) {
   who = name; load();
   if (!saved.tour && starterDone) { saved.tour = "done"; save(); }
-  onboardAttach(name); // UI v2: nạp tiến độ làm quen (tiếp tục nếu đang làm dở)
+  onboardAttach(name, !!saved.tour); // nạp tiến độ Làm quen hệ thống; chỉ tiếp tục khi Hướng dẫn điều khiển đã xong / bỏ qua (không bật chồng)
   if (!saved.tour) { if (mode !== "tour") step = 0; mode = "tour"; render(); } // đổi bản đồ giữa chừng (GameScene dựng lại): giữ bước đang làm
 }
 
@@ -111,7 +116,7 @@ export function guideEvent(ev: GuideEvent) {
 
 /** Gợi ý một lần theo tình huống (tự tắt sau ít giây); không hiện khi đang có hướng dẫn / gợi ý khác (lần sau gặp lại tình huống thì hiện). */
 export function guideHint(h: GuideHint) {
-  if (!who || mode !== "off" || saved.hints?.includes(h)) return;
+  if (!who || mode !== "off" || gapTimer || saved.hints?.includes(h)) return;
   const c = root(), t = HINTS[h];
   c.hidden = false; c.dataset.mode = "hint";
   if (getComputedStyle(c).display === "none") { c.hidden = true; return; } // CSS đang ẩn thẻ (hộp NPC mở, đấu trường): chưa tính là đã thấy, lần sau gặp lại thì hiện
