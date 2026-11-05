@@ -74,3 +74,6 @@ export const ELEMENT_PFX: Readonly<Partial<Record<Element, Partial<Record<FxKind
 const ELPFX_OFF = typeof location !== "undefined" && /[?&]elpfx=0/.test(location.search);
 /** Khóa sheet bổ sung cho chiêu hệ `el` kiểu `kind`; mức Thấp không thêm (trần sheet nhỏ, nhường chiêu chính). */
 export const elementPfxKey = (el: Element, kind: FxKind, level: "low" | "mid" | "high"): string | null => (level === "low" || ELPFX_OFF ? null : ELEMENT_PFX[el]?.[kind] ?? null);
+
+/** Lớp trang trí nhường sheet chính (SKILL_VISUAL) và chiêu khác: chỉ phát khi số sheet đang chạy `live` còn dưới NỬA trần `cap` áp cho lần phát này (chiêu người khác: phần trần dành cho họ). */
+export const pfxLayerRoom = (live: number, cap: number): boolean => live < Math.max(1, Math.floor(cap / 2));

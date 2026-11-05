@@ -25,3 +25,9 @@ assert.deepEqual(deathKeys(3, "low"), ["fx_pfx_soul_rise_light"], "thú vương 
 assert.equal(hatchKey("low"), null); assert.equal(hatchKey("mid"), "fx_pfx_poof");
 assert.equal(reviveKey("low", false), null, "mức Thấp: người khác bỏ"); assert.equal(reviveKey("low", true), "fx_pfx_respawn_beam_light"); assert.equal(reviveKey("mid", false), "fx_pfx_respawn_beam_light");
 console.log("pixelfx-test OK");
+
+// #1818: lớp pixelfx hệ chiêu nhường sheet chính: chỉ phát khi còn dưới nửa trần
+import { pfxLayerRoom, elementPfxKey } from "../src/pixelfx.ts";
+assert.equal(pfxLayerRoom(0, 10), true); assert.equal(pfxLayerRoom(4, 10), true); assert.equal(pfxLayerRoom(5, 10), false);
+assert.equal(pfxLayerRoom(2, 6), true); assert.equal(pfxLayerRoom(3, 6), false); assert.equal(pfxLayerRoom(0, 1), true); assert.equal(pfxLayerRoom(1, 3), false);
+assert.equal(elementPfxKey("ice", "hit", "low"), null); assert.equal(elementPfxKey("ice", "hit", "mid"), "fx_pfx_ice_shatter_ice"); assert.equal(elementPfxKey("wood", "hit", "high"), null);
