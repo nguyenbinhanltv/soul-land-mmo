@@ -4,7 +4,7 @@ import type { Room } from "colyseus.js";
 import { MINI_BASE, TIERS, BEASTS, VOHON, PHAP_TUONG, RADAR, SYNC_VIEW, MAPS, TILE, titleText, titleDef, titleIdOf, TEAM_SIZE, RESPAWN_SECS, vohonIndex, TIEN_CO, type He,
   ringSkill, loadoutOf, DEFAULT_LOADOUT, chanThanOf, tienCoOf, STATUS, statusBit, BUFFS, BUFF_IDS, buffBit, phoenixFieldR, PHONG_LOI,
   tierOfYears, formatYears, PICKUP_RANGE, DROP_TTL_SECS, absorbChance, absorbSecs, atBottleneck, MAX_RINGS, beastLevel, xpLevelScale, parseLevelRange,
-  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, beastNameSeen, BEAST_BUFFS, beastBuffBit,
+  itemDef, PLAYER_STATUS, type Tele, TELE_SHAPES, GROUND_KINDS, BOSSES, ELITE, beastBase, beastName, beastNameSeen, BEAST_REVEAL, BEAST_BUFFS, beastBuffBit,
   BONE_ITEM, BONE_SLOTS, boneName, parseBone, boneSkillOf, BONE_ACTIVE_SLOTS, CORE_ITEM, CORE_SETS, coreName, EQUIP_ITEM, EQUIP_TEMPLATES, EQUIP_TIERS, equipName, coreStatText, type CoreSubUp, type CoreStat, KING,
   AUTOWALK, AUTO_MOVE, WORLD, HE, HE_IDS, RING_ITEM, PLAYER_SPEED, PLAYER_CHARM, SLOW_CAP,
   npcDef, NPC_RANGE, type NpcDef, questChain, questRewardText, RESONANCE, resonanceText, DAILY, fitBeast, fitMaps, type QuestGoal,
@@ -42,7 +42,7 @@ import { bindBiCanh, openBiCanh, closeBiCanh, onBiCanh, bindBiCanhRoom, onBiCanh
 import { bindWelfare, openWelfare, closeWelfare, onWelfare, type WelfareMsg } from "../welfareScreen.ts";
 import { bindAchv, openAchv, closeAchv, onAchv, type AchvMsg } from "../achvScreen.ts";
 import { bindTitles, openTitles, closeTitles, onTitle, type TitleMsg } from "../titleScreen.ts";
-import { bindDex, openDex, closeDex, onDex, dexKnown, type DexMsg } from "../dexScreen.ts";
+import { bindDex, openDex, closeDex, onDex, type DexMsg } from "../dexScreen.ts";
 import { bindMail, openMail, closeMail, onMail, type MailMsg } from "../mailScreen.ts";
 import { bindNpcGo } from "../hudNpc.ts";
 import { bindCalendar, watchCalendar, openCalendar, closeCalendar, onCalendar, type CalendarMsg, type CalGoal } from "../calendarScreen.ts";
@@ -1145,7 +1145,7 @@ export class GameScene extends Phaser.Scene {
   /** Chữ và lệnh của chip trạng thái (lệnh ưu tiên cao nhất đang chạy), vẽ mỗi khung hình ở updateStats. */
   drawCmdChip() {
     const c = topCmd(this.activeCmds()), lk = this.lockId ? this.room.state.beasts.get(this.lockId) : null;
-    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastNameSeen(lk.rank, lk.species, dexKnown(BEASTS[lk.species]?.id)) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
+    setCmdChip(c, c === "click" ? "Đang đi tới…" : c === "lock" ? `Đang đánh: ${lk ? beastNameSeen(lk.rank, lk.species) : "mục tiêu"}` : c === "flag" ? "Tự đi cờ" : c === "hunt" ? "Tự săn" : "");
   }
 
   act(a: string) {
@@ -2881,7 +2881,7 @@ export class GameScene extends Phaser.Scene {
       const x = b.x / TILE, y = b.y / TILE;
       if (b.rank >= 2) R.dot("boss", x, y, beastName(b.rank, b.species), BOSSES[b.species]?.aura ?? "");
       else if (b.rank === 1) R.dot("elite", x, y, beastName(1, b.species), BOSSES[b.species]?.aura ?? "#ffffff");
-      else if (seen(x, y)) R.dot("beast", x, y, BEASTS[b.species]?.name ?? "Hồn thú", TIERS[b.tier]?.glow ?? "#ffffff");
+      else if (seen(x, y)) R.dot("beast", x, y, BEAST_REVEAL.unknown, TIERS[b.tier]?.glow ?? "#ffffff");
     });
     // Hang thú vương (BĐ5): khung đỏ sẫm.
     if (this.lair && F.explored((this.lair.x + this.lair.w / 2) / TILE, (this.lair.y + this.lair.h / 2) / TILE)) R.rect(this.lair.x / TILE, this.lair.y / TILE, this.lair.w / TILE, this.lair.h / TILE, "#a0303c");
@@ -3196,7 +3196,7 @@ export class GameScene extends Phaser.Scene {
           this.eliteLabels.set(id, lb);
         }
         // Boss thế giới (BĐ6e): điểm yếu hệ đang hiện ghi ngay dưới tên.
-        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastNameSeen(b.rank, b.species, dexKnown(BEASTS[b.species]?.id)) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
+        const txt = egg ? `Bọc trứng · ${eggLeft(b)}` : cbTierMark(b.tier) + beastNameSeen(b.rank, b.species) + (b.rank === 3 && b.weak ? `\nĐiểm yếu: ${HE[HE_IDS[b.weak - 1]].name}` : "");
         if (lb.text !== txt) lb.setText(txt);
         const top = beastTop(s, b.tier) - (b.hp < b.maxHp ? 5 : 2);
         lb.setPosition(s.x, top).setDepth(99984).setScale(this.txtK);
@@ -3917,7 +3917,7 @@ export class GameScene extends Phaser.Scene {
     const xpNote = xpk < 1 ? ` <em class="xpcut">kinh nghiệm ${Math.round(xpk * 100)}%</em>` : "";
     // Bọc trứng (#162): không có kinh nghiệm nên không ghi cấp, chỉ thời gian còn lại trước khi nở.
     hud.showTarget(tb?.egg ? `<span class="dot" style="color:#c8f5b4"></span>Bọc trứng · nở sau ${eggLeft(tb)} giây – ${tb.hp}/${tb.maxHp}` + (sts ? `<small>${sts}</small>` : "")
-      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastNameSeen(tb.rank, tb.species, dexKnown(BEASTS[tb.species]?.id)), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
+      : tb ? hud.withBeastPortrait(hud.beastTargetHtml({ name: beastNameSeen(tb.rank, tb.species), years: tb.years, tier: tb.tier, level: tLv, hp: tb.hp, maxHp: tb.maxHp, status: sts, xpNote }),
         beastBase(tb.rank, tb.species)?.id, tb.rank ? BOSSES[tb.species]?.aura ?? "#ffffff" : hud.ringColor(tb.tier)) : null);
 
     // Hồn hoàn dưới đất trong tầm nhặt: nhấn E (hoặc nút "Nhặt") để cho vào túi; hấp thụ trong túi đồ.

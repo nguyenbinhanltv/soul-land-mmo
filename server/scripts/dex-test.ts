@@ -27,8 +27,8 @@ await test("dexGet trả bản sao: sửa kết quả không đổi dữ liệu 
   const s = new MemoryStore(); await s.dexKill(1, a);
   (await s.dexGet(1))[a] = 99; assert.deepEqual(await s.dexGet(1), { [a]: 1 });
 });
-await test("beastNameSeen: thường luôn ???, chỉ loài trong sổ / có tên riêng thì hiện tên", () => {
+await test("beastNameSeen: thường luôn ??? (kể cả loài đã hạ), rank ≥ 1 hiện tên", () => {
   assert.equal(beastNameSeen(0, 0), BEAST_REVEAL.unknown);
-  assert.equal(beastNameSeen(0, 0, true), beastName(0, 0));
+  assert.equal(beastNameSeen(0, 0, true as never), BEAST_REVEAL.unknown);
   assert.equal(beastNameSeen(1, 0), beastName(1, 0));
 });
