@@ -64,7 +64,7 @@ class FxTestScene extends Phaser.Scene {
     this.drawGround();
     this.fxp = new ParticleLayer(this, 99979, SPR);
     this.skfx = new SkillFx(this, this.fxp);
-    registerCodeSheets(this); registerHitFeelSheets(this); this.svp = new SkillVisualPlayer(new SheetFx(this)); void loadPrivateAssets(this); // #623: kho riêng (?pfx=0 để xem hình cũ)
+    registerCodeSheets(this); registerHitFeelSheets(this); this.svp = new SkillVisualPlayer(new SheetFx(this)); this.skfx.sheets = this.svp.sheets; void loadPixelfx(); void loadPrivateAssets(this); // #623: kho riêng (?pfx=0 để xem hình cũ)
     this.hero = this.person(-70, 12, 0x9fb4e8); this.dummy = this.person(70, 12, 0xd8b090);
     this.events.on("update", (time: number, dt: number) => {
       if (q.get("gov") !== "0") fxGov.feed(dt, fxPrefs.level);

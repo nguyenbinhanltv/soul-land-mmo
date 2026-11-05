@@ -551,7 +551,7 @@ export class GameScene extends Phaser.Scene {
     this.fxp = new ParticleLayer(this, 99979, SPR);
     this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
     this.skfx = new SkillFx(this, this.fxp);
-    registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL)
+    registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); this.skfx.sheets = this.svis.sheets; // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL); #1815: SkillFx thêm lớp pixelfx theo hệ
     void loadPixelfx(); void loadPrivateAssets(this); // #623: kho riêng (không chặn vào game; không có kho thì không làm gì)
     this.teleTop = this.add.graphics().setDepth(99983.5); // trên mọi hiệu ứng chiêu (≤ 99983), dưới tên / số sát thương
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
@@ -1954,15 +1954,15 @@ export class GameScene extends Phaser.Scene {
   skillFx(m: any, v: PView, sk: SkillDef) {
     const fd = skillFxOf(VOHON[m.vh].id, m.i, !!m.ct), tc = hex(TIERS[m.tier]?.glow ?? "#ffffff"), r = sk.r * RX;
     const a = Math.PI / 2 + DIRS8.indexOf(v.face) * (Math.PI / 4), at = this.feet(v);
-    const go = (kind: FxKind, o: { ang?: number; r?: number; dist?: number; x?: number; y?: number } = {}) =>
-      this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, partsOnly: replaced, ...o });
+    const go = (kind: FxKind, o: { ang?: number; r?: number; dist?: number; x?: number; y?: number; layer?: boolean } = {}) =>
+      this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, partsOnly: replaced, light: !mine0, ...o });
     const vis0 = skillVisualOf(VOHON[m.vh].id, m.i, !!m.ct), vis = SV_OFF ? { ...vis0, sheet: undefined, windupSheet: undefined, aftershock: undefined } : vis0, mine0 = m.id === this.me, tl = vis.sheet?.at === "cast" ? 0 : Math.max(r, 24 * SPR) * (sk.area === "proj" ? 0.9 : 0.5);
     if (mine0) this.castHeavy = { t: this.time.now, heavy: vis.heavy };
     if (vis.tier === 3 && vis.sheet) this.pt.strike(m.id, this.time.now); // T3: pháp tướng ra đòn cùng chiêu (hoạt ảnh đánh H2, không rung màn)
     const replaced = this.svis.cast(vis, { x: at.x, y: at.y - 8 * SPR, ang: a, tx: at.x + Math.cos(a) * tl, ty: at.y + Math.sin(a) * tl * 0.5 - 8 * SPR, mine: mine0, r, n: sk.n, everyMs: (sk.every ?? 0) * 1000, spread: ((sk.spread ?? 0) * Math.PI) / 180 });
     if (sk.area === "proj") { // sheet thay hiệu ứng G3 (SKILL_VISUAL.replace) thì G3 chỉ còn hạt (partsOnly)
       const n = Math.min(sk.n ?? 1, sk.spread && sk.spread >= 360 ? 6 : 3), sp = ((sk.spread ?? 0) * Math.PI) / 180;
-      for (let j = 0; j < n; j++) go("proj", { ang: sk.spread && sk.spread >= 360 ? (j / n) * Math.PI * 2 : a + (n > 1 ? (j / (n - 1) - 0.5) * sp : 0), dist: r * 0.9 });
+      for (let j = 0; j < n; j++) go("proj", { layer: j === 0, ang: sk.spread && sk.spread >= 360 ? (j / n) * Math.PI * 2 : a + (n > 1 ? (j / (n - 1) - 0.5) * sp : 0), dist: r * 0.9 });
     } else if (sk.area === "around") go("zone");
     else if (sk.area === "front" || sk.area === "dash") go("slash", { r: Math.max(r, 24 * SPR) });
     else if (sk.area === "self") go("aura");

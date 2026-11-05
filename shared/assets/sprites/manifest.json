@@ -46448,6 +46448,38 @@
       "iso": true,
       "replyLpc": "1|0|light|brown|body.body,head.male,brow.thick=black,hair.plain=black,torso.su_lai_khac=navy,legs.pantaloons=charcoal,feet.slippers=brown,belt.obi=navy,hat.headband_tied=navy"
     },
+    {
+      "key": "fx_pfx_fire_ring_fire",
+      "frame": [
+        212,
+        122
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_frost_nova_ice",
+      "frame": [
+        252,
+        136
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_ice_shatter_ice",
+      "frame": [
+        193,
+        108
+      ],
+      "iso": true
+    },
+    {
+      "key": "fx_pfx_zap_hit_lightning",
+      "frame": [
+        129,
+        104
+      ],
+      "iso": true
+    },
     { "key": "ui2_giay_ky_nang_hoi_chieu", "iso": true },
     { "key": "ui2_giay_ky_nang_khoa", "iso": true },
     { "key": "ui2_giay_ky_nang_san_sang", "iso": true },

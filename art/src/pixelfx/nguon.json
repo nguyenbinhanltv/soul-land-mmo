@@ -12,6 +12,42 @@
       "sha256": "89c905d8679a108f13eb390a5142f5e9670d8e8d8ccb03065e57d66fb5fdb3de",
       "role": "nhặt vật phẩm (màu gốc)"
     },
+    "fx_pfx_fire_ring_fire": {
+      "key": "fx_pfx_fire_ring_fire",
+      "id": "fire/fire-ring",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs fire/fire-ring --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#56190c\",\"#8f2a14\",\"#c7521f\",\"#ff7a2a\",\"#ffad5a\",\"#ffe08a\"]}",
+      "palette": "fire",
+      "seed": 1,
+      "stride": 3,
+      "rawSha256": "bb955800bc415bd6119c133f096debd7c3fa0afe3907944c27f528f66b77f6fb",
+      "sha256": "35b0948be5e3692a4afcdcf003d702cf17e35f3f100c2fe5fa00244913e3fa4d",
+      "role": "hệ Hỏa: vùng quanh thân (zone)"
+    },
+    "fx_pfx_frost_nova_ice": {
+      "key": "fx_pfx_frost_nova_ice",
+      "id": "ice/frost-nova",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs ice/frost-nova --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#19365c\",\"#2a5a9a\",\"#5599cd\",\"#7fd8ff\",\"#b5eaff\",\"#eafcff\"]}",
+      "palette": "ice",
+      "seed": 1,
+      "stride": 3,
+      "rawSha256": "775f8bce336e68d837fbc520c25b7762fc2548cd6c405a8e5f144dc32e503efa",
+      "sha256": "3992e9706905267e2867c540efcbe152936b9e059a81348354295f72cd259d61",
+      "role": "hệ Băng: vùng quanh thân (zone)"
+    },
+    "fx_pfx_ice_shatter_ice": {
+      "key": "fx_pfx_ice_shatter_ice",
+      "id": "ice/ice-shatter",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs ice/ice-shatter --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#19365c\",\"#2a5a9a\",\"#5599cd\",\"#7fd8ff\",\"#b5eaff\",\"#eafcff\"]}",
+      "palette": "ice",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "4d1838af9a2ccc6d2a4e179d21ccbdceb0063661953ec9e8fe2c3bc1b79fe45f",
+      "sha256": "20517b498ba1bb4315bf5c10d152185eecdd9ea5b879fbc67e976174e311e397",
+      "role": "hệ Băng: tia trúng (hit)"
+    },
     "fx_pfx_poof": {
       "key": "fx_pfx_poof",
       "id": "spawn/poof",
@@ -59,12 +95,24 @@
       "rawSha256": "7fa96b4cbcde80df9e1043b258e2e1db51cf9c549447e28e00b6fca73a95a470",
       "sha256": "8d9b2a93ebaf75a2f617fd7043ba5c6b4dab083ece05c1ce4fff5c502b1312f8",
       "role": "hồn sư ngã / hồn bay lên (hệ quang)"
+    },
+    "fx_pfx_zap_hit_lightning": {
+      "key": "fx_pfx_zap_hit_lightning",
+      "id": "lightning/zap-hit",
+      "pixelfxSha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+      "cmd": "node tools/render.mjs lightning/zap-hit --sheet --no-actor --seed 1 --out <thư-mục-tạm> --opts {\"palette\":[\"#232c65\",\"#3a4aa8\",\"#6289d4\",\"#8ac8ff\",\"#c5e4ff\",\"#ffffff\"]}",
+      "palette": "lightning",
+      "seed": 1,
+      "stride": 2,
+      "rawSha256": "b60af930f4950243b95f6ebb3408eba22b4e36a99974d89baab894ca0189f01d",
+      "sha256": "deb1920ab94ad2f8f392f7c44357039bd785ceda6d1eaf4abf51f65a40a3dd17",
+      "role": "hệ Lôi: tia trúng (hit)"
     }
   },
   "pixelfx": {
     "repo": "https://github.com/patch-gg/pixelfx",
     "sha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
     "license": "MIT",
-    "spec": "tools/assets/pixelfx/lo-mau.json"
+    "spec": "tools/assets/pixelfx/lo-b1.json"
   }
 }
