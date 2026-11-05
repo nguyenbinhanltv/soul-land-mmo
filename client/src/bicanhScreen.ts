@@ -14,7 +14,7 @@ export interface BiCanhMsg { runs: BiCanhRun[]; resetIn: number; err?: string }
 export interface BiCanhRoomMsg {
   k: "found" | "ready" | "fight" | "wave" | "clear" | "end";
   roomId?: string; id?: string; name?: string; waves?: number; secs?: number; wave?: number; of?: number; n?: number; elite?: boolean; tomes?: number;
-  win?: boolean; reason?: string; why?: string; cleared?: number; capped?: boolean; full?: boolean; err?: string; refunded?: boolean;
+  win?: boolean; reason?: string; why?: string; cleared?: number; capped?: boolean; mailed?: number; mailfull?: boolean; err?: string; refunded?: boolean;
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -100,9 +100,10 @@ export function endView(m: BiCanhRoomMsg): EndView {
   lines.push({ text: `Đã hạ ${m.cleared ?? 0}/${m.of ?? 0} sóng.`, cls: "" });
   if (m.refunded) lines.push({ text: "Lỗi hệ thống: lượt đã được hoàn lại, quyển chưa nhận.", cls: "bc-bad" });
   else if (tomes > 0) lines.push({ text: `Nhận ${name} ×${tomes} vào túi.`, cls: "bc-rew" });
-  else lines.push({ text: m.capped ? `Hôm nay đã nhận đủ ${BICANH.tomeDailyCap} ${name}: lượt này không có quyển.` : m.full ? `Túi đầy: chưa nhận được ${name}.` : `Chưa hạ sóng có quyển nên không nhận ${name}.`, cls: "" });
-  if (tomes > 0 && m.capped) lines.push({ text: `Chạm trần ${BICANH.tomeDailyCap} quyển mỗi ngày: phần dư không nhận.`, cls: "" });
-  if (tomes > 0 && m.full) lines.push({ text: "Túi đầy: chưa nhận hết quyển.", cls: "bc-bad" });
+  const mailed = m.mailed ?? 0;
+  if (!m.refunded && mailed > 0) lines.push({ text: `Túi đầy: ${name} ×${mailed} đã gửi vào Thư, mở Thư để nhận.`, cls: "bc-rew" });
+  else if (mailed <= 0) lines.push({ text: m.capped ? `Hôm nay đã nhận đủ ${BICANH.tomeDailyCap} ${name}: lượt này không có quyển.` : `Chưa hạ sóng có quyển nên không nhận ${name}.`, cls: "" });
+  if (tomes + mailed > 0 && m.capped) lines.push({ text: `Chạm trần ${BICANH.tomeDailyCap} quyển mỗi ngày: phần dư không nhận.`, cls: "" });
   if (!m.err && !win) lines.push({ text: "Thua không mất đồ; lượt đã dùng không hoàn.", cls: "" });
   return { win, title: m.err ? "Chưa lưu được kết quả" : win ? "Thắng!" : "Thua", lines };
 }

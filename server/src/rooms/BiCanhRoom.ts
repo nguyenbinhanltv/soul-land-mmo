@@ -8,8 +8,9 @@ import type { AuthData, PData } from "./types.ts";
 import { seatAccount, type SeatPass } from "./seat.ts";
 import { BLOCKED, ARENA_END_CODE } from "./ArenaRoom.ts";
 import { achvCount } from "./achv.ts";
-import { BICANH, BOSSES, MAX_RINGS, SPAWN_PLAYER_GAP, TIERS, TILE, beastIndex, bicanhTomeKind, ringLimit, dir4 } from "../../../shared/data.ts";
-import { store } from "../db.ts";
+import { BICANH, BOSSES, MAX_RINGS, SPAWN_PLAYER_GAP, TIERS, TILE, beastIndex, bicanhTomeKind, ringLimit, dir4, itemDef } from "../../../shared/data.ts";
+import { store, type MailNew } from "../db.ts";
+import { mailNotify } from "./mail.ts";
 import { bicanhTickets, refundRun, releaseRun, type Ticket } from "./bicanh.ts";
 
 type Phase = "wait" | "ready" | "fight" | "end";
@@ -185,6 +186,7 @@ export class BiCanhRoom extends MapRoom {
   /**
    * Kết quả (một lần, theo vé): số sóng đã hạ hết do server đếm (`cleared`); thưởng quyển theo các sóng đó, kẹp trần quyển nhận mỗi ngày Bí Cảnh (BICANH.tomeDailyCap, tính ở boss_claims theo `ticket.day`).
    * Quyển ghi vào túi và tăng bộ đếm ngày trong MỘT transaction (`store.claimBoss`) trong chuỗi lưu của người chơi, trên BẢN SAO túi (túi đang chơi chỉ đổi sau khi DB xác nhận). DB lỗi thì không thưởng và hoàn lượt.
+   * Túi không đủ chỗ cho cả phần quyển: phần dư vào Thư (kind `bicanh`, dedup `bicanh:<ngày>:<mã phòng>`) trong CÙNG transaction đó (không cộng cả túi lẫn thư); hộp thư cũng đầy thì không thưởng, hoàn lượt.
    * Tin `bicanh {k: "end"}` gửi sau khi DB xác nhận. Người rời giữa chừng nhận phần các sóng đã xong (finish chạy trước khi MapRoom.onLeave lưu), không nhận thêm.
    */
   finish(reason: Reason) {
@@ -209,11 +211,20 @@ export class BiCanhRoom extends MapRoom {
         d.bag = items.map((it) => ({ ...it, stats: it.stats == null ? null : structuredClone(it.stats) }));
         const qty = this.addItem(d, BICANH.tome, give), after = d.bag, snap = this.bagSnapshot(d);
         d.bag = items; d.bagDirty = dirty;
-        if (qty <= 0) return report({ full: true });
-        const n = await store.claimBoss(t.accountId, t.day, bicanhTomeKind, BICANH.tomeDailyCap, snap, qty);
+        // Túi không đủ chỗ cho phần quyển dư: phần dư vào Thư CHUNG MỘT transaction với bộ đếm ngày + túi (không nhân thưởng, không mất; docs/design/thu.md, #1584).
+        const rest = give - qty, tomeName = itemDef(BICANH.tome)?.name ?? BICANH.tome;
+        const mail: MailNew | undefined = rest > 0 ? { kind: "bicanh", dedup: `bicanh:${t.day}:${this.roomId}`, title: `Thưởng ${sc.name}`, items: [{ code: BICANH.tome, qty: rest }],
+          body: `Túi không đủ chỗ nên ${rest} ${tomeName} thưởng ${sc.name} gửi vào Thư: mở Thư để nhận khi túi có chỗ.` } : undefined;
+        const n = mail ? await store.claimBossMail(t.accountId, t.day, bicanhTomeKind, BICANH.tomeDailyCap, snap, give, mail) : await store.claimBoss(t.accountId, t.day, bicanhTomeKind, BICANH.tomeDailyCap, snap, give);
+        if (n === "mailfull") {
+          await releaseRun(t, "túi và hộp thư đều đầy");
+          this.log(sid, "Túi và hộp thư đều đầy: quyển chưa nhận, lượt đã được hoàn lại. Dọn túi hoặc xóa thư đã nhận rồi vào lại.", "#ff8a8a");
+          return report({ err: "Túi và hộp thư đều đầy: quyển chưa nhận, lượt đã được hoàn lại.", refunded: true, mailfull: true });
+        }
         if (n === null) return report({ capped: true });
         if (this.pdata.get(sid) === d) { d.bag = after; this.sendBag(sid); }
-        report({ tomes: qty, capped: give < tomes, full: qty < give });
+        if (mail) mailNotify(this, sid);
+        report({ tomes: qty, mailed: rest, capped: give < tomes });
       } catch (e) {
         console.error(`[bí cảnh] không lưu được thưởng tài khoản #${t.accountId}`, e);
         await releaseRun(t, "không lưu được kết quả");

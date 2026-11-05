@@ -70,7 +70,7 @@ Tham chiếu: chỉ học **cơ chế** (lượt theo ngày, làm mới 05:00, p
 
 ### Lưu trữ
 - **MVP không cần SQL mới.** Lượt: `boss_claims` qua `store.claimBoss(accountId, day, kind, limit, bag, n)` với `day` là khóa Bí Cảnh (trên), `kind` mới; thưởng quyển: `items` / túi. Cả hai ghi **một transaction** như đổi mảnh ở Thương hội (mục 5.7).
-- Cách ghi: giữ chỗ ngay trong RAM (`claimBusy`: không bán / bỏ / hấp thụ lúc chờ), rồi xếp vào chuỗi lưu `this.chain(d, fn)`; DB báo thất bại thì **hoàn** (không cộng thưởng, không trừ lượt). Lỗi ghi không được làm RAM và DB lệch (bài học #796). Túi không đủ chỗ cho phần thưởng thì **từ chối vào phòng trước khi trừ lượt** (như đổi mảnh); cách xử lý túi đầy lúc cuối phòng ở câu hỏi mở 3.
+- Cách ghi: giữ chỗ ngay trong RAM (`claimBusy`: không bán / bỏ / hấp thụ lúc chờ), rồi xếp vào chuỗi lưu `this.chain(d, fn)`; DB báo thất bại thì **hoàn** (không cộng thưởng, không trừ lượt). Lỗi ghi không được làm RAM và DB lệch (bài học #796). Túi không đủ chỗ cho phần thưởng thì **từ chối vào phòng trước khi trừ lượt** (như đổi mảnh); túi đầy lúc cuối phòng thì phần quyển dư vào Thư cùng transaction (#1584, `store.claimBossMail`; hộp thư cũng đầy thì không thưởng, hoàn lượt).
 - **Chỉ B2 (bậc cực hạn) cần bảng mới**: `server/sql/00N_bi_canh.sql` (N kế tiếp trên `origin/main` lúc làm), chạy lại an toàn, bật RLS không tạo policy, sửa **cả** `PgStore` lẫn `MemoryStore`, thêm vào `Store.removeTestAccount`. Không `DROP` hay đổi kiểu cột cũ. Chi tiết khi viết thiết kế B2.
 - Không cần Redis: dữ liệu theo tài khoản, ghi hiếm.
 
@@ -160,7 +160,7 @@ Bài bot nhóm mới `bicanh` (`npm run bot:local -- --only bicanh [--pg]`): và
 Gom ở mô tả PR; riêng Bí Cảnh:
 1. **Hai mốc ngày** (05:00 Bí Cảnh, 00:00 phần còn lại): đã chốt dùng 05:00; có cần dòng nhắc ở mọi poster ngoài Bí Cảnh có "mỗi ngày" không.
 2. **Mức thưởng quyển** và số lượt miễn phí mỗi ngày: số cụ thể chờ `balance-review`.
-3. **Túi đầy lúc nhận thưởng:** đề xuất kiểm túi **trước khi trừ lượt** và cảnh báo "túi sắp đầy"; nếu cuối phòng vẫn đầy (đổi đồ trong lúc chờ) thì thưởng đi qua đường rơi đồ thường hay giữ chờ nhận.
+3. **Túi đầy lúc nhận thưởng — ĐÃ QUYẾT (2026-11-05, #1584): quyển dư vào Thư.** Đề xuất ban đầu: kiểm túi **trước khi trừ lượt** và cảnh báo "túi sắp đầy"; nếu cuối phòng vẫn đầy (đổi đồ trong lúc chờ) thì thưởng đi qua đường rơi đồ thường hay giữ chờ nhận.
 4. **Thang bậc cực hạn (B2)** và xếp hạng có vào `docs/design/xep-hang.md` hay riêng.
 5. **Cổng vào:** menu Thí Luyện chung hay NPC cổng ở Thiên Đấu Thành (hoặc cả hai) ở v1.
 

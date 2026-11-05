@@ -3,7 +3,7 @@
 // bình cảnh, hoàn lại khi lỗi, qua 05:00) do bot thử (BOT_ONLY=bicanh). Chạy: npm run test:bicanh --prefix server
 import assert from "node:assert/strict";
 import { MemoryStore } from "../src/db.ts";
-import { BAG_EXPAND_COST, BEASTS, BICANH, BOSSES, ITEMS, RING_LIMIT, SHARD_BUY, XP_SHARE_BENCH, beastStats, bicanhBuyKind, bicanhDay, bicanhResetIn, bicanhRunKind, bicanhRunPrice, bicanhRunTomes, bicanhScene, bicanhTomeKind,
+import { BAG_EXPAND_COST, BEASTS, BICANH, MAIL, BOSSES, ITEMS, RING_LIMIT, SHARD_BUY, XP_SHARE_BENCH, beastStats, bicanhBuyKind, bicanhDay, bicanhResetIn, bicanhRunKind, bicanhRunPrice, bicanhRunTomes, bicanhScene, bicanhTomeKind,
   itemDef, sellPrice, shardBuyPrice, vnAt, vnDay } from "../../shared/data.ts";
 import { runView } from "../src/rooms/bicanh.ts";
 import { beastIndex } from "../../shared/data.ts";
@@ -98,6 +98,24 @@ await test("MemoryStore.releaseBoss (cùng luật PgStore): hoàn nguyên tử, 
   // Trần quyển nhận ngày: nhận từng phần, vượt trần thì từ chối nguyên tử.
   const kt = bicanhTomeKind; assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, BICANH.tomeDailyCap - 1), BICANH.tomeDailyCap - 1);
   assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, 2), null); assert.equal(await st.claimBoss(acc, day, kt, BICANH.tomeDailyCap, bag, 1), BICANH.tomeDailyCap);
+});
+
+await test("MemoryStore.claimBossMail (#1584): bộ đếm ngày + túi + thư một bước; dedup trùng / vượt trần / hộp đầy thì không ghi gì", async () => {
+  const st = new MemoryStore(), acc = 11, day = "2026-11-05", kt = bicanhTomeKind, cap = BICANH.tomeDailyCap;
+  const bag = { items: [], honTe: 0 }, mail = (dedup: string, qty = 2) => ({ kind: "bicanh", dedup, title: "Thưởng", items: [{ code: BICANH.tome, qty }], body: "x" });
+  assert.equal(await st.claimBossMail(acc, day, kt, cap, bag, 2, mail(`bicanh:${day}:r1`)), 2);
+  assert.equal(await st.bossClaims(acc, day, kt), 2, "bộ đếm tăng đúng tổng đã thưởng");
+  let l = await st.mailList(acc); assert.equal(l.length, 1); assert.equal(l[0].items[0].qty, 2); assert.equal(l[0].claimed, false);
+  // Chốt lại cùng phòng (dedup trùng): null, không tăng bộ đếm, không thêm thư.
+  assert.equal(await st.claimBossMail(acc, day, kt, cap, bag, 2, mail(`bicanh:${day}:r1`)), null);
+  assert.equal(await st.bossClaims(acc, day, kt), 2); assert.equal((await st.mailList(acc)).length, 1);
+  // Vượt trần ngày: null và KHÔNG có thư mới.
+  assert.equal(await st.claimBossMail(acc, day, kt, cap, bag, cap, mail(`bicanh:${day}:r2`, cap)), null);
+  assert.equal((await st.mailList(acc)).length, 1); assert.equal(await st.bossClaims(acc, day, kt), 2);
+  // Hộp thư đầy (toàn thư còn đính kèm chưa nhận, không dọn được): "mailfull", bộ đếm không đổi.
+  for (let i = 0; i < MAIL.boxMax; i++) await st.mailSend(acc, { kind: "gm", dedup: `gm:${i}`, title: "g", honTe: 1 });
+  assert.equal(await st.claimBossMail(acc, day, kt, cap, bag, 1, mail(`bicanh:${day}:r3`, 1)), "mailfull");
+  assert.equal(await st.bossClaims(acc, day, kt), 2, "mailfull: không ghi lượt");
 });
 
 await test("Bí Cảnh: map Luyện Hồn Cảnh không có sương mù (nằm trong FOG.open, không đọc / ghi map_fog)", () => {
