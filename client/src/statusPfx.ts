@@ -14,9 +14,12 @@ export const STATUS_PFX_CAP: Record<"low" | "mid" | "high", number> = { low: 0, 
 /** Mỗi thân hiện tối đa ngần này sheet (còn lại chỉ có biểu tượng cũ). */
 export const STATUS_PFX_PER_BODY = 2;
 
+/** `?stpfx=0`: tắt lớp này (quay ảnh trước / sau trong game thật). */
+const STPFX_OFF = typeof location !== "undefined" && /[?&]stpfx=0/.test(location.search);
+
 /** Các khóa sheet cho một thân đang có trạng thái `has`; mức Thấp trả rỗng. */
 export function statusPfxKeys(has: (s: StatusId) => boolean, level: "low" | "mid" | "high"): string[] {
-  if (STATUS_PFX_CAP[level] <= 0) return [];
+  if (STPFX_OFF || STATUS_PFX_CAP[level] <= 0) return [];
   const out: string[] = [];
   for (const s of STATUS_PFX_ORDER) { const k = STATUS_PFX[s]; if (k && has(s)) { out.push(k); if (out.length >= STATUS_PFX_PER_BODY) break; } }
   return out;
