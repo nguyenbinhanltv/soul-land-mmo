@@ -4,6 +4,8 @@
 import type { SheetFx, SheetPlay } from "./fxSheet.ts";
 import { SPR } from "./iso.ts";
 import { fetchAsset } from "./assetUrl.ts";
+import type { Element } from "./audio/soundMap.ts";
+import type { FxKind } from "./skillFx.ts";
 
 export interface PfxMeta { fps: number; frame: [number, number]; pivot: [number, number]; loop?: boolean }
 let metas: Record<string, PfxMeta> = {};
@@ -22,17 +24,19 @@ export const PFX_STYLE: Record<string, { normal?: boolean; alpha?: number }> = {
   fx_pfx_respawn_beam_light: { alpha: 0.9 },
   fx_pfx_collect_burst: { normal: true },
   fx_pfx_power_star_light: { alpha: 0.9 },
+  // Lô B nhóm 1 (#1815): hệ chiêu, lớp bổ sung trên ảnh `fx_<hệ>_*` (cộng sáng, hơi nhẹ để không che ảnh cũ)
+  fx_pfx_fire_ring_fire: { alpha: 0.85 }, fx_pfx_frost_nova_ice: { alpha: 0.85 }, fx_pfx_ice_shatter_ice: { alpha: 0.9 }, fx_pfx_zap_hit_lightning: { alpha: 0.95 },
 };
 
 /** Kế hoạch phát (hàm thuần): chân hiệu ứng đặt đúng (x, y); SheetFx vẽ ảnh theo tâm ô nên bù độ cao từ chân tới tâm. */
-export function pfxPlan(key: string, o: { x: number; y: number; light?: boolean; delay?: number }): SheetPlay | null {
+export function pfxPlan(key: string, o: { x: number; y: number; light?: boolean; delay?: number; ang?: number; fitW?: number }): SheetPlay | null {
   const m = metas[key]; if (!m) return null;
   const st = PFX_STYLE[key] ?? {};
-  return { key, x: o.x, y: o.y, scale: SPR, fps: m.fps, normal: st.normal, alpha: st.alpha, light: o.light, delay: o.delay, lift: (m.pivot[1] - m.frame[1] / 2) * SPR };
+  return { key, x: o.x, y: o.y, scale: SPR, fps: m.fps, normal: st.normal, alpha: st.alpha, light: o.light, delay: o.delay, ang: o.ang, fitW: o.fitW, lift: o.fitW ? 0 : (m.pivot[1] - m.frame[1] / 2) * SPR };
 }
 
 /** Phát một hiệu ứng pixelfx; false khi chưa có meta / texture hoặc quá trần. */
-export function playPfx(sheets: SheetFx, key: string, o: { x: number; y: number; light?: boolean; delay?: number }): boolean {
+export function playPfx(sheets: SheetFx, key: string, o: { x: number; y: number; light?: boolean; delay?: number; ang?: number; fitW?: number }): boolean {
   const p = pfxPlan(key, o);
   return !!p && sheets.has(key) && sheets.play(p);
 }
@@ -57,3 +61,16 @@ export const hatchKey = (level: "low" | "mid" | "high"): string | null => (level
 
 /** Hồi sinh (hồn sư gục đứng dậy): trụ sáng tia hồi sinh. Mức Thấp chỉ cho chính mình (sheet lớn, người khác nhường chỗ). */
 export const reviveKey = (level: "low" | "mid" | "high", mine: boolean): string | null => (level === "low" && !mine ? null : "fx_pfx_respawn_beam_light");
+
+
+/** Lô B (#1815): hệ → kiểu chiêu → sheet pixelfx phát THÊM trên hiệu ứng G3 (không thay ảnh `fx_<hệ>_*`). Hệ / kiểu không có mục thì không thêm. */
+export const ELEMENT_PFX: Readonly<Partial<Record<Element, Partial<Record<FxKind, string>>>>> = {
+  fire: { zone: "fx_pfx_fire_ring_fire" },
+  ice: { zone: "fx_pfx_frost_nova_ice", hit: "fx_pfx_ice_shatter_ice" },
+  lightning: { hit: "fx_pfx_zap_hit_lightning" },
+};
+/** Khóa sheet bổ sung cho chiêu hệ `el` kiểu `kind`; mức Thấp không thêm (trần sheet nhỏ, nhường chiêu chính). */
+/** `?elpfx=0`: tắt lớp này (quay ảnh trước / sau trong game thật). */
+const ELPFX_OFF = typeof location !== "undefined" && /[?&]elpfx=0/.test(location.search);
+/** Khóa sheet bổ sung cho chiêu hệ `el` kiểu `kind`; mức Thấp không thêm (trần sheet nhỏ, nhường chiêu chính). */
+export const elementPfxKey = (el: Element, kind: FxKind, level: "low" | "mid" | "high"): string | null => (level === "low" || ELPFX_OFF ? null : ELEMENT_PFX[el]?.[kind] ?? null);

@@ -123,5 +123,105 @@
       ]
     },
     "loop": true
+  },
+  "fx_pfx_fire_ring_fire": {
+    "frame": [
+      212,
+      122
+    ],
+    "cols": 9,
+    "rows": 5,
+    "frames": 38,
+    "cells": 45,
+    "fps": 10.18,
+    "pivot": [
+      106,
+      87
+    ],
+    "stride": 3,
+    "src": {
+      "frames": 110,
+      "fps": 30,
+      "frame": [
+        224,
+        128
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_frost_nova_ice": {
+    "frame": [
+      252,
+      136
+    ],
+    "cols": 8,
+    "rows": 5,
+    "frames": 35,
+    "cells": 40,
+    "fps": 10,
+    "pivot": [
+      127,
+      96
+    ],
+    "stride": 3,
+    "src": {
+      "frames": 103,
+      "fps": 30,
+      "frame": [
+        288,
+        192
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_ice_shatter_ice": {
+    "frame": [
+      193,
+      108
+    ],
+    "cols": 10,
+    "rows": 5,
+    "frames": 42,
+    "cells": 50,
+    "fps": 15.19,
+    "pivot": [
+      58,
+      87
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 82,
+      "fps": 30,
+      "frame": [
+        224,
+        112
+      ]
+    },
+    "loop": false
+  },
+  "fx_pfx_zap_hit_lightning": {
+    "frame": [
+      129,
+      104
+    ],
+    "cols": 15,
+    "rows": 1,
+    "frames": 15,
+    "cells": 15,
+    "fps": 15.56,
+    "pivot": [
+      75,
+      52
+    ],
+    "stride": 2,
+    "src": {
+      "frames": 28,
+      "fps": 30,
+      "frame": [
+        144,
+        112
+      ]
+    },
+    "loop": false
   }
 }

@@ -551,7 +551,7 @@ export class GameScene extends Phaser.Scene {
     this.fxp = new ParticleLayer(this, 99979, SPR);
     this.pt = new PhapTuongSystem(this, this.fxp); // pháp tướng Võ Hồn Chân Thân (#486)
     this.skfx = new SkillFx(this, this.fxp);
-    registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL)
+    registerCodeSheets(this); registerHitFeelSheets(this); this.svis = new SkillVisualPlayer(new SheetFx(this)); this.skfx.sheets = this.svis.sheets; // S1 #542: sheet hiệu ứng theo chiêu (SKILL_VISUAL); #1815: SkillFx thêm lớp pixelfx theo hệ
     void loadPixelfx(); void loadPrivateAssets(this); // #623: kho riêng (không chặn vào game; không có kho thì không làm gì)
     this.teleTop = this.add.graphics().setDepth(99983.5); // trên mọi hiệu ứng chiêu (≤ 99983), dưới tên / số sát thương
     this.teleG = this.add.graphics().setDepth(2); // vùng cảnh báo nằm trên mặt đất, dưới hồn sư và hồn thú
@@ -1955,7 +1955,7 @@ export class GameScene extends Phaser.Scene {
     const fd = skillFxOf(VOHON[m.vh].id, m.i, !!m.ct), tc = hex(TIERS[m.tier]?.glow ?? "#ffffff"), r = sk.r * RX;
     const a = Math.PI / 2 + DIRS8.indexOf(v.face) * (Math.PI / 4), at = this.feet(v);
     const go = (kind: FxKind, o: { ang?: number; r?: number; dist?: number; x?: number; y?: number } = {}) =>
-      this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, partsOnly: replaced, ...o });
+      this.skfx.play(kind, fd.element, { x: at.x, y: at.y, ang: a, r, tierCol: tc, partsOnly: replaced, light: !mine0, ...o });
     const vis0 = skillVisualOf(VOHON[m.vh].id, m.i, !!m.ct), vis = SV_OFF ? { ...vis0, sheet: undefined, windupSheet: undefined, aftershock: undefined } : vis0, mine0 = m.id === this.me, tl = vis.sheet?.at === "cast" ? 0 : Math.max(r, 24 * SPR) * (sk.area === "proj" ? 0.9 : 0.5);
     if (mine0) this.castHeavy = { t: this.time.now, heavy: vis.heavy };
     if (vis.tier === 3 && vis.sheet) this.pt.strike(m.id, this.time.now); // T3: pháp tướng ra đòn cùng chiêu (hoạt ảnh đánh H2, không rung màn)

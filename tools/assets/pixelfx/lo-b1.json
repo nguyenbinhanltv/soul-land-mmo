@@ -1,0 +1,38 @@
+{
+  "about": "Lô B nhóm 1 (#1815): hệ lửa, băng, lôi. Chỉ giữ lớp vùng (zone) và tia trúng (hit): chiêu kiểu chém / hào quang đã có sheet riêng (SKILL_VISUAL) nên lớp thêm không thấy khác trong game thật. Không thay ảnh `fx_<hệ>_*`. Vùng nặng bớt khung (stride 3).",
+  "sha": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+  "effects": [
+    {
+      "id": "fire/fire-ring",
+      "name": "fire-ring-fire",
+      "palette": "fire",
+      "stride": 3,
+      "seed": 1,
+      "role": "hệ Hỏa: vùng quanh thân (zone)"
+    },
+    {
+      "id": "ice/frost-nova",
+      "name": "frost-nova-ice",
+      "palette": "ice",
+      "stride": 3,
+      "seed": 1,
+      "role": "hệ Băng: vùng quanh thân (zone)"
+    },
+    {
+      "id": "ice/ice-shatter",
+      "name": "ice-shatter-ice",
+      "palette": "ice",
+      "stride": 2,
+      "seed": 1,
+      "role": "hệ Băng: tia trúng (hit)"
+    },
+    {
+      "id": "lightning/zap-hit",
+      "name": "zap-hit-lightning",
+      "palette": "lightning",
+      "stride": 2,
+      "seed": 1,
+      "role": "hệ Lôi: tia trúng (hit)"
+    }
+  ]
+}

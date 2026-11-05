@@ -5,6 +5,8 @@ import { SkillDef, VOHON, ringSkill, chanThanOf } from "../../shared/data.ts";
 import { ELEMENTS, elementOf, type Element } from "./audio/soundMap.ts";
 import { SPR } from "./iso.ts";
 import { fxPrefs, type ParticleLayer, fxLevel } from "./combatFx.ts";
+import type { SheetFx } from "./fxSheet.ts";
+import { playPfx, elementPfxKey } from "./pixelfx.ts";
 
 /** 5 kiểu dựng sẵn: phóng (bay tới), vùng tròn (trên mặt đất), chém (vệt cong), hào quang buff (quanh thân), tia trúng (tại mục tiêu). */
 export type FxKind = "proj" | "zone" | "slash" | "aura" | "hit";
@@ -75,12 +77,16 @@ export interface PlayOpts {
   dur?: number;
   /** S2 (#548): chỉ phát hạt (sprite + quầng do sheet `SKILL_VISUAL` thay). */
   partsOnly?: boolean;
+  /** Chiêu của người khác: lớp pixelfx dùng bản nhẹ. */
+  light?: boolean;
 }
 
 export class SkillFx {
   private pool: Phaser.GameObjects.Image[] = [];
   private bare = false;
   private live = 0;
+  /** #1815: nơi phát lớp pixelfx bổ sung theo hệ (đặt sau khi dựng; null = không có lớp này). */
+  sheets: SheetFx | null = null;
   constructor(private scene: Phaser.Scene, private fxp: ParticleLayer, private depth = 99982) {
     // Quầng sáng bậc thang (đĩa đồng tâm, không làm mờ mượt) để hợp phong cách pixel; tô màu hệ khi dùng.
     if (!scene.textures.exists(HALO_KEY)) {
@@ -125,6 +131,11 @@ export class SkillFx {
     const c = ELEMENT_COL[el], tc = o.tierCol ?? c.hi, lv = fxLevel(), pk = PART_K[lv];
     const tex = fxTexKey(el, kind), a = o.ang ?? 0, reduce = fxPrefs.reduce;
     const n = (k: number) => Math.round(k * pk);
+    const pf = !o.partsOnly && this.sheets ? elementPfxKey(el, kind, lv) : null; // #1815: sheet pixelfx thêm trên ảnh G3 (chiêu đã có sheet riêng thay G3 thì không thêm)
+    if (pf && this.sheets) {
+      const far = kind === "slash" ? 0.5 : 0, rr = o.r ?? (kind === "slash" ? 36 * SPR : 60 * SPR);
+      playPfx(this.sheets, pf, { x: o.x + Math.cos(a) * rr * far, y: o.y + Math.sin(a) * rr * far * 0.5 - (kind === "hit" ? 8 * SPR : 0), light: o.light, ang: a, fitW: kind === "zone" ? 2 * rr : undefined });
+    }
     if (kind === "proj") {
       const dist = o.dist ?? 110 * SPR, dur = o.dur ?? 420, x1 = o.x + Math.cos(a) * dist, y1 = o.y + Math.sin(a) * dist * 0.5;
       const s = this.grab(tex);
@@ -136,7 +147,7 @@ export class SkillFx {
         const k = (j / steps) * 0.9;
         this.fxp.emit(o.x + (x1 - o.x) * k, o.y + (y1 - o.y) * k, j % 2 ? c.hi : c.main, { vx: (Math.random() - 0.5) * 20, vy: -10 - Math.random() * 20, life: 0.4, size: 2, gravity: -12 });
       });
-      this.scene.time.delayedCall(dur, () => this.play("hit", el, { x: x1, y: y1, tierCol: tc, partsOnly: o.partsOnly }));
+      this.scene.time.delayedCall(dur, () => this.play("hit", el, { x: x1, y: y1, tierCol: tc, partsOnly: o.partsOnly, light: o.light }));
     } else if (kind === "zone") {
       const r = o.r ?? 60 * SPR, dur = o.dur ?? 700, s = this.grab(tex);
       if (s) { const sc = this.scaleFor(s, 2 * r); s.setScale(sc, sc / 2); s.setPosition(snap(o.x), snap(o.y)); this.run(s, dur, k => {
