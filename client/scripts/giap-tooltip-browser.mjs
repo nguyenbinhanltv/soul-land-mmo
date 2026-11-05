@@ -95,7 +95,7 @@ GameScene.prototype.create = function(...a) {
   const SLOTS = ["vu_khi","mu","ao","dai","giay","day_chuyen","vong_trai","vong_phai","nhan_trai","nhan_phai"];
   for (const s of SLOTS) await test({ op: "gear", tpl: `${s}_chi_bao`, ilvl: 7, enhance: 15 });
   await test({ op: "give", code: "hon_cot", qty: 4 });
-  await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+  await page.evaluate(() => document.querySelector("#guide .g-skip")?.click()); await page.waitForTimeout(1000); await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click()); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
   await page.evaluate(() => { for (const it of window.__u1.bag.items.filter((i) => i.code === "trang_bi")) window.__u1.room.send("equipgear", { id: it.id }); });
   await page.waitForFunction((n) => window.__u1.gear.items.length >= n, SLOTS.length);
   await page.keyboard.press("KeyH");

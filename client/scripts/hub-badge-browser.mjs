@@ -58,7 +58,7 @@ try {
   await page.locator(".g-skip").waitFor({ timeout: 60000 });
   await page.locator(".g-skip").click();
   const skipOnboard = () => page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click());
-  await skipOnboard();
+  await sleep(1000); await skipOnboard(); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
   const setSize = async (w, h, fs) => {
     await page.setViewportSize({ width: w, height: h });
     await page.evaluate(async (f) => { const { setA11yPrefs } = await import("/src/a11y.ts"); setA11yPrefs({ font: f }); }, fs);
