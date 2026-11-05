@@ -79,7 +79,7 @@ GameScene.prototype.create = function(...a) {
   await test({ op: "give", code: "hon_hoan", qty: 4 });
   await test({ op: "give", code: "y_la_uat_kim_huong", qty: 4 });
   await test({ op: "gear", tpl: "mu_tu_kim", ilvl: 3, enhance: 5 });
-  await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+  await page.evaluate(() => document.querySelector("#guide .g-skip")?.click()); await page.waitForTimeout(1000); await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click()); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
   if (!soft) {
     await page.keyboard.press("KeyH"); await page.keyboard.press("KeyB");
     await page.locator('#char .cdtabs button').first().click();

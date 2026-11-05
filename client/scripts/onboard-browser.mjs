@@ -141,7 +141,7 @@ GameScene.prototype.create = function(...a) { window.__obScene = this; window.__
     for (const skip of [false, true]) {
       const prev = await snapshot();
       await page.locator('#hubBtn').click(); await page.locator('[data-hub="guide"]').click();
-      await page.getByRole('button', { name: 'Xem lại hướng dẫn', exact: true }).click();
+      await page.getByRole('button', { name: 'Xem lại Làm quen hệ thống', exact: true }).click();
       if (skip) await page.locator('.ob-skip').click();
       else for (let i = 0; i < 6; i++) await page.locator('.ob-next').click();
       assert.equal(await page.locator('#onboard:visible').count(), 0);

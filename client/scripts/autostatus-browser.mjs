@@ -47,7 +47,7 @@ try {
     await page.goto(`${web}/choi/`);
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     await page.waitForFunction(() => window.__as?.players?.size > 0 && !document.getElementById("hud")?.hidden, null, { timeout: 30000 });
-    for (let i = 0; i < 4; i++) { const b = page.locator("#onboard:not([hidden]) .ob-skip, .guide:not([hidden]) button:has-text(\"Bỏ qua\")").first(); if (!(await b.isVisible().catch(() => false))) break; await b.click({ timeout: 2000 }).catch(() => {}); await sleep(300); }
+    for (let i = 0; i < 4; i++) { const b = page.locator("#onboard:not([hidden]) .ob-skip, .guide:not([hidden]) button:has-text(\"Bỏ qua\")").first(); if (!(await b.isVisible().catch(() => false))) break; await b.click({ timeout: 2000 }).catch(() => {}); await sleep(1000); } // đợi nhịp nghỉ 700 ms trước Làm quen hệ thống (#1604)
     // Máy chủ không bật tự săn ở làng, nên lấy tin `auto` thật (op get) rồi phát lại với on = true qua đúng bộ nghe của cảnh; trạng thái `autost` đưa vào bằng setAutoStatus.
     await page.evaluate(async () => {
       const room = window.__as.room, list = room.onMessageHandlers.events.auto; let got;

@@ -150,9 +150,14 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   // 5b. Hướng dẫn lần đầu (M6 #752): hiện ở bước 1, giữ D đã sang bước 2, nút Bỏ qua tắt và ghi nhớ; nút "?" mở lại; tải lại không hiện.
   const guide = page.locator("#guide");
   await guide.waitFor({ state: "visible" });
-  assert.match(await guide.locator(".g-head b").textContent(), /bước 2\/4/, "giữ D xong mà hướng dẫn chưa sang bước 2");
+  assert.match(await guide.locator(".g-head b").textContent(), /^Hướng dẫn điều khiển · bước 2\/4/, "giữ D xong mà hướng dẫn chưa sang bước 2 (hoặc sai tên)");
+  assert.equal(await page.locator("#onboard:visible").count(), 0, "tài khoản mới: đang Hướng dẫn điều khiển thì Làm quen hệ thống chưa bật (#1604)");
   await guide.getByRole("button", { name: "Bỏ qua" }).click();
   await guide.waitFor({ state: "hidden" });
+  assert.equal(await page.locator("#onboard:visible").count(), 0, "sau khi Bỏ qua: có nhịp nghỉ, hai thẻ không hiện cùng lúc (#1604)");
+  await page.locator("#onboard").waitFor({ state: "visible" });
+  assert.match(await page.locator("#onboard .ob-head b").textContent(), /^Làm quen hệ thống · bước 1\/6/, "thẻ 2 sai tên (#1604)");
+  assert.equal(await guide.isVisible(), false, "chỉ một thẻ hướng dẫn tại một thời điểm (#1604)");
   await page.evaluate(() => { if (document.getElementById("hub").hidden) document.getElementById("hubBtn").click(); document.querySelector('[data-hub="guide"]').click(); });
   assert.match(await guide.locator(".g-head b").textContent(), /bước 1\/4/, "nút ? không mở lại hướng dẫn từ bước 1");
   await guide.getByRole("button", { name: "Đóng" }).click();
@@ -164,7 +169,7 @@ ${(b.stdout + b.stderr).slice(-3000)}`);
   const openReview = async () => {
     await page.locator("#hubBtn").click();
     await page.locator('#hub [data-hub="guide"]').click();
-    await guide.getByRole("button", { name: "Xem lại hướng dẫn", exact: true }).click();
+    await guide.getByRole("button", { name: "Xem lại Làm quen hệ thống", exact: true }).click();
     await onboard.waitFor({ state: "visible" });
     assert.match(await onboard.locator(".ob-head b").textContent(), /bước 1\/6/);
   };

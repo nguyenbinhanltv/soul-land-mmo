@@ -158,7 +158,7 @@ async function runSize(W, H) {
     });
     // HUD sạch (tắt thẻ hướng dẫn / làm quen, dọn toast) để thấy cột trái, chip và khung dưới thông tin nhân vật; dùng cho cỡ màn nhỏ (--sizes 640x360,844x390).
     await step("hud-sach", async () => {
-      await ev(`(document.querySelector("#guide .g-skip")?.click(), document.querySelector("#onboard .ob-skip")?.click(), document.querySelectorAll("#toasts .toast").forEach((e) => e.remove()), true)`);
+      await ev(`(document.querySelector("#guide .g-skip")?.click(), true)`); await sleep(1000); await ev(`(document.querySelector("#onboard .ob-skip")?.click(), document.querySelectorAll("#toasts .toast").forEach((e) => e.remove()), true)`);
       await sleep(400); await shot("16-hud-sach");
     });
     await step("tui", async () => { await key("KeyB", "b"); await shot("20-tui"); await key("KeyB", "b"); });

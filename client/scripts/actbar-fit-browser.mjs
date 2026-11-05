@@ -78,7 +78,7 @@ try {
     await page.goto(`${web}/choi/`);
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     await page.waitForSelector("#skills .sk:not(.empty)", { state: "attached" }); await page.waitForTimeout(1500);
-    await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+    await page.evaluate(() => document.querySelector("#guide .g-skip")?.click()); await page.waitForTimeout(1000); await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click()); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
     for (const [w, h] of SIZES) {
       await page.setViewportSize({ width: w, height: h });
       for (const fs of FONTS) {

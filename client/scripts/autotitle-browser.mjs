@@ -69,7 +69,7 @@ try {
   await page.goto(`${web}/choi/`);
   await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
   await page.waitForFunction(() => window.__at?.players.size > 0 && !document.getElementById("hud")?.hidden, null, { timeout: 30000 });
-  for (let i = 0; i < 4; i++) { const b = page.locator("#onboard:not([hidden]) .ob-skip, .guide:not([hidden]) button:has-text(\"Bỏ qua\")").first(); if (!(await b.isVisible().catch(() => false))) break; await b.click({ timeout: 2000 }).catch(() => {}); await sleep(300); }
+  for (let i = 0; i < 4; i++) { const b = page.locator("#onboard:not([hidden]) .ob-skip, .guide:not([hidden]) button:has-text(\"Bỏ qua\")").first(); if (!(await b.isVisible().catch(() => false))) break; await b.click({ timeout: 2000 }).catch(() => {}); await sleep(1000); } // đợi nhịp nghỉ 700 ms trước Làm quen hệ thống (#1604)
 
   const client = new Client(api.replace("http", "ws"));
   const nBots = fps ? 40 : 2;

@@ -111,7 +111,7 @@ try {
     await page.getByRole("button", { name: "Vào Thánh Hồn Thôn" }).click();
     if (bossOnly) {
       await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
-      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      await page.evaluate(() => document.querySelector("#guide .g-skip")?.click()); await page.waitForTimeout(1000); await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click()); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
       for (const fs of [0,1,2]) {
         await page.evaluate(async fs => {
           document.body.classList.remove("a11y-fs-1","a11y-fs-2"); if(fs) document.body.classList.add(`a11y-fs-${fs}`);
@@ -138,7 +138,7 @@ try {
     }
     await page.waitForFunction(() => window.__c8Scene?.owned?.list.length >= 2 && window.__c8Scene.players.size > 0);
     if (toastOnly) {
-      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      await page.evaluate(() => document.querySelector("#guide .g-skip")?.click()); await page.waitForTimeout(1000); await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click()); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
       for (const fs of [0, 1, 2]) for (const kind of ["level", "info"]) {
         await page.evaluate(async ({fs,kind}) => {
           document.body.classList.remove("a11y-fs-1", "a11y-fs-2"); if (fs) document.body.classList.add(`a11y-fs-${fs}`);
@@ -165,7 +165,7 @@ try {
       await context.close(); console.log(`✓ Toast ${phase} ${size}: ba cỡ chữ`); continue;
     }
     if (screensOnly) {
-      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      await page.evaluate(() => document.querySelector("#guide .g-skip")?.click()); await page.waitForTimeout(1000); await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click()); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
       for (const fs of [0, 1, 2]) for (const kind of ["mail", "rank", "calendar", "welfare", "bicanh"]) {
         await page.evaluate(async ({ fs, kind }) => {
           document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
@@ -204,7 +204,7 @@ try {
       await context.close(); console.log(`✓ Cửa sổ ${phase} ${size}: ba cỡ chữ`); continue;
     }
     if (hudOnly) {
-      await page.evaluate(() => { document.querySelector("#guide .g-skip")?.click(); document.querySelector("#onboard .ob-skip")?.click(); });
+      await page.evaluate(() => document.querySelector("#guide .g-skip")?.click()); await page.waitForTimeout(1000); await page.evaluate(() => document.querySelector("#onboard .ob-skip")?.click()); // Làm quen hệ thống bật sau nhịp nghỉ 700 ms (#1604)
       for (const fs of [0, 1, 2]) {
         await page.evaluate((fs) => {
           document.body.classList.remove("a11y-fs-1", "a11y-fs-2");
