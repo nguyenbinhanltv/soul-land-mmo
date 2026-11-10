@@ -141,7 +141,7 @@ jobs:
     name: actionbar-preview
     needs: changes
     if: ${{ needs.changes.outputs.level != 'skip' && github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ghim 24.04: Playwright chưa hỗ trợ ffmpeg trên ubuntu 26.04 (ubuntu-latest)
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -175,7 +175,7 @@ jobs:
     name: nameplate-preview
     needs: changes
     if: ${{ needs.changes.outputs.level == 'smoke' || needs.changes.outputs.level == 'full' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -227,7 +227,7 @@ jobs:
     name: flow-browser
     needs: changes
     if: ${{ needs.changes.outputs.level == 'smoke' || needs.changes.outputs.level == 'full' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -342,7 +342,7 @@ jobs:
     name: browser-regress
     needs: changes
     if: ${{ needs.changes.outputs.level == 'smoke' || needs.changes.outputs.level == 'full' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
