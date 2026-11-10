@@ -103,7 +103,7 @@ import { confirmDialog } from "../confirmDialog.ts";
 import type { OwnedVohons, Squad, PortalInfo, BagMsg, GearMsg, EquipEnhPreview, EquipEnhDone, EquipLuckPreview, EquipLuckDone, EquipSynDone, EquipSalvDone, BagDeltaMsg, AutoSoldMsg, PartyView, ChatMsg, QuestMsg, DailyMsg, ResonanceMsg, ResonanceTopMsg, ChannelsMsg, WorldMsg, AutoMsg, AutoStMsg, FriendsMsg } from "../net.ts";
 import { applyBagDelta } from "../../../shared/bagSync.ts";
 import { assetUrl } from "../assetUrl.ts";
-import { easeNameplate, layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplateRect, type NameplatePlacement, type NameplateSlot } from "../nameplate.ts";
+import { easeNameplate, layoutNameplates, measureNameplate, nameplateAppearance, nameplatePriority, playerNameplateKind, type NameplatePlacement, type NameplateSlot } from "../nameplate.ts";
 import { replayBufferedMessages } from "../roomBuffer.ts";
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -130,7 +130,7 @@ interface PView {
   fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
   lock: { face: Dir8; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
 }
-interface NameplateGroup { id: string; x: number; y: number; priority: number; lines: Phaser.GameObjects.Text[]; compact: Phaser.GameObjects.Text[]; }
+interface NameplateGroup { id: string; x: number; y: number; priority: number; pinned?: boolean; stationary?: boolean; alpha?: number; lines: Phaser.GameObjects.Text[]; compact: Phaser.GameObjects.Text[]; }
 /** Bấm để đi tới (10.1): còn cách điểm bấm chừng này pixel thế giới thì coi là tới nơi. */
 const GOAL_NEAR = 3;
 /** Nhịp animation đi theo vận tốc (11.1): đi ở tốc độ này thì chạy đúng nhịp vẽ, nhanh / chậm hơn thì nhân theo, kẹp trong khoảng. */
@@ -435,7 +435,7 @@ export class GameScene extends Phaser.Scene {
   /** Chỗ nhãn khung trước (theo độ lệch so với đầu): giữ chỗ để nhãn người đang đi không đổi chỗ mỗi khung (#828). */
   nameplateSlots = new Map<string, NameplateSlot>();
   /** Độ lệch đang VẼ của nhãn so với chỗ gốc trên đầu (đuổi theo ô đích của bộ xếp nhãn, #1064) và mốc khung trước. */
-  nameplateShown = new Map<string, { dx: number; up: number }>(); nameplateT = 0;
+  nameplateShown = new Map<string, { up: number; alpha: number }>(); nameplateT = 0;
 
   constructor() { super("game"); }
   init(data: { room: Room<any>; mapId: string; onTravel: (mapId: string, roomId: string | null) => void; onArena: (roomId: string, watch?: boolean, kind?: "bicanh") => void; onBack: () => void; watch?: boolean }) {
@@ -3402,10 +3402,7 @@ export class GameScene extends Phaser.Scene {
   /** Đo chữ Phaser sau cập nhật nội dung; cùng một khung dùng để né và đặt từng dòng. */
   layoutOverheadLabels() {
     const st = this.room.state, view = this.cameras.main.worldView, K = this.txtK;
-    const groups: NameplateGroup[] = [], obstacles: NameplateRect[] = [];
-    const body = (id: string, x: number, y: number, width: number, height: number) => {
-      if (view.contains(x, y)) obstacles.push({ id, x, y: y - height / 2, width, height, priority: 0 });
-    };
+    const groups: NameplateGroup[] = [];
     const add = (group: NameplateGroup) => {
       for (const t of group.lines) t.setVisible(false);
       if (view.contains(group.x, group.y + HEAD / 2)) groups.push(group);
@@ -3416,19 +3413,18 @@ export class GameScene extends Phaser.Scene {
       const lines = [v.label, v.autoT, v.tongT, v.title];
       lines.forEach((t) => t.setVisible(false));
       if (!p || p.dead) return;
-      body(`player:${id}`, v.root.x, v.root.y, 16 * SPR, HEAD);
-      add({ id: `player:${id}`, x: v.root.x, y: v.root.y - HEAD - 4 * K,
-        priority: nameplatePriority(id === this.selectedPlayer || (this.watching && id === this.followSid), mates.has(id), id === this.me),
+      const picked = id === this.selectedPlayer || (this.watching && id === this.followSid);
+      add({ id: `player:${id}`, x: v.root.x, y: v.root.y - HEAD - 4 * K, pinned: picked || id === this.me, alpha: v.root.alpha,
+        priority: nameplatePriority(picked, mates.has(id), id === this.me),
         lines: lines.filter((t) => !!t.text), compact: [v.label] });
     });
     this.npcs.forEach((n, i) => {
       const at = W2S(n.x, n.y), marker = hud.questMarker(n.id);
       const lines = [n.nameText, n.titleText, n.mark, n.qmark].filter((t): t is Phaser.GameObjects.Text => !!t);
       lines.forEach((t) => t.setVisible(false));
-      body(`npc:${i}`, at.x, at.y, 16 * SPR, at.y - n.top);
       const shown = [n.nameText, n.titleText, n.id === this.nearNpc ? n.mark : null, marker ? n.qmark : null]
         .filter((t): t is Phaser.GameObjects.Text => !!t && !!t.text);
-      add({ id: `npc:${i}`, x: at.x, y: n.top - 4 * K, priority: n.id === this.nearNpc ? 90 : marker ? 60 : 30,
+      add({ id: `npc:${i}`, x: at.x, y: n.top - 4 * K, stationary: true, priority: n.id === this.nearNpc ? 90 : marker ? 60 : 30,
         lines: shown, compact: [n.nameText, ...(marker && n.qmark ? [n.qmark] : [])] });
     });
     this.eliteLabels.forEach((t, id) => {
@@ -3436,32 +3432,31 @@ export class GameScene extends Phaser.Scene {
       t.setVisible(false);
       if (!b || !s || !s.visible || b.dive || b.hp <= 0) return;
       const an = beastLabelAnchor(s, b.tier), top = an.top;
-      body(`beast:${id}`, an.x, an.y, Math.min(s.displayWidth, 64), an.y - top);
-      add({ id: `beast:${id}`, x: an.x, y: top - 6 * K, priority: nameplatePriority(id === this.targetBeast, false, false, b.rank), lines: [t], compact: [t] });
+      add({ id: `beast:${id}`, x: an.x, y: top - 6 * K, pinned: id === this.targetBeast, priority: nameplatePriority(id === this.targetBeast, false, false, b.rank), lines: [t], compact: [t] });
     });
     // Biển địa điểm cũng tham gia né chữ; biển trùng tên NPC gần đó chỉ giữ một bản.
     this.wtexts.forEach((e, i) => {
       e.t.setVisible(false);
       if (!e.t.text || this.npcs.some((n) => n.nameText.text === e.t.text && Math.hypot(W2S(n.x, n.y).x - e.x0, n.top - e.y0) < 120)) return;
-      add({ id: `sign:${i}`, x: e.x0, y: e.y0 - e.off * K, priority: 10, lines: [e.t], compact: [e.t] });
+      add({ id: `sign:${i}`, x: e.x0, y: e.y0 - e.off * K, stationary: true, priority: 10, lines: [e.t], compact: [e.t] });
     });
     const measure = (lines: Phaser.GameObjects.Text[]) => measureNameplate(lines.map((t) => ({ width: t.width * K, height: t.height * K })), 2 * K);
     const measured = new Map(groups.map((g) => [g.id, { group: g, full: measure(g.lines), compact: measure(g.compact) }]));
     this.nameplateLayout = layoutNameplates(groups.map((g) => {
       const m = measured.get(g.id)!;
-      return { id: g.id, x: g.x, y: g.y - m.full.height / 2, width: m.full.width, height: m.full.height, priority: g.priority, compactSize: m.compact };
-    }), { gap: 2 * K, maxOffset: 64 * K, maxVisible: 18, viewport: view, obstacles, prev: this.nameplateSlots, now: performance.now() });
+      return { id: g.id, x: g.x, y: g.y - m.full.height / 2, width: m.full.width, height: m.full.height, priority: g.priority, compactSize: m.compact, pinned: g.pinned, stationary: g.stationary };
+    }), { gap: 2 * K, maxOffset: 64 * K, maxVisible: 18, prev: this.nameplateSlots, now: performance.now() });
     this.nameplateSlots = new Map(this.nameplateLayout.flatMap((p) => p.visible && p.slot ? [[p.id, p.slot] as const] : []));
-    // Đổi ô (bị đè thật / về chỗ gốc) không dịch tức thời: độ lệch vẽ đuổi theo ô đích ~120 ms, vẫn bám đầu đã nội suy (#1064).
-    const now = performance.now(), dtMs = this.nameplateT ? now - this.nameplateT : 1e9, shown = new Map<string, { dx: number; up: number }>();
+    // Nhãn luôn neo đúng đầu chủ (đã nội suy), không dời ngang (#828, #1064, #1823). Chỉ độ nhấc dọc của vật đứng yên và độ mờ đuổi theo mức đích.
+    const now = performance.now(), dtMs = this.nameplateT ? now - this.nameplateT : 1e9, shown = new Map<string, { up: number; alpha: number }>();
     this.nameplateT = now;
     for (const placement of this.nameplateLayout) {
       if (!placement.visible) continue;
       const m = measured.get(placement.id)!, lines = placement.compact ? m.group.compact : m.group.lines, home = m.group, old = this.nameplateShown.get(placement.id);
       const size = placement.compact ? m.compact : m.full;
-      const dx = easeNameplate(old?.dx, placement.x - home.x, dtMs), up = easeNameplate(old?.up, home.y - (placement.y + placement.height / 2), dtMs);
-      shown.set(placement.id, { dx, up });
-      lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(home.x + dx, home.y - up - size.offsets[i]).setVisible(true));
+      const up = easeNameplate(old?.up, placement.slot?.up ?? 0, dtMs), fade = easeNameplate(old?.alpha, placement.alpha, dtMs, 90);
+      shown.set(placement.id, { up, alpha: fade });
+      lines.forEach((t, i) => t.setOrigin(0.5, 1).setScale(K).setPosition(home.x, home.y - up - size.offsets[i]).setAlpha(fade * (home.alpha ?? 1)).setVisible(true));
     }
     this.nameplateShown = shown;
     // Bảng danh hiệu: chỉ người đang hiện chữ danh hiệu (trong tầm nhìn, chưa thu gọn), đặt theo chữ đã bố trí.

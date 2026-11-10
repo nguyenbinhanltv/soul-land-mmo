@@ -1,18 +1,27 @@
 export type NameplateKind = "npc" | "player" | "party" | "pk" | "beast" | "elite" | "king" | "boss";
 export interface NameplateRect { id: string; x: number; y: number; width: number; height: number; priority: number; }
-export interface NameplateItem extends NameplateRect { compactSize?: { width: number; height: number }; }
-/** Chỗ đã chọn của một nhãn: lệch ngang `dx`, nhấc lên `up` so với chỗ gốc trên đầu; `want` / `wantSince`: chỗ tốt hơn đang chờ đủ `hold` ms; `bad`: từ lúc nào chỗ này bị đè liên tục (chờ `settle` ms mới rời). */
-export interface NameplateSlot { dx: number; up: number; compact: boolean; want?: string; wantSince?: number; bad?: number }
-export interface NameplatePlacement extends NameplateRect { visible: boolean; compact: boolean; slot?: NameplateSlot; }
+export interface NameplateItem extends NameplateRect {
+  compactSize?: { width: number; height: number };
+  /** Nhãn của chính mình / mục tiêu đang chọn: luôn hiện đủ, đúng chỗ, mờ hay thu gọn đều không áp dụng. */
+  pinned?: boolean;
+  /** Nhãn của vật đứng yên (NPC, biển địa điểm): được xếp chồng dọc với nhãn đứng yên khác. Thực thể đang chạy thì không bao giờ dời. */
+  stationary?: boolean;
+}
+/** Mức hiện của một nhãn: 0 đủ dòng, 1 thu gọn, 2 thu gọn và mờ. `want` / `since`: mức đang chờ đủ trễ mới đổi (chống nhấp nháy). */
+export type NameplateLevel = 0 | 1 | 2;
+export interface NameplateSlot { level: NameplateLevel; up: number; want?: NameplateLevel; since?: number }
+export interface NameplatePlacement extends NameplateRect { visible: boolean; compact: boolean; alpha: number; slot?: NameplateSlot; }
 export interface NameplateLayoutOptions {
   gap?: number; maxVisible?: number; maxOffset?: number;
-  viewport?: { x: number; y: number; width: number; height: number };
-  obstacles?: readonly NameplateRect[];
-  /** Chỗ khung trước (từ `placement.slot`): còn hợp lệ thì giữ, chỉ đổi sang chỗ tốt hơn khi nó trống liên tục `hold` ms (mặc định 450). */
-  prev?: ReadonlyMap<string, NameplateSlot>; now?: number; hold?: number;
-  /** Chỗ cũ bị đè liên tục chưa tới `settle` ms (mặc định 200) thì vẫn ở yên: thân / nhãn khác đi ngang thoáng qua không đẩy nhãn đi (#1064). */
+  /** Mức của khung trước (từ `placement.slot`). */
+  prev?: ReadonlyMap<string, NameplateSlot>; now?: number;
+  /** Bị đè liên tục chưa tới `settle` ms (mặc định 200) thì giữ mức cũ: người / thú đi ngang thoáng qua không làm nhãn đổi dạng. */
   settle?: number;
+  /** Hết bị đè liên tục `hold` ms (mặc định 450) mới trả lại mức rõ hơn. */
+  hold?: number;
 }
+/** Độ đậm nhãn bị đè (mức 2). */
+export const NAMEPLATE_FADED_ALPHA = 0.35;
 export interface NameplateAppearance { color: string; stroke: string; fontSize: number; compactFontSize: number; }
 
 const APPEARANCE: Record<NameplateKind, NameplateAppearance> = {
@@ -43,64 +52,50 @@ export function nameplatesOverlap(a: NameplateRect, b: NameplateRect, gap = 0) {
   return Math.abs(a.x - b.x) < (a.width + b.width) / 2 + gap && Math.abs(a.y - b.y) < (a.height + b.height) / 2 + gap;
 }
 
-const slotKey = (dx: number, up: number, compact: boolean) => `${Math.round(dx)}|${Math.round(up)}|${compact ? 1 : 0}`;
-
 /**
- * Xếp khung chữ thật lên trên đầu, không đè nhãn đã nhận hoặc thân nhân vật; hết chỗ thì ẩn.
- * Có `prev` thì nhãn giữ chỗ cũ (tính theo độ lệch so với đầu, nên đi theo thân) khi chỗ đó còn hợp lệ: người đi ngang nhau không làm
- * nhãn đổi chỗ qua lại mỗi khung; bị đè thật thì đổi ngay, còn quay về chỗ gốc chỉ sau khi chỗ gốc trống đủ `hold`.
+ * Đặt nhãn LUÔN đúng chỗ gốc trên đầu chủ của nó (không dời ngang, không né thân, không nhấc cao theo bề rộng chữ), nên nhãn chạy theo chủ
+ * mỗi khung. Hai nhãn đè nhau thì nhãn ưu tiên thấp hơn thu gọn rồi mờ (`NAMEPLATE_FADED_ALPHA`), có trễ `settle` / `hold` để không nhấp nháy;
+ * nhãn mờ không cản nhãn khác. Nhãn `pinned` không bao giờ đổi. Riêng nhãn `stationary` được nhấc dọc khi đè nhãn đứng yên khác (ô cố định,
+ * không đổi theo chuyển động). Quá `maxVisible` thì ẩn nhãn ưu tiên thấp (nhãn `pinned` không bao giờ bị ẩn).
  */
 export function layoutNameplates(items: readonly NameplateItem[], options: NameplateLayoutOptions = {}): NameplatePlacement[] {
   const gap = options.gap ?? 3, maxVisible = options.maxVisible ?? 18, maxOffset = options.maxOffset ?? 96;
-  const now = options.now ?? 0, hold = options.hold ?? 450, settle = options.settle ?? 200, v = options.viewport;
-  const placed: NameplatePlacement[] = [];
+  const now = options.now ?? 0, hold = options.hold ?? 450, settle = options.settle ?? 200;
+  const placed: (NameplatePlacement & { stationary?: boolean })[] = [];
   let count = 0;
-  for (const item of [...items].sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id))) {
-    if (count >= maxVisible) { placed.push({ ...item, visible: false, compact: true }); continue; }
+  const order = [...items].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.priority - a.priority || a.id.localeCompare(b.id));
+  for (const item of order) {
+    if (!item.pinned && count >= maxVisible) { placed.push({ ...item, visible: false, compact: true, alpha: 0 }); continue; }
+    count++;
     const compact = item.compactSize ? { ...item, ...item.compactSize } : item;
-    const sizes = items.length > maxVisible ? [[compact, true]] as const : [[item, false], [compact, true]] as const;
+    const blockers = placed.filter((o) => o.visible && o.alpha === 1);
+    const clear = (c: NameplateRect, only?: (o: NameplatePlacement & { stationary?: boolean }) => boolean) =>
+      !blockers.some((o) => (!only || only(o)) && nameplatesOverlap(c, o, gap));
     const bottom = item.y + item.height / 2;
-    // Hai loại cản: nhãn đã nhận / mép màn hình (không bao giờ vẽ chồng) và vật cản (thân, biển: đè thoáng qua thì chờ `settle`).
-    const clearOfPlates = (c: NameplateRect) =>
-      !(v && (c.x - c.width / 2 < v.x || c.x + c.width / 2 > v.x + v.width || c.y - c.height / 2 < v.y || c.y + c.height / 2 > v.y + v.height))
-      && !placed.some((other) => other.visible && nameplatesOverlap(c, other, gap));
-    const clearOfBodies = (c: NameplateRect) => !options.obstacles?.some((other) => nameplatesOverlap(c, other, gap));
-    const free = (c: NameplateRect) => clearOfPlates(c) && clearOfBodies(c);
-    const at = (size: NameplateRect, dx: number, up: number): NameplateRect => ({ ...size, x: item.x + dx, y: bottom - size.height / 2 - up });
-    type Cand = { rect: NameplateRect; slot: NameplateSlot };
-    const cands: Cand[] = [];
-    for (const [size, compacted] of sizes) {
-      for (let up = 0; up <= maxOffset; up += Math.max(12, size.height + gap)) {
-        for (const dx of [0, -(size.width + gap), size.width + gap]) {
-          const rect = at(size, dx, up);
-          if (free(rect)) cands.push({ rect, slot: { dx, up, compact: compacted } });
-        }
-      }
-      if (cands.length) break;
+    const rise = (size: NameplateRect, up: number): NameplateRect => ({ ...size, x: item.x, y: bottom - size.height / 2 - up });
+    if (item.pinned) {
+      placed.push({ ...item, visible: true, compact: false, alpha: 1, slot: { level: 0, up: 0 } });
+      continue;
     }
-    const best = cands[0];
-    let pick = best;
+    // Vật đứng yên: chồng dọc với nhãn đứng yên khác (vị trí cố định nên ô nhấc không nhảy).
+    let up = 0;
+    if (item.stationary) {
+      const still = (o: { stationary?: boolean }) => !!o.stationary;
+      while (up <= maxOffset && !clear(rise(item, up), still)) up += Math.max(12, item.height + gap);
+      if (up > maxOffset) up = 0;
+    }
+    const wantLevel: NameplateLevel = clear(rise(item, up)) ? 0 : clear(rise(compact, up)) ? 1 : 2;
     const prev = options.prev?.get(item.id);
-    const prevSize = best && prev && sizes.find(([, c]) => c === prev.compact)?.[0];
-    if (best && prev && prevSize && slotKey(prev.dx, prev.up, prev.compact) !== slotKey(best.slot.dx, best.slot.up, best.slot.compact)) {
-      // Chỗ cũ còn hợp lệ thì giữ; bị đè thì đổi sang chỗ hợp lệ GẦN chỗ cũ nhất (nhảy ngắn), chưa phải chỗ gốc.
-      const rect = at(prevSize, prev.dx, prev.up), blocked = !free(rect), bad = blocked ? prev.bad ?? now : undefined;
-      // Chỉ vật cản đè (còn sạch nhãn khác và trong màn hình) chưa đủ `settle` thì chờ ở chỗ cũ; đè nhãn / ra mép thì đổi ngay. Giữ nguyên bộ đếm `hold`.
-      const keep: Cand | undefined = blocked && clearOfPlates(rect) && now - bad! < settle
-        ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact, bad, want: prev.want, wantSince: prev.wantSince } }
-        : !blocked ? { rect, slot: { dx: prev.dx, up: prev.up, compact: prev.compact } }
-        : cands.filter((c) => c.slot.compact === prev.compact)
-          .sort((a, b) => Math.abs(a.slot.dx - prev.dx) + Math.abs(a.slot.up - prev.up) - Math.abs(b.slot.dx - prev.dx) - Math.abs(b.slot.up - prev.up))[0];
-      if (keep && keep.slot.bad !== undefined) pick = keep;
-      else if (keep) {
-        const want = slotKey(best.slot.dx, best.slot.up, best.slot.compact), since = prev.want === want ? prev.wantSince ?? now : now;
-        if (now - since < hold) pick = { rect: keep.rect, slot: { ...keep.slot, want, wantSince: since } };
-      }
+    let level = wantLevel, want: NameplateLevel | undefined, since: number | undefined;
+    if (prev && prev.level !== wantLevel) {
+      since = prev.want === wantLevel ? prev.since ?? now : now;
+      if (now - since < (wantLevel > prev.level ? settle : hold)) { level = prev.level; want = wantLevel; } else since = undefined;
     }
-    placed.push(pick ? { ...pick.rect, id: item.id, priority: item.priority, visible: true, compact: pick.slot.compact, slot: pick.slot } : { ...item, visible: false, compact: true });
-    if (pick) count++;
+    const size = level === 0 ? item : compact, rect = rise(size, up);
+    placed.push({ ...rect, id: item.id, priority: item.priority, visible: true, compact: level > 0, alpha: level === 2 ? NAMEPLATE_FADED_ALPHA : 1,
+      slot: { level, up, ...(want !== undefined ? { want, since } : {}) }, stationary: item.stationary });
   }
-  return placed;
+  return placed.map(({ stationary: _s, ...p }) => p);
 }
 
 /** Làm mượt bước đổi ô: vị trí vẽ đuổi theo ô đích kiểu mũ (xong ~95% sau 3·tau ≈ 135 ms), không phụ thuộc nhịp khung. Chưa có `from` (nhãn mới) thì hiện ngay đúng chỗ. */
