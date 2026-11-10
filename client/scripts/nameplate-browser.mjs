@@ -128,7 +128,7 @@ try {
       window.__c9After.call(s);
       const sig = s.nameplateLayout.filter((p) => p.visible).map((p) => {
         const t = s.nameplateShown.get(p.id);
-        return `${p.id}:${p.compact ? 1 : 0}:${t ? t.dx.toFixed(1) + "," + t.up.toFixed(1) : ""}`;
+        return `${p.id}:${p.compact ? 1 : 0}:${t ? t.up.toFixed(1) + "," + t.alpha.toFixed(2) : ""}`;
       }).sort().join("|");
       const old = window.__c9PlateSample;
       if (old?.sig !== sig) { window.__c9PlateSample = { sig, since: now }; return false; }
@@ -138,14 +138,15 @@ try {
       const s = window.__c9Scene;
       window.__c9After.call(s);
       const shown = s.nameplateLayout.filter((p) => p.visible), texts = [];
-      const add = (t) => { if (t?.visible) texts.push({ text: t.text, bounds: t.getBounds() }); };
-      s.players.forEach((v) => [v.label, v.title, v.tongT].forEach(add));
+      // Luật mới: nhãn bị đè thì mờ (không dời); chỉ kiểm chồng chữ giữa các nhãn còn rõ. Nhãn của mình và mục tiêu luôn rõ, đúng chỗ.
+      const add = (t, pinned = false) => { if (t?.visible && t.alpha > 0.9) texts.push({ text: t.text, bounds: t.getBounds(), pinned }); };
+      s.players.forEach((v, id) => [v.label, v.title, v.tongT].forEach((t) => add(t, id === s.me || id === s.selectedPlayer)));
       s.npcs.forEach((n) => [n.nameText, n.titleText, n.mark, n.qmark].forEach(add));
       s.eliteLabels.forEach(add); s.wtexts.forEach((e) => add(e.t));
       const overlaps = [];
       for (let i = 0; i < texts.length; i++) for (const b of texts.slice(i + 1)) {
         const a = texts[i].bounds, r = b.bounds;
-        if (a.left < r.right && r.left < a.right && a.top < r.bottom && r.top < a.bottom && overlaps.length < 10) overlaps.push([texts[i].text, b.text]);
+        if (!(texts[i].pinned && b.pinned) && a.left < r.right && r.left < a.right && a.top < r.bottom && r.top < a.bottom && overlaps.length < 10) overlaps.push([texts[i].text, b.text]);
       }
       return { players: s.players.size, visible: shown.length, overlaps, selected: shown.some((p) => p.id === `player:${s.selectedPlayer}`), party: s.party.members.every((m) => shown.some((p) => p.id === `player:${m.sid}`)) };
     });
@@ -184,7 +185,7 @@ try {
   await writeFile(resolve(out, "verification.json"), JSON.stringify(samples, null, 2));
   await writeFile(resolve(out, "preview.html"), `<!doctype html><html lang="vi"><meta charset="utf-8"><title>C9 — nhãn trong game thật</title>
     <style>body{font:16px system-ui;background:#171d20;color:#f6eedb;margin:24px}img{max-width:100%;image-rendering:pixelated}section{margin:32px 0}figure{margin:16px 0}h1,h2{color:#ffe477}</style>
-    <h1>C9 — 41 hồn sư cùng màn hình</h1><p>Hai ảnh cùng state server RAM thật. Trước: tắt né/ẩn nhãn, đặt theo độ lệch cũ. Sau: bật C9. Đo bằng Chromium render phần mềm; không phải FPS thiết bị người chơi.</p>
+    <h1>C9 — 41 hồn sư cùng màn hình</h1><p>Hai ảnh cùng state server RAM thật. Trước: tắt xếp nhãn, đặt theo độ lệch cũ. Sau: nhãn neo đúng đầu, bị đè thì thu gọn / mờ. Đo bằng Chromium render phần mềm; không phải FPS thiết bị người chơi.</p>
     ${samples.map((s) => `<section><h2>${s.width}×${s.height}</h2><p>FPS ${s.beforeFps} → ${s.afterFps}; còn ${s.visible} nhãn; không chồng chữ; giữ mục tiêu và tổ đội.</p><figure><figcaption>Trước</figcaption><img src="before-${s.width}x${s.height}.png"></figure><figure><figcaption>Sau</figcaption><img src="after-${s.width}x${s.height}.png"></figure></section>`).join("")}
     <h2>Dấu nhiệm vụ</h2><p>Trạng thái do server gửi: nhận bài và chờ trả bài.</p><img src="quest-offer.png"><img src="quest-ready.png"></html>`);
   console.log(JSON.stringify({ output: out, samples }, null, 2));

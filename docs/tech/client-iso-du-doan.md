@@ -45,3 +45,8 @@ Thêm khóa mới: đặt hằng khóa cạnh mô-đun sở hữu nó và thêm 
 Đèn lồng đỏ `cot_den_do` (#1537) dùng cùng hợp đồng clip vật thể: 16 khung × 100 ms, chân `[24,94]`, chỉ phần đèn/tua thay đổi. Không thêm Image/Sprite/timer theo vật; dừng khung 0 ở Thấp/Giảm chuyển động, gỡ đăng ký khi chunk ngoài camera. Không đổi collision, depth, ánh sáng hoặc bản đồ.
 
 Sen `sen_phat_sang` ở Lõi Tinh Đấu (#1551) đã được chủ repo duyệt A/B, dùng clip 32 pha × 100 ms trên Image hiện có, chân `[16,28]`. Chỉ cánh/nhụy đổi một bậc sáng trong palette gốc; normal gốc lặp nguyên pixel, không thêm nguồn sáng. Khung 0 trùng ảnh tĩnh ở Thấp/Giảm chuyển động; giữ cùng cleanup chunk và vòng đời cảnh. Nguồn RAW/prompt/hash ở `art/src/prop-clip/sen_phat_sang/`, nhập tái tạo bằng `tools/assets/sen-import.mjs`.
+
+
+## Nhãn trên đầu (#828, #1064, #1823)
+
+`nameplate.ts` `layoutNameplates`, `GameScene.layoutOverheadLabels`: nhãn luôn neo đúng đầu chủ (đã nội suy mỗi khung), không dời ngang, không né thân. Hai nhãn đè nhau thì nhãn ưu tiên thấp thu gọn rồi mờ (`NAMEPLATE_FADED_ALPHA`), có trễ `settle` / `hold` chống nhấp nháy. Nhãn của mình và mục tiêu đang chọn (người, hồn thú) không bao giờ dời, mờ hay ẩn; chỉ nhãn vật đứng yên (NPC, biển) xếp chồng dọc. Quá `maxVisible` thì ẩn nhãn ưu tiên thấp. Test: `test:nameplate`, `test:nameplate-browser`.
