@@ -1,0 +1,66 @@
+{
+ "du_an_cu": "van-gioi-tien-do (D:/METAGRIT/van-gioi-tien-do, commit b9d2182b05cd9ed9ad998212d9ff2fb65949cfa4, chỉ đọc)",
+ "nguon": "AI-generated with Google Gemini by the project owner, 2026-11-09/10 (theo docs/ASSET-LICENSES.md của dự án cũ: mục GEMINI-PART3, GEMINI-PART2, GEMINI-PROPS-ICONS)",
+ "tep": [
+  {
+   "file": "assets-src/gemini/items2/alchemy.png",
+   "bytes": 5962955,
+   "sha256": "0a9a0f00a8ed7868085ea11d2f591f9ca9e5aafe9fa934e282ec945364dee0f4",
+   "thanh_pham": "9 icon: item_linh_lenh_cong_hien, item_linh_sam, item_hoa_lien, item_linh_thao, item_loi_qua, item_dan_lam, item_dan_luc, item_dan_hoang, item_dan_bach"
+  },
+  {
+   "file": "assets-src/gemini/items2/manuals.png",
+   "bytes": 5798303,
+   "sha256": "026797e55418077b5637b2fa2db41268b63d0a0e1276f46def3353e6d03729ce",
+   "thanh_pham": "9 icon: item_bi_tich_t{1,2,3}_{sach,cuon,bia}"
+  },
+  {
+   "file": "assets-src/gemini/items/heal_pill.png",
+   "bytes": 4676896,
+   "sha256": "71d9d7061d52b20d6f4ba4f7a0ee717cb9ec909d4664d438bfa9394346c5ec8c",
+   "thanh_pham": "item_dan_hoi_phuc"
+  },
+  {
+   "file": "assets-src/gemini/items/breakthrough_pill.png",
+   "bytes": 5321607,
+   "sha256": "c371c36a350d7d335e0f9a96dc01f8e4d562135a4fac9ab2b3db503f721b84ac",
+   "thanh_pham": "item_dan_pha_canh"
+  },
+  {
+   "file": "assets-src/gemini/items/stone_low.png",
+   "bytes": 5109266,
+   "sha256": "e3df7cccb9b59d06868b18c7711194b19294ad9a2ff9dae568055ca2f4b762e7",
+   "thanh_pham": "item_linh_thach_ha"
+  },
+  {
+   "file": "assets-src/gemini/realms/realm_badges.png",
+   "bytes": 6794489,
+   "sha256": "120cbec1ebe0228ac2ba2b6ef701c325d64c34fc6448569552c3e194c18160e9",
+   "thanh_pham": "gi_canh_gioi_1…9 (+ _1x 24 px), đánh số theo ô trái→phải, trên→dưới"
+  },
+  {
+   "file": "assets-src/gemini/sect/sect_alchemy_furnace.png",
+   "bytes": 5832770,
+   "sha256": "195247e23ef356ea27e61be6e0de69bf4495c0ab0550cba723c9aae14f6160f8",
+   "thanh_pham": "prop_dan_lo"
+  },
+  {
+   "file": "assets-src/gemini/sect/sect_scripture_pavilion.png",
+   "bytes": 7466800,
+   "sha256": "fadebc75737c32186341c39e4ff47263a60eea276c5a5db99f80642b791e997b",
+   "thanh_pham": "prop_tang_kinh_cac"
+  },
+  {
+   "file": "assets-src/gemini/sect/sect_training_dummy.png",
+   "bytes": 6481737,
+   "sha256": "25f496ace4b4de114e47ac3e5bec455c3a4a311c685b5589b299610098a9bcb0",
+   "thanh_pham": "prop_moc_nhan"
+  },
+  {
+   "file": "assets-src/gemini/tribulation/r1_strike.png",
+   "bytes": 4670514,
+   "sha256": "71dfad9c586dd4190cfec4454dbbf5e830b46e960d5a9064e7539114308dd1b6",
+   "thanh_pham": "fx_loi_kiep_tia"
+  }
+ ]
+}

@@ -42,6 +42,10 @@ Thí điểm lửa trại và đài phun nước: lớp lửa/tia nước tạo 
 - Công cụ AI chỉ dùng khi điều khoản cho phép dùng kết quả (Gemini: điều khoản Gemini Apps của Google; ComfyUI: CreativeML Open RAIL++-M của SDXL, CreativeML OpenRAIL-M của pixel-art-xl, MIT của VAE). Mỗi key một dòng trong `art/CREDITS.md` (file, key, công cụ, prompt, ngày). Không ghi tên họa sĩ còn sống hay tên game thương mại vào prompt.
 - **Không dùng** sprite, ảnh cắt hoặc hình vẽ lại sát nét từ game thương mại (kể cả *Thế Giới Săn Hồn* và các game isometric dùng làm chuẩn phong cách), phim hoạt hình hay truyện tranh chính thức; chỉ tham khảo ý tưởng, không làm ảnh tham chiếu.
 
+## Lô thử Vạn Giới Tiên Đồ → Đấu La Tu Tiên (làn nhanh, chưa nhập)
+
+Asset của dự án cũ Vạn Giới Tiên Đồ (chủ repo đã dừng, gộp thành epic Đấu La Tu Tiên): ảnh `assets-src/gemini/{items,items2,realms,sect,tribulation}` do **chủ dự án tự tạo bằng Google Gemini ngày 2026-11-09 / 10** (theo `docs/ASSET-LICENSES.md` bên đó), điều khoản Gemini của tài khoản chủ dự án như ảnh Gemini cũ; không CC0. Pixel hóa qua `gemini-import.mjs` / `normal.mjs` (không nhập thẳng: gốc là ảnh vẽ độ phân giải cao 2048², khác pixel art 640×360). Đã thử 10 ảnh nguồn → icon `item_*` 32 px, huy hiệu `gi_canh_gioi_*` 32 / 24 px, công trình `prop_dan_lo` / `prop_tang_kinh_cac` / `prop_moc_nhan` (+ `_n`), `fx_loi_kiep_tia`. SHA-256 nguyên byte từng ảnh nguồn, tên gốc → tên game, lệnh tái lập ở `art/src/vgtd-pilot/NGUON.md`, `nguon.json`. Chưa nối vào manifest / code / bản đồ; chờ chủ repo duyệt.
+
 ## Concept Danh Hiệu P4a (#1770)
 
 Concept Danh Hiệu P4a (#1770, phần #1766): Codex builtin OpenAI `image_gen.imagegen`, 03/11/2026, tự sinh không ảnh tham chiếu ngoài. Điều khoản đầu ra OpenAI, không CC0; RAW nguyên byte, prompt và SHA256 ở `art/src/danh-hieu-1770/`. Tờ sáu bậc 192×224 có alpha thật, 24 màu hữu hình/bậc; trang đối chiếu 1x/3x ở artifacts phiên AO `soul_land_game-1039`. **Chỉ concept, chưa nhập game; bộ đầy đủ thuộc PR sau.**
