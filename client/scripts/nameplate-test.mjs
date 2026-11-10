@@ -78,6 +78,15 @@ const at = (items, opt = {}) => Object.fromEntries(layoutNameplates(items, { gap
   }
   assert.ok(maxJump <= 1.6, `nhãn mình chỉ đi theo đầu (bước lớn nhất ${maxJump})`);
 }
+// Nhãn mờ nằm dưới nhãn ghim / nhãn có bảng danh hiệu thì ẩn hẳn (không lộ sau bảng).
+{
+  const out = at([R("me", 0, 0, 100, { pinned: true }), R("a", 0, 0, 50), R("b", 5, 0, 40), R("c", 10, 0, 30)]);
+  assert.equal(out.c.alpha, 0, "nhãn mờ dưới nhãn ghim ẩn hẳn");
+  const plated = at([R("p", 0, 0, 100, { plated: true }), R("a", 0, 0, 50), R("b", 5, 0, 40), R("n", 40, 0, 30)]);
+  assert.equal(plated.b.alpha, 0, "nhãn mờ dưới bảng danh hiệu ẩn hẳn");
+  const free = at([R("a", 0, 0, 100), R("b", 0, 0, 50), R("c", 5, 0, 30)]);
+  assert.equal(free.c.alpha, NAMEPLATE_FADED_ALPHA, "chỉ bị nhãn thường đè thì vẫn mờ");
+}
 // Nhóm đứng yên (NPC / biển) được chồng dọc, cố định theo khung; thực thể đang chạy không bao giờ nhấc.
 {
   const items = [R("npc1", 100, 100, 60, { stationary: true }), R("sign", 100, 100, 10, { stationary: true }), R("runner", 100, 100, 20)];

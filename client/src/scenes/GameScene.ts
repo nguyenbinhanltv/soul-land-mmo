@@ -130,7 +130,7 @@ interface PView {
   fly: { t0: number; ms: number } | null;   // đang bay (Tà Hỏa Phượng Hoàng, 2.5b): chỉ là hiệu ứng, nhấc hình lên khỏi bóng
   lock: { face: Dir8; until: number } | null; // hướng nhìn theo đòn vừa đánh (tin `fx` có dx, dy), giữ hết animation đánh (10.1)
 }
-interface NameplateGroup { id: string; x: number; y: number; priority: number; pinned?: boolean; stationary?: boolean; alpha?: number; lines: Phaser.GameObjects.Text[]; compact: Phaser.GameObjects.Text[]; }
+interface NameplateGroup { id: string; x: number; y: number; priority: number; pinned?: boolean; stationary?: boolean; plated?: boolean; alpha?: number; lines: Phaser.GameObjects.Text[]; compact: Phaser.GameObjects.Text[]; }
 /** Bấm để đi tới (10.1): còn cách điểm bấm chừng này pixel thế giới thì coi là tới nơi. */
 const GOAL_NEAR = 3;
 /** Nhịp animation đi theo vận tốc (11.1): đi ở tốc độ này thì chạy đúng nhịp vẽ, nhanh / chậm hơn thì nhân theo, kẹp trong khoảng. */
@@ -3414,7 +3414,7 @@ export class GameScene extends Phaser.Scene {
       lines.forEach((t) => t.setVisible(false));
       if (!p || p.dead) return;
       const picked = id === this.selectedPlayer || (this.watching && id === this.followSid);
-      add({ id: `player:${id}`, x: v.root.x, y: v.root.y - HEAD - 4 * K, pinned: picked || id === this.me, alpha: v.root.alpha,
+      add({ id: `player:${id}`, x: v.root.x, y: v.root.y - HEAD - 4 * K, pinned: picked || id === this.me, plated: !!v.title.text, alpha: v.root.alpha,
         priority: nameplatePriority(picked, mates.has(id), id === this.me),
         lines: lines.filter((t) => !!t.text), compact: [v.label] });
     });
@@ -3444,7 +3444,7 @@ export class GameScene extends Phaser.Scene {
     const measured = new Map(groups.map((g) => [g.id, { group: g, full: measure(g.lines), compact: measure(g.compact) }]));
     this.nameplateLayout = layoutNameplates(groups.map((g) => {
       const m = measured.get(g.id)!;
-      return { id: g.id, x: g.x, y: g.y - m.full.height / 2, width: m.full.width, height: m.full.height, priority: g.priority, compactSize: m.compact, pinned: g.pinned, stationary: g.stationary };
+      return { id: g.id, x: g.x, y: g.y - m.full.height / 2, width: m.full.width, height: m.full.height, priority: g.priority, compactSize: m.compact, pinned: g.pinned, stationary: g.stationary, plated: g.plated };
     }), { gap: 2 * K, maxOffset: 64 * K, maxVisible: 18, prev: this.nameplateSlots, now: performance.now() });
     this.nameplateSlots = new Map(this.nameplateLayout.flatMap((p) => p.visible && p.slot ? [[p.id, p.slot] as const] : []));
     // Nhãn luôn neo đúng đầu chủ (đã nội suy), không dời ngang (#828, #1064, #1823). Chỉ độ nhấc dọc của vật đứng yên và độ mờ đuổi theo mức đích.
